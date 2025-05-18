@@ -6,11 +6,15 @@ interface CardProps {
   children: React.ReactNode;
 }
 
-export const Card = ({ title, children }: CardProps) => {
+export function Card({ title, children }: CardProps) {
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>{title}</Text>
-      {children}
+      {React.Children.map(children, child =>
+        typeof child === 'string' || typeof child === 'number'
+          ? <Text>{child}</Text>
+          : child
+      )}
     </View>
   );
 };

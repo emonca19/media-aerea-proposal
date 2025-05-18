@@ -1,22 +1,66 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { Card, StatusBadge } from '../../src/components/common';
+import { SearchBar } from '../../src/components/SearchBar';
+import { StatCard } from '../../src/components/StatCard';
 import { mockParks, mockTurbines } from '../../src/mocks/data';
 
 export default function ParksScreen() {
+  const router = useRouter();
   const [selectedPark, setSelectedPark] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const parkTurbines = selectedPark
     ? mockTurbines.filter(t => t.parkId === selectedPark)
     : [];
+
+  const filteredParks = mockParks.filter(park => 
+    park.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    park.location.address.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Calcular estadísticas generales
+  const totalTurbines = mockTurbines.length;
+  const inspectedTurbines = mockTurbines.filter(t => t.status === 'INSPECTED').length;
+  const completedTurbines = mockTurbines.filter(t => t.status === 'APPROVED').length;
+  const pendingTurbines = totalTurbines - inspectedTurbines - completedTurbines;
+
+  const handleTurbinePress = (turbineId: string) => {
+    Alert.alert(
+      'Acciones de Turbina',
+      '¿Qué acción desea realizar?',
+      [
+        {
+          text: 'Ver Detalles',
+          onPress: () => router.push(`/admin/turbine/${turbineId}`),
+        },
+        {
+          text: 'Ver Fotos',
+          onPress: () => router.push(`/admin/photos?turbineId=${turbineId}`),
+        },
+        {
+          text: 'Iniciar Inspección',
+          onPress: () => {
+            router.push(`/pilot/preflight-checklist?turbineId=${turbineId}`);
+          },
+        },
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -32,17 +76,53 @@ export default function ParksScreen() {
         style={styles.gradient}
       >
         <ScrollView style={styles.content}>
+          {/* Barra de búsqueda */}
+          <SearchBar
+            placeholder="Buscar parques..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onClear={() => setSearchQuery('')}
+            style={styles.searchBar}
+          />
+
+          {/* Estadísticas generales */}
+          <View style={styles.statsContainer}>
+            <StatCard
+              icon="engineering"
+              title="Total Turbinas"
+              value={totalTurbines}
+              color="#64ffda"
+            />
+            <StatCard
+              icon="checklist"
+              title="Inspeccionadas"
+              value={inspectedTurbines}
+              color="#ff9800"
+            />
+            <StatCard
+              icon="check-circle"
+              title="Completadas"
+              value={completedTurbines}
+              color="#4caf50"
+            />
+          </View>
+
+          {/* Lista de parques */}
           <View style={styles.parkList}>
             <Text style={styles.sectionTitle}>Parques Eólicos</Text>
-            {mockParks.map(park => (
+            {filteredParks.map(park => (
               <TouchableOpacity
                 key={park.id}
                 onPress={() => setSelectedPark(park.id)}
+                style={[
+                  styles.parkCard,
+                  selectedPark === park.id && styles.selectedParkCard,
+                ]}
               >
                 <Card title={park.name}>
                   <View style={styles.parkInfo}>
                     <View style={styles.locationInfo}>
-                      <Text style={styles.locationLabel}>Ubicación:</Text>
+                      <MaterialIcons name="location-on" size={16} color="#8892b0" />
                       <Text style={styles.locationText}>{park.location.address}</Text>
                     </View>
                     <View style={styles.coordinates}>
@@ -76,6 +156,7 @@ export default function ParksScreen() {
             ))}
           </View>
 
+          {/* Sección de turbinas */}
           {selectedPark && (
             <View style={styles.turbineSection}>
               <Text style={styles.sectionTitle}>Turbinas</Text>
@@ -83,27 +164,36 @@ export default function ParksScreen() {
                 {parkTurbines.map(turbine => (
                   <Card key={turbine.id} title={turbine.name}>
                     <View style={styles.turbineInfo}>
-                      <StatusBadge
-                        status={turbine.status}
-                        color={
-                          turbine.status === 'APPROVED'
-                            ? '#4caf50'
-                            : turbine.status === 'PHOTOS_UPLOADED'
-                            ? '#2196f3'
-                            : turbine.status === 'INSPECTED'
-                            ? '#ff9800'
-                            : '#9e9e9e'
-                        }
-                      />
-                      {turbine.lastInspection && (
-                        <Text style={styles.lastInspection}>
-                          Última inspección:{' '}
-                          {new Date(turbine.lastInspection).toLocaleDateString()}
-                        </Text>
-                      )}
-                      <TouchableOpacity style={styles.turbineButton}>
-                        <Text style={styles.turbineButtonText}>Ver Detalles</Text>
-                      </TouchableOpacity>
+                      <View style={styles.turbineHeader}>
+                        <StatusBadge
+                          status={turbine.status}
+                          color={
+                            turbine.status === 'APPROVED'
+                              ? '#4caf50'
+                              : turbine.status === 'PHOTOS_UPLOADED'
+                              ? '#2196f3'
+                              : turbine.status === 'INSPECTED'
+                              ? '#ff9800'
+                              : '#9e9e9e'
+                          }
+                        />
+                        {turbine.lastInspection && (
+                          <Text style={styles.lastInspection}>
+                            Última inspección:{' '}
+                            {new Date(turbine.lastInspection).toLocaleDateString()}
+                          </Text>
+                        )}
+                      </View>
+                      
+                      <View style={styles.turbineActions}>
+                        <TouchableOpacity 
+                          style={styles.turbineButton}
+                          onPress={() => handleTurbinePress(turbine.id)}
+                        >
+                          <MaterialIcons name="menu" size={16} color="#64ffda" />
+                          <Text style={styles.turbineButtonText}>Acciones</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   </Card>
                 ))}
@@ -126,6 +216,14 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+  },
+  searchContainer: {
+    marginBottom: 24,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
   },
   sectionTitle: {
     color: '#64ffda',
@@ -201,5 +299,25 @@ const styles = StyleSheet.create({
   },
   turbineButtonText: {
     color: '#64ffda',
+  },
+  searchBar: {
+    marginBottom: 24,
+  },
+  parkCard: {
+    marginBottom: 16,
+  },
+  selectedParkCard: {
+    borderWidth: 2,
+    borderColor: '#64ffda',
+  },
+  turbineHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  turbineActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    width: '100%',
   },
 });

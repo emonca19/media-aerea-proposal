@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -14,6 +14,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { theme } from '../src/constants/theme';
+import { useTheme } from '../src/hooks/useTheme';
 import { auth } from '../src/services/auth';
 
 const isWeb = Platform.OS === 'web';
@@ -23,24 +25,36 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const currentTheme = useTheme();
   
   // Animaciones
   const fadeAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(0.95))[0];
   const logoRotate = useState(new Animated.Value(0))[0];
   const buttonScale = useState(new Animated.Value(1))[0];
+  const [isButtonPressed, setIsButtonPressed] = useState(false);
+  
+  // Email validación
+  const [isEmailValid, setIsEmailValid] = useState(true);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
+  const validateEmail = useCallback((text: string) => {
+    const isValid = emailRegex.test(text);
+    setIsEmailValid(isValid);
+    return isValid;
+  }, []);
   
   React.useEffect(() => {
-    // Animación de entrada
+    // Animación de entrada mejorada
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 1000,
+        duration: currentTheme.animation.duration.slow,
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnim, {
         toValue: 1,
-        duration: 800,
+        duration: currentTheme.animation.duration.normal,
         useNativeDriver: true,
       }),
       Animated.sequence([
@@ -53,21 +67,23 @@ export default function LoginScreen() {
         }),
       ]),
     ]).start();
-  }, []);
+  }, [fadeAnim, scaleAnim, logoRotate, currentTheme.animation.duration]);
 
-  const handlePressIn = () => {
+  const handlePressIn = useCallback(() => {
+    setIsButtonPressed(true);
     Animated.spring(buttonScale, {
-      toValue: 0.95,
+      toValue: currentTheme.animation.scale.pressed,
       useNativeDriver: true,
     }).start();
-  };
+  }, [buttonScale, currentTheme.animation.scale]);
 
-  const handlePressOut = () => {
+  const handlePressOut = useCallback(() => {
+    setIsButtonPressed(false);
     Animated.spring(buttonScale, {
-      toValue: 1,
+      toValue: currentTheme.animation.scale.normal,
       useNativeDriver: true,
     }).start();
-  };
+  }, [buttonScale, currentTheme.animation.scale]);
 
   const router = useRouter();
 
@@ -76,31 +92,66 @@ export default function LoginScreen() {
       setError('');
       setIsLoading(true);
       
-      // Validación básica
-      if (!email || !password) {
-        throw new Error('Por favor ingresa email y contraseña');
+      // Validación mejorada
+      if (!email) {
+        throw new Error('Por favor ingresa tu correo electrónico');
+      }
+      if (!validateEmail(email)) {
+        throw new Error('Por favor ingresa un correo electrónico válido');
+      }
+      if (!password) {
+        throw new Error('Por favor ingresa tu contraseña');
+      }
+      if (password.length < 6) {
+        throw new Error('La contraseña debe tener al menos 6 caracteres');
       }
 
-      // Intento de login
-      const { user, token } = await auth.login(email, password);
+      // Intento de login con animación
+      const { user } = await auth.login(email, password);
 
-      // Guardar token y redirigir según rol
-      switch (user.role) {
-        case 'PILOT':
-          router.replace('/pilot/dashboard');
-          break;
-        case 'ADMIN':
-          router.replace('/admin/dashboard');
-          break;
-        case 'SUPER_ADMIN':
-          router.replace('/super/dashboard');
-          break;
-        default:
-          throw new Error('Rol no válido');
-      }
-    } catch (err) {
-      setError(err.message || 'Error al iniciar sesión');
-      Alert.alert('Error', err.message || 'Error al iniciar sesión');
+      // Animación de éxito
+      Animated.sequence([
+        Animated.spring(logoRotate, {
+          toValue: 4,
+          friction: 3,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: currentTheme.animation.duration.fast,
+          useNativeDriver: true,
+        })
+      ]).start(() => {
+        // Redirigir según rol
+        switch (user.role) {
+          case 'PILOT':
+            router.replace('/pilot/dashboard');
+            break;
+          case 'ADMIN':
+          case 'SUPER_ADMIN':
+            router.replace('/admin/parks');
+            break;
+          default:
+            throw new Error('Rol no válido');
+        }
+      });
+
+    } catch (error: any) {
+      // Animación de error
+      Animated.sequence([
+        Animated.spring(buttonScale, {
+          toValue: 0.9,
+          useNativeDriver: true,
+        }),
+        Animated.spring(buttonScale, {
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      setError(error.message || 'Error al iniciar sesión');
+      Alert.alert('Error', error.message || 'Error al iniciar sesión');
     } finally {
       setIsLoading(false);
     }
@@ -116,13 +167,118 @@ export default function LoginScreen() {
     outputRange: ['0deg', '360deg'],
   });
 
+  // Generar estilos dependientes del tema dentro del componente
+  const styles = React.useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: currentTheme.background,
+    },
+    gradient: {
+      flex: 1,
+      paddingHorizontal: Platform.OS === 'web' ? 0 : currentTheme.dimensions.spacing.lg,
+      paddingTop: Platform.OS === 'ios' ? currentTheme.dimensions.spacing.xl : currentTheme.dimensions.spacing.lg,
+    },
+    mainContent: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      maxWidth: 400,
+      width: '100%',
+      alignSelf: 'center',
+      paddingHorizontal: theme.dark.dimensions.spacing.md,
+    },
+    logoContainer: {
+      alignItems: 'center',
+      marginBottom: theme.dark.dimensions.spacing.xl,
+    },
+    logo: {
+      width: 120,
+      height: 120,
+      marginBottom: theme.dark.dimensions.spacing.md,
+    },
+    welcomeText: {
+      fontSize: theme.dark.dimensions.fontSize.xxl,
+      fontWeight: 'bold',
+      color: theme.dark.text,
+      marginBottom: theme.dark.dimensions.spacing.xs,
+    },
+    subtitleText: {
+      fontSize: theme.dark.dimensions.fontSize.md,
+      color: theme.dark.textSecondary,
+      marginBottom: theme.dark.dimensions.spacing.lg,
+    },
+    formContainer: {
+      width: '100%',
+      padding: theme.dark.dimensions.spacing.lg,
+      borderRadius: theme.dark.dimensions.borderRadius.large,
+      backgroundColor: theme.dark.elevated,
+    },
+    inputContainer: {
+      marginBottom: theme.dark.dimensions.spacing.md,
+    },
+    inputLabel: {
+      color: theme.dark.textSecondary,
+      marginBottom: theme.dark.dimensions.spacing.xs,
+      fontSize: theme.dark.dimensions.fontSize.sm,
+    },
+    input: {
+      backgroundColor: theme.dark.input,
+      borderWidth: 1,
+      borderColor: theme.dark.border,
+      borderRadius: theme.dark.dimensions.borderRadius.medium,
+      color: theme.dark.text,
+      paddingHorizontal: theme.dark.dimensions.spacing.md,
+      paddingVertical: theme.dark.dimensions.spacing.sm,
+      fontSize: theme.dark.dimensions.fontSize.md,
+      height: theme.dark.dimensions.inputHeight,
+    },
+    forgotPassword: {
+      alignSelf: 'flex-end',
+      marginBottom: theme.dark.dimensions.spacing.lg,
+    },
+    forgotPasswordText: {
+      color: theme.dark.primary,
+      fontSize: theme.dark.dimensions.fontSize.sm,
+    },
+    loginButton: {
+      backgroundColor: theme.dark.primary,
+      borderRadius: theme.dark.dimensions.borderRadius.medium,
+      paddingVertical: theme.dark.dimensions.spacing.md,
+      marginBottom: theme.dark.dimensions.spacing.md,
+      height: theme.dark.dimensions.inputHeight,
+      justifyContent: 'center',
+    },
+    loginButtonDisabled: {
+      opacity: 0.5,
+    },
+    loginButtonText: {
+      color: theme.dark.background,
+      fontSize: theme.dark.dimensions.fontSize.md,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    signupContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginTop: theme.dark.dimensions.spacing.md,
+    },
+    signupText: {
+      color: theme.dark.textSecondary,
+      fontSize: theme.dark.dimensions.fontSize.sm,
+    },
+    signupLink: {
+      color: theme.dark.primary,
+      fontSize: theme.dark.dimensions.fontSize.sm,
+      fontWeight: 'bold',
+    },
+  }), [currentTheme]);
+
   return (
     <ContentWrapper 
       {...contentProps}
       style={styles.container}
-    >
-      <LinearGradient
-        colors={['#1a237e', '#0d47a1', '#01579b']}
+    >      <LinearGradient
+        colors={currentTheme.gradients.primary}
         style={styles.gradient}
       >
         <Animated.View 
@@ -259,123 +415,3 @@ export default function LoginScreen() {
     </ContentWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0a192f',
-  },
-  gradient: {
-    flex: 1,
-    paddingHorizontal: Platform.OS === 'web' ? 0 : 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 30,
-  },
-  mainContent: {
-    flex: 1,
-    maxWidth: Platform.OS === 'web' ? 480 : '100%',
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: Platform.OS === 'web' ? 40 : 0,
-    justifyContent: 'center', // Added this line
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-    paddingTop: Platform.OS === 'web' ? 60 : 20,
-  },
-  logo: {
-    width: Platform.OS === 'web' ? 150 : 120,
-    height: Platform.OS === 'web' ? 150 : 120,
-    resizeMode: 'contain',
-    marginBottom: 20,
-  },
-  welcomeText: {
-    fontSize: Platform.OS === 'web' ? 42 : 32,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 10,
-    fontFamily: Platform.OS === 'web' ? 'system-ui' : undefined,
-    letterSpacing: 1,
-  },
-  subtitleText: {
-    fontSize: Platform.OS === 'web' ? 18 : 16,
-    color: '#64ffda',
-    marginBottom: 20,
-    letterSpacing: 0.5,
-  },
-  formContainer: {
-    width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 20,
-    padding: Platform.OS === 'web' ? 40 : 20,
-    backdropFilter: Platform.OS === 'web' ? 'blur(10px)' : undefined,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  inputContainer: {
-    marginBottom: 25,
-  },
-  inputLabel: {
-    color: '#8892b0',
-    fontSize: 14,
-    marginBottom: 8,
-    letterSpacing: 0.5,
-  },
-  input: {
-    height: 50,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    color: '#fff',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 25,
-  },
-  forgotPasswordText: {
-    color: '#8892b0',
-    fontSize: 14,
-  },
-  loginButton: {
-    backgroundColor: '#64ffda',
-    padding: Platform.OS === 'web' ? 18 : 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-    shadowColor: '#64ffda',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    transform: [{ scale: 1 }],
-  },
-  loginButtonDisabled: {
-    opacity: 0.7,
-  },
-  loginButtonText: {
-    color: '#0a192f',
-    fontSize: Platform.OS === 'web' ? 20 : 18,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  signupContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 30,
-  },
-  signupText: {
-    color: '#8892b0',
-    fontSize: 14,
-  },
-  signupLink: {
-    color: '#64ffda',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-});

@@ -1,17 +1,19 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Card } from '../../src/components/common';
+import { TurbineChecklist } from '../../src/components/TurbineChecklist';
+import { mockTurbines } from '../../src/mocks/data';
 
 interface ChecklistItem {
   id: string;
@@ -21,7 +23,7 @@ interface ChecklistItem {
   notes?: string;
 }
 
-const initialChecklist: ChecklistItem[] = [
+const initialPreflightChecklist: ChecklistItem[] = [
   // Dron
   { id: '1', category: 'Dron', item: 'Hélices en buen estado', checked: false },
   { id: '2', category: 'Dron', item: 'Baterías cargadas', checked: false },
@@ -40,19 +42,23 @@ const initialChecklist: ChecklistItem[] = [
 ];
 
 export default function PreflightChecklistScreen() {
-  const [checklist, setChecklist] = useState(initialChecklist);
-  const [notes, setNotes] = useState('');
+  const { turbineId } = useLocalSearchParams();
+  const router = useRouter();
+  const [preflightChecklist, setPreflightChecklist] = useState(initialPreflightChecklist);
+  const [generalNotes, setGeneralNotes] = useState('');
+
+  const turbine = turbineId ? mockTurbines.find(t => t.id === turbineId) : null;
 
   const handleToggleItem = (id: string) => {
-    setChecklist(prev =>
+    setPreflightChecklist(prev =>
       prev.map(item =>
         item.id === id ? { ...item, checked: !item.checked } : item
       )
     );
   };
 
-  const handleSubmit = () => {
-    const uncheckedItems = checklist.filter(item => !item.checked);
+  const handleSubmitPreflight = () => {
+    const uncheckedItems = preflightChecklist.filter(item => !item.checked);
     if (uncheckedItems.length > 0) {
       Alert.alert(
         'Lista Incompleta',
@@ -68,15 +74,49 @@ export default function PreflightChecklistScreen() {
   };
 
   const submitChecklist = () => {
-    // Aquí iría la lógica para guardar el checklist
-    Alert.alert('Éxito', 'Checklist completado. Puede iniciar el vuelo.');
+    // Aquí guardaríamos ambos checklists
+    Alert.alert(
+      'Éxito',
+      turbine
+        ? 'Checklist completado. Puede comenzar la inspección.'
+        : 'Checklist completado. Puede iniciar el vuelo.',
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            // Si hay una turbina, vamos al registro de actividades
+            if (turbine) {
+              router.push('/pilot/activity-log');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleTurbineChecklistSubmit = (turbineChecklist: ChecklistItem[]) => {
+    // Aquí procesaríamos el checklist específico de la turbina
+    Alert.alert(
+      'Inspección Completada',
+      '¿Desea finalizar la inspección de la turbina?',
+      [
+        { text: 'Revisar', style: 'cancel' },
+        {
+          text: 'Finalizar',
+          onPress: () => {
+            // Aquí guardaríamos los resultados
+            router.push('/pilot/activity-log');
+          },
+        },
+      ]
+    );
   };
 
   return (
     <View style={styles.container}>
       <Stack.Screen
         options={{
-          title: 'Checklist Prevuelo',
+          title: turbine ? `Inspección - ${turbine.name}` : 'Checklist Prevuelo',
           headerStyle: { backgroundColor: '#1a237e' },
           headerTintColor: '#fff',
         }}
@@ -86,49 +126,60 @@ export default function PreflightChecklistScreen() {
         style={styles.gradient}
       >
         <ScrollView style={styles.content}>
-          {['Dron', 'Seguridad', 'Condiciones'].map(category => (
-            <Card key={category} title={category}>
-              {checklist
-                .filter(item => item.category === category)
-                .map(item => (
-                  <View key={item.id} style={styles.checklistItem}>
-                    <View style={styles.itemHeader}>
-                      <Text style={styles.itemText}>{item.item}</Text>
-                      <Switch
-                        value={item.checked}
-                        onValueChange={() => handleToggleItem(item.id)}
-                        trackColor={{ false: '#666', true: '#64ffda' }}
-                        thumbColor={item.checked ? '#fff' : '#f4f3f4'}
-                      />
-                    </View>
-                    {item.notes && (
-                      <Text style={styles.itemNotes}>{item.notes}</Text>
-                    )}
-                  </View>
-                ))}
-            </Card>
-          ))}
+          {!turbine ? (
+            // Checklist de prevuelo normal
+            <>
+              {['Dron', 'Seguridad', 'Condiciones'].map(category => (
+                <Card key={category} title={category}>
+                  {preflightChecklist
+                    .filter(item => item.category === category)
+                    .map(item => (
+                      <View key={item.id} style={styles.checklistItem}>
+                        <View style={styles.itemHeader}>
+                          <Text style={styles.itemText}>{item.item}</Text>
+                          <Switch
+                            value={item.checked}
+                            onValueChange={() => handleToggleItem(item.id)}
+                            trackColor={{ false: '#666', true: '#64ffda' }}
+                            thumbColor={item.checked ? '#fff' : '#f4f3f4'}
+                          />
+                        </View>
+                        {item.notes && (
+                          <Text style={styles.itemNotes}>{item.notes}</Text>
+                        )}
+                      </View>
+                    ))}
+                </Card>
+              ))}
 
-          <Card title="Notas Adicionales">
-            <TextInput
-              style={styles.notesInput}
-              multiline
-              numberOfLines={4}
-              placeholder="Agregar notas o comentarios..."
-              placeholderTextColor="#8892b0"
-              value={notes}
-              onChangeText={setNotes}
+              <Card title="Notas Adicionales">
+                <TextInput
+                  style={styles.notesInput}
+                  multiline
+                  numberOfLines={4}
+                  placeholder="Agregar notas o comentarios..."
+                  placeholderTextColor="#8892b0"
+                  value={generalNotes}
+                  onChangeText={setGeneralNotes}
+                />
+              </Card>
+
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleSubmitPreflight}
+              >
+                <Text style={styles.submitButtonText}>
+                  Confirmar y Comenzar Vuelo
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            // Checklist específico de turbina
+            <TurbineChecklist
+              turbineId={turbineId as string}
+              onSubmit={handleTurbineChecklistSubmit}
             />
-          </Card>
-
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleSubmit}
-          >
-            <Text style={styles.submitButtonText}>
-              Confirmar y Comenzar Vuelo
-            </Text>
-          </TouchableOpacity>
+          )}
         </ScrollView>
       </LinearGradient>
     </View>

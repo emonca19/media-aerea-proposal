@@ -1,17 +1,18 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 import {
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { Card, StatusBadge } from '../../src/components/common';
 import { mockActivities, mockProjects, mockTurbines } from '../../src/mocks/data';
 
 export default function PilotDashboard() {
+  const router = useRouter();
   const todayActivities = mockActivities.filter(
     activity => new Date(activity.startTime).toDateString() === new Date().toDateString()
   );
@@ -69,8 +70,16 @@ export default function PilotDashboard() {
             ))}
           </Card>
 
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/pilot/preflight-checklist')}>
             <Text style={styles.buttonText}>Iniciar Checklist Prevuelo</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/pilot/statistics')}>
+            <Text style={styles.buttonText}>Ver Mis Estadísticas</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/pilot/incidents')}>
+            <Text style={styles.buttonText}>Registrar Incidencia</Text>
           </TouchableOpacity>
         </ScrollView>
       </LinearGradient>
