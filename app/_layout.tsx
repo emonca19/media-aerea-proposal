@@ -10,18 +10,34 @@ export default function RootLayout() {
       SystemUI.setBackgroundColorAsync('#0a192f');
     }
   }, []);
-
   return (
     <>
       <StatusBar style="light" backgroundColor="#0a192f" />
       <Stack>
+        <Stack.Screen
+          name="index"
+          options={{
+            headerShown: false,
+          }}
+        />
         <Stack.Screen
           name="login"
           options={{
             headerShown: false,
           }}
         />
-        {/* Add other screens here if needed */}
+        <Stack.Screen
+          name="pilot"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="admin"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
     </>
   );

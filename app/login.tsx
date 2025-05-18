@@ -2,18 +2,19 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Animated,
-    Easing,
-    Image,
-    KeyboardAvoidingView,
-    KeyboardAvoidingViewProps,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Animated,
+  Image,
+  KeyboardAvoidingView,
+  KeyboardAvoidingViewProps,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
+import { auth } from '../src/services/auth';
 
 const isWeb = Platform.OS === 'web';
 
@@ -21,6 +22,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   
   // Animaciones
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -70,20 +72,38 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleLogin = async () => {
-    setIsLoading(true);
-    // Animación de rotación continua durante la carga
-    Animated.loop(
-      Animated.timing(logoRotate, {
-        toValue: 1,
-        duration: 2000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
+    try {
+      setError('');
+      setIsLoading(true);
+      
+      // Validación básica
+      if (!email || !password) {
+        throw new Error('Por favor ingresa email y contraseña');
+      }
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
-    router.push('/');
+      // Intento de login
+      const { user, token } = await auth.login(email, password);
+
+      // Guardar token y redirigir según rol
+      switch (user.role) {
+        case 'PILOT':
+          router.replace('/pilot/dashboard');
+          break;
+        case 'ADMIN':
+          router.replace('/admin/dashboard');
+          break;
+        case 'SUPER_ADMIN':
+          router.replace('/super/dashboard');
+          break;
+        default:
+          throw new Error('Rol no válido');
+      }
+    } catch (err) {
+      setError(err.message || 'Error al iniciar sesión');
+      Alert.alert('Error', err.message || 'Error al iniciar sesión');
+    } finally {
+      setIsLoading(false);
+    }
   };
   const ContentWrapper = isWeb ? View : KeyboardAvoidingView;
   const contentProps: Partial<KeyboardAvoidingViewProps> = isWeb ? {} : {
