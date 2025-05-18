@@ -1,20 +1,19 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  TextInput, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Image, 
-  Text,
-  Dimensions,
-  KeyboardAvoidingView,
-  Platform,
-  ImageBackground,
-  Animated,
-  Easing,
-} from 'react-native';
-import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+    Animated,
+    Easing,
+    Image,
+    KeyboardAvoidingView,
+    KeyboardAvoidingViewProps,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from 'react-native';
 
 const isWeb = Platform.OS === 'web';
 
@@ -86,10 +85,10 @@ export default function LoginScreen() {
     setIsLoading(false);
     router.push('/');
   };
-
   const ContentWrapper = isWeb ? View : KeyboardAvoidingView;
-  const contentProps = isWeb ? {} : { 
-    behavior: (Platform.OS === 'ios' ? 'padding' : 'height') as 'padding' | 'height'
+  const contentProps: Partial<KeyboardAvoidingViewProps> = isWeb ? {} : {
+    behavior: (Platform.OS === 'ios' ? 'padding' : 'height') as KeyboardAvoidingViewProps['behavior'],
+    keyboardVerticalOffset: Platform.OS === 'ios' ? 0 : 20
   };
 
   const spin = logoRotate.interpolate({
@@ -140,7 +139,7 @@ export default function LoginScreen() {
                 }
               ]}
             >
-              Aerial Media
+              mediaaerea
             </Animated.Text>
             <Animated.Text 
               style={[
@@ -257,6 +256,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
     paddingHorizontal: Platform.OS === 'web' ? 40 : 0,
+    justifyContent: 'center', // Added this line
   },
   logoContainer: {
     alignItems: 'center',
