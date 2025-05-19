@@ -3,15 +3,13 @@ import { Redirect, Tabs } from 'expo-router';
 
 export default function AdminLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: '#f8fafc',
-        },
-        headerTintColor: '#1e293b',
+    <Tabs      screenOptions={{
+        headerShown: false,
         tabBarStyle: {
           backgroundColor: '#fff',
           borderTopColor: '#e2e8f0',
+          elevation: 0,
+          shadowOpacity: 0,
         },
         tabBarActiveTintColor: '#3949ab',
         tabBarInactiveTintColor: '#64748b',

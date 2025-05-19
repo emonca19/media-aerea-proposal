@@ -1,49 +1,75 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { View, SafeAreaView } from 'react-native';
 
 export default function PilotLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: '#1a237e',
-        },
-        headerTintColor: '#fff',
-        tabBarStyle: {
-          backgroundColor: '#0a192f',
-          borderTopColor: 'rgba(255,255,255,0.1)',
-        },
-        tabBarActiveTintColor: '#64ffda',
-        tabBarInactiveTintColor: '#8892b0',
-      }}
-    >
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="activity-log"
-        options={{
-          title: 'Actividades',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="time" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="preflight-checklist"
-        options={{
-          title: 'Checklist',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="checkbox" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      <View style={{ flex: 1, paddingTop: 0 }}>
+        <Tabs
+          screenOptions={{
+            headerShown: false,
+            tabBarStyle: {
+              backgroundColor: '#ffffff',
+              borderTopColor: '#e2e2e2',
+              borderTopWidth: 1,
+              elevation: 0,
+              shadowOpacity: 0,
+              height: 60,
+              paddingBottom: 4,
+            },
+            tabBarItemStyle: {
+              paddingVertical: 8,
+            },
+            tabBarActiveTintColor: '#2563eb',
+            tabBarInactiveTintColor: '#64748b',
+            tabBarLabelStyle: {
+              fontSize: 12,
+              marginBottom: 4,
+            },
+          }}
+        >
+          <Tabs.Screen
+            name="dashboard"
+            options={{
+              title: 'Dashboard',
+              tabBarIcon: ({ color, size, focused }) => (
+                <Ionicons 
+                  name={focused ? "home" : "home-outline"} 
+                  size={size} 
+                  color={color} 
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="activity-log"
+            options={{
+              title: 'Actividades',
+              tabBarIcon: ({ color, size, focused }) => (
+                <Ionicons 
+                  name={focused ? "time" : "time-outline"} 
+                  size={size} 
+                  color={color} 
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="preflight-checklist"
+            options={{
+              title: 'Checklist',
+              tabBarIcon: ({ color, size, focused }) => (
+                <Ionicons 
+                  name={focused ? "checkbox" : "checkbox-outline"} 
+                  size={size} 
+                  color={color} 
+                />
+              ),
+            }}
+          />
+        </Tabs>
+      </View>
+    </SafeAreaView>
   );
 }

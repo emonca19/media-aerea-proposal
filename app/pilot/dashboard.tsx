@@ -1,3 +1,4 @@
+import { AntDesign, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -9,7 +10,6 @@ import {
 } from 'react-native';
 import { StatusBadge } from '../../src/components/common';
 import { mockActivities, mockProjects, mockTurbines } from '../../src/mocks/data';
-import { MaterialCommunityIcons, Ionicons, AntDesign } from '@expo/vector-icons';
 
 export default function PilotDashboard() {
   const router = useRouter();
@@ -193,9 +193,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  content: {
-    padding: 16,
-    paddingTop: 8,
+  content: {    padding: 16,
+    paddingTop: 24,
   },
   header: {
     marginBottom: 24,
