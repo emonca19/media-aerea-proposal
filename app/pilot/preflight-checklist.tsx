@@ -1,23 +1,31 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { CloseCircle, TickCircle } from 'iconsax-react-native';
 import React, { useState } from 'react';
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { Card } from '../../src/components/common';
 import { mockTurbines } from '../../src/mocks/data';
 
+// Define the type for icon names from MaterialCommunityIcons
+type MaterialCommunityIconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+
+const CATEGORIES = ['Dron', 'Seguridad', 'Condiciones'] as const;
+type Category = typeof CATEGORIES[number];
+
 interface ChecklistItem {
   id: string;
-  category: string;
+  category: Category;
   item: string;
   checked: boolean;
   notes?: string;
@@ -36,7 +44,7 @@ const initialPreflightChecklist: ChecklistItem[] = [
   { id: '10', category: 'Condiciones', item: 'Sin precipitación', checked: false },
 ];
 
-const categoryIcons = {
+const categoryIcons: Record<Category, MaterialCommunityIconName> = {
   'Dron': 'drone',
   'Seguridad': 'shield-check',
   'Condiciones': 'weather-cloudy'
@@ -47,7 +55,10 @@ export default function PreflightChecklistScreen() {
   const router = useRouter();
   const [preflightChecklist, setPreflightChecklist] = useState(initialPreflightChecklist);
   const [generalNotes, setGeneralNotes] = useState('');
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [expandedCategory, setExpandedCategory] = useState<Category[]>([]);
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [mediaLibraryPermission, requestMediaLibraryPermission] = ImagePicker.useMediaLibraryPermissions();
+  const [photoTakenCategories, setPhotoTakenCategories] = useState<Category[]>([]);
 
   const turbine = turbineId ? mockTurbines.find(t => t.id === turbineId) : null;
 
@@ -59,12 +70,66 @@ export default function PreflightChecklistScreen() {
     );
   };
 
-  const toggleCategory = (category: string) => {
-    setExpandedCategory(expandedCategory === category ? null : category);
+  const handleOpenCamera = async (category: Category) => {
+    if (!cameraPermission?.granted) {
+      const permissionResult = await requestCameraPermission();
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Denied', 'Camera permission is required to take photos.');
+        return;
+      }
+    }
+
+    if (!mediaLibraryPermission?.granted) {
+      const permissionResult = await requestMediaLibraryPermission();
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Denied', 'Media library permission is required to save photos.');
+        return;
+      }
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: 'images',
+        allowsEditing: false,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        console.log('ImagePicker Result:', result.assets ? result.assets[0].uri : 'No assets');
+        // Here you can handle the taken image, e.g., save its URI
+        // Alert.alert('Photo Taken', `Photo for ${category} taken successfully! URI: ${result.assets ? result.assets[0].uri : 'N/A'}`);
+        if (!photoTakenCategories.includes(category)) {
+          setPhotoTakenCategories(prev => [...prev, category]);
+        }
+      }
+    } catch (error) {
+      console.error('Error opening camera:', error);
+      Alert.alert('Error', 'Could not open camera.');
+    }
+  };
+
+  const toggleCategory = (category: Category) => {
+    setExpandedCategory(prevExpandedCategories =>
+      prevExpandedCategories.includes(category)
+        ? prevExpandedCategories.filter(c => c !== category)
+        : [...prevExpandedCategories, category]
+    );
   };
 
   const handleSubmitPreflight = () => {
     const uncheckedItems = preflightChecklist.filter(item => !item.checked);
+    const allPhotosTaken = photoTakenCategories.length === CATEGORIES.length;
+
+    if (!allPhotosTaken) {
+      Alert.alert(
+        'Fotos Faltantes',
+        'Por favor, toma una foto para cada categoría antes de continuar.',
+        [{ text: 'Entendido' }]
+      );
+      return;
+    }
+
     if (uncheckedItems.length > 0) {
       Alert.alert(
         'Lista Incompleta',
@@ -86,13 +151,20 @@ export default function PreflightChecklistScreen() {
       [
         { 
           text: 'Continuar', 
-          onPress: () => router.push(turbine ? '/pilot/activity-log' : '/pilot/dashboard') 
+          onPress: () => {
+            router.push(turbine ? '/pilot/activity-log' : '/pilot/dashboard');
+            // Reset form states
+            setPreflightChecklist(initialPreflightChecklist);
+            setGeneralNotes('');
+            setExpandedCategory([]);
+            setPhotoTakenCategories([]);
+          }
         }
       ]
     );
   };
 
-  const getCompletionPercentage = (category?: string) => {
+  const getCompletionPercentage = (category?: Category) => {
     const items = category ? 
       preflightChecklist.filter(i => i.category === category) : 
       preflightChecklist;
@@ -126,7 +198,7 @@ export default function PreflightChecklistScreen() {
               <Text style={styles.progressText}>{getCompletionPercentage()}% completado</Text>
             </View>
 
-            {['Dron', 'Seguridad', 'Condiciones'].map(category => (
+            {CATEGORIES.map(category => (
               <Card key={category} style={styles.categoryCard}>
                 <TouchableOpacity 
                   style={styles.categoryHeader}
@@ -140,19 +212,26 @@ export default function PreflightChecklistScreen() {
                     />
                     <Text style={styles.categoryTitle}>{category}</Text>
                   </View>
+                    <TouchableOpacity onPress={() => handleOpenCamera(category)} style={{ marginRight: 8, padding: 4 /* Added padding for touchability */ }}>
+                      <MaterialCommunityIcons 
+                        name="camera" 
+                        size={28 /* Increased size */} 
+                        color={photoTakenCategories.includes(category) ? "#10b981" : "#6b7280"} /* Changed color for default state */
+                      />
+                    </TouchableOpacity>
                   <View style={styles.categoryStatus}>
                     <Text style={styles.categoryPercentage}>
                       {getCompletionPercentage(category)}%
                     </Text>
                     <MaterialCommunityIcons 
-                      name={expandedCategory === category ? 'chevron-up' : 'chevron-down'} 
+                      name={expandedCategory.includes(category) ? 'chevron-up' : 'chevron-down'} 
                       size={24} 
                       color="#6b7280" 
                     />
                   </View>
                 </TouchableOpacity>
 
-                {expandedCategory === category && (
+                {expandedCategory.includes(category) && (
                   <View style={styles.checklistItems}>
                     {preflightChecklist
                       .filter(item => item.category === category)
@@ -199,15 +278,15 @@ export default function PreflightChecklistScreen() {
             <TouchableOpacity
               style={[
                 styles.submitButton,
-                getCompletionPercentage() < 100 && styles.submitButtonDisabled
+                (getCompletionPercentage() < 100 || photoTakenCategories.length < CATEGORIES.length) && styles.submitButtonDisabled
               ]}
               onPress={handleSubmitPreflight}
-              disabled={getCompletionPercentage() < 100}
+              disabled={getCompletionPercentage() < 100 || photoTakenCategories.length < CATEGORIES.length}
             >
               <Text style={styles.submitButtonText}>
-                {getCompletionPercentage() === 100 ? 
+                {getCompletionPercentage() === 100 && photoTakenCategories.length === CATEGORIES.length ? 
                   'Confirmar y Comenzar Vuelo' : 
-                  'Completar todos los checks'}
+                  (getCompletionPercentage() < 100 ? 'Completar todos los checks' : 'Tomar todas las fotos')}
               </Text>
             </TouchableOpacity>
           </>
@@ -267,7 +346,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
   content: {
-    padding: 16,
+    padding: 12,
   },  header: {
     marginBottom: 20, // Reduced from 24
     padding: 16,
@@ -325,7 +404,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 14, // Slightly reduced from 16
+    padding: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
   },
@@ -343,10 +422,12 @@ const styles = StyleSheet.create({
   categoryStatus: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
     backgroundColor: '#f8fafc',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 20,
+    minWidth: 88, // Added to stabilize width
   },
   categoryPercentage: {
     fontSize: 15, // Reduced from 16
@@ -362,7 +443,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 5, // Reduced from 12
-    paddingHorizontal: 4,
+    paddingHorizontal: 0,
     marginVertical: 2, // Added small vertical spacing
     borderRadius: 8,
     backgroundColor: 'white',
@@ -392,13 +473,15 @@ const styles = StyleSheet.create({
   },
   notesCard: {
     marginBottom: 24,
-    padding: 16,
+    marginHorizontal: 0,
+    padding: 0,
   },
   notesTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     color: '#1e40af',
     marginBottom: 12,
+    paddingHorizontal: 6,
   },
   notesInput: {
     backgroundColor: '#ffffff',
