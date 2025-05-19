@@ -2,17 +2,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
-  Animated,
-  Easing,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    Animated,
+    Easing,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { theme } from '../src/constants/theme';
 import { useTheme } from '../src/hooks/useTheme';
@@ -23,6 +23,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showEmailError, setShowEmailError] = useState(false);
   const currentTheme = useTheme();
   
   // Animaciones
@@ -30,15 +31,10 @@ export default function LoginScreen() {
   const scaleAnim = useState(new Animated.Value(0.95))[0];
   const logoRotate = useState(new Animated.Value(0))[0];
   const buttonScale = useState(new Animated.Value(1))[0];
-  // Button animation is handled through the buttonScale animated value
   
-  // Email validación
-  const [isEmailValid, setIsEmailValid] = useState(true);
   const validateEmail = useCallback((text: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const isValid = emailRegex.test(text);
-    setIsEmailValid(isValid);
-    return isValid;
+    return emailRegex.test(text);
   }, []);
   
   React.useEffect(() => {
@@ -248,20 +244,24 @@ export default function LoginScreen() {
               <TextInput
                 style={[
                   styles.input,
-                  !isEmailValid && email !== '' && { borderColor: '#ff6b6b' }
+                  showEmailError && !validateEmail(email) && { borderColor: '#ff6b6b' }
                 ]}
                 placeholder="nombre@empresa.com"
                 placeholderTextColor="rgba(255,255,255,0.5)"
                 value={email}
                 onChangeText={(text) => {
                   setEmail(text);
-                  validateEmail(text);
+                  if (showEmailError) {
+                    // Solo validamos si ya se mostró un error previamente
+                    setShowEmailError(true);
+                  }
                 }}
+                onBlur={() => setShowEmailError(true)}
                 autoCapitalize="none"
                 keyboardType="email-address"
                 autoComplete="email"
               />
-              {!isEmailValid && email !== '' && (
+              {showEmailError && !validateEmail(email) && email !== '' && (
                 <Text style={styles.errorText}>
                   Por favor ingresa un correo electrónico válido
                 </Text>

@@ -1,5 +1,6 @@
-import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { CloseCircle, TickCircle } from 'iconsax-react-native';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -12,7 +13,6 @@ import {
   View,
 } from 'react-native';
 import { Card } from '../../src/components/common';
-import { TurbineChecklist } from '../../src/components/TurbineChecklist';
 import { mockTurbines } from '../../src/mocks/data';
 
 interface ChecklistItem {
@@ -24,28 +24,30 @@ interface ChecklistItem {
 }
 
 const initialPreflightChecklist: ChecklistItem[] = [
-  // Dron
   { id: '1', category: 'Dron', item: 'Hélices en buen estado', checked: false },
   { id: '2', category: 'Dron', item: 'Baterías cargadas', checked: false },
   { id: '3', category: 'Dron', item: 'Cámara funcionando', checked: false },
   { id: '4', category: 'Dron', item: 'GPS conectado', checked: false },
-  
-  // Seguridad
   { id: '5', category: 'Seguridad', item: 'Conos de seguridad disponibles', checked: false },
   { id: '6', category: 'Seguridad', item: 'Área de despegue despejada', checked: false },
   { id: '7', category: 'Seguridad', item: 'EPP completo', checked: false },
-  
-  // Condiciones
   { id: '8', category: 'Condiciones', item: 'Viento dentro de límites', checked: false },
   { id: '9', category: 'Condiciones', item: 'Visibilidad adecuada', checked: false },
   { id: '10', category: 'Condiciones', item: 'Sin precipitación', checked: false },
 ];
+
+const categoryIcons = {
+  'Dron': 'drone',
+  'Seguridad': 'shield-check',
+  'Condiciones': 'weather-cloudy'
+};
 
 export default function PreflightChecklistScreen() {
   const { turbineId } = useLocalSearchParams();
   const router = useRouter();
   const [preflightChecklist, setPreflightChecklist] = useState(initialPreflightChecklist);
   const [generalNotes, setGeneralNotes] = useState('');
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const turbine = turbineId ? mockTurbines.find(t => t.id === turbineId) : null;
 
@@ -57,6 +59,10 @@ export default function PreflightChecklistScreen() {
     );
   };
 
+  const toggleCategory = (category: string) => {
+    setExpandedCategory(expandedCategory === category ? null : category);
+  };
+
   const handleSubmitPreflight = () => {
     const uncheckedItems = preflightChecklist.filter(item => !item.checked);
     if (uncheckedItems.length > 0) {
@@ -65,7 +71,7 @@ export default function PreflightChecklistScreen() {
         '¿Estás seguro de que quieres iniciar el vuelo con elementos sin verificar?',
         [
           { text: 'Revisar', style: 'cancel' },
-          { text: 'Continuar', style: 'destructive', onPress: submitChecklist }
+          { text: 'Continuar', onPress: submitChecklist }
         ]
       );
     } else {
@@ -74,42 +80,25 @@ export default function PreflightChecklistScreen() {
   };
 
   const submitChecklist = () => {
-    // Aquí guardaríamos ambos checklists
     Alert.alert(
-      'Éxito',
-      turbine
-        ? 'Checklist completado. Puede comenzar la inspección.'
-        : 'Checklist completado. Puede iniciar el vuelo.',
+      'Checklist Completado',
+      '¡Todo listo para el vuelo!',
       [
-        {
-          text: 'OK',
-          onPress: () => {
-            // Si hay una turbina, vamos al registro de actividades
-            if (turbine) {
-              router.push('/pilot/activity-log');
-            }
-          },
-        },
+        { 
+          text: 'Continuar', 
+          onPress: () => router.push(turbine ? '/pilot/activity-log' : '/pilot/dashboard') 
+        }
       ]
     );
   };
 
-  const handleTurbineChecklistSubmit = (turbineChecklist: ChecklistItem[]) => {
-    // Aquí procesaríamos el checklist específico de la turbina
-    Alert.alert(
-      'Inspección Completada',
-      '¿Desea finalizar la inspección de la turbina?',
-      [
-        { text: 'Revisar', style: 'cancel' },
-        {
-          text: 'Finalizar',
-          onPress: () => {
-            // Aquí guardaríamos los resultados
-            router.push('/pilot/activity-log');
-          },
-        },
-      ]
-    );
+  const getCompletionPercentage = (category?: string) => {
+    const items = category ? 
+      preflightChecklist.filter(i => i.category === category) : 
+      preflightChecklist;
+      
+    const checked = items.filter(i => i.checked).length;
+    return Math.round((checked / items.length) * 100);
   };
 
   return (
@@ -117,71 +106,157 @@ export default function PreflightChecklistScreen() {
       <Stack.Screen
         options={{
           title: turbine ? `Inspección - ${turbine.name}` : 'Checklist Prevuelo',
-          headerStyle: { backgroundColor: '#1a237e' },
-          headerTintColor: '#fff',
+          headerStyle: { backgroundColor: '#ffffff' },
+          headerTintColor: '#1e40af',
+          headerShadowVisible: false,
         }}
       />
-      <LinearGradient
-        colors={['#1a237e', '#0d47a1', '#01579b']}
-        style={styles.gradient}
-      >
-        <ScrollView style={styles.content}>
-          {!turbine ? (
-            // Checklist de prevuelo normal
-            <>
-              {['Dron', 'Seguridad', 'Condiciones'].map(category => (
-                <Card key={category} title={category}>
-                  {preflightChecklist
-                    .filter(item => item.category === category)
-                    .map(item => (
-                      <View key={item.id} style={styles.checklistItem}>
-                        <View style={styles.itemHeader}>
-                          <Text style={styles.itemText}>{item.item}</Text>
+
+      <ScrollView style={styles.content}>
+        {!turbine ? (
+          <>
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>Verificación Prevuelo</Text>
+              <Text style={styles.headerSubtitle}>
+                Completa todos los checks antes de despegar
+              </Text>
+              <View style={styles.progressContainer}>
+                <View style={[styles.progressBar, { width: `${getCompletionPercentage()}%` }]} />
+              </View>
+              <Text style={styles.progressText}>{getCompletionPercentage()}% completado</Text>
+            </View>
+
+            {['Dron', 'Seguridad', 'Condiciones'].map(category => (
+              <Card key={category} style={styles.categoryCard}>
+                <TouchableOpacity 
+                  style={styles.categoryHeader}
+                  onPress={() => toggleCategory(category)}
+                >
+                  <View style={styles.categoryTitleContainer}>
+                    <MaterialCommunityIcons 
+                      name={categoryIcons[category]} 
+                      size={24} 
+                      color="#1e40af" 
+                    />
+                    <Text style={styles.categoryTitle}>{category}</Text>
+                  </View>
+                  <View style={styles.categoryStatus}>
+                    <Text style={styles.categoryPercentage}>
+                      {getCompletionPercentage(category)}%
+                    </Text>
+                    <MaterialCommunityIcons 
+                      name={expandedCategory === category ? 'chevron-up' : 'chevron-down'} 
+                      size={24} 
+                      color="#6b7280" 
+                    />
+                  </View>
+                </TouchableOpacity>
+
+                {expandedCategory === category && (
+                  <View style={styles.checklistItems}>
+                    {preflightChecklist
+                      .filter(item => item.category === category)
+                      .map(item => (
+                        <View key={item.id} style={styles.checklistItem}>
+                          <View style={styles.itemContent}>
+                            {item.checked ? (
+                              <TickCircle size={24} color="#10b981" variant="Bold" />
+                            ) : (
+                              <CloseCircle size={24} color="#ef4444" variant="Bold" />
+                            )}
+                            <Text style={[
+                              styles.itemText,
+                              item.checked && styles.itemTextChecked
+                            ]}>
+                              {item.item}
+                            </Text>
+                          </View>
                           <Switch
                             value={item.checked}
                             onValueChange={() => handleToggleItem(item.id)}
-                            trackColor={{ false: '#666', true: '#64ffda' }}
-                            thumbColor={item.checked ? '#fff' : '#f4f3f4'}
+                            trackColor={{ false: '#d1d5db', true: '#a7f3d0' }}
+                            thumbColor={item.checked ? '#10b981' : '#f3f4f6'}
                           />
                         </View>
-                        {item.notes && (
-                          <Text style={styles.itemNotes}>{item.notes}</Text>
-                        )}
-                      </View>
-                    ))}
-                </Card>
-              ))}
-
-              <Card title="Notas Adicionales">
-                <TextInput
-                  style={styles.notesInput}
-                  multiline
-                  numberOfLines={4}
-                  placeholder="Agregar notas o comentarios..."
-                  placeholderTextColor="#8892b0"
-                  value={generalNotes}
-                  onChangeText={setGeneralNotes}
-                />
+                      ))}
+                  </View>
+                )}
               </Card>
+            ))}
 
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={handleSubmitPreflight}
-              >
-                <Text style={styles.submitButtonText}>
-                  Confirmar y Comenzar Vuelo
-                </Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            // Checklist específico de turbina
-            <TurbineChecklist
-              turbineId={turbineId as string}
-              onSubmit={handleTurbineChecklistSubmit}
-            />
-          )}
-        </ScrollView>
-      </LinearGradient>
+            <Card style={styles.notesCard}>
+              <Text style={styles.notesTitle}>Notas Adicionales</Text>
+              <TextInput
+                style={styles.notesInput}
+                multiline
+                placeholder="Agregar notas o comentarios relevantes..."
+                placeholderTextColor="#9ca3af"
+                value={generalNotes}
+                onChangeText={setGeneralNotes}
+              />
+            </Card>
+
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                getCompletionPercentage() < 100 && styles.submitButtonDisabled
+              ]}
+              onPress={handleSubmitPreflight}
+              disabled={getCompletionPercentage() < 100}
+            >
+              <Text style={styles.submitButtonText}>
+                {getCompletionPercentage() === 100 ? 
+                  '✅ Confirmar y Comenzar Vuelo' : 
+                  'Completar todos los checks'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View style={styles.turbineContainer}>
+            <View style={styles.turbineHeader}>
+              <MaterialCommunityIcons name="wind-turbine" size={32} color="#1e40af" />
+              <Text style={styles.turbineTitle}>Checklist de Turbina {turbine.name}</Text>
+            </View>
+            <Text style={styles.turbineSubtitle}>
+              Complete todas las verificaciones antes de comenzar la inspección
+            </Text>
+            
+            <Card style={styles.turbineCard}>
+              <View style={styles.checklistItem}>
+                <View style={styles.itemContent}>
+                  <TickCircle size={24} color="#10b981" variant="Bold" />
+                  <Text style={styles.itemTextChecked}>Verificación estructural</Text>
+                </View>
+              </View>
+              <View style={styles.checklistItem}>
+                <View style={styles.itemContent}>
+                  <TickCircle size={24} color="#10b981" variant="Bold" />
+                  <Text style={styles.itemTextChecked}>Aspas</Text>
+                </View>
+              </View>
+              <View style={styles.checklistItem}>
+                <View style={styles.itemContent}>
+                  <CloseCircle size={24} color="#ef4444" variant="Bold" />
+                  <Text style={styles.itemText}>Sistema eléctrico</Text>
+                </View>
+                <Switch
+                  value={false}
+                  onValueChange={() => {}}
+                  trackColor={{ false: '#d1d5db', true: '#a7f3d0' }}
+                  thumbColor="#f3f4f6"
+                />
+              </View>
+            </Card>
+
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={() => router.push('/pilot/activity-log')}
+            >
+              <Text style={styles.submitButtonText}>Finalizar Inspección</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -189,52 +264,200 @@ export default function PreflightChecklistScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a192f',
-  },
-  gradient: {
-    flex: 1,
+    backgroundColor: '#f9fafb',
   },
   content: {
     padding: 16,
+  },  header: {
+    marginBottom: 20, // Reduced from 24
+    padding: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  checklistItem: {
-    marginBottom: 16,
+  headerTitle: {
+    fontSize: 24, // Increased from 22
+    fontWeight: '700',
+    color: '#1e40af',
+    marginBottom: 4,
+    letterSpacing: -0.5, // Added for modern look
   },
-  itemHeader: {
+  headerSubtitle: {
+    fontSize: 15, // Increased from 14
+    color: '#64748b', // Slightly darker
+    marginBottom: 20, // Increased from 16
+    lineHeight: 20,
+  },
+  progressContainer: {
+    height: 8, // Increased from 6
+    backgroundColor: '#f1f5f9', // Lighter background
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#1e40af',
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1e40af',
+    textAlign: 'right',
+    marginTop: 4, // Added spacing
+  },categoryCard: {
+    marginBottom: 12, // Reduced from 16
+    borderRadius: 16, // Increased from 12
+    overflow: 'hidden',
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  categoryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    padding: 14, // Slightly reduced from 16
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  categoryTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  categoryTitle: {
+    fontSize: 17, // Slightly reduced from 18
+    fontWeight: '600',
+    color: '#1e40af',
+    marginLeft: 10, // Reduced from 12
+  },
+  categoryStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  categoryPercentage: {
+    fontSize: 15, // Reduced from 16
+    fontWeight: '600',
+    color: '#1e40af',
+    marginRight: 6, // Reduced from 8
+  },checklistItems: {
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+  },
+  checklistItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 5, // Reduced from 12
+    paddingHorizontal: 4,
+    marginVertical: 2, // Added small vertical spacing
+    borderRadius: 8,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  itemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 8, // Reduced from 12
   },
   itemText: {
-    color: '#fff',
-    fontSize: 16,
-    flex: 1,
-    marginRight: 12,
+    fontSize: 15, // Slightly reduced from 16
+    color: '#374151',
+    marginLeft: 8, // Reduced from 12
+    flexShrink: 1,
+    fontWeight: '500',
   },
-  itemNotes: {
-    color: '#8892b0',
-    fontSize: 14,
-    marginTop: 4,
+  itemTextChecked: {
+    fontSize: 15,
+    color: '#6b7280',
     marginLeft: 8,
+    flexShrink: 1,
+    textDecorationLine: 'line-through',
+    fontWeight: '400',
   },
-  notesInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    padding: 12,
-    color: '#fff',
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  submitButton: {
-    backgroundColor: '#64ffda',
+  notesCard: {
+    marginBottom: 24,
     padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginVertical: 16,
   },
-  submitButtonText: {
-    color: '#0a192f',
+  notesTitle: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#1e40af',
+    marginBottom: 12,
+  },
+  notesInput: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    padding: 16,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    color: '#374151',
+    fontSize: 14,
+  },
+  submitButton: {
+    backgroundColor: '#1e40af',
+    padding: 18,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1e40af',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
+    marginBottom: 32,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#9ca3af',
+    opacity: 0.7,
+    shadowColor: 'transparent',
+  },
+  submitButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  turbineContainer: {
+    flex: 1,
+  },
+  turbineHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+  },
+  turbineTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1e40af',
+    marginLeft: 12,
+  },
+  turbineSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 24,
+    paddingHorizontal: 16,
+  },
+  turbineCard: {
+    marginBottom: 24,
   },
 });

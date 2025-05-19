@@ -29,6 +29,7 @@ export default function ClientsScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAssociateModalVisible, setIsAssociateModalVisible] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
   const [newClient, setNewClient] = useState<NewClient>({
     name: '',
     contactName: '',
@@ -179,14 +180,20 @@ export default function ClientsScreen() {
       </View>
     </View>
   );
-
   const renderError = (field: keyof NewClient, message: string) => {
-    if (!showErrors) return null;
-    if (!newClient[field]) {
-      return <Text style={styles.errorText}>{message}</Text>;
-    }
-    if (field === 'contactEmail' && !validateEmail(newClient.contactEmail)) {
-      return <Text style={styles.errorText}>Email inválido</Text>;
+    if (field === 'contactEmail') {
+      if (!showErrors && !emailTouched) return null;
+      if (!newClient.contactEmail) {
+        return <Text style={styles.errorText}>{message}</Text>;
+      }
+      if (!validateEmail(newClient.contactEmail)) {
+        return <Text style={styles.errorText}>Email inválido</Text>;
+      }
+    } else {
+      if (!showErrors) return null;
+      if (!newClient[field]) {
+        return <Text style={styles.errorText}>{message}</Text>;
+      }
     }
     return null;
   };
@@ -254,10 +261,10 @@ export default function ClientsScreen() {
             >
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Nuevo Cliente</Text>
-                <TouchableOpacity
-                  onPress={() => {
+                <TouchableOpacity                  onPress={() => {
                     setIsModalVisible(false);
                     setShowErrors(false);
+                    setEmailTouched(false);
                     setNewClient({
                       name: '',
                       contactName: '',
@@ -302,19 +309,19 @@ export default function ClientsScreen() {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Email del Contacto *</Text>
-                  <TextInput
+                  <Text style={styles.inputLabel}>Email del Contacto *</Text>                  <TextInput
                     style={[
                       styles.input,
-                      showErrors && (!newClient.contactEmail || !validateEmail(newClient.contactEmail)) && styles.inputError
+                      ((showErrors || emailTouched) && (!newClient.contactEmail || !validateEmail(newClient.contactEmail))) && styles.inputError
                     ]}
                     value={newClient.contactEmail}
                     onChangeText={(text) => setNewClient({ ...newClient, contactEmail: text })}
+                    onBlur={() => setEmailTouched(true)}
                     placeholder="email@empresa.com"
                     keyboardType="email-address"
                     autoCapitalize="none"
                   />
-                  {renderError('contactEmail', 'El email es requerido')}
+                  {(showErrors || emailTouched) && renderError('contactEmail', 'El email es requerido')}
                 </View>
 
                 <View style={styles.inputGroup}>

@@ -2,14 +2,15 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 interface CardProps {
-  title: string;
+  title?: string;
   children: React.ReactNode;
+  style?: any;
 }
 
-export function Card({ title, children }: CardProps) {
+export function Card({ title, children, style }: CardProps) {
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{title}</Text>
+    <View style={[styles.card, style]}>
+      {title && <Text style={styles.cardTitle}>{title}</Text>}
       {React.Children.map(children, child =>
         typeof child === 'string' || typeof child === 'number'
           ? <Text>{child}</Text>
