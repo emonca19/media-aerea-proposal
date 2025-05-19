@@ -1,6 +1,8 @@
+import { auth } from '@/src/services/auth';
+import { User } from '@/src/types';
 import { AntDesign, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -12,6 +14,14 @@ import { StatusBadge } from '../../src/components/common';
 import { mockActivities, mockProjects, mockTurbines } from '../../src/mocks/data';
 
 export default function PilotDashboard() {
+
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    auth.getCurrentUser().then((user: User) => setUser(user));
+  }, []);
+
+
   const router = useRouter();
   const todayActivities = mockActivities.filter(
     activity => new Date(activity.startTime).toDateString() === new Date().toDateString()
@@ -43,7 +53,7 @@ export default function PilotDashboard() {
         {/* Welcome Header */}
         <View style={styles.header}>
           <Text style={styles.welcomeText}>Bienvenido de vuelta,</Text>
-          <Text style={styles.pilotName}>Piloto</Text>
+          <Text style={styles.pilotName}>{user?.name}</Text>
         </View>
 
         {/* Stats Cards */}
