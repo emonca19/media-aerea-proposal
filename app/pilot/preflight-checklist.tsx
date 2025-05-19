@@ -206,7 +206,7 @@ export default function PreflightChecklistScreen() {
             >
               <Text style={styles.submitButtonText}>
                 {getCompletionPercentage() === 100 ? 
-                  '✅ Confirmar y Comenzar Vuelo' : 
+                  'Confirmar y Comenzar Vuelo' : 
                   'Completar todos los checks'}
               </Text>
             </TouchableOpacity>
