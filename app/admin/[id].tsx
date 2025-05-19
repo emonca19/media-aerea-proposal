@@ -1,14 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { mockProjects } from '../../src/mocks/data';
 
 export default function ProjectDetailsScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const project = mockProjects.find((p) => p.id === id);
+  const { id } = useLocalSearchParams();
+  const projectId = Array.isArray(id) ? id[0] : id;
+  const project = mockProjects.find((p) => p.id === projectId);
 
   if (!project) {
     return (
@@ -20,7 +19,7 @@ export default function ProjectDetailsScreen() {
           <View style={styles.header}>
             <TouchableOpacity
               style={styles.headerButton}
-              onPress={() => router.push('/admin/clients')}
+              onPress={() => router.back()}
             >
               <Text style={styles.headerButtonText}>← Volver</Text>
             </TouchableOpacity>
@@ -45,15 +44,20 @@ export default function ProjectDetailsScreen() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen 
+        options={{ 
+          headerShown: false,
+          presentation: 'modal'
+        }} 
+      />
       <LinearGradient
-        colors={['#f8fafc', '#e2e8f0']}
+        colors={['rgba(12,4,67,1)', 'rgba(151,68,195,0.8)']}
         style={styles.gradient}
       >
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.headerButton}
-            onPress={() => router.push('/admin/clients')}
+            onPress={() => router.back()}
           >
             <Text style={styles.headerButtonText}>← Volver</Text>
           </TouchableOpacity>
@@ -65,7 +69,7 @@ export default function ProjectDetailsScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content}>
+        <View style={styles.content}>
           <Text style={styles.title}>{project.name}</Text>
           <View style={styles.statusContainer}>
             <View style={[styles.statusIndicator, { backgroundColor: getStatusColor(project.status) }]} />
@@ -80,7 +84,7 @@ export default function ProjectDetailsScreen() {
             <Text style={styles.infoTitle}>Descripción</Text>
             <Text style={styles.description}>{project.description}</Text>
           </View>
-        </ScrollView>
+        </View>
       </LinearGradient>
     </View>
   );
@@ -89,7 +93,7 @@ export default function ProjectDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#0a192f',
   },
   gradient: {
     flex: 1,
@@ -102,9 +106,9 @@ const styles = StyleSheet.create({
     paddingTop: 48,
   },
   headerButton: {
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: '#3b82f6',
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   headerButtonText: {
     color: '#fff',
@@ -112,14 +116,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   logoutButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: 'rgba(255, 107, 107, 0.2)',
   },
   content: {
     flex: 1,
     padding: 16,
   },
   title: {
-    color: '#1e293b',
+    color: '#64ffda',
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 16,
@@ -128,14 +132,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   statusIndicator: {
     width: 12,
@@ -144,39 +140,34 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   statusText: {
-    color: '#1e293b',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
   infoCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
   infoTitle: {
-    color: '#3b82f6',
+    color: '#64ffda',
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   info: {
-    color: '#64748b',
+    color: '#8892b0',
     fontSize: 16,
     marginBottom: 8,
   },
   description: {
-    color: '#1e293b',
+    color: '#ffffff',
     fontSize: 16,
     lineHeight: 24,
   },
   errorText: {
-    color: '#ef4444',
+    color: '#ff6b6b',
     fontSize: 18,
     textAlign: 'center',
     marginTop: 20,

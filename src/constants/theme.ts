@@ -40,23 +40,21 @@ const baseTheme = {
 const animation = baseTheme.animation;
 
 const darkColors = {
-  primary: '#64ffda',
-  background: '#0a192f',
-  elevated: 'rgba(255, 255, 255, 0.05)',
-  card: 'rgba(255, 255, 255, 0.05)',
-  border: 'rgba(255, 255, 255, 0.1)',
-  text: '#fff',
-  textSecondary: '#8892b0',
-  accent: '#1a237e',
-  error: '#ff6b6b',
-  success: '#4caf50',
-  warning: '#ff9800',
-  input: 'rgba(255, 255, 255, 0.1)',
-  gradients: {
-    primary: ['#1a237e', '#0d47a1', '#01579b'],
-    success: ['#43a047', '#2e7d32', '#1b5e20'],
-    danger: ['#d32f2f', '#c62828', '#b71c1c'],
-  }
+  primary: '#3b82f6', // Azul más vibrante
+  secondary: '#8b5cf6', // Púrpura más vibrante
+  background: '#f8fafc', // Fondo claro
+  card: 'rgba(255, 255, 255, 0.9)',
+  text: '#1e293b', // Texto oscuro para fondo claro
+  textSecondary: '#64748b',
+  border: '#e2e8f0',
+  accent: '#06b6d4', // Cyan vibrante
+  success: '#22c55e',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  gradient: {
+    start: '#3b82f6',
+    end: '#8b5cf6',
+  },
 } as const;
 
 const lightColors = {

@@ -18,11 +18,11 @@ export default function AdminLayout() {
       }}
     >
       <Tabs.Screen
-        name="projects"
+        name="dashboard"
         options={{
-          title: 'Proyectos',
+          title: 'Dashboard',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="folder" size={size} color={color} />
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
@@ -35,13 +35,23 @@ export default function AdminLayout() {
           ),
         }}
       />
+      {/* Ocultar las pantallas que serán accedidas mediante botones */}
+      <Tabs.Screen
+        name="[id]"
+        options={{
+          href: null, // Esto oculta la pestaña pero mantiene la ruta accesible
+        }}
+      />
+      <Tabs.Screen
+        name="projects"
+        options={{
+          href: null,
+        }}
+      />
       <Tabs.Screen
         name="parks"
         options={{
-          title: 'Parques',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="business" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
     </Tabs>

@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Button } from 'react-native';
+import { Button, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { mockClients } from '../../src/mocks/clients';
 import { mockProjects } from '../../src/mocks/data';
 
@@ -22,7 +22,10 @@ export default function ClientsScreen() {
   };
 
   const handleProjectClick = (projectId: string) => {
-    router.push(`/admin/project-details?id=${projectId}`);
+    router.push({
+      pathname: "/admin/[id]",
+      params: { id: projectId }
+    });
   };
 
   const filteredClients = mockClients; // Mostrar todos los clientes ya que no hay búsqueda
