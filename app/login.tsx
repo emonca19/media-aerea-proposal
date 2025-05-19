@@ -6,12 +6,14 @@ import {
     Animated,
     Easing,
     Image,
+    Keyboard,
     KeyboardAvoidingView,
     Platform,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View
 } from 'react-native';
 import { theme } from '../src/constants/theme';
@@ -78,6 +80,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
+      Keyboard.dismiss(); // Ocultar el teclado al iniciar el login
       setError('');
       setIsLoading(true);
       
@@ -184,140 +187,142 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <LinearGradient
-        colors={['rgb(12,4,67)', 'rgb(151,68,195)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
-        <Animated.View 
-          style={[
-            styles.mainContent,
-            {
-              opacity: fadeAnim,
-              transform: [{ scale: scaleAnim }]
-            }
-          ]}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <LinearGradient
+          colors={['rgb(12,4,67)', 'rgb(151,68,195)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradient}
         >
-          <View style={styles.logoContainer}>
-            <Animated.View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              transform: [
-                { rotate: spin },
-              ],
-            }}
-          >
-            <Image
-              source={require('../assets/images/spin.png')}
-              style={styles.spinImage}
-              resizeMode="contain"
-            />
-          </Animated.View>
-          
-            <Image
-              source={require('../assets/images/media-logo.png')}
-              style={styles.mediaLogo}
-              resizeMode="contain"
-            />
-          </View>
-
           <Animated.View 
             style={[
-              styles.formContainer,
+              styles.mainContent,
               {
                 opacity: fadeAnim,
-                transform: [
-                  { 
-                    translateY: fadeAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [50, 0],
-                    })
-                  }
-                ]
+                transform: [{ scale: scaleAnim }]
               }
             ]}
           >
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Correo electrónico</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  showEmailError && !validateEmail(email) && { borderColor: '#ff6b6b' }
-                ]}
-                placeholder="nombre@empresa.com"
-                placeholderTextColor="rgba(255,255,255,0.5)"
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (showEmailError) {
-                    // Solo validamos si ya se mostró un error previamente
-                    setShowEmailError(true);
-                  }
-                }}
-                onBlur={() => setShowEmailError(true)}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-              />
-              {showEmailError && !validateEmail(email) && email !== '' && (
-                <Text style={styles.errorText}>
-                  Por favor ingresa un correo electrónico válido
-                </Text>
-              )}
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Contraseña</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Tu contraseña segura"
-                placeholderTextColor="rgba(255,255,255,0.5)"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoComplete="password"
-              />
-            </View>
-
-            <TouchableOpacity 
-              style={styles.forgotPassword}
-              onPress={() => Alert.alert('Recuperar contraseña', 'Esta función estará disponible pronto.')}
+            <View style={styles.logoContainer}>
+              <Animated.View
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                transform: [
+                  { rotate: spin },
+                ],
+              }}
             >
-              <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
-            </TouchableOpacity>
-
-            <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
-              <TouchableOpacity 
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                style={[
-                  styles.loginButton, 
-                  isLoading && styles.loginButtonDisabled
-                ]}
-                onPress={handleLogin}
-                disabled={isLoading}
-              >
-                <Text style={styles.loginButtonText}>
-                  {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
-                </Text>
-              </TouchableOpacity>
+              <Image
+                source={require('../assets/images/spin.png')}
+                style={styles.spinImage}
+                resizeMode="contain"
+              />
             </Animated.View>
-
-            {error ? (
-              <Text style={styles.errorText}>{error}</Text>
-            ) : null}
-
-            <View style={styles.signupContainer}>
-              <Text style={styles.signupText}>¿No tienes una cuenta?</Text>
-              <TouchableOpacity>
-                <Text style={styles.signupLink}>Regístrate</Text>
-              </TouchableOpacity>
+            
+              <Image
+                source={require('../assets/images/media-logo.png')}
+                style={styles.mediaLogo}
+                resizeMode="contain"
+              />
             </View>
+
+            <Animated.View 
+              style={[
+                styles.formContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [
+                    { 
+                      translateY: fadeAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0],
+                      })
+                    }
+                  ]
+                }
+              ]}
+            >
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Correo electrónico</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    showEmailError && !validateEmail(email) && { borderColor: '#ff6b6b' }
+                  ]}
+                  placeholder="nombre@empresa.com"
+                  placeholderTextColor="rgba(255,255,255,0.5)"
+                  value={email}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    if (showEmailError) {
+                      // Solo validamos si ya se mostró un error previamente
+                      setShowEmailError(true);
+                    }
+                  }}
+                  onBlur={() => setShowEmailError(true)}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoComplete="email"
+                />
+                {showEmailError && !validateEmail(email) && email !== '' && (
+                  <Text style={styles.errorText}>
+                    Por favor ingresa un correo electrónico válido
+                  </Text>
+                )}
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Contraseña</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Tu contraseña segura"
+                  placeholderTextColor="rgba(255,255,255,0.5)"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  autoComplete="password"
+                />
+              </View>
+
+              <TouchableOpacity 
+                style={styles.forgotPassword}
+                onPress={() => Alert.alert('Recuperar contraseña', 'Esta función estará disponible pronto.')}
+              >
+                <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+              </TouchableOpacity>
+
+              <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+                <TouchableOpacity 
+                  onPressIn={handlePressIn}
+                  onPressOut={handlePressOut}
+                  style={[
+                    styles.loginButton, 
+                    isLoading && styles.loginButtonDisabled
+                  ]}
+                  onPress={handleLogin}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.loginButtonText}>
+                    {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+                  </Text>
+                </TouchableOpacity>
+              </Animated.View>
+
+              {error ? (
+                <Text style={styles.errorText}>{error}</Text>
+              ) : null}
+
+              <View style={styles.signupContainer}>
+                <Text style={styles.signupText}>¿No tienes una cuenta?</Text>
+                <TouchableOpacity>
+                  <Text style={styles.signupLink}>Regístrate</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
           </Animated.View>
-        </Animated.View>
-      </LinearGradient>
+        </LinearGradient>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
@@ -458,5 +463,3 @@ const styles = StyleSheet.create({
     marginTop: theme.dark.dimensions.spacing.xs,
   }
 });
-
-
