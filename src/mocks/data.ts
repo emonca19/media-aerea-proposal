@@ -8,6 +8,18 @@ export const mockUser: User = {
   active: true,
 };
 
+export const mockPhotos = [
+  {
+    id: '1',
+    projectId: '1',
+    turbineId: '1',
+    url: 'https://example.com/photo1.jpg',
+    category: 'BLADE',
+    timestamp: new Date(),
+    notes: 'Inspección inicial'
+  },
+];
+
 export const mockProjects: Project[] = [
   {
     id: '1',

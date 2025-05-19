@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { mockProjects } from '../../../src/mocks/data';
 
 export default function ProjectDetailsScreen() {
@@ -13,7 +13,7 @@ export default function ProjectDetailsScreen() {
     return (
       <View style={styles.container}>
         <LinearGradient
-          colors={['rgba(12,4,67,1)', 'rgba(151,68,195,0.8)']}
+          colors={['#f8fafc', '#f1f5f9']}
           style={styles.gradient}
         >
           <View style={styles.header}>
@@ -51,7 +51,7 @@ export default function ProjectDetailsScreen() {
         }} 
       />
       <LinearGradient
-        colors={['rgba(12,4,67,1)', 'rgba(151,68,195,0.8)']}
+        colors={['#f8fafc', '#f1f5f9']}
         style={styles.gradient}
       >
         <View style={styles.header}>
@@ -65,11 +65,10 @@ export default function ProjectDetailsScreen() {
             style={[styles.headerButton, styles.logoutButton]}
             onPress={() => router.push('/login')}
           >
-            <Text style={styles.headerButtonText}>Cerrar Sesión</Text>
+            <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
           </TouchableOpacity>
         </View>
-
-        <View style={styles.content}>
+        <ScrollView style={styles.content}>
           <Text style={styles.title}>{project.name}</Text>
           <View style={styles.statusContainer}>
             <View style={[styles.statusIndicator, { backgroundColor: getStatusColor(project.status) }]} />
@@ -84,7 +83,7 @@ export default function ProjectDetailsScreen() {
             <Text style={styles.infoTitle}>Descripción</Text>
             <Text style={styles.description}>{project.description}</Text>
           </View>
-        </View>
+        </ScrollView>
       </LinearGradient>
     </View>
   );
@@ -93,7 +92,7 @@ export default function ProjectDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a192f',
+    backgroundColor: '#f8fafc',
   },
   gradient: {
     flex: 1,
@@ -106,24 +105,33 @@ const styles = StyleSheet.create({
     paddingTop: 48,
   },
   headerButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginRight: 8,
   },
   headerButtonText: {
-    color: '#fff',
+    color: '#3949ab',
     fontSize: 16,
     fontWeight: '600',
   },
   logoutButton: {
-    backgroundColor: 'rgba(255, 107, 107, 0.2)',
+    backgroundColor: '#ffe4e6',
+    borderColor: '#ef4444',
+  },
+  logoutButtonText: {
+    color: '#ef4444',
+    fontSize: 16,
+    fontWeight: '600',
   },
   content: {
     flex: 1,
     padding: 16,
   },
   title: {
-    color: '#64ffda',
+    color: '#1e293b',
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 16,
@@ -132,6 +140,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 12,
+    shadowColor: '#3949ab',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   statusIndicator: {
     width: 12,
@@ -140,34 +158,41 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   statusText: {
-    color: '#fff',
+    color: '#3949ab',
     fontSize: 16,
     fontWeight: '600',
   },
   infoCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 16,
+    shadowColor: '#3949ab',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   infoTitle: {
-    color: '#64ffda',
+    color: '#3949ab',
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   info: {
-    color: '#8892b0',
+    color: '#64748b',
     fontSize: 16,
     marginBottom: 8,
   },
   description: {
-    color: '#ffffff',
+    color: '#1e293b',
     fontSize: 16,
     lineHeight: 24,
   },
   errorText: {
-    color: '#ff6b6b',
+    color: '#ef4444',
     fontSize: 18,
     textAlign: 'center',
     marginTop: 20,
