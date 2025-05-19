@@ -83,18 +83,44 @@ export const mockProjects: Project[] = [
   },
 ];
 
+export interface WindPark {
+  id: string;
+  name: string;
+  location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  };
+  projectId: string;
+  clientId: string;
+}
+
+export interface Drone {
+  id: string;
+  model: string;
+  serialNumber: string;
+}
+
+export const mockDrones: Drone[] = [
+  {
+    id: '1',
+    model: 'DJI Phantom 4',
+    serialNumber: 'SN-12345'
+  }
+];
+
 export const mockParks: WindPark[] = [
   {
     id: '1',
-    name: 'Parque Eólico Norte',
+    name: 'Parque Eólico Ejemplo',
     location: {
       latitude: 25.7617,
       longitude: -100.1234,
-      address: 'Carretera Nacional km 85, Monterrey',
+      address: 'Dirección del parque'
     },
     projectId: '1',
-    clientId: '1',
-  },
+    clientId: '1'
+  }
 ];
 
 export const mockTurbines: Turbine[] = [
@@ -160,3 +186,5 @@ export const mockUsers: User[] = [
     active: true,
   },
 ];
+
+
