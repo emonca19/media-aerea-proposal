@@ -25,7 +25,7 @@ export interface Project {
   contractId: string;
   startDate: Date;
   endDate: Date;
-  status: 'ACTIVE' | 'PAUSED' | 'FINISHED';
+  status: 'ACTIVE' | 'PAUSED' | 'FINISHED' | 'COMPLETED';
   description: string;
 }
 

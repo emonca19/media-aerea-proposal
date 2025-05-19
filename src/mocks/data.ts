@@ -29,6 +29,46 @@ export const mockProjects: Project[] = [
     status: 'PAUSED',
     description: 'Mantenimiento preventivo parque sur',
   },
+  {
+    id: '3',
+    name: 'Revisión Parque Este',
+    clientId: '1',
+    contractId: '3',
+    startDate: new Date('2025-07-01'),
+    endDate: new Date('2025-08-01'),
+    status: 'COMPLETED',
+    description: 'Revisión técnica del parque eólico en la zona este',
+  },
+  {
+    id: '4',
+    name: 'Inspección Parque Oeste',
+    clientId: '2',
+    contractId: '4',
+    startDate: new Date('2025-08-15'),
+    endDate: new Date('2025-09-15'),
+    status: 'ACTIVE',
+    description: 'Inspección de turbinas en el parque eólico oeste',
+  },
+  {
+    id: '5',
+    name: 'Prueba Parque Centro',
+    clientId: '1',
+    contractId: '5',
+    startDate: new Date('2025-09-01'),
+    endDate: new Date('2025-09-10'),
+    status: 'ACTIVE',
+    description: 'Pruebas de rendimiento en el parque eólico centro',
+  },
+  {
+    id: '6',
+    name: 'Auditoría Parque Oeste',
+    clientId: '2',
+    contractId: '6',
+    startDate: new Date('2025-10-01'),
+    endDate: new Date('2025-10-05'),
+    status: 'ACTIVE', // Changed from 'SCHEDULED' to 'ACTIVE' to match the allowed statuses
+    description: 'Auditoría de cumplimiento normativo en el parque oeste',
+  },
 ];
 
 export const mockParks: WindPark[] = [

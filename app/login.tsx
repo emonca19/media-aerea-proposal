@@ -1,12 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Animated,
+  Easing,
   Image,
   KeyboardAvoidingView,
-  KeyboardAvoidingViewProps,
   Platform,
   StyleSheet,
   Text,
@@ -17,8 +17,6 @@ import {
 import { theme } from '../src/constants/theme';
 import { useTheme } from '../src/hooks/useTheme';
 import { auth } from '../src/services/auth';
-
-const isWeb = Platform.OS === 'web';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -32,13 +30,12 @@ export default function LoginScreen() {
   const scaleAnim = useState(new Animated.Value(0.95))[0];
   const logoRotate = useState(new Animated.Value(0))[0];
   const buttonScale = useState(new Animated.Value(1))[0];
-  const [isButtonPressed, setIsButtonPressed] = useState(false);
+  // Button animation is handled through the buttonScale animated value
   
   // Email validación
   const [isEmailValid, setIsEmailValid] = useState(true);
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
   const validateEmail = useCallback((text: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValid = emailRegex.test(text);
     setIsEmailValid(isValid);
     return isValid;
@@ -68,17 +65,13 @@ export default function LoginScreen() {
       ]),
     ]).start();
   }, [fadeAnim, scaleAnim, logoRotate, currentTheme.animation.duration]);
-
   const handlePressIn = useCallback(() => {
-    setIsButtonPressed(true);
     Animated.spring(buttonScale, {
       toValue: currentTheme.animation.scale.pressed,
       useNativeDriver: true,
     }).start();
   }, [buttonScale, currentTheme.animation.scale]);
-
   const handlePressOut = useCallback(() => {
-    setIsButtonPressed(false);
     Animated.spring(buttonScale, {
       toValue: currentTheme.animation.scale.normal,
       useNativeDriver: true,
@@ -155,130 +148,51 @@ export default function LoginScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
-  const ContentWrapper = isWeb ? View : KeyboardAvoidingView;
-  const contentProps: Partial<KeyboardAvoidingViewProps> = isWeb ? {} : {
-    behavior: (Platform.OS === 'ios' ? 'padding' : 'height') as KeyboardAvoidingViewProps['behavior'],
-    keyboardVerticalOffset: Platform.OS === 'ios' ? 0 : 20
-  };
+  };  // We handle KeyboardAvoidingView behavior directly in the render
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.timing(logoRotate, {
+        toValue: 5, // Primera etapa: lenta
+        duration: 4000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+      Animated.timing(logoRotate, {
+        toValue:1, // Segunda etapa: rápida
+        duration: 5000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+      Animated.timing(logoRotate, {
+        toValue: 3, // Tercera etapa: lenta
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+      Animated.timing(logoRotate, {
+        toValue: 10, // Etapa final: desaceleración suave
+        duration: 15000,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [logoRotate]);
 
   const spin = logoRotate.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
+    outputRange: ['0deg', '360deg'], // Gira continuamente
   });
 
-  // Generar estilos dependientes del tema dentro del componente
-  const styles = React.useMemo(() => StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: currentTheme.background,
-    },
-    gradient: {
-      flex: 1,
-      paddingHorizontal: Platform.OS === 'web' ? 0 : currentTheme.dimensions.spacing.lg,
-      paddingTop: Platform.OS === 'ios' ? currentTheme.dimensions.spacing.xl : currentTheme.dimensions.spacing.lg,
-    },
-    mainContent: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      maxWidth: 400,
-      width: '100%',
-      alignSelf: 'center',
-      paddingHorizontal: theme.dark.dimensions.spacing.md,
-    },
-    logoContainer: {
-      alignItems: 'center',
-      marginBottom: theme.dark.dimensions.spacing.xl,
-    },
-    logo: {
-      width: 120,
-      height: 120,
-      marginBottom: theme.dark.dimensions.spacing.md,
-    },
-    welcomeText: {
-      fontSize: theme.dark.dimensions.fontSize.xxl,
-      fontWeight: 'bold',
-      color: theme.dark.text,
-      marginBottom: theme.dark.dimensions.spacing.xs,
-    },
-    subtitleText: {
-      fontSize: theme.dark.dimensions.fontSize.md,
-      color: theme.dark.textSecondary,
-      marginBottom: theme.dark.dimensions.spacing.lg,
-    },
-    formContainer: {
-      width: '100%',
-      padding: theme.dark.dimensions.spacing.lg,
-      borderRadius: theme.dark.dimensions.borderRadius.large,
-      backgroundColor: theme.dark.elevated,
-    },
-    inputContainer: {
-      marginBottom: theme.dark.dimensions.spacing.md,
-    },
-    inputLabel: {
-      color: theme.dark.textSecondary,
-      marginBottom: theme.dark.dimensions.spacing.xs,
-      fontSize: theme.dark.dimensions.fontSize.sm,
-    },
-    input: {
-      backgroundColor: theme.dark.input,
-      borderWidth: 1,
-      borderColor: theme.dark.border,
-      borderRadius: theme.dark.dimensions.borderRadius.medium,
-      color: theme.dark.text,
-      paddingHorizontal: theme.dark.dimensions.spacing.md,
-      paddingVertical: theme.dark.dimensions.spacing.sm,
-      fontSize: theme.dark.dimensions.fontSize.md,
-      height: theme.dark.dimensions.inputHeight,
-    },
-    forgotPassword: {
-      alignSelf: 'flex-end',
-      marginBottom: theme.dark.dimensions.spacing.lg,
-    },
-    forgotPasswordText: {
-      color: theme.dark.primary,
-      fontSize: theme.dark.dimensions.fontSize.sm,
-    },
-    loginButton: {
-      backgroundColor: theme.dark.primary,
-      borderRadius: theme.dark.dimensions.borderRadius.medium,
-      paddingVertical: theme.dark.dimensions.spacing.md,
-      marginBottom: theme.dark.dimensions.spacing.md,
-      height: theme.dark.dimensions.inputHeight,
-      justifyContent: 'center',
-    },
-    loginButtonDisabled: {
-      opacity: 0.5,
-    },
-    loginButtonText: {
-      color: theme.dark.background,
-      fontSize: theme.dark.dimensions.fontSize.md,
-      fontWeight: 'bold',
-      textAlign: 'center',
-    },
-    signupContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      marginTop: theme.dark.dimensions.spacing.md,
-    },
-    signupText: {
-      color: theme.dark.textSecondary,
-      fontSize: theme.dark.dimensions.fontSize.sm,
-    },
-    signupLink: {
-      color: theme.dark.primary,
-      fontSize: theme.dark.dimensions.fontSize.sm,
-      fontWeight: 'bold',
-    },
-  }), [currentTheme]);
-
   return (
-    <ContentWrapper 
-      {...contentProps}
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
-    >      <LinearGradient
-        colors={currentTheme.gradients.primary}
+    >
+      <LinearGradient
+        colors={['rgb(12,4,67)', 'rgb(151,68,195)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
         <Animated.View 
@@ -291,50 +205,27 @@ export default function LoginScreen() {
           ]}
         >
           <View style={styles.logoContainer}>
-            <Animated.View style={{
-              transform: [{ rotate: spin }]
-            }}>
-              <Image
-                source={require('../assets/images/adaptive-icon.png')}
-                style={styles.logo}
-              />
-            </Animated.View>
-            <Animated.Text 
-              style={[
-                styles.welcomeText,
-                {
-                  opacity: fadeAnim,
-                  transform: [
-                    { 
-                      translateY: fadeAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [20, 0],
-                      })
-                    }
-                  ]
-                }
-              ]}
-            >
-              mediaaerea
-            </Animated.Text>
-            <Animated.Text 
-              style={[
-                styles.subtitleText,
-                {
-                  opacity: fadeAnim,
-                  transform: [
-                    { 
-                      translateY: fadeAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [20, 0],
-                      })
-                    }
-                  ]
-                }
-              ]}
-            >
-              Control de Flota de Drones
-            </Animated.Text>
+            <Animated.View
+            style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              transform: [
+                { rotate: spin },
+              ],
+            }}
+          >
+            <Image
+              source={require('../assets/images/spin.png')}
+              style={styles.spinImage}
+              resizeMode="contain"
+            />
+          </Animated.View>
+          
+            <Image
+              source={require('../assets/images/media-logo.png')}
+              style={styles.mediaLogo}
+              resizeMode="contain"
+            />
           </View>
 
           <Animated.View 
@@ -356,14 +247,26 @@ export default function LoginScreen() {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Correo electrónico</Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  !isEmailValid && email !== '' && { borderColor: '#ff6b6b' }
+                ]}
                 placeholder="nombre@empresa.com"
-                placeholderTextColor="#a0a0a0"
+                placeholderTextColor="rgba(255,255,255,0.5)"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  validateEmail(text);
+                }}
                 autoCapitalize="none"
                 keyboardType="email-address"
+                autoComplete="email"
               />
+              {!isEmailValid && email !== '' && (
+                <Text style={styles.errorText}>
+                  Por favor ingresa un correo electrónico válido
+                </Text>
+              )}
             </View>
 
             <View style={styles.inputContainer}>
@@ -371,47 +274,190 @@ export default function LoginScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Tu contraseña segura"
-                placeholderTextColor="#a0a0a0"
+                placeholderTextColor="rgba(255,255,255,0.5)"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                autoComplete="password"
               />
             </View>
 
-            <TouchableOpacity style={styles.forgotPassword}>
+            <TouchableOpacity 
+              style={styles.forgotPassword}
+              onPress={() => Alert.alert('Recuperar contraseña', 'Esta función estará disponible pronto.')}
+            >
               <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut}
-              style={[
-                styles.loginButton, 
-                isLoading && styles.loginButtonDisabled
-              ]}
-              onPress={handleLogin}
-              disabled={isLoading}
-            >
-              <Animated.View style={{
-                transform: [{ scale: buttonScale }],
-                width: '100%',
-                alignItems: 'center',
-              }}>
+            <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+              <TouchableOpacity 
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                style={[
+                  styles.loginButton, 
+                  isLoading && styles.loginButtonDisabled
+                ]}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
                 <Text style={styles.loginButtonText}>
-                  {isLoading ? 'Iniciando sesión...' : 'Acceder al Panel'}
+                  {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
                 </Text>
-              </Animated.View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </Animated.View>
+
+            {error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : null}
 
             <View style={styles.signupContainer}>
-              <Text style={styles.signupText}>¿Primera vez aquí? </Text>
+              <Text style={styles.signupText}>¿No tienes una cuenta?</Text>
               <TouchableOpacity>
-                <Text style={styles.signupLink}>Solicitar acceso</Text>
+                <Text style={styles.signupLink}>Regístrate</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
         </Animated.View>
       </LinearGradient>
-    </ContentWrapper>
+    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'rgb(12,4,67)',
+  },
+  gradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.dark.dimensions.spacing.xl,
+  },
+  mainContent: {
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 0,
+  },
+  spinImage: {
+    width: 110,
+    height: 110,
+    marginBottom:0, // Espaciado mínimo
+  },
+  mediaLogoContainer: {
+    alignItems: 'center',
+    marginBottom: 0, // Reduced spacing
+  },
+  mediaLogo: {
+    width: 250,
+    height: 250,
+    marginTop:-90, // Espaciado mínimo
+    marginBottom: -50, // Espaciado mínimo
+  },
+  welcomeText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 0,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  subtitleText: {
+    fontSize: theme.dark.dimensions.fontSize.md,
+    color: 'rgb(162,179,201)',
+    marginBottom:0,
+  },
+  formContainer: {
+    width: '100%',
+    padding: theme.dark.dimensions.spacing.xl,
+    borderRadius: theme.dark.dimensions.borderRadius.large,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(10px)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  inputContainer: {
+    marginBottom: theme.dark.dimensions.spacing.lg,
+  },
+  inputLabel: {
+    color: 'rgb(162,179,201)',
+    marginBottom: theme.dark.dimensions.spacing.xs,
+    fontSize: theme.dark.dimensions.fontSize.sm,
+    fontWeight: '600',
+  },
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: theme.dark.dimensions.borderRadius.medium,
+    color: 'white',
+    paddingHorizontal: theme.dark.dimensions.spacing.md,
+    paddingVertical: theme.dark.dimensions.spacing.sm,
+    fontSize: theme.dark.dimensions.fontSize.md,
+    height: 48,
+  },
+  forgotPassword: {
+    marginTop:-12,
+    alignSelf: 'flex-start',
+    marginBottom: theme.dark.dimensions.spacing.xl,
+  },
+  forgotPasswordText: {
+    color: 'rgb(162,179,201)',
+    fontSize: theme.dark.dimensions.fontSize.sm,
+    
+  },
+  loginButton: {
+    backgroundColor: 'rgb(151,68,195)',
+    borderRadius: theme.dark.dimensions.borderRadius.medium,
+    paddingVertical: theme.dark.dimensions.spacing.md,
+    marginBottom: theme.dark.dimensions.spacing.md,
+    height: 48,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  loginButtonDisabled: {
+    opacity: 0.7,
+  },
+  loginButtonText: {
+    color: 'white',
+    fontSize: theme.dark.dimensions.fontSize.md,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  signupContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: theme.dark.dimensions.spacing.lg,
+  },
+  signupText: {
+    color: 'rgb(162,179,201)',
+    marginTop:-25,
+    fontSize: theme.dark.dimensions.fontSize.sm,
+  },
+  signupLink: {
+    color: 'rgb(194, 213, 238)',
+    fontSize: theme.dark.dimensions.fontSize.sm,
+    fontWeight: 'bold',
+    marginTop:-25,
+    marginLeft: 4,
+  },
+  errorText: {
+    color: '#ff6b6b',
+    fontSize: theme.dark.dimensions.fontSize.sm,
+    marginTop: theme.dark.dimensions.spacing.xs,
+  }
+});
+
+
