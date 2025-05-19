@@ -120,10 +120,9 @@ export default function LoginScreen() {
         switch (user.role) {
           case 'PILOT':
             router.replace('/pilot/dashboard');
-            break;
-          case 'ADMIN':
+            break;          case 'ADMIN':
           case 'SUPER_ADMIN':
-            router.replace('/admin/parks');
+            router.replace('/admin/dashboard');
             break;
           default:
             throw new Error('Rol no válido');

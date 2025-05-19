@@ -1,22 +1,34 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 
 export default function AdminLayout() {
   return (
     <Tabs
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#1a237e',
+          backgroundColor: '#f8fafc',
         },
-        headerTintColor: '#fff',
+        headerTintColor: '#1e293b',
         tabBarStyle: {
-          backgroundColor: '#0a192f',
-          borderTopColor: 'rgba(255,255,255,0.1)',
+          backgroundColor: '#fff',
+          borderTopColor: '#e2e8f0',
         },
-        tabBarActiveTintColor: '#64ffda',
-        tabBarInactiveTintColor: '#8892b0',
+        tabBarActiveTintColor: '#3949ab',
+        tabBarInactiveTintColor: '#64748b',
       }}
     >
+      {/* Redirección inicial */}
+      <Tabs.Screen
+        name="index"
+        options={{ href: null }}
+        listeners={{
+          tabPress: (e: { preventDefault: () => void }) => {
+            e.preventDefault();
+            return <Redirect href="/admin/dashboard" />;
+          },
+        }}
+      />
+      
       <Tabs.Screen
         name="dashboard"
         options={{
@@ -26,6 +38,7 @@ export default function AdminLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="clients"
         options={{
@@ -34,28 +47,18 @@ export default function AdminLayout() {
             <Ionicons name="people" size={size} color={color} />
           ),
         }}
-      />      <Tabs.Screen
-        name="(project-details)"
-        options={{
-          href: null,
-          headerShown: false,
-        }}
       />
-      
-      <Tabs.Screen
-        name="projects"
-        options={{
-          href: null,
-          headerShown: false,
-        }}
-      />
-      <Tabs.Screen
-        name="parks"
-        options={{
-          href: null,
-          headerShown: false,
-        }}
-      />
+
+      {/* Ocultar todas las pantallas secundarias */}
+      <Tabs.Screen name="reports" options={{ href: null }} />
+      <Tabs.Screen name="parks" options={{ href: null }} />
+      <Tabs.Screen name="projects" options={{ href: null }} />
+      <Tabs.Screen name="photos" options={{ href: null }} />
+      <Tabs.Screen name="equipment" options={{ href: null }} />
+      <Tabs.Screen name="(project-details)" options={{ href: null }} />
+      <Tabs.Screen name="turbine" options={{ href: null }} />
+      <Tabs.Screen name="turbineId" options={{ href: null }} />
+      <Tabs.Screen name="projectDetails" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#1e293b', // Cambiado de blanco a azul oscuro
     marginBottom: 12,
   },
   badge: {

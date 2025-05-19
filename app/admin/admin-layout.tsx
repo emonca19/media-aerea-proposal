@@ -48,11 +48,6 @@ export default function AdminLayout() {
           ),
         }}
       />
-      
-      {/* Elimina estas líneas - no deben estar en Tabs */}
-      {/* <Tabs.Screen name="(project-details)" options={{ href: null }} /> */}
-      {/* <Tabs.Screen name="projects" options={{ href: null }} /> */}
-      {/* <Tabs.Screen name="parks" options={{ href: null }} /> */}
     </Tabs>
   );
 }
