@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 
 export default function AdminLayout() {
   return (
@@ -17,6 +17,19 @@ export default function AdminLayout() {
         tabBarInactiveTintColor: '#8892b0',
       }}
     >
+      {/* Redirección inicial */}
+      <Tabs.Screen
+        name="index"
+        options={{ href: null }}
+        listeners={() => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            return <Redirect href="/admin/dashboard" />;
+          },
+        })}
+      />
+      
+      {/* Pantallas principales */}
       <Tabs.Screen
         name="dashboard"
         options={{
@@ -34,28 +47,12 @@ export default function AdminLayout() {
             <Ionicons name="people" size={size} color={color} />
           ),
         }}
-      />      <Tabs.Screen
-        name="(project-details)"
-        options={{
-          href: null,
-          headerShown: false,
-        }}
       />
       
-      <Tabs.Screen
-        name="projects"
-        options={{
-          href: null,
-          headerShown: false,
-        }}
-      />
-      <Tabs.Screen
-        name="parks"
-        options={{
-          href: null,
-          headerShown: false,
-        }}
-      />
+      {/* Elimina estas líneas - no deben estar en Tabs */}
+      {/* <Tabs.Screen name="(project-details)" options={{ href: null }} /> */}
+      {/* <Tabs.Screen name="projects" options={{ href: null }} /> */}
+      {/* <Tabs.Screen name="parks" options={{ href: null }} /> */}
     </Tabs>
   );
 }

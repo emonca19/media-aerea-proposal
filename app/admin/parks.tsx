@@ -40,9 +40,11 @@ export default function ParksScreen() {
       'Acciones de Turbina',
       '¿Qué acción desea realizar?',
       [
-        {
-          text: 'Ver Detalles',
-          onPress: () => router.push(`/admin/turbine/${turbineId}`),
+        {          text: 'Ver Detalles',
+          onPress: () => router.push({
+            pathname: '/admin/turbine/[turbineId]' as const,
+            params: { turbineId }
+          }),
         },
         {
           text: 'Ver Fotos',

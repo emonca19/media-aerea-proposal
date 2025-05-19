@@ -1,91 +1,356 @@
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Button, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { mockClients } from '../../src/mocks/clients';
 import { mockProjects } from '../../src/mocks/data';
+
+interface NewClient {
+  name: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+}
 
 export default function ClientsScreen() {
   const router = useRouter();
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [newClient, setNewClient] = useState({ name: '', contactName: '', contactEmail: '' });
+  const [isAssociateModalVisible, setIsAssociateModalVisible] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
+  const [newClient, setNewClient] = useState<NewClient>({
+    name: '',
+    contactName: '',
+    contactEmail: '',
+    contactPhone: '',
+    address: '',
+  });
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateForm = () => {
+    if (!newClient.name || !newClient.contactName || !newClient.contactEmail) {
+      return false;
+    }
+    if (!validateEmail(newClient.contactEmail)) {
+      return false;
+    }
+    return true;
+  };
 
   const handleAddClient = () => {
-    // Aquí puedes agregar lógica para guardar el cliente en la base de datos o backend
+    if (!validateForm()) {
+      setShowErrors(true);
+      return;
+    }
     console.log('Nuevo cliente:', newClient);
+    Alert.alert('Éxito', 'Cliente agregado correctamente');
     setIsModalVisible(false);
-    setNewClient({ name: '', contactName: '', contactEmail: '' });
+    setShowErrors(false);
+    setNewClient({
+      name: '',
+      contactName: '',
+      contactEmail: '',
+      contactPhone: '',
+      address: '',
+    });
   };
 
   const getClientProjects = (clientId: string) => {
     return mockProjects.filter(project => project.clientId === clientId);
   };
 
-  const handleProjectClick = (projectId: string) => {
-    router.push({
-      pathname: "/admin/[id]",
-      params: { id: projectId }
-    });
+  const renderStatusBadge = (status: string) => {
+    const getStatusColor = () => {
+      switch (status) {
+        case 'ACTIVE': return '#22c55e';
+        case 'PAUSED': return '#f59e0b';
+        case 'FINISHED': return '#3b82f6';
+        default: return '#64748b';
+      }
+    };
+
+    return (
+      <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
+        <Text style={styles.statusText}>{status}</Text>
+      </View>
+    );
   };
 
-  const filteredClients = mockClients; // Mostrar todos los clientes ya que no hay búsqueda
+  const renderClientDetails = (client: any) => (
+    <View style={styles.clientDetails}>
+      <View style={styles.detailsHeader}>
+        <View>
+          <Text style={styles.detailsTitle}>Detalles del Cliente</Text>
+          <Text style={styles.clientDetailName}>{client.name}</Text>
+        </View>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setIsAssociateModalVisible(true)}
+          >
+            <MaterialCommunityIcons name="file-link-outline" size={20} color="#3b82f6" />
+            <Text style={styles.actionButtonText}>Asociar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+          >
+            <MaterialCommunityIcons name="pencil-outline" size={20} color="#3b82f6" />
+            <Text style={styles.actionButtonText}>Editar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.detailsCard}>
+        <View style={styles.detailsSection}>
+          <Text style={styles.detailsSubtitle}>
+            <Ionicons name="person-outline" size={16} color="#3b82f6" style={styles.detailsIcon} />
+            Información de Contacto
+          </Text>
+          <View style={styles.detailsRow}>
+            <Text style={styles.detailsLabel}>Contacto:</Text>
+            <Text style={styles.detailsValue}>{client.contactName}</Text>
+          </View>
+          <View style={styles.detailsRow}>
+            <Text style={styles.detailsLabel}>Email:</Text>
+            <Text style={styles.detailsValue}>{client.contactEmail}</Text>
+          </View>
+          <View style={styles.detailsRow}>
+            <Text style={styles.detailsLabel}>Teléfono:</Text>
+            <Text style={styles.detailsValue}>{client.contactPhone || 'N/A'}</Text>
+          </View>
+          <View style={styles.detailsRow}>
+            <Text style={styles.detailsLabel}>Dirección:</Text>
+            <Text style={styles.detailsValue}>{client.address || 'N/A'}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.detailsCard}>
+        <Text style={styles.detailsSubtitle}>
+          <Ionicons name="folder-outline" size={16} color="#3b82f6" style={styles.detailsIcon} />
+          Proyectos Asociados
+        </Text>
+        {getClientProjects(client.id).length > 0 ? (
+          getClientProjects(client.id).map(project => (            <TouchableOpacity
+              key={project.id}
+              style={styles.projectCard}              onPress={() => {
+                router.push({
+                  pathname: '/admin/(project-details)/[id]' as '/admin/(project-details)/[id]',
+                  params: { id: project.id }
+                });
+              }}
+            >
+              <LinearGradient
+                colors={['#f8fafc', '#f1f5f9']}
+                style={styles.projectGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <View style={styles.projectHeader}>
+                  <Text style={styles.projectName}>{project.name}</Text>
+                  {renderStatusBadge(project.status)}
+                </View>
+                <View style={styles.projectInfo}>
+                  <Text style={styles.projectDate}>
+                    {new Date(project.startDate).toLocaleDateString()} - {new Date(project.endDate).toLocaleDateString()}
+                  </Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={styles.noProjectsText}>No hay proyectos asociados</Text>
+        )}
+      </View>
+    </View>
+  );
+
+  const renderError = (field: keyof NewClient, message: string) => {
+    if (!showErrors) return null;
+    if (!newClient[field]) {
+      return <Text style={styles.errorText}>{message}</Text>;
+    }
+    if (field === 'contactEmail' && !validateEmail(newClient.contactEmail)) {
+      return <Text style={styles.errorText}>Email inválido</Text>;
+    }
+    return null;
+  };
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: 'Clientes', headerStyle: { backgroundColor: '#1a237e' }, headerTintColor: '#fff' }} />
-      <Text style={styles.title}>Gestión de Clientes</Text>
-      <Button title="Agregar Cliente" onPress={() => setIsModalVisible(true)} />
-      <ScrollView style={styles.list}>
-        {filteredClients.map(client => (
-          <TouchableOpacity
-            key={client.id}
-            style={[styles.clientCard, selectedClient === client.id && styles.selectedClient]}
-            onPress={() => setSelectedClient(client.id)}
-          >
-            <Text style={styles.clientName}>{client.name}</Text>
-            <Text style={styles.clientInfo}>Contacto: {client.contactName} ({client.contactEmail})</Text>
-            <Text style={styles.clientInfo}>Proyectos: {client.projects?.length || 0}</Text>
-            {selectedClient === client.id && (
-              <View style={styles.projectList}>
-                {getClientProjects(client.id).map(project => (
-                  <TouchableOpacity key={project.id} style={styles.projectCard} onPress={() => handleProjectClick(project.id)}>
-                    <Text style={styles.projectName}>{project.name}</Text>
-                    <Text style={styles.projectInfo}>Estado: {project.status}</Text>
-                    <Text style={styles.projectInfo}>Inicio: {project.startDate.toDateString()}</Text>
-                    <Text style={styles.projectInfo}>Fin: {project.endDate.toDateString()}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <Stack.Screen 
+        options={{
+          title: 'Clientes',
+          headerStyle: { backgroundColor: '#3b82f6' },
+          headerTintColor: '#fff',
+        }}
+      />
+      <LinearGradient
+        colors={['#f8fafc', '#f1f5f9']}
+        style={styles.gradient}
+      >
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setIsModalVisible(true)}
+        >
+          <Ionicons name="add" size={24} color="#fff" />
+          <Text style={styles.addButtonText}>Nuevo Cliente</Text>
+        </TouchableOpacity>
 
-      <Modal visible={isModalVisible} animationType="slide">
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Nuevo Cliente</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Nombre del cliente"
-            value={newClient.name}
-            onChangeText={(text) => setNewClient({ ...newClient, name: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Nombre del contacto"
-            value={newClient.contactName}
-            onChangeText={(text) => setNewClient({ ...newClient, contactName: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Correo del contacto"
-            value={newClient.contactEmail}
-            onChangeText={(text) => setNewClient({ ...newClient, contactEmail: text })}
-          />
-          <Button title="Guardar" onPress={handleAddClient} />
-          <Button title="Cancelar" onPress={() => setIsModalVisible(false)} />
-        </View>
-      </Modal>
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.clientsList}>
+            {mockClients.map(client => (
+              <TouchableOpacity
+                key={client.id}
+                style={[
+                  styles.clientCard,
+                  selectedClient === client.id && styles.selectedClient
+                ]}
+                onPress={() => setSelectedClient(
+                  selectedClient === client.id ? null : client.id
+                )}
+              >
+                <View style={styles.clientHeader}>
+                  <Text style={styles.clientName}>{client.name}</Text>
+                  <View style={styles.projectCount}>
+                    <Ionicons name="folder-outline" size={16} color="#64748b" />
+                    <Text style={styles.projectCountText}>
+                      {getClientProjects(client.id).length} proyectos
+                    </Text>
+                  </View>
+                </View>
+
+                {selectedClient === client.id && renderClientDetails(client)}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+
+        {/* Modal para nuevo cliente */}
+        <Modal
+          visible={isModalVisible}
+          animationType="slide"
+          transparent={true}
+        >
+          <View style={styles.modalContainer}>
+            <LinearGradient
+              colors={['#f8fafc', '#f1f5f9']}
+              style={styles.modalContent}
+            >
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Nuevo Cliente</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setIsModalVisible(false);
+                    setShowErrors(false);
+                    setNewClient({
+                      name: '',
+                      contactName: '',
+                      contactEmail: '',
+                      contactPhone: '',
+                      address: '',
+                    });
+                  }}
+                  style={styles.closeButton}
+                >
+                  <Ionicons name="close" size={24} color="#64748b" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.formContainer}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Nombre de la Empresa *</Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      showErrors && !newClient.name && styles.inputError
+                    ]}
+                    value={newClient.name}
+                    onChangeText={(text) => setNewClient({ ...newClient, name: text })}
+                    placeholder="Nombre de la empresa"
+                  />
+                  {renderError('name', 'El nombre de la empresa es requerido')}
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Nombre del Contacto *</Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      showErrors && !newClient.contactName && styles.inputError
+                    ]}
+                    value={newClient.contactName}
+                    onChangeText={(text) => setNewClient({ ...newClient, contactName: text })}
+                    placeholder="Nombre completo"
+                  />
+                  {renderError('contactName', 'El nombre del contacto es requerido')}
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Email del Contacto *</Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      showErrors && (!newClient.contactEmail || !validateEmail(newClient.contactEmail)) && styles.inputError
+                    ]}
+                    value={newClient.contactEmail}
+                    onChangeText={(text) => setNewClient({ ...newClient, contactEmail: text })}
+                    placeholder="email@empresa.com"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                  {renderError('contactEmail', 'El email es requerido')}
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Teléfono</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={newClient.contactPhone}
+                    onChangeText={(text) => setNewClient({ ...newClient, contactPhone: text })}
+                    placeholder="Número de teléfono"
+                    keyboardType="phone-pad"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Dirección</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    value={newClient.address}
+                    onChangeText={(text) => setNewClient({ ...newClient, address: text })}
+                    placeholder="Dirección completa"
+                    multiline
+                    numberOfLines={3}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={handleAddClient}
+                >
+                  <Text style={styles.submitButtonText}>Guardar Cliente</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </LinearGradient>
+          </View>
+        </Modal>
+      </LinearGradient>
     </View>
   );
 }
@@ -93,79 +358,278 @@ export default function ClientsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a192f',
-    padding: 16,
+    backgroundColor: '#f8fafc',
   },
-  title: {
-    color: '#64ffda',
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  list: {
+  gradient: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#3b82f6',
+    padding: 12,
+    borderRadius: 12,
+    margin: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  clientsList: {
+    padding: 16,
   },
   clientCard: {
-    backgroundColor: '#112240',
-    borderRadius: 8,
+    backgroundColor: '#fff',
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   selectedClient: {
+    borderColor: '#3b82f6',
     borderWidth: 2,
-    borderColor: '#64ffda',
+  },
+  clientHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   clientName: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#1e293b',
   },
-  clientInfo: {
-    color: '#8892b0',
-    fontSize: 14,
-    marginTop: 4,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  projectCount: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    padding: 16,
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  modalTitle: {
-    color: '#64ffda',
-    fontSize: 20,
-    fontWeight: 'bold',
+  projectCountText: {
+    color: '#64748b',
+    marginLeft: 4,
+    fontSize: 14,
+  },
+  clientDetails: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+  },
+  detailsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  input: {
-    backgroundColor: '#112240',
-    color: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    width: '100%',
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
   },
-  projectList: {
-    marginTop: 12,
-    padding: 8,
-    backgroundColor: '#0a192f',
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 8,
+    gap: 4,
+  },
+  actionButtonText: {
+    color: '#3b82f6',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  detailsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748b',
+    marginBottom: 4,
+  },
+  clientDetailName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1e293b',
+  },
+  detailsCard: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  detailsSection: {
+    gap: 8,
+  },
+  detailsSubtitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#3b82f6',
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailsIcon: {
+    marginRight: 6,
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  detailsLabel: {
+    width: 80,
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  detailsValue: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1e293b',
   },
   projectCard: {
-    backgroundColor: '#112240',
-    borderRadius: 8,
+    marginBottom: 8,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  projectGradient: {
     padding: 12,
+  },
+  projectHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
   },
   projectName: {
-    color: '#64ffda',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: '#1e293b',
   },
   projectInfo: {
-    color: '#8892b0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  projectDate: {
+    color: '#64748b',
     fontSize: 14,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  noProjectsText: {
+    color: '#64748b',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 16,
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1e293b',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  formContainer: {
+    padding: 16,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748b',
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    color: '#1e293b',
+  },
+  inputError: {
+    borderColor: '#ef4444',
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 12,
     marginTop: 4,
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  submitButton: {
+    backgroundColor: '#3b82f6',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 32,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
