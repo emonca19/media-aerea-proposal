@@ -184,10 +184,11 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : (Platform.OS === 'android' ? 'height' : undefined)} // Disable behavior for web
       style={styles.container}
+      enabled={Platform.OS !== 'web'} // Disable KAV entirely for web
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <TouchableWithoutFeedback onPress={Platform.OS === 'web' ? undefined : Keyboard.dismiss}>
         <LinearGradient
           colors={['rgb(12,4,67)', 'rgb(151,68,195)']}
           start={{ x: 0, y: 0 }}
