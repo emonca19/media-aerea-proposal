@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect, useMemo } from 'react';
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from '@react-native-picker/picker'; // CORREGIDO: Importación correcta
 import {
   Alert,
   Image,
@@ -44,7 +44,7 @@ const initialCurrentProject = {
 
 const pilot = {
   name: "Piloto de Pruebas",
-  avatar: require('../../assets/images/pilot-avatar.jpg') // Asegúrate que esta ruta es correcta
+  avatar: require('../../assets/images/pilot-avatar.jpg') 
 };
 
 const quickActivityTypes = [
@@ -141,8 +141,9 @@ const PilotDashboard = () => {
             updatedActivity.time = `Hoy, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - En curso`;
           } else if (newStatus === 'Completada' && act.status === 'En progreso') {
             const timeParts = act.time.split(' - ');
-            const startTime = timeParts.length > 1 && timeParts[0].includes("Hoy, ") ? timeParts[0] : `Hoy, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-            updatedActivity.time = `${startTime} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            // Asegurarse que la hora de inicio se mantenga si ya estaba definida
+            const startTimeString = timeParts[0].includes("Hoy, ") ? timeParts[0] : `Hoy, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            updatedActivity.time = `${startTimeString} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
           }
           return updatedActivity;
         }
@@ -180,7 +181,7 @@ const PilotDashboard = () => {
     };
 
     let finalNewActivity;
-    let updatedActivitiesList = [...currentProject.activities]; // Copia para modificar
+    let updatedActivitiesList = [...currentProject.activities];
 
     if (isQuickActivityForNow) {
       const currentOngoing = updatedActivitiesList.find(act => act.status === 'En progreso');
@@ -201,14 +202,13 @@ const PilotDashboard = () => {
         status: 'En progreso',
         time: `Hoy, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - En curso`,
       };
-      // Poner la nueva actividad al inicio y luego las demás, excluyendo la que se acaba de completar si existía
       setCurrentProject(prev => ({ 
           ...prev, 
           activities: [finalNewActivity, ...updatedActivitiesList.filter(act => act.id !== currentOngoing?.id)] 
       }));
       Alert.alert("Éxito", `Actividad "${activityName}" iniciada.`);
 
-    } else { // Programar Pendiente
+    } else { 
       if (!quickActivityPendingTime.trim()) {
         Alert.alert("Error", "Para programar una actividad pendiente, especifica un tiempo (ej: 'Hoy 15:00', 'Mañana AM').");
         return;
@@ -308,17 +308,18 @@ const PilotDashboard = () => {
   return (
     <View style={styles.screenContainer}>
       <StatusBar backgroundColor={styles.header_gradient.colors[0]} barStyle="light-content" />
-      <LinearGradient colors={styles.header_gradient.colors} style={styles.header_container}>
-        <View style={styles.header_content}>
-          <View>
-            <Text style={styles.header_title}>Dashboard Operativo</Text>
-            <Text style={styles.header_subtitle}>Bienvenido, {pilot.name.split(' ')[0]}</Text>
-          </View>
-          <Image source={pilot.avatar} style={styles.header_avatar} />
-        </View>
-      </LinearGradient>
-
       <ScrollView style={styles.scrollableContent_container} showsVerticalScrollIndicator={false}>
+        {/* Cabecera */}
+        <LinearGradient colors={styles.header_gradient.colors} style={styles.header_container}>
+          <View style={styles.header_content}>
+            <View>
+              <Text style={styles.header_title}>Dashboard Operativo</Text>
+              <Text style={styles.header_subtitle}>Bienvenido, {pilot.name.split(' ')[0]}</Text>
+            </View>
+            <Image source={pilot.avatar} style={styles.header_avatar} />
+          </View>
+        </LinearGradient>
+
         {/* Tarjeta: Mi Jornada Hoy */}
         <View style={styles.card_container}>
           <Text style={styles.card_title_large}>Mi Jornada Hoy</Text>
@@ -445,8 +446,8 @@ const PilotDashboard = () => {
                 <Text style={styles.secondaryButton_text}>Consultar Mis Indicadores</Text>
             </TouchableOpacity>
         </View>
-      </ScrollView>
-
+      </ScrollView> 
+            
       {/* --- MODALES --- */}
       {/* Modal para Nueva Actividad Rápida */}
       <Modal
@@ -604,13 +605,27 @@ const PilotDashboard = () => {
 // --- ESTILOS ---
 const styles = StyleSheet.create({
   screenContainer: { flex: 1, backgroundColor: '#f3f4f6', },
+  //scrollView_container: { flex: 1, backgroundColor: '#f3f4f6', }, // No es necesario si scrollableContent_container lo hace
   header_gradient: { colors: ['#1d4ed8', '#3b82f6'], },
-  header_container: { paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 15 : 60, paddingHorizontal: 20, paddingBottom: 20, borderBottomLeftRadius: 25, borderBottomRightRadius: 25, },
+  header_container: { 
+    paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 15 : 60, 
+    paddingHorizontal: 20, 
+    paddingBottom: 45, 
+    borderBottomLeftRadius: 80, 
+    borderBottomRightRadius: 80, 
+  },
   header_content: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', },
   header_title: { fontSize: 24, fontWeight: 'bold', color: 'white', },
   header_subtitle: { fontSize: 16, color: '#e0e7ff', marginTop: 2, },
   header_avatar: { width: 50, height: 50, borderRadius: 25, borderWidth: 2, borderColor: 'white', },
-  scrollableContent_container: { flex: 1, paddingHorizontal: 15, paddingTop: 20, },
+  scrollableContent_container: { 
+      flex: 1, 
+      paddingHorizontal: 15, 
+      // paddingTop: 20, // Se elimina si el primer card está directamente bajo el header
+      // Para que el primer card se vea "debajo" del header ovalado:
+      marginTop: -25, // Ajustar este valor según el paddingBottom y borderRadius del header
+      paddingTop: 25 + 10, // Compensar el marginTop y añadir un poco de padding superior
+  },
   card_container: { backgroundColor: 'white', borderRadius: 12, padding: 16, marginBottom: 20, shadowColor: '#9ca3af', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 3, },
   card_header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, },
   card_title: { fontSize: 18, fontWeight: '600', color: '#1e3a8a', },
@@ -657,7 +672,6 @@ const styles = StyleSheet.create({
   activityItem_button: { flexDirection: 'row', alignItems: 'center', padding: 8, borderRadius: 20, marginLeft: 8, },
   activityItem_buttonComplete: { backgroundColor: '#10b981' },
   activityItem_buttonStart: { backgroundColor: '#3b82f6' },
-  // activityItem_buttonText: { display: 'none' }, // Ocultar si solo son iconos
   activityItem_statusBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 16, alignItems: 'center', },
   activityItem_statusBadgeCompleted: { backgroundColor: '#dcfce7', borderColor: '#6ee7b7', borderWidth: 1, },
   activityItem_statusBadgeText: { fontSize: 12, fontWeight: '600', color: '#065f46', },
