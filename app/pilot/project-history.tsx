@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, StatusBar } from 'react-native';
+import { FlatList, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
 
 const mockProjectHistory = [
     { id: 'proj1', name: 'Inspección Puente Colgante', client: 'Infraestructura Vial S.A.', completionDate: '10/04/2023', status: 'Completado' },

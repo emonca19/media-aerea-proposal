@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { View, SafeAreaView } from 'react-native';
+import { SafeAreaView, View } from 'react-native';
 
 export default function PilotLayout() {
   return (

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, StatusBar } from 'react-native';
+import { FlatList, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
 
 const mockNotifications = [
   { id: '1', title: 'Mantenimiento Requerido', message: 'El drone SN-M300-78451 necesita revisión de hélices.', time: 'Hace 2 horas', type: 'warning' },
