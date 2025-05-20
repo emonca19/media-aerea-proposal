@@ -68,6 +68,32 @@ export default function PilotLayout() {
               ),
             }}
           />
+          <Tabs.Screen
+            name="notifications"
+            options={{
+              title: 'Notificaciones',
+              tabBarIcon: ({ color, size, focused }) => (
+                <Ionicons 
+                  name={focused ? "notifications" : "notifications-outline"} 
+                  size={size} 
+                  color={color} 
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="project-history"
+            options={{
+              title: 'Historial',
+              tabBarIcon: ({ color, size, focused }) => (
+                <Ionicons 
+                  name={focused ? "archive" : "archive-outline"} 
+                  size={size} 
+                  color={color} 
+                />
+              ),
+            }}
+          />
         </Tabs>
       </View>
     </SafeAreaView>

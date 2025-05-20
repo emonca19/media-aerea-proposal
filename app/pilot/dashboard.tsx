@@ -1,17 +1,18 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient'; // Changed import
+import { useRouter } from 'expo-router'; // Added useRouter
 import React from 'react';
 import {
+  Alert // Added Alert for placeholder actions
+  ,
   Image, // Added Image
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity, // Added TouchableOpacity
-  View,
-  Alert // Added Alert for placeholder actions
+  View
 } from 'react-native';
-import { useRouter } from 'expo-router'; // Added useRouter
 
 const PilotDashboard = () => {
   const router = useRouter(); // Initialize router
@@ -217,6 +218,61 @@ const PilotDashboard = () => {
                 </View>
             </View>
         )}
+
+        {/* Notificaciones - Removed from here, moved to its own screen */}
+        {/* <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Notificaciones Recientes</Text>
+            <MaterialCommunityIcons name="bell-ring-outline" size={24} color="#3b82f6" />
+          </View>
+          {mockNotifications.map(notification => (
+            <View key={notification.id} style={styles.notificationItem}>
+              <Ionicons
+                name={notification.type === 'warning' ? "warning-outline" : notification.type === 'critical' ? "alert-circle" : "information-circle-outline"}
+                size={24}
+                color={notification.type === 'warning' ? '#f59e0b' : notification.type === 'critical' ? '#ef4444' : '#3b82f6'}
+                style={styles.notificationIcon}
+              />
+              <View style={styles.notificationContent}>
+                <Text style={styles.notificationTitle}>{notification.title}</Text>
+                <Text style={styles.notificationMessage}>{notification.message}</Text>
+                <Text style={styles.notificationTime}>{notification.time}</Text>
+              </View>
+            </View>
+          ))}
+          {mockNotifications.length === 0 && (
+             <View style={styles.emptyStateContainer}>
+                <Ionicons name="notifications-off-outline" size={48} color="#cbd5e1" />
+                <Text style={styles.emptyStateText}>No hay notificaciones nuevas.</Text>
+            </View>
+          )}
+        </View> */}
+
+        {/* Historial de Proyectos - Removed from here, moved to its own screen */}
+        {/* <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Historial de Proyectos</Text>
+            <MaterialCommunityIcons name="history" size={24} color="#6b7280" />
+          </View>
+          {mockProjectHistory.map(project => (
+            <View key={project.id} style={styles.projectHistoryItem}>
+              <Ionicons name="briefcase-outline" size={24} color="#64748b" style={styles.projectHistoryIcon} />
+              <View style={styles.projectHistoryContent}>
+                <Text style={styles.projectHistoryName}>{project.name}</Text>
+                <Text style={styles.projectHistoryClient}>{project.client} - {project.completionDate}</Text>
+              </View>
+              <View style={[styles.activityStatus, styles.completedStatus]}>
+                 <Text style={styles.statusText}>{project.status}</Text>
+              </View>
+            </View>
+          ))}
+           {mockProjectHistory.length === 0 && (
+             <View style={styles.emptyStateContainer}>
+                <Ionicons name="archive-outline" size={48} color="#cbd5e1" />
+                <Text style={styles.emptyStateText}>No hay proyectos en el historial.</Text>
+            </View>
+          )}
+        </View> */}
 
         {/* Resumen del proyecto */}
         <View style={styles.card}>
@@ -554,6 +610,61 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#9ca3af',
   },
+  // Styles for Notifications (Removed - styles moved to notifications.tsx)
+  /* notificationItem: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+    alignItems: 'flex-start',
+  },
+  notificationIcon: {
+    marginRight: 12,
+    marginTop: 2,
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  notificationMessage: {
+    fontSize: 14,
+    color: '#4b5563',
+    marginTop: 2,
+  },
+  notificationTime: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 4,
+    textAlign: 'right',
+  }, */
+  // Styles for Project History (Removed - styles moved to project-history.tsx)
+  /* projectHistoryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  projectHistoryIcon: {
+    marginRight: 12,
+  },
+  projectHistoryContent: {
+    flex: 1,
+  },
+  projectHistoryName: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#1e3a8a',
+  },
+  projectHistoryClient: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginTop: 2,
+  }, */
 });
 
 export default PilotDashboard;
