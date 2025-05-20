@@ -1,24 +1,26 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useState, useEffect, useMemo } from 'react';
-import { Picker } from '@react-native-picker/picker'; // CORREGIDO: Importación correcta
+import React, { useEffect, useMemo, useState } from 'react';
+import useWeather from '../hooks/useWeather';
 import {
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
-  Modal,
-  TextInput,
-  Platform,
-  KeyboardAvoidingView,
 } from 'react-native';
 
-// --- DATOS INICIALES (MOCK) ---
+const HEADER_CARD_GRADIENT_COLORS = ['#2563eb', '#3b82f6'];
+
 const initialCurrentProject = {
   name: 'Inspección Parque Eólico Norte',
   client: 'Energía Renovable S.A.',
@@ -44,7 +46,7 @@ const initialCurrentProject = {
 
 const pilot = {
   name: "Piloto de Pruebas",
-  avatar: require('../../assets/images/pilot-avatar.jpg') 
+  avatar: require('../../assets/images/pilot-avatar.jpg') // Make sure this path is correct
 };
 
 const quickActivityTypes = [
@@ -99,7 +101,6 @@ const PilotDashboard = () => {
   const [alerts, setAlerts] = useState(initialCurrentProject.alerts || []);
   const [isAlertsSectionVisible, setIsAlertsSectionVisible] = useState(true);
 
-  // Estados para el modal de Nueva Actividad Rápida
   const [isNewActivityModalVisible, setIsNewActivityModalVisible] = useState(false);
   const [selectedQuickActivityType, setSelectedQuickActivityType] = useState(quickActivityTypes[0].type);
   const [quickActivityCustomName, setQuickActivityCustomName] = useState('');
@@ -107,22 +108,40 @@ const PilotDashboard = () => {
   const [isQuickActivityForNow, setIsQuickActivityForNow] = useState(true);
   const [quickActivityPendingTime, setQuickActivityPendingTime] = useState('');
 
-  // Estados para el modal de Registrar Incidencia
   const [isNewIncidentModalVisible, setIsNewIncidentModalVisible] = useState(false);
   const [newIncidentType, setNewIncidentType] = useState('');
   const [newIncidentDescription, setNewIncidentDescription] = useState('');
 
+  const { weather, loading, error } = useWeather(currentProject.location);
+  const [currentDate, setCurrentDate] = useState('');
+
+  useEffect(() => {
+    const today = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    setCurrentDate(today.toLocaleDateString('es-ES', options)); // Adjust locale as needed
+  }, []);
+
   useEffect(() => { setAlerts(currentProject.alerts || []); }, [currentProject.alerts]);
 
-  // Derivar actividades
   const ongoingActivities = useMemo(() => currentProject.activities.filter(act => act.status === 'En progreso'), [currentProject.activities]);
   const pendingTodayActivities = useMemo(() => currentProject.activities.filter(act => act.status === 'Pendiente' && act.time.toLowerCase().startsWith('hoy')), [currentProject.activities]);
   const pastActivities = useMemo(() => currentProject.activities.filter(act => act.status === 'Completada').sort((a, b) => b.id.localeCompare(a.id)), [currentProject.activities]);
   const genericPendingActivities = useMemo(() => currentProject.activities.filter(act => act.status === 'Pendiente' && !act.time.toLowerCase().startsWith('hoy')), [currentProject.activities]);
   const currentOngoingActivityForDisplay = ongoingActivities.length > 0 ? ongoingActivities[0] : null;
 
-  // --- MANEJADORES ---
   const handleNavigate = (route) => router.push(route);
+  const handleLogout = () => {
+    Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Sí, Cerrar Sesión", onPress: () => {
+          // Implement actual logout logic here
+          // For example, navigate to login screen: router.replace('/auth/login');
+          console.log("Logout presionado"); 
+          router.replace('/'); // Assuming '/' is your auth/login route
+        } 
+      }
+    ]);
+  };
   
   const getStatusIconAndColor = (status) => {
     if (status === 'Completada') return { icon: "checkmark-circle", color: "#10b981" };
@@ -141,7 +160,6 @@ const PilotDashboard = () => {
             updatedActivity.time = `Hoy, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - En curso`;
           } else if (newStatus === 'Completada' && act.status === 'En progreso') {
             const timeParts = act.time.split(' - ');
-            // Asegurarse que la hora de inicio se mantenga si ya estaba definida
             const startTimeString = timeParts[0].includes("Hoy, ") ? timeParts[0] : `Hoy, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
             updatedActivity.time = `${startTimeString} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
           }
@@ -167,57 +185,40 @@ const PilotDashboard = () => {
   const handleCreateQuickActivity = () => {
     const selectedTypeInfo = quickActivityTypes.find(qt => qt.type === selectedQuickActivityType);
     let activityName = selectedTypeInfo.type === 'OTHER' ? quickActivityCustomName.trim() : selectedTypeInfo.label;
-
     if (!activityName) {
       Alert.alert("Error", "El nombre de la actividad no puede estar vacío.");
       return;
     }
-
     const newActivityBase = {
       id: `act-${Date.now().toString()}`,
       type: selectedQuickActivityType,
       name: activityName,
       notes: quickActivityNotes.trim(),
     };
-
     let finalNewActivity;
     let updatedActivitiesList = [...currentProject.activities];
-
     if (isQuickActivityForNow) {
       const currentOngoing = updatedActivitiesList.find(act => act.status === 'En progreso');
       if (currentOngoing) {
         updatedActivitiesList = updatedActivitiesList.map(act =>
           act.id === currentOngoing.id
-            ? { 
-                ...act, 
-                status: 'Completada', 
-                time: `${act.time.split(' - En curso')[0]} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
-              }
+            ? { ...act, status: 'Completada', time: `${act.time.split(' - En curso')[0]} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` }
             : act
         );
       }
-
       finalNewActivity = {
         ...newActivityBase,
         status: 'En progreso',
         time: `Hoy, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - En curso`,
       };
-      setCurrentProject(prev => ({ 
-          ...prev, 
-          activities: [finalNewActivity, ...updatedActivitiesList.filter(act => act.id !== currentOngoing?.id)] 
-      }));
+      setCurrentProject(prev => ({ ...prev, activities: [finalNewActivity, ...updatedActivitiesList.filter(act => act.id !== currentOngoing?.id)] }));
       Alert.alert("Éxito", `Actividad "${activityName}" iniciada.`);
-
     } else { 
       if (!quickActivityPendingTime.trim()) {
         Alert.alert("Error", "Para programar una actividad pendiente, especifica un tiempo (ej: 'Hoy 15:00', 'Mañana AM').");
         return;
       }
-      finalNewActivity = {
-        ...newActivityBase,
-        status: 'Pendiente',
-        time: quickActivityPendingTime.trim(),
-      };
+      finalNewActivity = { ...newActivityBase, status: 'Pendiente', time: quickActivityPendingTime.trim() };
       setCurrentProject(prev => ({ ...prev, activities: [finalNewActivity, ...prev.activities] }));
       Alert.alert("Éxito", `Actividad "${activityName}" programada como pendiente.`);
     }
@@ -230,27 +231,14 @@ const PilotDashboard = () => {
     setIsNewIncidentModalVisible(true);
   };
   const handleCreateNewIncident = () => {
-    if (!newIncidentType) {
-      Alert.alert("Entrada Requerida", "Por favor, selecciona una razón para la incidencia.");
-      return;
-    }
-    if (!newIncidentDescription.trim()) {
-      Alert.alert("Entrada Requerida", "Por favor, describe la incidencia.");
-      return;
-    }
-    const newIncident = {
-      id: `inc-${Date.now().toString()}`,
-      type: newIncidentType,
-      description: newIncidentDescription.trim(),
-      timestamp: new Date().toISOString(),
-    };
-    console.log("Nueva Incidencia Registrada:", newIncident);
+    if (!newIncidentType) { Alert.alert("Entrada Requerida", "Por favor, selecciona una razón para la incidencia."); return; }
+    if (!newIncidentDescription.trim()) { Alert.alert("Entrada Requerida", "Por favor, describe la incidencia."); return; }
+    const newIncident = { id: `inc-${Date.now().toString()}`, type: newIncidentType, description: newIncidentDescription.trim(), timestamp: new Date().toISOString() };
     setCurrentProject(prev => ({ ...prev, incidents: [...(prev.incidents || []), newIncident] }));
     setIsNewIncidentModalVisible(false);
     Alert.alert("Incidencia Registrada", `Razón: ${newIncidentType}. Se ha guardado la información.`);
   };
 
-  // --- RENDERIZADO DE ELEMENTOS DE LISTA ---
   const renderActivityItem = (activity) => { 
     const { icon, color } = getStatusIconAndColor(activity.status);
     return (
@@ -264,63 +252,66 @@ const PilotDashboard = () => {
           </View>
         </View>
         <View style={styles.activityItem_actionsContainer}>
-          {activity.status === 'En progreso' && (
-            <TouchableOpacity
-              style={[styles.activityItem_button, styles.activityItem_buttonComplete]}
-              onPress={() => handleActivityAction(activity.id, 'Completada')}
-            >
-              <Ionicons name="checkmark-done-circle-outline" size={24} color="white" />
-            </TouchableOpacity>
-          )}
-          {activity.status === 'Pendiente' && (
-            <TouchableOpacity
-              style={[styles.activityItem_button, styles.activityItem_buttonStart]}
-              onPress={() => handleActivityAction(activity.id, 'En progreso')}
-            >
-              <Ionicons name="play-circle-outline" size={24} color="white" />
-            </TouchableOpacity>
-          )}
-          {activity.status === 'Completada' && (
-            <View style={[styles.activityItem_statusBadge, styles.activityItem_statusBadgeCompleted]}>
-              <Text style={styles.activityItem_statusBadgeText}>OK</Text>
-            </View>
-          )}
+          {activity.status === 'En progreso' && ( <TouchableOpacity style={[styles.activityItem_button, styles.activityItem_buttonComplete]} onPress={() => handleActivityAction(activity.id, 'Completada')}><Ionicons name="checkmark-done-circle-outline" size={24} color="white" /></TouchableOpacity> )}
+          {activity.status === 'Pendiente' && ( <TouchableOpacity style={[styles.activityItem_button, styles.activityItem_buttonStart]} onPress={() => handleActivityAction(activity.id, 'En progreso')}><Ionicons name="play-circle-outline" size={24} color="white" /></TouchableOpacity> )}
+          {activity.status === 'Completada' && ( <View style={[styles.activityItem_statusBadge, styles.activityItem_statusBadgeCompleted]}><Text style={styles.activityItem_statusBadgeText}>OK</Text></View> )}
         </View>
       </View>
     );
   };
   const renderAlertItem = (alert) => (
     <View key={alert.id} style={styles.alertItem_container}>
-      <Ionicons
-        name={alert.type === 'warning' ? "warning-outline" : "information-circle-outline"}
-        size={20}
-        color={alert.type === 'warning' ? styles.alertItem_iconWarning.color : styles.alertItem_iconInfo.color}
-        style={styles.alertItem_icon}
-      />
+      <Ionicons name={alert.type === 'warning' ? "warning-outline" : "information-circle-outline"} size={20} color={alert.type === 'warning' ? styles.alertItem_iconWarning.color : styles.alertItem_iconInfo.color} style={styles.alertItem_icon} />
       <Text style={styles.alertItem_message}>{alert.message}</Text>
-      <TouchableOpacity onPress={() => handleDismissAlert(alert.id)} style={styles.alertItem_dismissButton}>
-        <Ionicons name="close-circle-outline" size={22} color={styles.alertItem_dismissIcon.color} />
-      </TouchableOpacity>
+      <TouchableOpacity onPress={() => handleDismissAlert(alert.id)} style={styles.alertItem_dismissButton}><Ionicons name="close-circle-outline" size={22} color={styles.alertItem_dismissIcon.color} /></TouchableOpacity>
     </View>
   );
 
-  // --- RENDERIZADO PRINCIPAL ---
-  return (
-    <View style={styles.screenContainer}>
-      <StatusBar backgroundColor={styles.header_gradient.colors[0]} barStyle="light-content" />
-      <ScrollView style={styles.scrollableContent_container} showsVerticalScrollIndicator={false}>
-        {/* Cabecera */}
-        <LinearGradient colors={styles.header_gradient.colors} style={styles.header_container}>
-          <View style={styles.header_content}>
-            <View>
-              <Text style={styles.header_title}>Dashboard Operativo</Text>
-              <Text style={styles.header_subtitle}>Bienvenido, {pilot.name.split(' ')[0]}</Text>
+return (
+  <View style={styles.screenContainer}>
+    <StatusBar backgroundColor="#f3f4f6" barStyle="dark-content" /> 
+    
+    <ScrollView 
+      style={styles.scrollableContent_container_main} 
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollableContent_contentContainer_main}
+    >
+        <LinearGradient 
+            colors={HEADER_CARD_GRADIENT_COLORS} 
+            style={styles.headerCard_container}
+            start={{ x: 0, y: 0 }} 
+            end={{ x: 1, y: 1 }}
+        >
+            <View style={styles.headerCard_topRow}>
+                <View style={styles.headerCard_textContainer}>
+                    <Text style={styles.headerCard_greeting}>Hola,</Text>
+                    <Text style={styles.headerCard_pilotName}>{pilot.name.split(' ')[0]}!</Text>
+                </View>
+                <View style={styles.headerCard_avatarLogoutContainer}>
+                    <Image source={pilot.avatar} style={styles.headerCard_avatar} />
+                    <TouchableOpacity onPress={handleLogout} style={styles.headerCard_logoutButton}>
+                        <Ionicons name="log-out-outline" size={26} color="rgba(255,255,255,0.8)" />
+                    </TouchableOpacity>
+                </View>
             </View>
-            <Image source={pilot.avatar} style={styles.header_avatar} />
-          </View>
+            
+            <View style={styles.headerCard_bottomRow}>
+                <Text style={styles.headerCard_dateText}>{currentDate}</Text>
+                {!loading && weather && (
+                    <View style={styles.headerCard_weatherContainer}>
+                        <Image source={{ uri: 'https:' + weather.icon }} style={styles.headerCard_weatherIcon} />
+                        <Text style={styles.headerCard_weatherText}>{weather.temperature}°C, {weather.description}</Text>
+                    </View>
+                )}
+            </View>
+            {loading && (
+                <Text style={[styles.headerCard_weatherText, {alignSelf: 'center', marginTop: 6}]}>Cargando clima...</Text>
+            )}
+             {error && (
+                <Text style={[styles.headerCard_weatherText, {alignSelf: 'center', marginTop: 6, color: '#ffcdd2'}]}>Error clima</Text>
+            )}
         </LinearGradient>
 
-        {/* Tarjeta: Mi Jornada Hoy */}
         <View style={styles.card_container}>
           <Text style={styles.card_title_large}>Mi Jornada Hoy</Text>
           <View style={styles.projectBrief_container}>
@@ -330,8 +321,7 @@ const PilotDashboard = () => {
             <InfoRow iconName="calendar-outline" label="Fechas:" value={`${currentProject.startDate} - ${currentProject.endDate}`} />
             <InfoRow iconName="airplane-outline" label="Drone:" value={currentProject.drone.split(' (')[0]} />
           </View>
-
-          {!isChecklistComplete ? (
+           {!isChecklistComplete ? (
             <TouchableOpacity style={styles.primaryButton_generic} onPress={() => handleNavigate('/pilot/preflight-checklist')}>
               <Ionicons name="shield-checkmark-outline" size={20} color="white" style={styles.primaryButton_icon}/>
               <Text style={styles.primaryButton_text}>Iniciar Checklist Prevuelo</Text>
@@ -349,7 +339,6 @@ const PilotDashboard = () => {
           )}
         </View>
 
-        {/* Tarjeta: Alertas Importantes */}
         {alerts && alerts.length > 0 && (
           <View style={[styles.card_container, styles.alertsCard_container]}>
             <View style={styles.card_header}>
@@ -358,7 +347,7 @@ const PilotDashboard = () => {
                 <Ionicons
                   name={isAlertsSectionVisible ? "chevron-up-outline" : "chevron-down-outline"}
                   size={26}
-                  color={styles.alertItem_iconWarning.color}
+                  color={styles.alertItem_iconWarning.color} 
                 />
               </TouchableOpacity>
             </View>
@@ -371,75 +360,25 @@ const PilotDashboard = () => {
           </View>
         )}
         
-        {/* Tarjeta: Acciones Rápidas */}
         <View style={styles.card_container}>
           <Text style={styles.card_title}>Acciones Rápidas</Text>
           <View style={styles.quickActions_gridContainer}>
-            <QuickActionButton
-              iconName="document-text-outline"
-              text="Bitácora Detallada"
-              onPress={() => handleNavigate('/pilot/activity-log')}
-              color="#3b82f6"
-            />
-            <QuickActionButton
-              iconName="add-circle-outline"
-              text="Actividad Rápida"
-              onPress={handleOpenNewActivityModal}
-              color="#10b981"
-            />
-            <QuickActionButton
-              iconName="warning-outline"
-              text="Incidencia Rápida"
-              onPress={handleOpenNewIncidentModal}
-              color="#ef4444"
-            />
-            <QuickActionButton
-              iconName="cloud-upload-outline"
-              text="Subida de Fotos"
-              onPress={() => handleNavigate('/pilot/confirm-photo-upload')}
-              color="#eab308"
-            />
+            <QuickActionButton iconName="document-text-outline" text="Bitácora Detallada" onPress={() => handleNavigate('/pilot/activity-log')} color="#3b82f6" />
+            <QuickActionButton iconName="add-circle-outline" text="Actividad Rápida" onPress={handleOpenNewActivityModal} color="#10b981" />
+            <QuickActionButton iconName="warning-outline" text="Incidencia Rápida" onPress={handleOpenNewIncidentModal} color="#ef4444" />
+            <QuickActionButton iconName="cloud-upload-outline" text="Subida de Fotos" onPress={() => handleNavigate('/pilot/confirm-photo-upload')} color="#eab308" />
           </View>
         </View>
 
-        {/* Tarjeta: Mis Actividades */}
         <View style={styles.card_container}>
             <Text style={styles.card_title}>Mis Actividades</Text>
-            {ongoingActivities.length > 0 && (
-                <>
-                    <CardSectionTitle title="En Progreso" />
-                    {ongoingActivities.map(renderActivityItem)}
-                </>
-            )}
-            {pendingTodayActivities.length > 0 && (
-                <>
-                    <CardSectionTitle title="Pendientes para Hoy" />
-                    {pendingTodayActivities.map(renderActivityItem)}
-                </>
-            )}
-            {genericPendingActivities.length > 0 && (
-                <>
-                    <CardSectionTitle title="Otras Pendientes" />
-                    {genericPendingActivities.map(renderActivityItem)}
-                </>
-            )}
-            {pastActivities.length > 0 && (
-                 <>
-                    <CardSectionTitle title="Actividades Realizadas" />
-                    {pastActivities.slice(0, 5).map(renderActivityItem)}
-                    {pastActivities.length > 5 && (
-                        <TouchableOpacity style={styles.secondaryButton_generic} onPress={() => {/* Implementar navegación a historial completo */}}>
-                            <Text style={styles.secondaryButton_text}>Ver Todas las Realizadas</Text>
-                        </TouchableOpacity>
-                    )}
-                </>
-            )}
-            { (ongoingActivities.length + pendingTodayActivities.length + genericPendingActivities.length + pastActivities.length) === 0 && (
-                <Text style={styles.noActivities_text}>No hay actividades registradas.</Text>
-            )}
+            {ongoingActivities.length > 0 && ( <> <CardSectionTitle title="En Progreso" /> {ongoingActivities.map(renderActivityItem)} </> )}
+            {pendingTodayActivities.length > 0 && ( <> <CardSectionTitle title="Pendientes para Hoy" /> {pendingTodayActivities.map(renderActivityItem)} </> )}
+            {genericPendingActivities.length > 0 && ( <> <CardSectionTitle title="Otras Pendientes" /> {genericPendingActivities.map(renderActivityItem)} </> )}
+            {pastActivities.length > 0 && ( <> <CardSectionTitle title="Actividades Realizadas" /> {pastActivities.slice(0, 5).map(renderActivityItem)} {pastActivities.length > 5 && ( <TouchableOpacity style={styles.secondaryButton_generic} onPress={() => {}}><Text style={styles.secondaryButton_text}>Ver Todas las Realizadas</Text></TouchableOpacity> )} </> )}
+            { (ongoingActivities.length + pendingTodayActivities.length + genericPendingActivities.length + pastActivities.length) === 0 && ( <Text style={styles.noActivities_text}>No hay actividades registradas.</Text> )}
         </View>
         
-        {/* Tarjeta: Consultar Indicadores */}
         <View style={[styles.card_container, { marginBottom: 30 }]}>
              <TouchableOpacity style={styles.secondaryButton_generic} onPress={() => handleNavigate('/pilot/my-indicators')}>
                 <Ionicons name="stats-chart-outline" size={20} color={styles.secondaryButton_icon.color} style={styles.secondaryButton_icon} />
@@ -449,150 +388,58 @@ const PilotDashboard = () => {
       </ScrollView> 
             
       {/* --- MODALES --- */}
-      {/* Modal para Nueva Actividad Rápida */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isNewActivityModalVisible}
-        onRequestClose={() => setIsNewActivityModalVisible(false)}
-      >
+      <Modal animationType="slide" transparent={true} visible={isNewActivityModalVisible} onRequestClose={() => setIsNewActivityModalVisible(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modal_overlay}>
           <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }} keyboardShouldPersistTaps="handled">
             <View style={styles.modal_view}>
               <Text style={styles.modal_title}>Registrar Actividad Rápida</Text>
-
               <Text style={styles.modal_label}>Tipo de Actividad:</Text>
               <View style={styles.modal_quickActivityTypeContainer}>
                 {quickActivityTypes.map((qType) => (
-                  <TouchableOpacity
-                    key={qType.type}
-                    style={[
-                      styles.modal_quickActivityTypeButton,
-                      selectedQuickActivityType === qType.type && styles.modal_quickActivityTypeButtonSelected,
-                    ]}
-                    onPress={() => {
-                      setSelectedQuickActivityType(qType.type);
-                      if (qType.type !== 'OTHER') setQuickActivityCustomName('');
-                    }}
-                  >
-                    <Ionicons
-                      name={qType.icon}
-                      size={22}
-                      color={selectedQuickActivityType === qType.type ? '#fff' : '#3b82f6'}
-                    />
-                    <Text
-                      style={[
-                        styles.modal_quickActivityTypeLabel,
-                        selectedQuickActivityType === qType.type && styles.modal_quickActivityTypeLabelSelected,
-                      ]}
-                    >
-                      {qType.label}
-                    </Text>
+                  <TouchableOpacity key={qType.type} style={[styles.modal_quickActivityTypeButton, selectedQuickActivityType === qType.type && styles.modal_quickActivityTypeButtonSelected,]} onPress={() => { setSelectedQuickActivityType(qType.type); if (qType.type !== 'OTHER') setQuickActivityCustomName(''); }}>
+                    <Ionicons name={qType.icon} size={22} color={selectedQuickActivityType === qType.type ? '#fff' : '#3b82f6'} />
+                    <Text style={[styles.modal_quickActivityTypeLabel, selectedQuickActivityType === qType.type && styles.modal_quickActivityTypeLabelSelected,]}>{qType.label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
-
-              {selectedQuickActivityType === 'OTHER' && (
-                <TextInput
-                  style={styles.modal_input}
-                  placeholder="Nombre de actividad personalizada"
-                  value={quickActivityCustomName}
-                  onChangeText={setQuickActivityCustomName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-
+              {selectedQuickActivityType === 'OTHER' && ( <TextInput style={styles.modal_input} placeholder="Nombre de actividad personalizada" value={quickActivityCustomName} onChangeText={setQuickActivityCustomName} placeholderTextColor="#9ca3af" /> )}
               <Text style={styles.modal_label}>Notas (Opcional):</Text>
-              <TextInput
-                style={[styles.modal_input, styles.modal_textArea]}
-                placeholder="Detalles adicionales..."
-                value={quickActivityNotes}
-                onChangeText={setQuickActivityNotes}
-                multiline
-                placeholderTextColor="#9ca3af"
-              />
-
+              <TextInput style={[styles.modal_input, styles.modal_textArea]} placeholder="Detalles adicionales..." value={quickActivityNotes} onChangeText={setQuickActivityNotes} multiline placeholderTextColor="#9ca3af" />
               <View style={styles.modal_toggleActionContainer}>
-                <TouchableOpacity 
-                    style={[styles.modal_toggleActionButton, isQuickActivityForNow && styles.modal_toggleActionButtonSelected]}
-                    onPress={() => setIsQuickActivityForNow(true)}
-                >
+                <TouchableOpacity style={[styles.modal_toggleActionButton, isQuickActivityForNow && styles.modal_toggleActionButtonSelected]} onPress={() => setIsQuickActivityForNow(true)}>
                     <Ionicons name="play-circle-outline" size={20} color={isQuickActivityForNow ? "white" : "#2563eb"}/>
                     <Text style={[styles.modal_toggleActionButtonText, isQuickActivityForNow && {color: "white"}]}>Iniciar Ahora</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
-                    style={[styles.modal_toggleActionButton, !isQuickActivityForNow && styles.modal_toggleActionButtonSelected]}
-                    onPress={() => setIsQuickActivityForNow(false)}
-                >
+                <TouchableOpacity style={[styles.modal_toggleActionButton, !isQuickActivityForNow && styles.modal_toggleActionButtonSelected]} onPress={() => setIsQuickActivityForNow(false)}>
                     <Ionicons name="calendar-outline" size={20} color={!isQuickActivityForNow ? "white" : "#f59e0b"}/>
                     <Text style={[styles.modal_toggleActionButtonText, !isQuickActivityForNow && {color: "white"}, {color: !isQuickActivityForNow ? "white" : "#f59e0b"}]}>Programar</Text>
                 </TouchableOpacity>
               </View>
-
-              {!isQuickActivityForNow && (
-                <TextInput
-                  style={styles.modal_input}
-                  placeholder="Tiempo para actividad pendiente (ej: Hoy 16:00)"
-                  value={quickActivityPendingTime}
-                  onChangeText={setQuickActivityPendingTime}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-              
+              {!isQuickActivityForNow && ( <TextInput style={styles.modal_input} placeholder="Tiempo para actividad pendiente (ej: Hoy 16:00)" value={quickActivityPendingTime} onChangeText={setQuickActivityPendingTime} placeholderTextColor="#9ca3af" /> )}
               <View style={styles.modal_buttonContainer}>
-                <TouchableOpacity style={[styles.modal_button, styles.modal_buttonClose]} onPress={() => setIsNewActivityModalVisible(false)}>
-                  <Text style={styles.modal_buttonText}>Cancelar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.modal_button, styles.modal_buttonSave]} onPress={handleCreateQuickActivity}>
-                  <Text style={styles.modal_buttonText}>{isQuickActivityForNow ? 'Iniciar' : 'Programar'}</Text>
-                </TouchableOpacity>
+                <TouchableOpacity style={[styles.modal_button, styles.modal_buttonClose]} onPress={() => setIsNewActivityModalVisible(false)}><Text style={styles.modal_buttonText}>Cancelar</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.modal_button, styles.modal_buttonSave]} onPress={handleCreateQuickActivity}><Text style={styles.modal_buttonText}>{isQuickActivityForNow ? 'Iniciar' : 'Programar'}</Text></TouchableOpacity>
               </View>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
-
-      {/* Modal para Registrar Incidencia */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isNewIncidentModalVisible}
-        onRequestClose={() => setIsNewIncidentModalVisible(false)}
-      >
+      <Modal animationType="slide" transparent={true} visible={isNewIncidentModalVisible} onRequestClose={() => setIsNewIncidentModalVisible(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modal_overlay}>
           <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }} keyboardShouldPersistTaps="handled">
             <View style={styles.modal_view}>
               <Text style={styles.modal_title}>Registrar Incidencia</Text>
               <Text style={styles.modal_label}>Razón de la Incidencia:</Text>
               <View style={styles.modal_pickerContainer}>
-                <Picker
-                  selectedValue={newIncidentType}
-                  style={styles.modal_picker}
-                  onValueChange={(itemValue) => setNewIncidentType(itemValue)}
-                  prompt="Seleccione Razón de Incidencia"
-                >
-                  {incidentTypes.map((type) => (
-                    <Picker.Item key={type.value} label={type.label} value={type.value} />
-                  ))}
+                <Picker selectedValue={newIncidentType} style={styles.modal_picker} onValueChange={(itemValue) => setNewIncidentType(itemValue)} prompt="Seleccione Razón de Incidencia">
+                  {incidentTypes.map((type) => ( <Picker.Item key={type.value} label={type.label} value={type.value} /> ))}
                 </Picker>
               </View>
               <Text style={styles.modal_label}>Descripción:</Text>
-              <TextInput
-                style={[styles.modal_input, styles.modal_textArea]}
-                placeholder="Descripción detallada de la incidencia..."
-                placeholderTextColor="#9ca3af"
-                value={newIncidentDescription}
-                onChangeText={setNewIncidentDescription}
-                multiline={true}
-                numberOfLines={4}
-              />
+              <TextInput style={[styles.modal_input, styles.modal_textArea]} placeholder="Descripción detallada de la incidencia..." placeholderTextColor="#9ca3af" value={newIncidentDescription} onChangeText={setNewIncidentDescription} multiline={true} numberOfLines={4} />
               <View style={styles.modal_buttonContainer}>
-                <TouchableOpacity style={[styles.modal_button, styles.modal_buttonClose]} onPress={() => setIsNewIncidentModalVisible(false)}>
-                  <Text style={styles.modal_buttonText}>Cancelar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.modal_button, styles.modal_buttonSave]} onPress={handleCreateNewIncident}>
-                  <Text style={styles.modal_buttonText}>Registrar</Text>
-                </TouchableOpacity>
+                <TouchableOpacity style={[styles.modal_button, styles.modal_buttonClose]} onPress={() => setIsNewIncidentModalVisible(false)}><Text style={styles.modal_buttonText}>Cancelar</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.modal_button, styles.modal_buttonSave]} onPress={handleCreateNewIncident}><Text style={styles.modal_buttonText}>Registrar</Text></TouchableOpacity>
               </View>
             </View>
           </ScrollView>
@@ -604,29 +451,114 @@ const PilotDashboard = () => {
 
 // --- ESTILOS ---
 const styles = StyleSheet.create({
-  screenContainer: { flex: 1, backgroundColor: '#f3f4f6', },
-  //scrollView_container: { flex: 1, backgroundColor: '#f3f4f6', }, // No es necesario si scrollableContent_container lo hace
-  header_gradient: { colors: ['#1d4ed8', '#3b82f6'], },
-  header_container: { 
-    paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 15 : 60, 
-    paddingHorizontal: 20, 
-    paddingBottom: 45, 
-    borderBottomLeftRadius: 80, 
-    borderBottomRightRadius: 80, 
+  screenContainer: { 
+    flex: 1, 
+    backgroundColor: '#f3f4f6', 
   },
-  header_content: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', },
-  header_title: { fontSize: 24, fontWeight: 'bold', color: 'white', },
-  header_subtitle: { fontSize: 16, color: '#e0e7ff', marginTop: 2, },
-  header_avatar: { width: 50, height: 50, borderRadius: 25, borderWidth: 2, borderColor: 'white', },
-  scrollableContent_container: { 
+  scrollableContent_container_main: {
       flex: 1, 
-      paddingHorizontal: 15, 
-      // paddingTop: 20, // Se elimina si el primer card está directamente bajo el header
-      // Para que el primer card se vea "debajo" del header ovalado:
-      marginTop: -25, // Ajustar este valor según el paddingBottom y borderRadius del header
-      paddingTop: 25 + 10, // Compensar el marginTop y añadir un poco de padding superior
   },
-  card_container: { backgroundColor: 'white', borderRadius: 12, padding: 16, marginBottom: 20, shadowColor: '#9ca3af', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 3, },
+  scrollableContent_contentContainer_main: {
+    paddingTop: Platform.OS === 'ios' ? 10 : StatusBar.currentHeight ? StatusBar.currentHeight + 5 : 15, 
+    paddingHorizontal: 0, 
+    paddingBottom: 20,
+  },
+
+  // --- ESTILOS PARA LA TARJETA DE ENCABEZADO (MODIFICADOS) ---
+  headerCard_container: {
+    marginHorizontal: 15,
+    marginTop: 5, // Reducido
+    marginBottom: 15, // Reducido
+    paddingVertical: 15, // Reducido
+    paddingHorizontal: 18, // Ligeramente ajustado
+    borderRadius: 20, // Más redondeado
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  headerCard_topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10, // Reducido
+  },
+  headerCard_textContainer: {
+    flex: 1, // Permite que el texto ocupe el espacio disponible
+    marginRight: 10, // Espacio antes del avatar/logout
+  },
+  headerCard_greeting: {
+    fontSize: 16, // Ligeramente reducido
+    color: '#dbeafe', 
+    fontWeight: '500',
+  },
+  headerCard_pilotName: {
+    fontSize: 24, // Ligeramente reducido
+    fontWeight: 'bold', 
+    color: 'white',
+    lineHeight: 28, // Ajustado
+  },
+  headerCard_avatarLogoutContainer: { // Nuevo contenedor para avatar y logout
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerCard_avatar: { 
+    width: 50, // Reducido
+    height: 50, // Reducido
+    borderRadius: 25, // Reducido
+    borderWidth: 2, 
+    borderColor: 'rgba(255, 255, 255, 0.6)', 
+    marginRight: 12, // Espacio entre avatar y logout
+  },
+  headerCard_logoutButton: {
+    padding: 5, // Para hacer el área táctil un poco más grande
+  },
+  headerCard_bottomRow: { // Nueva fila para fecha y clima
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4, // Espacio después de la fila superior
+  },
+  headerCard_dateText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontWeight: '500',
+  },
+  headerCard_weatherContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    // marginTop: 6, // Eliminado, ya que está en bottomRow
+    backgroundColor: 'rgba(255, 255, 255, 0.15)', // Sutil
+    paddingVertical: 4, // Reducido
+    paddingHorizontal: 8, // Reducido
+    borderRadius: 10, 
+  },
+  headerCard_weatherIcon: { 
+    width: 18, // Reducido
+    height: 18, // Reducido
+    marginRight: 6, 
+  },
+  headerCard_weatherText: { 
+    fontSize: 12, // Reducido
+    color: 'white', 
+    fontWeight: '500',
+    flexShrink: 1, // Para que el texto se ajuste si es muy largo
+  },
+
+  // --- ESTILOS ORIGINALES RESTANTES (sin cambios a menos que se indique) ---
+  card_container: { 
+    backgroundColor: 'white', 
+    borderRadius: 12, 
+    padding: 16, 
+    marginBottom: 15, // Consistente con headerCard
+    marginHorizontal: 15, 
+    shadowColor: '#9ca3af', 
+    shadowOffset: { width: 0, height: 3 }, 
+    shadowOpacity: 0.1, 
+    shadowRadius: 5, 
+    elevation: 3, 
+  },
   card_header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, },
   card_title: { fontSize: 18, fontWeight: '600', color: '#1e3a8a', },
   card_title_large: { fontSize: 20, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 16, },
@@ -676,6 +608,8 @@ const styles = StyleSheet.create({
   activityItem_statusBadgeCompleted: { backgroundColor: '#dcfce7', borderColor: '#6ee7b7', borderWidth: 1, },
   activityItem_statusBadgeText: { fontSize: 12, fontWeight: '600', color: '#065f46', },
   noActivities_text: { textAlign: 'center', color: '#6b7280', fontSize: 14, paddingVertical: 15, fontStyle: 'italic', },
+  
+  // --- MODAL STYLES (Unchanged) ---
   modal_overlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.6)', },
   modal_view: { margin: 20, backgroundColor: 'white', borderRadius: 15, padding: 25, alignItems: 'stretch', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5, width: '90%', maxHeight: '90%' },
   modal_title: { marginBottom: 20, textAlign: 'center', fontSize: 20, fontWeight: 'bold', color: '#1e40af', },
