@@ -55,23 +55,10 @@ export default function PilotLayout() {
               ),
             }}
           />
-          <Tabs.Screen
-            name="statistics"
-            options={{
-              title: 'Estadísticas',
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons
-                  name={focused ? "stats-chart" : "stats-chart-outline"}
-                  size={size}
-                  color={color}
-                />
-              ),
-            }}
-          />
+          <Tabs.Screen name="statistics" options={{ href: null }} />
           <Tabs.Screen name="incidents" options={{ href: null }} />
           <Tabs.Screen name="notifications" options={{ href: null }} />
           <Tabs.Screen name="preflight-checklist" options={{ href: null }} />
-          
           <Tabs.Screen name="project-history" options={{ href: null }} />
           <Tabs.Screen name="components/pilot-dashboard" options={{ href: null }} />
           <Tabs.Screen name="components/header-info-card" options={{ href: null }} />
@@ -81,6 +68,19 @@ export default function PilotLayout() {
           <Tabs.Screen name="components/new-activity-formmodal" options={{ href: null }} />
           <Tabs.Screen name="components/new-incident-formmodal" options={{ href: null }} />
           <Tabs.Screen name="components/quick-actions-menu-card" options={{ href: null }} />
+          <Tabs.Screen
+            name="profile"
+            options={{
+              title: 'Perfil',
+              tabBarIcon: ({ color, size, focused }) => (
+                <Ionicons
+                  name={focused ? "person" : "person-outline"}
+                  size={size}
+                  color={color}
+                />
+              ),
+            }}
+          />
         </Tabs>
       </View>
     </SafeAreaView>
