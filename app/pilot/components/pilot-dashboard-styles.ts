@@ -244,13 +244,14 @@ export const styles = StyleSheet.create({
     minHeight: 100, // Changed from 80 to match activity-log notesInput
     textAlignVertical: 'top',
   },
-  form_switchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-    paddingVertical: 8,
-  },
+ // In pilot-dashboard-styles.ts
+form_switchContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between', // This is key
+  marginBottom: 24, // Or your standard spacing
+  paddingVertical: 8, // Optional, for touch area or visual spacing
+},
   modal_overlay: {
     flex: 1,
     justifyContent: 'center', // Reverted to center for a standard modal
@@ -432,8 +433,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: 'rgba(255, 255, 255, 0.9)',
-  },
-  quickAction_button: {
+  },  quickAction_button: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
@@ -443,10 +443,10 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
     flexGrow: 1,
-    flexBasis: '40%', // For the two smaller buttons, allowing them to fit side-by-side with a gap
+    flexBasis: '45%', // For the standard buttons, allowing 2 per row with a small gap
   },
   quickAction_button_main: { // Applied to the main, full-width button
-    flexBasis: '100%', // Ensures it takes the full width
+    flexBasis: '94%', // Almost full width to allow for margins
     paddingVertical: 15, // Make it slightly taller
   },
   quickAction_iconContainer: {
@@ -461,16 +461,17 @@ export const styles = StyleSheet.create({
     color: '#1f2937',
     fontWeight: '600',
     flexShrink: 1, // Allow text to wrap or shrink if necessary
-  },
-  quickActions_grid: {
+  },  quickActions_grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     gap: 12,
+    marginTop: 12,
   },
   modal_scroll_content_container: {
     flexGrow: 1,
     justifyContent: 'center',
     padding: 24,
-  },
+  }
+  
 });

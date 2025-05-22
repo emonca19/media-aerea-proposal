@@ -2,19 +2,19 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
-  Animated,
-  Easing,
-  Image,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
+    Alert,
+    Animated,
+    Easing,
+    Image,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
 } from 'react-native';
 import { theme } from '../src/constants/theme';
 import { useTheme } from '../src/hooks/useTheme';

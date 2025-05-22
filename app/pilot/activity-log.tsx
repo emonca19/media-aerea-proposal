@@ -1,17 +1,17 @@
-import { Stack } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Stack, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Image
+  View
 } from 'react-native';
 import { Card } from '../../src/components/common';
-import { MaterialCommunityIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
 
 
 // Datos simulados más completos
@@ -84,6 +84,7 @@ const activityTypes = [
 ];
 
 export default function ActivityLogScreen() {
+  const router = useRouter();
   const [selectedType, setSelectedType] = useState<ActivityType | null>(null);
   const [selectedTurbine, setSelectedTurbine] = useState('');
   const [notes, setNotes] = useState('');
@@ -102,7 +103,9 @@ export default function ActivityLogScreen() {
     }, 60000);
     return () => clearInterval(timer);
   }, []);
-
+  // La función handleStartActivity ya no se utiliza, se ha reemplazado por la navegación directa a new-activity
+  // Solo se mantiene para referencia pero se puede eliminar
+  /*
   const handleStartActivity = () => {
     if (!selectedType) {
       Alert.alert('Error', 'Selecciona un tipo de actividad');
@@ -137,6 +140,7 @@ export default function ActivityLogScreen() {
     // Aquí en una app real, harías un dispatch o API call para guardar la actividad
     console.log('Nueva actividad iniciada:', newActivity);
   };
+  */
 
   const handleStopActivity = (activityId: string) => {
     Alert.alert(
@@ -321,11 +325,9 @@ export default function ActivityLogScreen() {
                 value={notes}
                 onChangeText={setNotes}
               />
-            </View>
-
-            <TouchableOpacity
+            </View>            <TouchableOpacity
               style={styles.actionButton}
-              onPress={handleStartActivity}
+              onPress={() => router.push('/pilot/new-activity')}
             >
               <Text style={styles.actionButtonText}>
                 {selectedType === 'TURBINE_WORK' && selectedTurbine 
@@ -504,6 +506,14 @@ export default function ActivityLogScreen() {
           </View>
         )}
       </ScrollView>
+      
+      {/* Botón flotante para añadir nueva actividad */}
+      <TouchableOpacity 
+        style={styles.floatingButton}
+        onPress={() => router.push('/pilot/new-activity')}
+      >
+        <MaterialCommunityIcons name="plus" size={30} color="#ffffff" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -876,5 +886,23 @@ const styles = StyleSheet.create({
   emptyText: {
     color: '#64748b',
     fontSize: 16,
+  },
+  // Estilo para el botón flotante
+  floatingButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#3b82f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    zIndex: 999,
   },
 });

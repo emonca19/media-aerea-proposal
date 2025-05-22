@@ -27,16 +27,19 @@ interface NewIncidentFormModalProps {
   isVisible: boolean;
   onClose: () => void;
   onSubmit: (incidentData: IncidentFormData) => void;
-  // incidentTypes es importado directamente ahora
+  incidentTypes: typeof incidentTypes; // Añadimos este prop explícitamente
 }
 
 const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
   isVisible,
   onClose,
   onSubmit,
+  incidentTypes: providedIncidentTypes,
 }) => {
+  // Usar los tipos de incidentes proporcionados o los importados por defecto
+  const typesToUse = providedIncidentTypes || incidentTypes;
   // Estado inicial seguro
-  const initialIncidentTypeId = incidentTypes[0]?.id || '';
+  const initialIncidentTypeId = typesToUse[0]?.id || '';
   const [incidentTypeId, setIncidentTypeId] = useState<string>(initialIncidentTypeId);
   const [incidentDescription, setIncidentDescription] = useState('');
 
@@ -108,10 +111,9 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
                 onValueChange={(itemValue) => setIncidentTypeId(itemValue)}
                 style={styles.form_picker}
                 itemStyle={styles.form_pickerItem} // Principalmente para iOS
-              >
-                {/* Añadir un item placeholder si se desea */}
+              >                {/* Añadir un item placeholder si se desea */}
                 {/* <Picker.Item label="Seleccione un tipo..." value="" enabled={false} style={{color: '#9ca3af'}} /> */}
-                {incidentTypes.map((type) => (
+                {typesToUse.map((type) => (
                   <Picker.Item key={type.id} label={type.label} value={type.id} />
                 ))}
               </Picker>

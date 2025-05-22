@@ -10,9 +10,9 @@ import useWeather from '../../hooks/useWeather'; // Asegúrate que la ruta a hoo
 import { ActivitiesDisplayList } from './activities-display-list'; // Ajusta la ruta si es necesario
 import AlertsDisplayCard from './alerts-display-card'; // Ajusta la ruta si es necesario
 import MyIndicatorsButton from './my-indicators-button'; // Ajusta la ruta si es necesario
-import NewActivityFormModal, { ActivityFormData } from './new-activity-formmodal'; // Ajusta la ruta si es necesario
 import NewIncidentFormModal, { IncidentFormData } from './new-incident-formmodal'; // Ajusta la ruta si es necesario
 import QuickActionsMenuCard from './quick-actions-menu-card'; // Ajusta la ruta si es necesario
+import QuickRegisterActivityForm, { mockTurbines, activityTypes } from './quick-register-activity-form'; // Importamos el nuevo componente con sus datos
 
 // Asumiendo que estos están al mismo nivel que pilot-dashboard.tsx
 import HeaderInfoCard from './header-info-card';
@@ -25,6 +25,16 @@ import {
   pilot as pilotData,
   initialCurrentProject as projectDataFromImport,
 } from './pilot-dashboard-data'; // Asegúrate que la ruta sea correcta desde aquí
+
+// Definición de tipo para los datos de actividad
+interface ActivityFormData {
+  type: string;
+  customName: string;
+  notes: string;
+  isForNow: boolean;
+  pendingTime: string;
+  turbineId?: string;
+}
 
 // --- Local Type Definitions ---
 interface Activity {
@@ -171,25 +181,38 @@ const PilotDashboard = () => {
   const toggleAlertsSection = useCallback(() => setIsAlertsSectionVisible(prev => !prev), []);
   const handleOpenNewActivityModal = useCallback(() => setIsNewActivityModalVisible(true), []);
   const handleOpenNewIncidentModal = useCallback(() => setIsNewIncidentModalVisible(true), []);
-
-  const handleCreateQuickActivity = useCallback((activityData: ActivityFormData) => {
+  const handleCreateQuickActivity = useCallback((activityData: any) => {
     const newActivity: Activity = {
-      id: `act-${Date.now()}`, type: activityData.type,
-      name: activityData.customName || activityData.type, notes: activityData.notes,
-      status: activityData.isForNow ? 'EN_PROGRESO' : 'PENDIENTE',
-      time: activityData.isForNow ? `Hoy, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - En curso` : activityData.pendingTime || 'Programada',
-      actualStart: activityData.isForNow ? new Date().toISOString() : null,
-      scheduledStart: !activityData.isForNow ? new Date().toISOString() : null,
-      description: activityData.notes, scheduledEnd: null, actualEnd: null,
+      id: `act-${Date.now()}`,
+      type: activityData.type,
+      name: activityData.type === 'OTHER' ? activityData.notes.substring(0, 30) : 
+            activityData.type === 'TURBINE_WORK' ? `Trabajo en ${mockTurbines.find(t => t.id === activityData.turbineId)?.name || 'Turbina'}` :
+            activityTypes.find(t => t.type === activityData.type)?.label || 'Actividad',
+      notes: activityData.notes,
+      status: 'EN_PROGRESO',
+      time: `Hoy, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - En curso`,
+      actualStart: new Date().toISOString(),
+      scheduledStart: null,
+      description: activityData.notes, 
+      scheduledEnd: null, 
+      actualEnd: null,
     };
+    
     let baseActivities = [...(currentProject.activities || [])]; // Asegurar que currentProject.activities es un array
-    if (activityData.isForNow) {
-        const currentOngoing = baseActivities.find(act => act.status === 'EN_PROGRESO');
-        if (currentOngoing) {
-            baseActivities = baseActivities.map(act =>
-              act.id === currentOngoing.id ? { ...act, status: 'COMPLETADA', actualEnd: new Date().toISOString(), time: `${(act.time || '').split(' - En curso')[0]} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` } : act);
-        }
+    // Completamos cualquier actividad en progreso antes de iniciar la nueva
+    const currentOngoing = baseActivities.find(act => act.status === 'EN_PROGRESO');
+    if (currentOngoing) {
+      baseActivities = baseActivities.map(act =>
+        act.id === currentOngoing.id ? 
+        { 
+          ...act, 
+          status: 'COMPLETADA', 
+          actualEnd: new Date().toISOString(), 
+          time: `${(act.time || '').split(' - En curso')[0]} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
+        } : act
+      );
     }
+    
     setCurrentProject(prev => ({ ...prev, activities: [newActivity, ...baseActivities] }));
     setIsNewActivityModalVisible(false);
     Alert.alert("Éxito", `Actividad "${newActivity.name}" ${activityData.isForNow ? 'iniciada' : 'programada'}.`);
@@ -260,9 +283,13 @@ const PilotDashboard = () => {
         }
         return <ProjectDetailsCard project={projectDetailsProps} onNavigateToChecklist={() => handleNavigate('/pilot/preflight-checklist')} isChecklistDone={isChecklistComplete} ongoingActivity={currentOngoingActivityForDisplay || undefined} />;
       case 'ALERTS_DISPLAY_CARD':
-        return <AlertsDisplayCard alerts={alerts} isVisible={isAlertsSectionVisible} onToggle={toggleAlertsSection} onDismissAlert={handleDismissAlert} />;
-      case 'QUICK_ACTIONS_MENU_CARD':
-        return <QuickActionsMenuCard onNavigate={handleNavigate} onOpenNewActivity={handleOpenNewActivityModal} onOpenNewIncident={handleOpenNewIncidentModal} />;
+        return <AlertsDisplayCard alerts={alerts} isVisible={isAlertsSectionVisible} onToggle={toggleAlertsSection} onDismissAlert={handleDismissAlert} />;      case 'QUICK_ACTIONS_MENU_CARD':
+        return <QuickActionsMenuCard 
+          onNavigate={handleNavigate} 
+          onOpenNewActivity={handleOpenNewActivityModal} 
+          onOpenNewIncident={handleOpenNewIncidentModal}
+          onSubmitActivity={handleCreateQuickActivity}
+        />;
       case 'ACTIVITIES_DISPLAY_LIST':
         console.log('PilotDashboard: Passing to ActivitiesDisplayList. lists.ongoing count:', memoizedActivityListsForDisplay.ongoing?.length);
         if (typeof memoizedActivityListsForDisplay.ongoing === 'undefined') {
@@ -281,17 +308,14 @@ const PilotDashboard = () => {
     currentDate, weather, weatherLoading, weatherError, handleLogout, handleNavigate,
     isChecklistComplete, currentOngoingActivityForDisplay, alerts, isAlertsSectionVisible,
     toggleAlertsSection, handleDismissAlert, handleOpenNewActivityModal, handleOpenNewIncidentModal,
-    memoizedActivityListsForDisplay, getStatusStyling, handleActivityAction
+    memoizedActivityListsForDisplay, getStatusStyling, handleActivityAction, handleCreateQuickActivity
   ]);
 
   console.log('PilotDashboard: Final render pass. currentProject.name:', currentProject?.name);
   console.log('PilotDashboard: Final render pass. memoizedActivityListsForDisplay.ongoing count:', memoizedActivityListsForDisplay?.ongoing?.length);
 
-
   return (
-    <View style={styles.screenContainer}>
-      <StatusBar backgroundColor="#1E3A8A" barStyle="light-content" />
-      <FlatList
+    <View style={styles.screenContainer}>      <StatusBar backgroundColor="#1E3A8A" barStyle="light-content" />      <FlatList
         data={dashboardSections}
         renderItem={renderDashboardSection}
         keyExtractor={(item) => item.id}
@@ -299,7 +323,12 @@ const PilotDashboard = () => {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={<View><Text>No hay secciones para mostrar.</Text></View>}
       />
-      <NewActivityFormModal isVisible={isNewActivityModalVisible} onClose={() => setIsNewActivityModalVisible(false)} onSubmit={handleCreateQuickActivity} />
+      {/* Usando el nuevo QuickRegisterActivityForm en lugar del ActivityFormModal anterior */}
+      <QuickRegisterActivityForm 
+        isVisible={isNewActivityModalVisible} 
+        onClose={() => setIsNewActivityModalVisible(false)} 
+        onSubmit={handleCreateQuickActivity} 
+      />
       <NewIncidentFormModal isVisible={isNewIncidentModalVisible} onClose={() => setIsNewIncidentModalVisible(false)} onSubmit={handleCreateNewIncident} incidentTypes={importedIncidentTypes} />
     </View>
   );
