@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { Stack } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import {
@@ -9,13 +8,11 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Image,
-  Dimensions
+  Image
 } from 'react-native';
 import { Card } from '../../src/components/common';
 import { MaterialCommunityIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
 
-const { width } = Dimensions.get('window');
 
 // Datos simulados más completos
 const mockTurbines = [
@@ -256,7 +253,7 @@ export default function ActivityLogScreen() {
                     styles.typeCard,
                     selectedType === type && styles.typeCardSelected
                   ]}
-                  onPress={() => setSelectedType(type)}
+                  onPress={() => setSelectedType(type as ActivityType)}
                 >
                   <MaterialCommunityIcons 
                     name={icon as any} 
@@ -291,7 +288,7 @@ export default function ActivityLogScreen() {
                       onPress={() => setSelectedTurbine(turbine.id)}
                     >
                       <Ionicons 
-                        name="md-cog" 
+                        name="cog" 
                         size={24} 
                         color={selectedTurbine === turbine.id ? '#ffffff' : '#f59e0b'} 
                       />
@@ -359,7 +356,7 @@ export default function ActivityLogScreen() {
                     <View style={styles.activityHeader}>
                       <View style={styles.activityIconContainer}>
                         <MaterialCommunityIcons 
-                          name={activityType?.icon || 'clock'} 
+                          name={(activityType?.icon || 'clock') as any} 
                           size={24} 
                           color={activity.endTime ? '#10b981' : '#3b82f6'} 
                         />
@@ -383,7 +380,7 @@ export default function ActivityLogScreen() {
                     
                     {turbine && (
                       <View style={styles.activityDetail}>
-                        <Ionicons name="md-cog" size={16} color="#64748b" />
+                        <Ionicons name="cog" size={16} color="#64748b" />
                         <Text style={styles.activityDetailText}>
                           {turbine.name} • {turbine.status === 'COMPLETED' ? 'Completada' : 'En progreso'}
                         </Text>
@@ -477,8 +474,8 @@ export default function ActivityLogScreen() {
                 {mockTurbines.map(turbine => (
                   <View key={turbine.id} style={styles.turbineItem}>
                     <View style={styles.turbineInfo}>
-                      <Ionicons name="md-cog" size={20} color="#f59e0b" />
-                      <Text style={styles.turbineName}>{turbine.name}</Text>
+                      <Ionicons name="cog" size={20} color="#f59e0b" />
+                      <Text style={styles.turbineItemName}>{turbine.name}</Text>
                     </View>
                     <View style={[
                       styles.turbineStatusBadge,
@@ -846,7 +843,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  turbineName: {
+  turbineItemName: {
     color: '#1e3a8a',
     fontSize: 14,
     fontWeight: '500',

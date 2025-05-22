@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons'; // Import Ionicons
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -33,6 +34,25 @@ export const StatusBadge = ({ status, color }: StatusBadgeProps) => {
   );
 };
 
+interface InfoRowProps {
+  label: string;
+  value: string | number | undefined;
+  style?: any;
+  iconName?: keyof typeof Ionicons.glyphMap; // Add iconName to props
+}
+
+export const InfoRow = ({ label, value, style, iconName }: InfoRowProps) => { // Destructure iconName
+  return (
+    <View style={[styles.infoRow, style]}>
+      <View style={styles.infoLabelContainer}>
+        {iconName && <Ionicons name={iconName} size={16} style={styles.infoRow_icon} />}
+        <Text style={styles.infoLabel}>{label}:</Text>
+      </View>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   card: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -58,5 +78,29 @@ const styles = StyleSheet.create({
     color: '#0a192f',
     fontSize: 12,
     fontWeight: '600',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center', // Align items vertically
+    paddingVertical: 6, // Increased padding a bit
+  },
+  infoLabelContainer: { // New container for label and icon
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infoRow_icon: { // Style for the icon
+    marginRight: 6,
+    color: '#94a3b8', // Example color, adjust as needed
+  },
+  infoLabel: {
+    color: '#475569', // Darker for better contrast on white
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  infoValue: {
+    color: '#1e293b', // Darker for better contrast
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

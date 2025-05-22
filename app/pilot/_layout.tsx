@@ -47,53 +47,40 @@ export default function PilotLayout() {
             options={{
               title: 'Actividades',
               tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons 
-                  name={focused ? "time" : "time-outline"} 
-                  size={size} 
-                  color={color} 
+                <Ionicons
+                  name={focused ? "reader" : "reader-outline"}
+                  size={size}
+                  color={color}
                 />
               ),
             }}
           />
           <Tabs.Screen
-            name="preflight-checklist"
+            name="statistics"
             options={{
-              title: 'Checklist',
+              title: 'Estadísticas',
               tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons 
-                  name={focused ? "checkbox" : "checkbox-outline"} 
-                  size={size} 
-                  color={color} 
+                <Ionicons
+                  name={focused ? "stats-chart" : "stats-chart-outline"}
+                  size={size}
+                  color={color}
                 />
               ),
             }}
           />
-          <Tabs.Screen
-            name="notifications"
-            options={{
-              title: 'Notificaciones',
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons 
-                  name={focused ? "notifications" : "notifications-outline"} 
-                  size={size} 
-                  color={color} 
-                />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name="project-history"
-            options={{
-              title: 'Historial',
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons 
-                  name={focused ? "archive" : "archive-outline"} 
-                  size={size} 
-                  color={color} 
-                />
-              ),
-            }}
-          />
+          <Tabs.Screen name="incidents" options={{ href: null }} />
+          <Tabs.Screen name="notifications" options={{ href: null }} />
+          <Tabs.Screen name="preflight-checklist" options={{ href: null }} />
+          
+          <Tabs.Screen name="project-history" options={{ href: null }} />
+          <Tabs.Screen name="components/pilot-dashboard" options={{ href: null }} />
+          <Tabs.Screen name="components/header-info-card" options={{ href: null }} />
+          <Tabs.Screen name="components/alerts-display-card" options={{ href: null }} />
+          <Tabs.Screen name="components/my-indicators-button" options={{ href: null }} />
+          <Tabs.Screen name="components/project-details-card" options={{ href: null }} />
+          <Tabs.Screen name="components/new-activity-formmodal" options={{ href: null }} />
+          <Tabs.Screen name="components/new-incident-formmodal" options={{ href: null }} />
+          <Tabs.Screen name="components/quick-actions-menu-card" options={{ href: null }} />
         </Tabs>
       </View>
     </SafeAreaView>
