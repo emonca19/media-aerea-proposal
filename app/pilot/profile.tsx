@@ -36,7 +36,6 @@ export default function PilotProfile() {
         <PilotStatistics />
       </View>
 
-<<<<<<< Updated upstream
       {/* Botones de configuración */}
       <View style={styles.settingsSection}>
         <TouchableOpacity 
@@ -58,19 +57,18 @@ export default function PilotProfile() {
         </TouchableOpacity>
       </View>
 
-=======
       {/* Acceso directo a historial de proyectos */}
-      <TouchableOpacity style={styles.projectHistoryShortcut} onPress={() => router.push('/pilot/project-history')}>
+      {/* <TouchableOpacity style={styles.projectHistoryShortcut} onPress={() => router.push('/pilot/project-history')}>
         <Ionicons name="briefcase-outline" size={20} color="#2563eb" style={{ marginRight: 10 }} />
         <Text style={styles.projectHistoryShortcutText}>Historial de proyectos</Text>
         <Ionicons name="chevron-forward-outline" size={18} color="#64748b" style={{ marginLeft: 'auto' }} />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* Espacio entre historial y acciones rápidas */}
       <View style={{ height: 10 }} />
 
       {/* Botones de acciones rápidas: Calendario y Soporte (estilo tarjeta, ícono circular, alineados horizontalmente) */}
-      <View style={styles.quickActionsRowWrapper}>
+      {/* <View style={styles.quickActionsRowWrapper}>
         <View style={styles.quickActionsRow}>
           <TouchableOpacity style={styles.quickActionCard} onPress={() => router.push('/pilot/support-chat')}>
             <View style={[styles.quickActionIconCircle, { backgroundColor: '#ef4444' }]}> 
@@ -85,17 +83,17 @@ export default function PilotProfile() {
             <Text style={styles.quickActionCardText}>Calendario</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </View> */}
 
       {/* Espacio entre acciones rápidas y logout */}
       <View style={{ height: 16 }} />
 
->>>>>>> Stashed changes
+
       {/* logout button */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+      {/* <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
         <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </ScrollView>
   );
 }
@@ -184,7 +182,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginLeft: 24,
   },
-<<<<<<< Updated upstream
   settingsSection: {
     width: '90%',
     maxWidth: 400,
@@ -214,8 +211,9 @@ const styles = StyleSheet.create({
   },
   settingArrow: {
     opacity: 0.8,
-=======
-  projectHistoryShortcut: {
+  },
+
+  /* projectHistoryShortcut: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#e0e7ff',
@@ -232,7 +230,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.07,
     shadowRadius: 6,
     elevation: 1,
-  },
+  } */
   projectHistoryShortcutText: {
     color: '#2563eb',
     fontWeight: '600',
@@ -276,7 +274,6 @@ const styles = StyleSheet.create({
     color: '#1e293b',
     fontWeight: '700',
     fontSize: 14,
->>>>>>> Stashed changes
   },
   logoutButton: {
     flexDirection: 'row',
