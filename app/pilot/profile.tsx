@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -14,20 +15,26 @@ export default function PilotProfile() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Card de perfil mejorado */}
-      <View style={styles.profileCard}>
-        <View style={styles.avatarRow}>
-          <Image source={pilot.avatar} style={styles.avatar} />
-          <View style={styles.profileInfoBlock}>
-            <Text style={styles.name}>{pilot.name}</Text>
-            <Text style={styles.role}>{pilot.role}</Text>
-            <View style={styles.infoRow}>
-              <Ionicons name="card-outline" size={18} color="#64748b" style={{ marginRight: 6 }} />
-              <Text style={styles.infoText}>Licencia: {pilot.licenseNumber}</Text>
+    <ScrollView contentContainerStyle={styles.container}>      {/* Card de perfil mejorado */}
+      <View style={styles.profileCardContainer}>
+        <LinearGradient
+          colors={['#8b5cf6', '#6366f1']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.profileCard}
+        >
+          <View style={styles.avatarRow}>
+            <Image source={pilot.avatar} style={styles.avatar} />
+            <View style={styles.profileInfoBlock}>
+              <Text style={styles.name}>{pilot.name}</Text>
+              <Text style={styles.role}>{pilot.role}</Text>
+              <View style={styles.infoRow}>
+                <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={styles.infoText}>Licencia: {pilot.licenseNumber}</Text>
+              </View>
             </View>
           </View>
-        </View>
+        </LinearGradient>
       </View>
 
       {/* Sección de estadísticas personales y cumplimiento diario más juntos */}
@@ -38,14 +45,23 @@ export default function PilotProfile() {
 
       {/* Botones de configuración */}
       <View style={styles.settingsSection}>
-        {/* Botón de historial de proyectos (ahora primero y con formato igual a los otros) */}
-        <TouchableOpacity 
-          style={[styles.settingButton, { backgroundColor: '#6366f1' }]} 
+        {/* Botón de historial de proyectos (ahora primero y con formato igual a los otros) */}        <TouchableOpacity 
+          style={styles.settingButton} 
           onPress={() => router.push('/pilot/project-history')}
+          activeOpacity={0.85}
         >
-          <Ionicons name="briefcase-outline" size={22} color="#fff" style={styles.settingIcon} />
-          <Text style={styles.settingText}>Mi historial de proyectos</Text>
-          <Ionicons name="chevron-forward-outline" size={20} color="#fff" style={styles.settingArrow} />
+          <LinearGradient
+            colors={['#6366f1', '#4f46e5']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.settingGradient}
+          >
+            <View style={styles.settingContent}>
+              <Ionicons name="briefcase-outline" size={22} color="#fff" style={styles.settingIcon} />
+              <Text style={styles.settingText}>Mi historial de proyectos</Text>
+              <Ionicons name="chevron-forward-outline" size={20} color="#fff" style={styles.settingArrow} />
+            </View>
+          </LinearGradient>
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -96,25 +112,47 @@ export default function PilotProfile() {
       </View> */}
 
       {/* Espacio entre acciones rápidas y logout */}
-      <View style={{ height: 16 }} />
-
-
-      {/* logout button */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Ionicons name="log-out-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-        <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+      <View style={{ height: 16 }} />      {/* logout button */}
+      <TouchableOpacity 
+        style={styles.logoutButton} 
+        onPress={handleLogout}
+        activeOpacity={0.85}
+      >
+        <LinearGradient
+          colors={['#E85F5C', '#E33D3B']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.logoutGradient}
+        >
+          <View style={styles.logoutContent}>
+            <Ionicons name="log-out-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+          </View>
+        </LinearGradient>
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({  container: {
     backgroundColor: '#fff',
     padding: 0,
     flexGrow: 1,
     alignItems: 'center',
     paddingBottom: 40,
+  },
+  profileCardContainer: {
+    width: '92%',
+    maxWidth: 420,
+    marginTop: 32,
+    marginBottom: 18,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+    overflow: 'hidden'
   },
   profileCard: {
     alignItems: 'flex-start',
@@ -191,25 +229,30 @@ const styles = StyleSheet.create({
     marginBottom: 2, // Mucho menos espacio abajo
     alignSelf: 'flex-start',
     marginLeft: 24,
-  },
-  settingsSection: {
+  },  settingsSection: {
     width: '90%',
     maxWidth: 400,
     marginBottom: 24,
     gap: 12,
   },
   settingButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#6366f1',
     borderRadius: 16,
-    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
     width: '100%',
+    overflow: 'hidden'
+  },
+  settingGradient: {
+    width: '100%',
+    borderRadius: 16,
+  },
+  settingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
   },
   settingIcon: {
     marginRight: 12,
@@ -285,17 +328,10 @@ const styles = StyleSheet.create({
     color: '#1e293b',
     fontWeight: '700',
     fontSize: 14,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    backgroundColor: '#E85F5C',
+  },  logoutButton: {
     borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
     marginTop: 0,
     marginBottom: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
     width: '90%',
     maxWidth: 400,
     alignSelf: 'center',
@@ -304,6 +340,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 2,
+    overflow: 'hidden'
+  },
+  logoutGradient: {
+    width: '100%',
+    borderRadius: 16,
+  },
+  logoutContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
   },
   logoutButtonText: {
     color: '#fff',

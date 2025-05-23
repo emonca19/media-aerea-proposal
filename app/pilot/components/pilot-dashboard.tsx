@@ -11,7 +11,8 @@ import useWeather from '../../hooks/useWeather'; // Asegúrate que la ruta a hoo
 import { ActivitiesDisplayList } from './activities-display-list'; // Ajusta la ruta si es necesario
 import AlertsDisplayCard from './alerts-display-card'; // Ajusta la ruta si es necesaria
 import MyIndicatorsButton from './my-indicators-button'; // Ajusta la ruta si es necesaria
-import NewIncidentFormModal, { IncidentFormData } from './new-incident-formmodal'; // Ajusta la ruta si es necesaria
+import IncidentFormModal from './incident-form-modal'; // Importamos el nuevo componente modal para incidentes
+import { IncidentFormData } from '../new-incident'; // Importamos el tipo desde el nuevo componente
 import ProjectDetailsCard from './project-details-card'; // Importamos el componente restaurado
 import QuickActionsMenuCard from './quick-actions-menu-card'; // Ajusta la ruta si es necesaria
 import QuickRegisterActivityForm, { activityTypes, mockTurbines } from './quick-register-activity-form'; // Importamos el nuevo componente con sus datos
@@ -419,11 +420,10 @@ const PilotDashboard = () => {
         onClose={() => setIsNewActivityModalVisible(false)} 
         onSubmit={handleCreateQuickActivity} 
       />
-      <NewIncidentFormModal 
+      <IncidentFormModal 
         isVisible={isNewIncidentModalVisible} 
         onClose={() => setIsNewIncidentModalVisible(false)} 
         onSubmit={handleCreateNewIncident} 
-        incidentTypes={importedIncidentTypes}
         activities={[...ongoingActivities, ...pendingTodayActivities].map(act => ({
           id: act.id,
           name: act.name,

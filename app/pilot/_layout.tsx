@@ -119,12 +119,13 @@ export default function PilotLayout() {
           <Tabs.Screen name="components/header-info-card" options={{ href: null }} />
           <Tabs.Screen name="components/alerts-display-card" options={{ href: null }} />
           <Tabs.Screen name="components/my-indicators-button" options={{ href: null }} />
-          <Tabs.Screen name="components/project-details-card" options={{ href: null }} />
-          <Tabs.Screen name="components/new-activity-formmodal" options={{ href: null }} />
+          <Tabs.Screen name="components/project-details-card" options={{ href: null }} />          <Tabs.Screen name="components/new-activity-formmodal" options={{ href: null }} />
           <Tabs.Screen name="components/new-incident-formmodal" options={{ href: null }} />
+          <Tabs.Screen name="components/incident-form-modal" options={{ href: null }} />
           <Tabs.Screen name="components/quick-actions-menu-card" options={{ href: null }} />
           <Tabs.Screen name="components/quick-register-activity-form" options={{ href: null }} />
           <Tabs.Screen name="components/activity-form-modal" options={{ href: null }} />
+          <Tabs.Screen name="new-incident" options={{ href: null }} />
           <Tabs.Screen name="calendar" options={{ href: null }} />
           <Tabs.Screen name="site-map" options={{ href: null }} />
           <Tabs.Screen name="turbines" options={{ href: null }} />

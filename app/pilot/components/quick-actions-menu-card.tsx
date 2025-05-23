@@ -66,9 +66,7 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({
               </View>
             </View>
           </LinearGradient>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
+        </TouchableOpacity>        <TouchableOpacity 
           activeOpacity={0.85}
           style={styles.secondaryActionButton} 
           onPress={onOpenNewIncident}
@@ -76,12 +74,17 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({
           <LinearGradient
             colors={['#f97316', '#ea580c']}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.gradientBackground}
           >
-            <View style={styles.secondaryButtonContent}>
-              <Ionicons name="warning" size={24} color="white" />
-              <Text style={styles.secondaryActionLabel}>Reportar Incidente</Text>
+            <View style={styles.mainButtonContent}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="warning" size={28} color="white" />
+              </View>
+              <View style={styles.labelContainer}>
+                <Text style={styles.mainActionLabel}>Reportar Incidente</Text>
+                <Text style={styles.mainActionSubtitle}>Notificar problemas o emergencias</Text>
+              </View>
             </View>
           </LinearGradient>
         </TouchableOpacity>
@@ -102,18 +105,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
     marginBottom: 12
-  },
-  actionsContainer: {
-    gap: 14
-  },
-  mainActionButton: {
+  },  actionsContainer: {
+    gap: 14,
+    width: '100%' // Asegurar que el contenedor ocupe todo el ancho disponible
+  },  mainActionButton: {
     borderRadius: 12,
     elevation: 3,
     shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    width: '100%' // Asegurar que ocupe todo el ancho
   },
   gradientBackground: {
     borderRadius: 12,
@@ -145,15 +148,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: 'rgba(255, 255, 255, 0.85)',
     marginTop: 2
-  },
-  secondaryActionButton: {
+  },  secondaryActionButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    elevation: 2,
+    elevation: 3,
     shadowColor: '#f97316',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    width: '100%' // Asegurar que ocupe todo el ancho
   },
   secondaryButtonContent: {
     flexDirection: 'row',
