@@ -32,6 +32,7 @@ interface ProjectDetailsCardProps {
   onFinishActivity?: (activityId: string) => void;
   onStartActivity?: (activityId: string) => void;
   onViewHistory?: () => void;
+  onNavigate: (route: string) => void;
 }
 
 // Componente InfoRow
@@ -90,6 +91,7 @@ const ProjectDetailsCard: React.FC<ProjectDetailsCardProps> = ({
   onFinishActivity,
   onStartActivity,
   onViewHistory,
+  onNavigate,
 }) => {
   if (!project || typeof project.name === 'undefined') {
     return (
@@ -123,6 +125,25 @@ const ProjectDetailsCard: React.FC<ProjectDetailsCardProps> = ({
             <InfoRow iconName="map-outline" label="Parque:" value={project.location?.split(',')[0]} />
             <InfoRow iconName="calendar-outline" label="Fechas:" value={project.startDate && project.endDate ? `${project.startDate.substring(0,10)} - ${project.endDate.substring(0,10)}` : undefined} />
             <InfoRow iconName="airplane-outline" label="Drone:" value={project.drone} />
+          </View>
+
+          {/* Botones de acciones del proyecto */}
+          <View style={cardStyles.actionButtons}>
+            <TouchableOpacity 
+              style={cardStyles.actionButton} 
+              onPress={() => onNavigate('/pilot/site-map')}
+            >
+              <Ionicons name="map-outline" size={24} color="#10b981" />
+              <Text style={cardStyles.actionButtonText}>Mapa de Sitio</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={cardStyles.actionButton}
+              onPress={() => onNavigate('/pilot/turbines')}
+            >
+              <Ionicons name="flash-outline" size={24} color="#0ea5e9" />
+              <Text style={cardStyles.actionButtonText}>Turbinas</Text>
+            </TouchableOpacity>
           </View>
           
           <View style={cardStyles.activitiesContainer}>
@@ -343,6 +364,34 @@ const cardStyles = StyleSheet.create({
     color: '#4b5563',
     fontSize: 15,
     fontWeight: '500',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  actionButtonText: {
+    marginLeft: 8,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1f2937',
   },
 });
 

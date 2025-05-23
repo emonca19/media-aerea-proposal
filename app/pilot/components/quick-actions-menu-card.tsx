@@ -1,8 +1,9 @@
 // app/pilot/dashboard/components/QuickActionsMenuCard.tsx
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import { styles } from './pilot-dashboard-styles'; // Ajusta la ruta si es necesario
+import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { styles as globalStyles } from './pilot-dashboard-styles';
 import QuickRegisterActivityForm from './quick-register-activity-form';
 
 interface QuickActionsMenuCardProps {
@@ -12,23 +13,17 @@ interface QuickActionsMenuCardProps {
   onSubmitActivity?: (activityData: any) => void;
 }
 
-const QuickActionButton = ({ iconName, label, onPress, color }: { iconName: keyof typeof Ionicons.glyphMap, label: string, onPress: () => void, color?: string }) => (
-  <TouchableOpacity style={styles.quickAction_button} onPress={onPress}>
-    <View style={[styles.quickAction_iconContainer, color ? { backgroundColor: color, borderRadius: 16 } : {}]}>
-      <Ionicons name={iconName} size={20} color={color ? "white" : "#2563eb"} />
-    </View>
-    <Text style={styles.quickAction_label}>{label}</Text>
-  </TouchableOpacity>
-);
-
-const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({ onNavigate, onOpenNewActivity, onOpenNewIncident, onSubmitActivity }) => {
+const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({ 
+  onNavigate, 
+  onOpenNewActivity, 
+  onOpenNewIncident, 
+  onSubmitActivity 
+}) => {
   const [isQuickActivityFormVisible, setIsQuickActivityFormVisible] = useState(false);
-    // Handle direct submission from the form
+  
   const handleQuickActivitySubmit = (activityData: any) => {
-    // Close the form
     setIsQuickActivityFormVisible(false);
     
-    // Format data to match what the parent component expects
     const formattedData = {
       type: activityData.type,
       turbineId: activityData.turbineId,
@@ -37,41 +32,61 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({ onNavigate,
       isForNow: true,
       pendingTime: new Date().toISOString()
     };
-      // Now pass the formatted data to the parent handler
-    // If onSubmitActivity exists, use it, otherwise fall back to onOpenNewActivity
+    
     if (onSubmitActivity) {
       onSubmitActivity(formattedData);
     } else {
-      // Fallback to just opening the activity modal
       onOpenNewActivity();
     }
   };
   
   return (
-    <View style={styles.card_container}>
-      <Text style={styles.card_title_medium}>Acciones Rápidas</Text>
-      <View style={styles.quickActions_grid}>
-        <QuickActionButton
-          iconName="warning-outline"
-          label="Reportar Incidente"
+    <View style={globalStyles.card_container}>
+      <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
+      
+      <View style={styles.actionsContainer}>
+        <TouchableOpacity 
+          activeOpacity={0.85}
+          style={styles.mainActionButton} 
+          onPress={onOpenNewActivity}
+        >
+          <LinearGradient
+            colors={['#3b82f6', '#1d4ed8']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientBackground}
+          >
+            <View style={styles.mainButtonContent}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="add-circle" size={32} color="white" />
+              </View>
+              <View style={styles.labelContainer}>
+                <Text style={styles.mainActionLabel}>Registrar Nueva Actividad</Text>
+                <Text style={styles.mainActionSubtitle}>Captura y monitorea tu trabajo</Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          activeOpacity={0.85}
+          style={styles.secondaryActionButton} 
           onPress={onOpenNewIncident}
-          color="#f59e42"
-        />
-        <QuickActionButton
-          iconName="flash-outline"
-          label="Turbinas"
-          onPress={() => onNavigate('/pilot/turbines')}
-          color="#0ea5e9"
-        />
-        <QuickActionButton
-          iconName="map-outline"
-          label="Mapa de Sitio"
-          onPress={() => onNavigate('/pilot/site-map')}
-          color="#10b981"
-        />
+        >
+          <LinearGradient
+            colors={['#f97316', '#ea580c']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientBackground}
+          >
+            <View style={styles.secondaryButtonContent}>
+              <Ionicons name="warning" size={24} color="white" />
+              <Text style={styles.secondaryActionLabel}>Reportar Incidente</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
 
-      {/* Our styled Quick Register Activity form */}
       <QuickRegisterActivityForm
         isVisible={isQuickActivityFormVisible}
         onClose={() => setIsQuickActivityFormVisible(false)}
@@ -80,5 +95,78 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({ onNavigate,
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  sectionTitle: {
+    fontSize: 18, 
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 12
+  },
+  actionsContainer: {
+    gap: 14
+  },
+  mainActionButton: {
+    borderRadius: 12,
+    elevation: 3,
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    overflow: 'hidden'
+  },
+  gradientBackground: {
+    borderRadius: 12,
+    overflow: 'hidden'
+  },
+  mainButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14
+  },
+  labelContainer: {
+    flex: 1
+  },
+  mainActionLabel: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: 'white'
+  },
+  mainActionSubtitle: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginTop: 2
+  },
+  secondaryActionButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4
+  },
+  secondaryButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14,
+    gap: 10
+  },
+  secondaryActionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white'
+  }
+});
 
 export default QuickActionsMenuCard;
