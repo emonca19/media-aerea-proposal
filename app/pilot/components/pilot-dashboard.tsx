@@ -310,9 +310,8 @@ const PilotDashboard = () => {
   // Reordenar las secciones según la solicitud del usuario
   const dashboardSections = useMemo((): DashboardSectionItem[] => [
     { id: 'header', type: 'HEADER_INFO_CARD' },
-    { id: 'registerActivityButton', type: 'REGISTER_ACTIVITY_BUTTON' },
     { id: 'quickActions', type: 'QUICK_ACTIONS_MENU_CARD' },
-    { id: 'journey', type: 'PROJECT_DETAILS_CARD' }, // Sección Mi Jornada Hoy (actual + pendientes)
+    { id: 'journey', type: 'PROJECT_DETAILS_CARD' },
     { id: 'alerts', type: 'ALERTS_DISPLAY_CARD' },
     { id: 'indicators', type: 'MY_INDICATORS_BUTTON' },
   ], []);
@@ -358,6 +357,7 @@ const PilotDashboard = () => {
             onFinishActivity={handleFinishCurrentActivity}
             onStartActivity={handleStartPendingActivity}
             onViewHistory={() => handleNavigate('/pilot/activity-log')}
+            onNavigate={handleNavigate}
           />
         );
       case 'ALERTS_DISPLAY_CARD':
@@ -365,7 +365,7 @@ const PilotDashboard = () => {
       case 'QUICK_ACTIONS_MENU_CARD':
         return <QuickActionsMenuCard 
           onNavigate={handleNavigate} 
-          onOpenNewActivity={handleOpenNewActivityModal} 
+          onOpenNewActivity={handleOpenNewActivityModal}
           onOpenNewIncident={handleOpenNewIncidentModal}
           onSubmitActivity={handleCreateQuickActivity}
         />;
