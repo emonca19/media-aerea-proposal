@@ -102,50 +102,22 @@ const ProjectDetailsCard: React.FC<ProjectDetailsCardProps> = ({
   }
 
   const totalActivities = ongoingActivities.length + pendingActivities.length;
-
   return (
-    <View style={cardStyles.card_container}>
-      <TouchableOpacity onPress={onToggleVisibility} style={cardStyles.cardHeaderTouchable}>
-        <View style={cardStyles.titleContainer}>
-          <Text style={cardStyles.card_title_large}>Mi Jornada Hoy</Text>
-          <View style={cardStyles.badge}>
-            <Text style={cardStyles.badgeText}>
-              {totalActivities > 0 ? `${ongoingActivities.length} En Curso • ${pendingActivities.length} Pendiente${pendingActivities.length !== 1 ? 's' : ''}` : "Sin Actividades"}
-            </Text>
+    <View>
+      {/* Card de Mi Jornada Hoy - Actividades */}
+      <View style={cardStyles.card_container}>
+        <TouchableOpacity onPress={onToggleVisibility} style={cardStyles.cardHeaderTouchable}>
+          <View style={cardStyles.titleContainer}>
+            <Text style={cardStyles.card_title_large}>Mi Jornada Hoy</Text>
+            <View style={cardStyles.badge}>
+              <Text style={cardStyles.badgeText}>
+                {totalActivities > 0 ? `${ongoingActivities.length} En Curso • ${pendingActivities.length} Pendiente${pendingActivities.length !== 1 ? 's' : ''}` : "Sin Actividades"}
+              </Text>
+            </View>
           </View>
-        </View>
-        <Ionicons name={isVisible ? "chevron-up-outline" : "chevron-down-outline"} size={24} color="#1f2937" />
-      </TouchableOpacity>
-
-      {isVisible && (
-        <>
-          <View style={cardStyles.projectBrief_container}>
-            <Text style={cardStyles.projectBrief_name}>{project.name || 'Proyecto sin Nombre'}</Text>
-            <InfoRow iconName="business-outline" label="Cliente:" value={project.client} />
-            <InfoRow iconName="map-outline" label="Parque:" value={project.location?.split(',')[0]} />
-            <InfoRow iconName="calendar-outline" label="Fechas:" value={project.startDate && project.endDate ? `${project.startDate.substring(0,10)} - ${project.endDate.substring(0,10)}` : undefined} />
-            <InfoRow iconName="airplane-outline" label="Drone:" value={project.drone} />
-          </View>
-
-          {/* Botones de acciones del proyecto */}
-          <View style={cardStyles.actionButtons}>
-            <TouchableOpacity 
-              style={cardStyles.actionButton} 
-              onPress={() => onNavigate('/pilot/site-map')}
-            >
-              <Ionicons name="map-outline" size={24} color="#10b981" />
-              <Text style={cardStyles.actionButtonText}>Mapa de Sitio</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={cardStyles.actionButton}
-              onPress={() => onNavigate('/pilot/turbines')}
-            >
-              <Ionicons name="flash-outline" size={24} color="#0ea5e9" />
-              <Text style={cardStyles.actionButtonText}>Turbinas</Text>
-            </TouchableOpacity>
-          </View>
-          
+          <Ionicons name={isVisible ? "chevron-up-outline" : "chevron-down-outline"} size={24} color="#1f2937" />
+        </TouchableOpacity>
+        {isVisible && (
           <View style={cardStyles.activitiesContainer}>
             {ongoingActivities.length > 0 && (
               <>
@@ -192,7 +164,7 @@ const ProjectDetailsCard: React.FC<ProjectDetailsCardProps> = ({
                 <Text style={cardStyles.emptyStateText}>No hay actividades programadas</Text>
               </View>
             )}
-
+            
             <TouchableOpacity 
               style={cardStyles.historyButton} 
               onPress={onViewHistory}
@@ -204,8 +176,42 @@ const ProjectDetailsCard: React.FC<ProjectDetailsCardProps> = ({
               </View>
             </TouchableOpacity>
           </View>
-        </>
-      )}
+        )}
+      </View>
+      
+      {/* Card de Información del Proyecto SIEMPRE visible */}
+      <View style={[cardStyles.card_container, cardStyles.projectCardContainer]}>
+        <View style={cardStyles.projectCardHeader}>
+          <Ionicons name="information-circle-outline" size={22} color="#4b5563" />
+          <Text style={cardStyles.card_title_large}>Información del Proyecto</Text>
+        </View>
+        <View style={cardStyles.projectBrief_container}>
+          <Text style={cardStyles.projectBrief_name}>{project.name || 'Proyecto sin Nombre'}</Text>
+          <InfoRow iconName="business-outline" label="Cliente:" value={project.client} />
+          <InfoRow iconName="map-outline" label="Parque:" value={project.location?.split(',')[0]} />
+          <InfoRow iconName="calendar-outline" label="Fechas:" value={project.startDate && project.endDate ? `${project.startDate.substring(0,10)} - ${project.endDate.substring(0,10)}` : undefined} />
+          <InfoRow iconName="airplane-outline" label="Drone:" value={project.drone} />
+        </View>
+        
+        {/* Botones de acciones del proyecto */}
+        <View style={cardStyles.actionButtons}>
+          <TouchableOpacity 
+            style={cardStyles.actionButton} 
+            onPress={() => onNavigate('/pilot/site-map')}
+          >
+            <Ionicons name="map-outline" size={24} color="#10b981" />
+            <Text style={cardStyles.actionButtonText}>Mapa de Sitio</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={cardStyles.actionButton}
+            onPress={() => onNavigate('/pilot/turbines')}
+          >
+            <Ionicons name="flash-outline" size={24} color="#0ea5e9" />
+            <Text style={cardStyles.actionButtonText}>Turbinas</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 };
@@ -221,6 +227,11 @@ const cardStyles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },  projectCardContainer: {
+    marginBottom: 16,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
   loadingContainer: {
     alignItems: 'center',
@@ -257,12 +268,11 @@ const cardStyles = StyleSheet.create({
     fontSize: 12,
     color: '#4b5563',
     fontWeight: '500',
-  },
-  projectBrief_container: {
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    paddingBottom: 16,
+  },  projectBrief_container: {
+    marginTop: 8,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
   },
   projectBrief_name: {
     fontSize: 18,
@@ -364,12 +374,12 @@ const cardStyles = StyleSheet.create({
     color: '#4b5563',
     fontSize: 15,
     fontWeight: '500',
-  },
-  actionButtons: {
+  },  actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    marginBottom: 16,
+    marginTop: 16,
+    marginBottom: 8,
     gap: 12,
   },
   actionButton: {
@@ -392,6 +402,12 @@ const cardStyles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#1f2937',
+  },
+  projectCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
   },
 });
 

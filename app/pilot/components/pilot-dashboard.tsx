@@ -306,14 +306,11 @@ const PilotDashboard = () => {
         past: pastActivities,
     };
   }, [ongoingActivities, pendingTodayActivities, genericPendingActivities, unassignedTimeActivities, pastActivities]);
-
   // Reordenar las secciones según la solicitud del usuario
   const dashboardSections = useMemo((): DashboardSectionItem[] => [
     { id: 'header', type: 'HEADER_INFO_CARD' },
     { id: 'quickActions', type: 'QUICK_ACTIONS_MENU_CARD' },
     { id: 'journey', type: 'PROJECT_DETAILS_CARD' },
-    { id: 'alerts', type: 'ALERTS_DISPLAY_CARD' },
-    { id: 'indicators', type: 'MY_INDICATORS_BUTTON' },
   ], []);
 
   const renderDashboardSection = useCallback(({ item }: { item: DashboardSectionItem }) => {
