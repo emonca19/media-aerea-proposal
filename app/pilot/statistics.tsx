@@ -1,8 +1,9 @@
-import { Stack } from 'expo-router';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View, Dimensions } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Stack } from 'expo-router';
+import React, { useState } from 'react';
+import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp, FadeOutUp, Layout } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 
@@ -18,57 +19,80 @@ export default function PilotStatistics() {
     efficiencyRating: '4.8/5' // nuevo dato
   };
 
-  const efficiencyData = [
-    { day: 'Lun', value: 82 },
-    { day: 'Mar', value: 88 },
-    { day: 'Mié', value: 91 },
-    { day: 'Jue', value: 94 },
-    { day: 'Vie', value: 92 }
+  // Datos para los diferentes periodos
+  const efficiencyData = {
+    '7d': [
+      { label: 'Jue', value: 82 },
+      { label: 'Vie', value: 88 },
+      { label: 'Sáb', value: 91 },
+      { label: 'Dom', value: 94 },
+      { label: 'Lun', value: 92 },
+      { label: 'Mar', value: 90 },
+      { label: 'Mié', value: 93 },
+    ],
+    '30d': [
+      { label: '1', value: 80 }, { label: '5', value: 85 }, { label: '10', value: 90 }, { label: '15', value: 92 }, { label: '20', value: 95 }, { label: '25', value: 93 }, { label: '30', value: 94 },
+    ],
+    '12m': [
+      { label: 'Ene', value: 75 }, { label: 'Feb', value: 80 }, { label: 'Mar', value: 82 }, { label: 'Abr', value: 85 }, { label: 'May', value: 90 }, { label: 'Jun', value: 92 }, { label: 'Jul', value: 91 }, { label: 'Ago', value: 93 }, { label: 'Sep', value: 94 }, { label: 'Oct', value: 96 }, { label: 'Nov', value: 97 }, { label: 'Dic', value: 98 },
+    ],
+  };
+  const [period, setPeriod] = useState<'7d' | '30d'>('30d');
+  const data = efficiencyData[period];
+  const maxValue = Math.max(...data.map(d => d.value));
+
+  // Nuevo grid de métricas con iconos reales y variaciones
+  const statCards = [
+    {
+      label: 'Tiempo promedio por turbina',
+      value: stats.avgTimePerTurbine,
+      icon: <MaterialCommunityIcons name="timer-outline" size={28} color="#2563eb" />, 
+      trend: '+5%',
+      trendColor: '#22c55e',
+    },
+    {
+      label: 'Tiempo de entrega de fotos',
+      value: stats.avgPhotoUploadTime,
+      icon: <Ionicons name="cloud-upload-outline" size={28} color="#2563eb" />, 
+      trend: '-2%',
+      trendColor: '#ef4444',
+    },
+    {
+      label: 'Turbinas inspeccionadas',
+      value: stats.inspectedTurbines,
+      icon: <Ionicons name="eye-outline" size={28} color="#2563eb" />, 
+      trend: '+10%',
+      trendColor: '#22c55e',
+    },
+    {
+      label: 'Turbinas aprobadas',
+      value: `${stats.approvedTurbines} (${Math.round((stats.approvedTurbines/stats.inspectedTurbines)*100)}%)`,
+      icon: <Ionicons name="checkmark-done-outline" size={28} color="#2563eb" />, 
+      trend: '+8%',
+      trendColor: '#22c55e',
+    },
+    {
+      label: 'Turbinas pendientes',
+      value: stats.pendingTurbines,
+      icon: <Ionicons name="time-outline" size={28} color="#2563eb" />, 
+      trend: '-1%',
+      trendColor: '#ef4444',
+    },
+    {
+      label: 'Eficiencia semanal',
+      value: stats.efficiencyRating,
+      icon: <MaterialCommunityIcons name="star-outline" size={28} color="#2563eb" />, 
+      trend: '+3%',
+      trendColor: '#22c55e',
+    },
   ];
 
-  const statCards = [
-    { 
-      label: 'Tiempo promedio por turbina', 
-      value: stats.avgTimePerTurbine,
-      icon: '⏱️',
-      color: '#6366F1'
-    },
-    { 
-      label: 'Tiempo de entrega de fotos', 
-      value: stats.avgPhotoUploadTime,
-      icon: '📸',
-      color: '#8B5CF6'
-    },
-    { 
-      label: 'Turbinas inspeccionadas', 
-      value: stats.inspectedTurbines,
-      icon: '🔄',
-      color: '#EC4899'
-    },
-    { 
-      label: 'Turbinas aprobadas', 
-      value: `${stats.approvedTurbines} (${Math.round((stats.approvedTurbines/stats.inspectedTurbines)*100)}%)`,
-      icon: '✅',
-      color: '#10B981'
-    },
-    { 
-      label: 'Turbinas pendientes', 
-      value: stats.pendingTurbines,
-      icon: '⏳',
-      color: '#F59E0B'
-    },
-    { 
-      label: 'Eficiencia semanal', 
-      value: stats.efficiencyRating,
-      icon: '🌟',
-      color: '#3B82F6'
-    }
-  ];
+  const [showMetrics, setShowMetrics] = useState(false);
 
   return (
-    <LinearGradient 
-      colors={['#F9FAFB', '#EFF6FF']} 
-      style={styles.container}
+    <ScrollView 
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
     >
       <Stack.Screen options={{ 
         title: 'Dashboard de Rendimiento',
@@ -79,72 +103,131 @@ export default function PilotStatistics() {
       }} />
       
       <ScrollView 
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.Text 
-          entering={FadeInDown.duration(800)}
-          style={styles.headerTitle}
-        >
-          Resumen de Actividad
-        </Animated.Text>
-
         {/* Tarjeta de cumplimiento principal */}
         <Animated.View 
           entering={FadeInDown.duration(600).delay(100)}
-          style={styles.mainCard}
+          style={{ marginBottom: 20 }}
         >
-          <Text style={styles.mainCardLabel}>Cumplimiento diario</Text>
-          <Text style={styles.mainCardValue}>{stats.dailyCompletion}</Text>
-          <Text style={styles.trendText}>{stats.performanceTrend}</Text>
+          <LinearGradient
+            colors={["#6366F1", "#60A5FA", "#38BDF8"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.completionCard}
+          >
+            <View style={styles.completionContent}>
+              <Text style={styles.completionLabel}>Cumplimiento diario</Text>
+              <Animated.Text 
+                style={styles.completionValue}
+                entering={FadeInDown.duration(800).delay(200)}
+              >
+                {stats.dailyCompletion}
+              </Animated.Text>
+              <Animated.Text 
+                style={styles.completionTrend}
+                entering={FadeInDown.duration(800).delay(300)}
+              >
+                {stats.performanceTrend}
+              </Animated.Text>
+            </View>
+          </LinearGradient>
         </Animated.View>
 
-        {/* Mini gráfico de tendencia (simulado) */}
-        <Animated.View 
-          entering={FadeInDown.duration(600).delay(200)}
-          style={styles.trendContainer}
+        {/* Tendencia de eficiencia tipo glassmorphism */}
+        <View style={styles.glassCard}>
+          <View style={styles.trendHeader}>
+            <Text style={styles.trendTitle}>Eficiencia</Text>
+            <View style={styles.periodSelector}>
+              {['30d', '7d'].map(p => (
+                <Text
+                  key={p}
+                  style={[
+                    styles.periodButton,
+                    period === p && styles.periodButtonActive
+                  ]}
+                  onPress={() => setPeriod(p as '7d' | '30d')}
+                >
+                  {p}
+                </Text>
+              ))}
+            </View>
+          </View>
+          <View style={styles.chartArea}>
+            {/* Eje Y */}
+            <View style={styles.yAxisLabels}>
+              {[maxValue, Math.round(maxValue*0.75), Math.round(maxValue*0.5), 0].map((v, i) => (
+                <Text key={i} style={styles.yAxisText}>{v}%</Text>
+              ))}
+            </View>
+            {/* Gráfico de barras */}
+            <View style={styles.barChartModern}>
+              {data.map((item, idx) => (
+                <View key={item.label} style={styles.barItemModern}>
+                  <View
+                    style={[
+                      styles.barModern,
+                      {
+                        height: (item.value / maxValue) * 120,
+                        backgroundColor: 'rgba(99,102,241,0.85)',
+                        shadowColor: '#6366F1',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.18,
+                        shadowRadius: 6,
+                        borderRadius: 8,
+                      },
+                    ]}
+                  />
+                  <Text style={styles.barLabelModern}>{item.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+          {/* Footer con valor total y tendencia */}
+          <View style={styles.trendFooter}>
+            <Text style={styles.trendFooterValue}>Eficiencia promedio: <Text style={styles.trendFooterValueNum}>{Math.round(data.reduce((a, b) => a + b.value, 0) / data.length)}%</Text></Text>
+            <View style={styles.trendFooterBadge}><Text style={styles.trendFooterBadgeText}>↑ {Math.round(((data[data.length-1].value - data[0].value) / data[0].value) * 100)}%</Text></View>
+          </View>
+        </View>
+
+        {/* Barra de expandir/colapsar métricas */}
+        <Pressable
+          style={styles.expandBar}
+          onPress={() => setShowMetrics((prev) => !prev)}
         >
-          <Text style={styles.sectionTitle}>Tendencia de eficiencia</Text>
-          <View style={styles.barChart}>
-            {efficiencyData.map((item, index) => (
-              <View key={item.day} style={styles.barContainer}>
-                <View style={[styles.bar, { 
-                  height: item.value * 1.2, 
-                  backgroundColor: item.value > 90 ? '#10B981' : '#3B82F6'
-                }]} />
-                <Text style={styles.barLabel}>{item.day}</Text>
+          <Text style={styles.expandBarText}>{showMetrics ? 'Ocultar métricas' : 'Ver métricas detalladas'}</Text>
+          <Ionicons
+            name={showMetrics ? 'chevron-up-outline' : 'chevron-down-outline'}
+            size={20}
+            color="#2563eb"
+            style={{ marginLeft: 6 }}
+          />
+        </Pressable>
+        {/* Grid de métricas animado */}
+        {showMetrics && (
+          <Animated.View
+            entering={FadeInUp.duration(400)}
+            exiting={FadeOutUp.duration(300)}
+            layout={Layout.springify()}
+            style={styles.gridContainer}
+          >
+            {statCards.map((item, index) => (
+              <View key={item.label} style={styles.statCardModern}>
+                <View style={styles.statIcon}>{item.icon}</View>
+                <View style={styles.statTextBlock}>
+                  <Text style={styles.statLabelModern}>{item.label}</Text>
+                  <Text style={styles.statValueModern}>{item.value}</Text>
+                </View>
+                <View style={[styles.statTrendBadge, { backgroundColor: item.trendColor === '#22c55e' ? '#bbf7d0' : '#fee2e2' }]}> 
+                  <Text style={[styles.statTrend, { color: item.trendColor }]}>{item.trend}</Text>
+                </View>
               </View>
             ))}
-          </View>
-        </Animated.View>
-
-        {/* Grid de métricas */}
-        <Animated.View 
-          entering={FadeInUp.duration(600).delay(300)}
-          style={styles.gridContainer}
-        >
-          {statCards.map((item, index) => (
-            <View 
-              key={item.label} 
-              style={[
-                styles.statCard, 
-                { 
-                  backgroundColor: item.color + '20',
-                  borderColor: item.color + '40' 
-                }
-              ]}
-            >
-              <Text style={[styles.statLabel, { color: item.color }]}>
-                {item.icon} {item.label}
-              </Text>
-              <Text style={[styles.statValue, { color: item.color }]}>
-                {item.value}
-              </Text>
-            </View>
-          ))}
-        </Animated.View>
+          </Animated.View>
+        )}
       </ScrollView>
-    </LinearGradient>
+    </ScrollView>
   );
 }
 
@@ -152,98 +235,261 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    // backgroundColor: '#F9FAFB', // Eliminado el fondo
   },
   scrollContainer: {
     paddingBottom: 40,
   },
-  headerTitle: {
-    color: '#1E40AF',
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 24,
-  },
   mainCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 25,
-    marginBottom: 20,
+    // Eliminado: backgroundColor, borderRadius, padding, etc. (ahora lo maneja completionCard)
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
+    marginBottom: 0,
+    // Sombra opcional si quieres más profundidad
   },
-  mainCardLabel: {
-    color: '#6B7280',
-    fontSize: 18,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  mainCardValue: {
-    color: '#1E40AF',
-    fontSize: 42,
-    fontWeight: '700',
-  },
-  trendText: {
-    color: '#10B981',
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 8,
-  },
-  trendContainer: {
-    backgroundColor: '#FFFFFF',
+  completionCard: {
     borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
+    padding: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 6,
+    width: '100%', // Ocupar todo el ancho disponible del contenedor padre
+    maxWidth: undefined, // Eliminar límite de ancho
+    alignSelf: 'stretch', // Forzar a ocupar todo el ancho
   },
-  sectionTitle: {
-    color: '#111827',
+  completionContent: {
+    alignItems: 'center',
+  },
+  completionLabel: {
+    color: '#fff',
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 16,
+    marginBottom: 8,
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0,0,0,0.08)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
-  barChart: {
+  completionValue: {
+    color: '#fff',
+    fontSize: 48,
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0,0,0,0.12)',
+    textShadowOffset: { width: 0, height: 3 },
+    textShadowRadius: 8,
+    marginBottom: 4,
+    letterSpacing: 1.2,
+  },
+  completionTrend: {
+    color: '#bbf7d0',
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 2,
+    textShadowColor: 'rgba(0,0,0,0.10)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  glassCard: {
+    backgroundColor: 'rgba(255,255,255,0.35)',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 24,
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(99,102,241,0.10)',
+    // backdropFilter: 'blur(12px)', // solo web
+    width: '100%', // Ocupar todo el ancho disponible del contenedor padre
+    maxWidth: undefined, // Eliminar límite de ancho
+    alignSelf: 'stretch', // Forzar a ocupar todo el ancho
+  },
+  trendHeader: {
     flexDirection: 'row',
-    height: 150,
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-  },
-  barContainer: {
     alignItems: 'center',
-    width: (width - 80) / 5,
-  },
-  bar: {
-    width: 30,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    justifyContent: 'space-between',
     marginBottom: 8,
   },
-  barLabel: {
-    color: '#6B7280',
+  trendTitle: {
+    color: '#1e293b',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  periodSelector: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(99,102,241,0.08)',
+    borderRadius: 16,
+    padding: 2,
+  },
+  periodButton: {
+    color: '#6366F1',
+    fontWeight: '600',
+    fontSize: 14,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginHorizontal: 2,
+    opacity: 0.7,
+  },
+  periodButtonActive: {
+    backgroundColor: '#6366F1',
+    color: '#fff',
+    opacity: 1,
+  },
+  chartArea: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginTop: 8,
+    marginBottom: 8,
+    minHeight: 140,
+  },
+  yAxisLabels: {
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    height: 120,
+    marginRight: 8,
+  },
+  yAxisText: {
+    color: '#64748b',
     fontSize: 12,
+    fontWeight: '500',
+    opacity: 0.7,
+  },
+  barChartModern: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    flex: 1,
+    height: 120,
+    justifyContent: 'space-between',
+  },
+  barItemModern: {
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 2,
+  },
+  barModern: {
+    width: 18,
+    marginBottom: 6,
+  },
+  barLabelModern: {
+    color: '#64748b',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  trendFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  trendFooterValue: {
+    color: '#1e293b',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  trendFooterValueNum: {
+    color: '#6366F1',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  trendFooterBadge: {
+    backgroundColor: '#bbf7d0',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginLeft: 8,
+  },
+  trendFooterBadgeText: {
+    color: '#059669',
+    fontWeight: 'bold',
+    fontSize: 13,
   },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginTop: 10,
+    paddingHorizontal: 0,
   },
-  statCard: {
-    width: (width - 50) / 2,
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
+  statCardModern: {
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderRadius: 18,
+    padding: 8, // mínimo padding
+    marginBottom: 10,
+    width: '47%', // usar porcentaje para asegurar 2 columnas
+    alignItems: 'flex-start',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
     borderWidth: 1,
+    borderColor: '#e0e7ff',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    minHeight: 70,
+    marginHorizontal: 0,
   },
-  statLabel: {
+  statIcon: {
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+  },
+  statTextBlock: {
+    alignItems: 'flex-start',
+    marginBottom: 2,
+  },
+  statLabelModern: {
     fontSize: 14,
+    color: '#2563eb',
     fontWeight: '500',
-    marginBottom: 6,
+    marginBottom: 2,
+    textAlign: 'left',
   },
-  statValue: {
-    fontSize: 24,
+  statValueModern: {
+    fontSize: 22,
+    color: '#1e293b',
+    fontWeight: 'bold',
+    textAlign: 'left',
+    marginBottom: 2,
+  },
+  statTrendBadge: {
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  statTrend: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  expandBar: {
+    width: 332,
+    maxWidth: 332,
+    alignSelf: 'center',
+    marginTop: 8,
+    marginBottom: 0,
+    borderRadius: 14,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    shadowColor: 'transparent',
+    elevation: 0,
+  },
+  expandBarText: {
+    color: '#2563eb',
     fontWeight: '700',
+    fontSize: 16,
   },
 });

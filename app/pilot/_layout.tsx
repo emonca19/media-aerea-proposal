@@ -4,7 +4,7 @@ import { SafeAreaView, View } from 'react-native';
 
 export default function PilotLayout() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView style={{ flex: 1 }}>
       <View style={{ flex: 1, paddingTop: 0 }}>
         <Tabs
           screenOptions={{
