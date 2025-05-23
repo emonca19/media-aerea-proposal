@@ -71,7 +71,7 @@ export default function NewActivityScreen({ onSubmit }: NewActivityScreenProps =
     <View style={styles.container}>
       <Stack.Screen 
         options={{ 
-          title: '',
+          title: 'Registrar',
           headerStyle: { 
             backgroundColor: '#f0f4f8' 
           },

@@ -38,6 +38,16 @@ export default function PilotProfile() {
 
       {/* Botones de configuración */}
       <View style={styles.settingsSection}>
+        {/* Botón de historial de proyectos (ahora primero y con formato igual a los otros) */}
+        <TouchableOpacity 
+          style={[styles.settingButton, { backgroundColor: '#6366f1' }]} 
+          onPress={() => router.push('/pilot/project-history')}
+        >
+          <Ionicons name="briefcase-outline" size={22} color="#fff" style={styles.settingIcon} />
+          <Text style={styles.settingText}>Mi historial de proyectos</Text>
+          <Ionicons name="chevron-forward-outline" size={20} color="#fff" style={styles.settingArrow} />
+        </TouchableOpacity>
+
         <TouchableOpacity 
           style={styles.settingButton} 
           onPress={() => router.push('/pilot/calendar')}
@@ -192,13 +202,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#6366f1',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    width: '100%',
   },
   settingIcon: {
     marginRight: 12,
@@ -279,14 +290,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#E85F5C',
     borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     marginTop: 0,
     marginBottom: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 332,
-    maxWidth: 332,
+    width: '90%',
+    maxWidth: 400,
     alignSelf: 'center',
     shadowColor: '#E33D3B',
     shadowOffset: { width: 0, height: 2 },

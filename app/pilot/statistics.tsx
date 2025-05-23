@@ -95,7 +95,7 @@ export default function PilotStatistics() {
       showsVerticalScrollIndicator={false}
     >
       <Stack.Screen options={{ 
-        title: 'Dashboard de Rendimiento',
+        title: 'Perfil',
         headerStyle: { backgroundColor: '#FFFFFF' },
         headerTintColor: '#1E40AF',
         headerTitleStyle: { fontWeight: '600' },
