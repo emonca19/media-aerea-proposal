@@ -1,0 +1,24 @@
+FROM node:22-bullseye-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    watchman \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g eas-cli
+
+ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+
+COPY package.json package-lock.json ./
+
+RUN npm ci
+
+COPY . .
+
+EXPOSE 8081
+EXPOSE 19000
+EXPOSE 19001
+EXPOSE 19002
+
+CMD ["npx", "expo", "start", "--port", "8081"]
