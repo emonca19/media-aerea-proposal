@@ -21,24 +21,15 @@ export default function TabLayout() {
       }}
     >
       <MaterialTopTabs.Screen
-        name="active-projects"
+        name="assignments"
         options={{
-          title: "Proyectos Activos",
-          sceneStyle: { backgroundColor: "#ffffff" },
+          title: "Asignaciones",
         }}
       />
       <MaterialTopTabs.Screen
-        name="clients"
+        name="pictures"
         options={{
-          title: "Clientes",
-          sceneStyle: { backgroundColor: "#ffffff" },
-        }}
-      />
-      <MaterialTopTabs.Screen
-        name="parks"
-        options={{
-          title: "Parques",
-          sceneStyle: { backgroundColor: "#ffffff" },
+          title: "Fotos",
         }}
       />
     </MaterialTopTabs>

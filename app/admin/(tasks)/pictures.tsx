@@ -11,8 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Card } from '../../src/components/common';
-import { mockTurbines } from '../../src/mocks/data';
+import { Card } from '../../../src/components/common';
+import { mockTurbines } from '../../../src/mocks/data';
 
 // Simulated photo data structure
 interface TurbinePhoto {

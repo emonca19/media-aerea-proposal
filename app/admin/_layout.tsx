@@ -55,11 +55,11 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
   ) => {
     // Spring-like effect: quick shrink, bounce larger, then settle
     scale.value = withTiming(
-      0.90,
+      0.9,
       { duration: 80, easing: Easing.inOut(Easing.ease) },
       () => {
         scale.value = withTiming(
-          1.10,
+          1.1,
           { duration: 120, easing: Easing.inOut(Easing.ease) },
           () => {
             scale.value = withTiming(1, {
@@ -140,6 +140,7 @@ export default function AdminLayout() {
         name="dashboard"
         options={{
           title: "Inicio",
+          sceneStyle: { backgroundColor: "#ffffff" },
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}
@@ -154,6 +155,7 @@ export default function AdminLayout() {
         name="(projects)"
         options={{
           title: "Proyectos",
+          sceneStyle: { backgroundColor: "#ffffff" },
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "document-text" : "document-text-outline"}
@@ -168,9 +170,25 @@ export default function AdminLayout() {
         name="(resources)"
         options={{
           title: "Recursos",
+          sceneStyle: { backgroundColor: "#ffffff" },
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "airplane" : "airplane-outline"}
+              name={focused ? "construct" : "construct-outline"}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="(tasks)"
+        options={{
+          title: "Tareas",
+          sceneStyle: { backgroundColor: "#ffffff" },
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "checkbox" : "checkbox-outline"}
               size={size}
               color={color}
             />
@@ -182,6 +200,7 @@ export default function AdminLayout() {
         name="(kpis)"
         options={{
           title: "KPIs",
+          sceneStyle: { backgroundColor: "#ffffff" },
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "stats-chart" : "stats-chart-outline"}
