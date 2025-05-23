@@ -1,6 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, FlatList, PanResponder, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+
+declare global {
+  interface Window {
+    __hasNotifications?: boolean;
+  }
+}
 
 const mockNotifications = [
   { id: '1', title: 'Mantenimiento Requerido', message: 'El drone SN-M300-78451 necesita revisión de hélices.', time: 'Hace 2 horas', type: 'warning' },
@@ -24,6 +30,13 @@ const sortedNotifications = [...mockNotifications].sort((a, b) => parseTimeToMin
 const NotificationsScreen = () => {
   const [notifications, setNotifications] = useState(sortedNotifications);
   const [scrollEnabled, setScrollEnabled] = useState(true);
+
+  // Notifica al layout si hay notificaciones (para el badge)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.__hasNotifications = notifications.length > 0;
+    }
+  }, [notifications.length]);
 
   const handleDelete = (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));

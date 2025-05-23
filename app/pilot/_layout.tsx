@@ -1,6 +1,54 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import React from 'react';
 import { SafeAreaView, View } from 'react-native';
+
+type NotificationTabIconProps = {
+  color: string;
+  size: number;
+  focused: boolean;
+};
+
+function NotificationTabIcon({ color, size, focused }: NotificationTabIconProps) {
+  const [hasNotifications, setHasNotifications] = React.useState(
+    typeof window !== 'undefined' && !!window.__hasNotifications
+  );
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      if (typeof window !== 'undefined') {
+        setHasNotifications(!!window.__hasNotifications);
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <View style={{ width: size, height: size }}>
+      <Ionicons
+        name={focused ? 'notifications' : 'notifications-outline'}
+        size={size}
+        color={color}
+      />
+      {hasNotifications && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 2,
+            right: 2,
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: '#ef4444',
+            borderWidth: 1.5,
+            borderColor: '#fff',
+            zIndex: 10,
+          }}
+        />
+      )}
+    </View>
+  );
+}
 
 export default function PilotLayout() {
   return (
@@ -62,13 +110,7 @@ export default function PilotLayout() {
             name="notifications"
             options={{
               title: 'Notificaciones',
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons
-                  name={focused ? "notifications" : "notifications-outline"}
-                  size={size}
-                  color={color}
-                />
-              ),
+              tabBarIcon: (props) => <NotificationTabIcon {...props} />,
             }}
           />
           <Tabs.Screen name="preflight-checklist" options={{ href: null }} />
