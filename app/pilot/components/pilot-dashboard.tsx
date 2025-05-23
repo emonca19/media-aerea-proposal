@@ -8,11 +8,11 @@ import { Alert, FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } 
 import useWeather from '../../hooks/useWeather'; // Asegúrate que la ruta a hooks sea correcta desde aquí
 
 // Importación nombrada para ActivitiesDisplayList
-import { IncidentFormData } from '../new-incident'; // Importamos el tipo desde el nuevo componente
 import { ActivitiesDisplayList } from './activities-display-list'; // Ajusta la ruta si es necesario
 import AlertsDisplayCard from './alerts-display-card'; // Ajusta la ruta si es necesaria
-import IncidentFormModal from './incident-form-modal'; // Importamos el nuevo componente modal para incidentes
 import MyIndicatorsButton from './my-indicators-button'; // Ajusta la ruta si es necesaria
+import IncidentFormModal from './incident-form-modal'; // Importamos el nuevo componente modal para incidentes
+import { IncidentFormData } from '../new-incident'; // Importamos el tipo desde el nuevo componente
 import ProjectDetailsCard from './project-details-card'; // Importamos el componente restaurado
 import QuickActionsMenuCard from './quick-actions-menu-card'; // Ajusta la ruta si es necesaria
 import QuickRegisterActivityForm, { activityTypes, mockTurbines } from './quick-register-activity-form'; // Importamos el nuevo componente con sus datos
@@ -22,11 +22,11 @@ import QuickRegisterActivityForm, { activityTypes, mockTurbines } from './quick-
 import HeaderInfoCard from './header-info-card';
 
 import {
-    ChecklistItemData,
-    incidentTypes as importedIncidentTypes,
-    IncidentData,
-    pilot as pilotData,
-    initialCurrentProject as projectDataFromImport,
+  ChecklistItemData,
+  incidentTypes as importedIncidentTypes,
+  IncidentData,
+  pilot as pilotData,
+  initialCurrentProject as projectDataFromImport,
 } from './pilot-dashboard-data'; // Asegúrate que la ruta sea correcta desde aquí
 
 
