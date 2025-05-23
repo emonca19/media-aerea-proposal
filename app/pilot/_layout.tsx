@@ -58,8 +58,8 @@ export default function PilotLayout() {
           screenOptions={{
             headerShown: false,
             tabBarStyle: {
-              backgroundColor: '#ffffff',
-              borderTopColor: '#e2e2e2',
+              backgroundColor: "#ffffff",
+              borderTopColor: "#e2e2e2",
               borderTopWidth: 1,
               elevation: 0,
               shadowOpacity: 0,
@@ -69,8 +69,8 @@ export default function PilotLayout() {
             tabBarItemStyle: {
               paddingVertical: 8,
             },
-            tabBarActiveTintColor: '#2563eb',
-            tabBarInactiveTintColor: '#64748b',
+            tabBarActiveTintColor: "#2563eb",
+            tabBarInactiveTintColor: "#64748b",
             tabBarLabelStyle: {
               fontSize: 12,
               marginBottom: 4,
@@ -80,12 +80,12 @@ export default function PilotLayout() {
           <Tabs.Screen
             name="dashboard"
             options={{
-              title: 'Dashboard',
+              title: "Dashboard",
               tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons 
-                  name={focused ? "home" : "home-outline"} 
-                  size={size} 
-                  color={color} 
+                <Ionicons
+                  name={focused ? "home" : "home-outline"}
+                  size={size}
+                  color={color}
                 />
               ),
             }}
@@ -103,7 +103,7 @@ export default function PilotLayout() {
               ),
             }}
           />
-          <Tabs.Screen name="activity-log" options={{ href: null }} /> 
+          <Tabs.Screen name="activity-log" options={{ href: null }} />
           <Tabs.Screen name="statistics" options={{ href: null }} />
           <Tabs.Screen name="incidents" options={{ href: null }} />
           <Tabs.Screen
@@ -134,7 +134,7 @@ export default function PilotLayout() {
           <Tabs.Screen
             name="profile"
             options={{
-              title: 'Perfil',
+              title: "Perfil",
               tabBarIcon: ({ color, size, focused }) => (
                 <Ionicons
                   name={focused ? "person" : "person-outline"}

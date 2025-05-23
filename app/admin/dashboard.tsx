@@ -33,9 +33,7 @@ export default function AdminDashboard() {
     <View style={styles.container}>
       <Stack.Screen
         options={{
-          title: 'Dashboard',
-          headerStyle: { backgroundColor: '#f8fafc' },
-          headerTintColor: '#1e293b',
+          title: 'Inicio',
         }}
       />
       <LinearGradient

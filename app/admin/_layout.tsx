@@ -1,5 +1,110 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
+import {
+  AccessibilityRole,
+  AccessibilityState,
+  GestureResponderEvent,
+  Platform,
+  Pressable,
+  StyleProp,
+  ViewStyle,
+} from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+
+// Define the props for the custom tab bar button
+// This interface should be compatible with the props passed by expo-router's Tabs
+interface CustomTabBarButtonProps {
+  children: React.ReactNode;
+  to?: string;
+  onPress?: (
+    e: GestureResponderEvent | React.MouseEvent<HTMLAnchorElement, MouseEvent>
+  ) => void;
+  onLongPress?: ((e: GestureResponderEvent) => void) | null | undefined;
+  testID?: string;
+  accessibilityLabel?: string;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityState?: AccessibilityState;
+  style?: StyleProp<ViewStyle>;
+  // Allow any other props that might be passed through
+  [key: string]: any;
+}
+
+// Custom Tab Bar Button Component with Animation
+const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+      // Ensure the Animated.View takes up space and centers its content
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    };
+  });
+
+  const handlePress = (
+    event:
+      | GestureResponderEvent
+      | React.MouseEvent<HTMLAnchorElement, MouseEvent>
+  ) => {
+    // Spring-like effect: quick shrink, bounce larger, then settle
+    scale.value = withTiming(
+      0.90,
+      { duration: 80, easing: Easing.inOut(Easing.ease) },
+      () => {
+        scale.value = withTiming(
+          1.10,
+          { duration: 120, easing: Easing.inOut(Easing.ease) },
+          () => {
+            scale.value = withTiming(1, {
+              duration: 100,
+              easing: Easing.inOut(Easing.ease),
+            });
+          }
+        );
+      }
+    );
+
+    if (props.onPress) {
+      props.onPress(event);
+    }
+  };
+
+  // Destructure known props for Pressable, pass others via style or specific handling if needed
+  const {
+    children,
+    onLongPress,
+    testID,
+    accessibilityLabel,
+    accessibilityRole,
+    accessibilityState,
+    style,
+  } = props;
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      onLongPress={onLongPress ?? undefined} // Ensure undefined if null for Pressable
+      testID={testID}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole={accessibilityRole}
+      accessibilityState={accessibilityState}
+      android_ripple={{ color: "transparent" }} // Changed to transparent
+      style={({ pressed }) => [
+        style, // Original style from Expo Router
+        Platform.OS === "ios" && pressed ? { opacity: 1 } : {}, // iOS pressed opacity
+      ]}
+    >
+      <Animated.View style={animatedStyle}>{children}</Animated.View>
+    </Pressable>
+  );
+};
 
 export default function AdminLayout() {
   return (
@@ -7,13 +112,16 @@ export default function AdminLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: "#fff",
-          borderTopColor: "#e2e8f0",
+          backgroundColor: "#ffffff",
+          borderTopColor: "#ffffff",
           elevation: 0,
           shadowOpacity: 0,
         },
-        tabBarActiveTintColor: "#3949ab",
-        tabBarInactiveTintColor: "#64748b",
+        tabBarActiveTintColor: "#9C46CE",
+        tabBarInactiveTintColor: "#a7a7a7",
+        tabBarButton: (tabBarProps) => (
+          <AnimatedTabBarButton {...tabBarProps} />
+        ),
       }}
     >
       {/* Redirección inicial */}
@@ -31,39 +139,55 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: "Dashboard",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+          title: "Inicio",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "home" : "home-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
 
       <Tabs.Screen
-        name="projectss"
+        name="(projects)"
         options={{
           title: "Proyectos",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "document-text" : "document-text-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
 
       <Tabs.Screen
-        name="resources"
+        name="(resources)"
         options={{
           title: "Recursos",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="airplane" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "airplane" : "airplane-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
 
       <Tabs.Screen
-        name="indicators"
+        name="(kpis)"
         options={{
-          title: "Indicadores",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="stats-chart" size={size} color={color} />
+          title: "KPIs",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "stats-chart" : "stats-chart-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -71,13 +195,17 @@ export default function AdminLayout() {
       {/* Screens to hide from tab bar */}
       <Tabs.Screen name="[id]" options={{ href: null }} />
       <Tabs.Screen name="[turbineId]" options={{ href: null }} />
-      <Tabs.Screen name="admin-layout" options={{ href: null }} />
       <Tabs.Screen name="equipment" options={{ href: null }} />
       <Tabs.Screen name="parks" options={{ href: null }} />
       <Tabs.Screen name="photos" options={{ href: null }} />
       <Tabs.Screen name="project-details" options={{ href: null }} />
-      <Tabs.Screen name="projects" options={{ href: null }} />
       <Tabs.Screen name="reports" options={{ href: null }} />
+      <Tabs.Screen name="turbine" options={{ href: null }} />
+      <Tabs.Screen name="clients" options={{ href: null }} />
+      <Tabs.Screen name="(projects)/active-projects" options={{ href: null }} />
+      <Tabs.Screen name="(projects)/clients" options={{ href: null }} />
+      <Tabs.Screen name="(projects)/parks" options={{ href: null }} />
+      <Tabs.Screen name="(projects)/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

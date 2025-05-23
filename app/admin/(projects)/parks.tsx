@@ -10,10 +10,10 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { Card, StatusBadge } from '../../src/components/common';
-import { SearchBar } from '../../src/components/SearchBar';
-import { StatCard } from '../../src/components/StatCard';
-import { mockParks, mockTurbines } from '../../src/mocks/data';
+import { Card, StatusBadge } from '../../../src/components/common';
+import { SearchBar } from '../../../src/components/SearchBar';
+import { StatCard } from '../../../src/components/StatCard';
+import { mockParks, mockTurbines } from '../../../src/mocks/data';
 
 export default function ParksScreen() {
   const router = useRouter();
@@ -68,7 +68,7 @@ export default function ParksScreen() {
     <View style={styles.container}>
       <Stack.Screen
         options={{
-          title: 'Parques y Turbinas',
+          title: 'Parques',
           headerStyle: { backgroundColor: '#1a237e' },
           headerTintColor: '#fff',
         }}

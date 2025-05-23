@@ -9,8 +9,8 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Card, StatusBadge } from '../../src/components/common';
-import { mockParks, mockProjects } from '../../src/mocks/data';
+import { Card, StatusBadge } from '../../../src/components/common';
+import { mockParks, mockProjects } from '../../../src/mocks/data';
 
 export default function ProjectsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,7 +26,7 @@ export default function ProjectsScreen() {
     <View style={styles.container}>
       <Stack.Screen
         options={{
-          title: 'Gestión de Proyectos',
+          title: 'Proyectos',
           headerStyle: { backgroundColor: '#1a237e' },
           headerTintColor: '#fff',
         }}

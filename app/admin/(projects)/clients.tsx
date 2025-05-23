@@ -12,8 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { mockClients } from '../../src/mocks/clients';
-import { mockProjects } from '../../src/mocks/data';
+import { mockClients } from '../../../src/mocks/clients';
+import { mockProjects } from '../../../src/mocks/data';
 
 interface NewClient {
   name: string;
