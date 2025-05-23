@@ -90,10 +90,10 @@ export default function PilotProfile() {
 
 
       {/* logout button */}
-      {/* <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
         <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
-      </TouchableOpacity> */}
+      </TouchableOpacity>
     </ScrollView>
   );
 }
