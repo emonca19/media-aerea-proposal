@@ -32,6 +32,27 @@ export default function PilotProfile() {
         <PilotStatistics />
       </View>
 
+      {/* Botones de configuración */}
+      <View style={styles.settingsSection}>
+        <TouchableOpacity 
+          style={styles.settingButton} 
+          onPress={() => router.push('/pilot/calendar')}
+        >
+          <Ionicons name="calendar-outline" size={24} color="#fff" style={styles.settingIcon} />
+          <Text style={styles.settingText}>Calendario</Text>
+          <Ionicons name="chevron-forward-outline" size={20} color="#fff" style={styles.settingArrow} />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.settingButton} 
+          onPress={() => router.push('/pilot/support-chat')}
+        >
+          <Ionicons name="headset-outline" size={24} color="#fff" style={styles.settingIcon} />
+          <Text style={styles.settingText}>Soporte</Text>
+          <Ionicons name="chevron-forward-outline" size={20} color="#fff" style={styles.settingArrow} />
+        </TouchableOpacity>
+      </View>
+
       {/* logout button */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
@@ -115,6 +136,36 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignSelf: 'flex-start',
     marginLeft: 24,
+  },
+  settingsSection: {
+    width: '90%',
+    maxWidth: 400,
+    marginBottom: 24,
+    gap: 12,
+  },
+  settingButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6366f1',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  settingIcon: {
+    marginRight: 12,
+  },
+  settingText: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  settingArrow: {
+    opacity: 0.8,
   },
   logoutButton: {
     flexDirection: 'row',

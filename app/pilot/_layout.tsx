@@ -43,9 +43,9 @@ export default function PilotLayout() {
             }}
           />
           <Tabs.Screen
-            name="activity-log"
+            name="new-activity"
             options={{
-              title: 'Actividades',
+              title: 'Registrar Actividad',
               tabBarIcon: ({ color, size, focused }) => (
                 <Ionicons
                   name={focused ? "reader" : "reader-outline"}
@@ -55,6 +55,7 @@ export default function PilotLayout() {
               ),
             }}
           />
+          <Tabs.Screen name="activity-log" options={{ href: null }} /> 
           <Tabs.Screen name="statistics" options={{ href: null }} />
           <Tabs.Screen name="incidents" options={{ href: null }} />
           <Tabs.Screen name="notifications" options={{ href: null }} />

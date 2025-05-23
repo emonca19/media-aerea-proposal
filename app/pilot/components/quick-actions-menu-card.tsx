@@ -52,22 +52,10 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({ onNavigate,
       <Text style={styles.card_title_medium}>Acciones Rápidas</Text>
       <View style={styles.quickActions_grid}>
         <QuickActionButton
-          iconName="add-circle-outline"
-          label="Registrar Actividad"
-          onPress={() => setIsQuickActivityFormVisible(true)}
-          color="#2563eb"
-        />
-        <QuickActionButton
           iconName="warning-outline"
           label="Reportar Incidente"
           onPress={onOpenNewIncident}
           color="#f59e42"
-        />
-        <QuickActionButton
-          iconName="chatbubbles-outline"
-          label="Soporte"
-          onPress={() => onNavigate('/pilot/support-chat')}
-          color="#ef4444"
         />
         <QuickActionButton
           iconName="flash-outline"
@@ -76,19 +64,13 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({ onNavigate,
           color="#0ea5e9"
         />
         <QuickActionButton
-          iconName="calendar-outline"
-          label="Calendario"
-          onPress={() => onNavigate('/pilot/calendar')}
-          color="#8b5cf6"
-        />
-        <QuickActionButton
           iconName="map-outline"
           label="Mapa de Sitio"
           onPress={() => onNavigate('/pilot/site-map')}
           color="#10b981"
         />
       </View>
-      
+
       {/* Our styled Quick Register Activity form */}
       <QuickRegisterActivityForm
         isVisible={isQuickActivityFormVisible}

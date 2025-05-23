@@ -40,6 +40,10 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  dismissAllButton: { // Estilo para el botón de descartar todas las alertas
+    padding: 4, // Ajusta según sea necesario para el área táctil
+    marginRight: 8, // Espacio entre este botón y el de expandir/colapsar
+  },
   alertsCard_list: {
     marginTop: 8,
   },

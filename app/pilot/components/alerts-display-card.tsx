@@ -18,6 +18,8 @@ interface AlertsDisplayCardProps {
   onToggle: () => void;
   onDismissAlert: (alertId: string) => void;
   onViewDetails?: (alert: AlertItem) => void; // Opcional para ver detalles de alerta
+  showDismissAllButton?: boolean; // Nueva prop opcional
+  onDismissAllAlerts?: () => void; // Nueva prop opcional para manejar el descarte de todas las alertas
 }
 
 const AlertCardItem = React.memo(({ item, onDismissAlert, onViewDetails }: { item: AlertItem, onDismissAlert: (id: string) => void, onViewDetails?: (alert: AlertItem) => void }) => {
@@ -69,7 +71,7 @@ const AlertCardItem = React.memo(({ item, onDismissAlert, onViewDetails }: { ite
 });
 AlertCardItem.displayName = "AlertCardItem";
 
-const AlertsDisplayCard: React.FC<AlertsDisplayCardProps> = ({ alerts, isVisible, onToggle, onDismissAlert, onViewDetails }) => {
+const AlertsDisplayCard: React.FC<AlertsDisplayCardProps> = ({ alerts, isVisible, onToggle, onDismissAlert, onViewDetails, showDismissAllButton, onDismissAllAlerts }) => {
   if (!alerts || alerts.length === 0) {
     return (
       <View style={[styles.card_container, styles.alertsCard_noAlertsContainer]}>
@@ -86,7 +88,14 @@ const AlertsDisplayCard: React.FC<AlertsDisplayCardProps> = ({ alerts, isVisible
           <Ionicons name="notifications-outline" size={24} color={styles.card_title_icon.color} style={styles.card_title_icon} />
           <Text style={styles.card_title_medium}>Alertas ({alerts.length})</Text>
         </View>
-        <Ionicons name={isVisible ? "chevron-up-outline" : "chevron-down-outline"} size={24} color="#6b7280" />
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          {isVisible && showDismissAllButton && onDismissAllAlerts && alerts.length > 0 && (
+            <TouchableOpacity onPress={onDismissAllAlerts} style={styles.dismissAllButton}> 
+              <Ionicons name="close-circle-outline" size={24} color="#ef4444" />
+            </TouchableOpacity>
+          )}
+          <Ionicons name={isVisible ? "chevron-up-outline" : "chevron-down-outline"} size={24} color="#6b7280" style={{marginLeft: 8}}/>
+        </View>
       </TouchableOpacity>
 
       {isVisible && (

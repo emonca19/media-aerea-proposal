@@ -1,22 +1,24 @@
 // app/pilot/dashboard/pilot-dashboard.tsx
 
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Href, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import useWeather from '../../hooks/useWeather'; // Asegúrate que la ruta a hooks sea correcta desde aquí
 
 // Importación nombrada para ActivitiesDisplayList
 import { ActivitiesDisplayList } from './activities-display-list'; // Ajusta la ruta si es necesario
-import AlertsDisplayCard from './alerts-display-card'; // Ajusta la ruta si es necesario
-import MyIndicatorsButton from './my-indicators-button'; // Ajusta la ruta si es necesario
-import NewIncidentFormModal, { IncidentFormData } from './new-incident-formmodal'; // Ajusta la ruta si es necesario
-import QuickActionsMenuCard from './quick-actions-menu-card'; // Ajusta la ruta si es necesario
-import QuickRegisterActivityForm, { mockTurbines, activityTypes } from './quick-register-activity-form'; // Importamos el nuevo componente con sus datos
+import AlertsDisplayCard from './alerts-display-card'; // Ajusta la ruta si es necesaria
+import MyIndicatorsButton from './my-indicators-button'; // Ajusta la ruta si es necesaria
+import NewIncidentFormModal, { IncidentFormData } from './new-incident-formmodal'; // Ajusta la ruta si es necesaria
+import ProjectDetailsCard from './project-details-card'; // Importamos el componente restaurado
+import QuickActionsMenuCard from './quick-actions-menu-card'; // Ajusta la ruta si es necesaria
+import QuickRegisterActivityForm, { activityTypes, mockTurbines } from './quick-register-activity-form'; // Importamos el nuevo componente con sus datos
+
 
 // Asumiendo que estos están al mismo nivel que pilot-dashboard.tsx
 import HeaderInfoCard from './header-info-card';
-import ProjectDetailsCard from './project-details-card';
 
 import {
   ChecklistItemData,
@@ -26,17 +28,7 @@ import {
   initialCurrentProject as projectDataFromImport,
 } from './pilot-dashboard-data'; // Asegúrate que la ruta sea correcta desde aquí
 
-// Definición de tipo para los datos de actividad
-interface ActivityFormData {
-  type: string;
-  customName: string;
-  notes: string;
-  isForNow: boolean;
-  pendingTime: string;
-  turbineId?: string;
-}
 
-// --- Local Type Definitions ---
 interface Activity {
   id: string; type: string; name: string; notes: string;
   status: 'EN_PROGRESO' | 'PENDIENTE' | 'COMPLETADA' | 'POR_ASIGNAR';
@@ -71,16 +63,60 @@ const typedProjectData: Project = {
   description: projectDataFromImport.description || 'Sin descripción.',
   progress: projectDataFromImport.progress || 0,
   drone: projectDataFromImport.drone || 'Drone No Especificado',
-  checklist: (projectDataFromImport.checklist || []).map((item: ChecklistItemData) => ({ ...item })),
-  activities: (projectDataFromImport.activities || []).map(act => ({
-    id: act.id, type: act.type,
-    name: act.description || act.type || 'Actividad sin nombre',
-    notes: act.notes || '',
-    status: (act.status?.toUpperCase().replace(' ', '_') || 'POR_ASIGNAR') as Activity['status'],
-    time: act.scheduledStart || act.actualStart || 'Hora no especificada',
-    description: act.description || '', scheduledStart: act.scheduledStart,
-    scheduledEnd: act.scheduledEnd, actualStart: act.actualStart, actualEnd: act.actualEnd,
-  })),
+  checklist: (projectDataFromImport.checklist || []).map((item: ChecklistItemData) => ({ ...item })),  activities: [
+    {
+      id: 'act-001',
+      type: 'INSPECTION',
+      name: 'Inspección Estructural Turbina A12',
+      notes: 'Inspección detallada de componentes críticos',
+      status: 'PENDIENTE',
+      time: 'Hoy, 10:30',
+      description: 'Inspección programada para verificar la integridad estructural',
+      scheduledStart: new Date(new Date().setHours(10, 30)).toISOString(),
+      scheduledEnd: new Date(new Date().setHours(11, 30)).toISOString(),
+      actualStart: null,
+      actualEnd: null
+    },
+    {
+      id: 'act-002',
+      type: 'MAINTENANCE',
+      name: 'Mantenimiento Preventivo B07',
+      notes: 'Lubricación de engranajes y revisión de sensores',
+      status: 'PENDIENTE',
+      time: 'Hoy, 12:00',
+      description: 'Mantenimiento rutinario programado',
+      scheduledStart: new Date(new Date().setHours(12, 0)).toISOString(),
+      scheduledEnd: new Date(new Date().setHours(13, 30)).toISOString(),
+      actualStart: null,
+      actualEnd: null
+    },
+    {
+      id: 'act-003',
+      type: 'PHOTO_CAPTURE',
+      name: 'Fotografías Palas Turbina C15',
+      notes: 'Captura de imágenes HD de las palas para análisis',
+      status: 'PENDIENTE',
+      time: 'Hoy, 15:00',
+      description: 'Documentación fotográfica para evaluación',
+      scheduledStart: new Date(new Date().setHours(15, 0)).toISOString(),
+      scheduledEnd: new Date(new Date().setHours(16, 0)).toISOString(),
+      actualStart: null,
+      actualEnd: null
+    },
+    {
+      id: 'act-004',
+      type: 'THERMAL_SCAN',
+      name: 'Escaneo Térmico Sector Norte',
+      notes: 'Análisis termográfico de componentes críticos',
+      status: 'PENDIENTE',
+      time: 'Hoy, 16:30',
+      description: 'Detección de puntos calientes y anomalías térmicas',
+      scheduledStart: new Date(new Date().setHours(16, 30)).toISOString(),
+      scheduledEnd: new Date(new Date().setHours(17, 30)).toISOString(),
+      actualStart: null,
+      actualEnd: null
+    }
+  ],
   alerts: (projectDataFromImport.alerts || []).map(alert => ({
     ...alert, severity: alert.severity as AlertItem['severity']
   })),
@@ -93,13 +129,14 @@ console.log('PILOT DASHBOARD DATA INIT: typedProjectData.name =', typedProjectDa
 console.log('PILOT DASHBOARD DATA INIT: typedProjectData.activities count =', typedProjectData.activities.length);
 
 
+// Define un nuevo tipo de sección para el botón de registrar actividad destacado
 type DashboardSectionItem = {
   id: string;
-  type: 'HEADER_INFO_CARD' | 'PROJECT_DETAILS_CARD' | 'ALERTS_DISPLAY_CARD' | 'QUICK_ACTIONS_MENU_CARD' | 'ACTIVITIES_DISPLAY_LIST' | 'MY_INDICATORS_BUTTON';
+  type: 'HEADER_INFO_CARD' | 'REGISTER_ACTIVITY_BUTTON' | 'PROJECT_DETAILS_CARD' | 'ALERTS_DISPLAY_CARD' | 'QUICK_ACTIONS_MENU_CARD' | 'ACTIVITIES_DISPLAY_LIST' | 'MY_INDICATORS_BUTTON';
 };
 
 const PilotDashboard = () => {
-  console.log('PilotDashboard RENDERED - V3');
+  console.log('PilotDashboard RENDERED - V4'); // Incremented version for clarity
   const router = useRouter();
 
   const [currentProject, setCurrentProject] = useState<Project>(typedProjectData);
@@ -111,18 +148,19 @@ const PilotDashboard = () => {
     (currentProject.checklist || []).every(item => item.completed)
   );
   const [alerts, setAlerts] = useState<AlertItem[]>(() => currentProject.alerts || []);
-  const [currentDate, setCurrentDate] = useState<string>(() => {
-    const today = new Date();
-    const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return today.toLocaleDateString('es-ES', options);
-  });
+  const [currentDate] = useState<string>(() => {
+     const today = new Date();
+     const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+     return today.toLocaleDateString('es-ES', options);
+   });
 
   const [isAlertsSectionVisible, setIsAlertsSectionVisible] = useState(true);
   const [isNewActivityModalVisible, setIsNewActivityModalVisible] = useState(false);
   const [isNewIncidentModalVisible, setIsNewIncidentModalVisible] = useState(false);
+  const [isProjectDetailsVisible, setIsProjectDetailsVisible] = useState(true); // Nuevo estado para la visibilidad de Mi Jornada Hoy
 
   const projectLocationString = typeof currentProject.location === 'string' ? currentProject.location : undefined;
-  const { weather, loading: weatherLoading, error: weatherError } = useWeather(projectLocationString);
+  const { weather, loading: weatherLoading, error: weatherError } = useWeather();
 
   useEffect(() => {
     setIsChecklistComplete((currentProject.checklist || []).every(item => item.completed));
@@ -157,8 +195,8 @@ const PilotDashboard = () => {
 
   const currentOngoingActivityForDisplay = useMemo(() => ongoingActivities.length > 0 ? ongoingActivities[0] : null, [ongoingActivities]);
 
-  const handleNavigate = useCallback((route: string) => router.push(route as Href<string>), [router]);
-  const handleLogout = useCallback(() => Alert.alert("Cerrar Sesión", "¿Estás seguro?", [{ text: "Cancelar" }, { text: "Sí", onPress: () => router.replace('/' as Href<string>) }]), [router]);
+  const handleNavigate = useCallback((route: string) => router.push(route as Href), [router]);
+  const handleLogout = useCallback(() => Alert.alert("Cerrar Sesión", "¿Estás seguro?", [{ text: "Cancelar" }, { text: "Sí", onPress: () => router.replace('/' as const) }]), [router]);
 
   const handleActivityAction = useCallback((activityId: string, newStatusString: string) => {
     const newStatus = (newStatusString?.toUpperCase().replace(' ', '_') || 'PENDIENTE') as Activity['status'];
@@ -177,10 +215,27 @@ const PilotDashboard = () => {
     }));
   }, []);
 
+  // Handler to finish the currently ongoing activity
+  const handleFinishCurrentActivity = useCallback(() => {
+    if (currentOngoingActivityForDisplay) {
+      handleActivityAction(currentOngoingActivityForDisplay.id, 'COMPLETADA');
+    }
+  }, [currentOngoingActivityForDisplay, handleActivityAction]);
+
+  // Handler to start a pending activity, completing any current one first
+  const handleStartPendingActivity = useCallback((activityId: string) => {
+    if (currentOngoingActivityForDisplay) {
+      handleActivityAction(currentOngoingActivityForDisplay.id, 'COMPLETADA');
+    }
+    handleActivityAction(activityId, 'EN_PROGRESO');
+  }, [currentOngoingActivityForDisplay, handleActivityAction]);
+
   const handleDismissAlert = useCallback((alertId: string) => setAlerts(prev => prev.filter(a => a.id !== alertId)), []);
   const toggleAlertsSection = useCallback(() => setIsAlertsSectionVisible(prev => !prev), []);
   const handleOpenNewActivityModal = useCallback(() => setIsNewActivityModalVisible(true), []);
   const handleOpenNewIncidentModal = useCallback(() => setIsNewIncidentModalVisible(true), []);
+  const toggleProjectDetails = useCallback(() => setIsProjectDetailsVisible(prev => !prev), []); // Nueva función para alternar visibilidad
+
   const handleCreateQuickActivity = useCallback((activityData: any) => {
     const newActivity: Activity = {
       id: `act-${Date.now()}`,
@@ -252,38 +307,62 @@ const PilotDashboard = () => {
     };
   }, [ongoingActivities, pendingTodayActivities, genericPendingActivities, unassignedTimeActivities, pastActivities]);
 
+  // Reordenar las secciones según la solicitud del usuario
   const dashboardSections = useMemo((): DashboardSectionItem[] => [
-    { id: 'header', type: 'HEADER_INFO_CARD' }, { id: 'projectDetails', type: 'PROJECT_DETAILS_CARD' },
-    { id: 'alerts', type: 'ALERTS_DISPLAY_CARD' }, { id: 'quickActions', type: 'QUICK_ACTIONS_MENU_CARD' },
-    { id: 'activities', type: 'ACTIVITIES_DISPLAY_LIST' }, { id: 'indicators', type: 'MY_INDICATORS_BUTTON' },
+    { id: 'header', type: 'HEADER_INFO_CARD' },
+    { id: 'registerActivityButton', type: 'REGISTER_ACTIVITY_BUTTON' },
+    { id: 'quickActions', type: 'QUICK_ACTIONS_MENU_CARD' },
+    { id: 'journey', type: 'PROJECT_DETAILS_CARD' }, // Sección Mi Jornada Hoy (actual + pendientes)
+    { id: 'alerts', type: 'ALERTS_DISPLAY_CARD' },
+    { id: 'indicators', type: 'MY_INDICATORS_BUTTON' },
   ], []);
 
   const renderDashboardSection = useCallback(({ item }: { item: DashboardSectionItem }) => {
     switch (item.type) {
       case 'HEADER_INFO_CARD':
-        return <HeaderInfoCard pilotInfo={pilotData} currentDate={currentDate} weatherData={{ weather, loading: weatherLoading, error: weatherError }} onLogout={handleLogout} />;
-      case 'PROJECT_DETAILS_CARD':
+        return <HeaderInfoCard pilotInfo={pilotData} currentDate={currentDate} weatherData={{ weather: weather ?? undefined, loading: weatherLoading, error: weatherError ?? undefined }} onLogout={handleLogout} />;
+      case 'REGISTER_ACTIVITY_BUTTON':
+        return (
+          <TouchableOpacity activeOpacity={0.8} onPress={handleOpenNewActivityModal}>
+            <LinearGradient
+              colors={["#2563eb", "#3b82f6"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.highlightedButton}
+            >
+              <Ionicons name="add-circle-outline" size={28} color="white" style={{ marginRight: 12 }} />
+              <Text style={styles.highlightedButtonText}>Registrar Nueva Actividad</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        );
+    case 'PROJECT_DETAILS_CARD':
+        // Prepare props for ProjectDetailsCard
         const projectDetailsProps = {
-            id: currentProject.id,
-            name: currentProject.name || "Nombre de proyecto no disponible",
-            client: currentProject.client || "Cliente no disponible",
-            location: typeof currentProject.location === 'string'
-              ? currentProject.location
-              : currentProject.location && typeof currentProject.location === 'object' && 'latitude' in currentProject.location // Comprobación más segura
-                ? `Lat: ${currentProject.location.latitude?.toFixed(4)}, Lng: ${currentProject.location.longitude?.toFixed(4)}`
-                : "Ubicación no disponible",
-            startDate: currentProject.startDate,
-            endDate: currentProject.endDate,
-            drone: currentProject.drone || "Drone no especificado",
+          id: currentProject.id,
+          name: currentProject.name || 'Proyecto sin Nombre',
+          client: currentProject.client || 'Cliente No Especificado',
+          location: typeof currentProject.location === 'string'
+            ? currentProject.location
+            : undefined,
+          startDate: currentProject.startDate,
+          endDate: currentProject.endDate,
+          drone: currentProject.drone || 'Drone No Especificado',
         };
-        console.log('PilotDashboard: Rendering PROJECT_DETAILS_CARD with props:', projectDetailsProps);
-        if (typeof projectDetailsProps.name === 'undefined') {
-            console.error("CRITICAL IN RENDER: projectDetailsProps.name es undefined");
-            return <View style={styles.errorCard}><Text style={styles.errorText}>Error: Datos del proyecto (nombre) no disponibles.</Text></View>;
-        }
-        return <ProjectDetailsCard project={projectDetailsProps} onNavigateToChecklist={() => handleNavigate('/pilot/preflight-checklist')} isChecklistDone={isChecklistComplete} ongoingActivity={currentOngoingActivityForDisplay || undefined} />;
+        return (
+          <ProjectDetailsCard
+            project={projectDetailsProps}
+            ongoingActivities={ongoingActivities}
+            pendingActivities={pendingTodayActivities}
+            isVisible={isProjectDetailsVisible}
+            onToggleVisibility={toggleProjectDetails}
+            onFinishActivity={handleFinishCurrentActivity}
+            onStartActivity={handleStartPendingActivity}
+            onViewHistory={() => handleNavigate('/pilot/activity-log')}
+          />
+        );
       case 'ALERTS_DISPLAY_CARD':
-        return <AlertsDisplayCard alerts={alerts} isVisible={isAlertsSectionVisible} onToggle={toggleAlertsSection} onDismissAlert={handleDismissAlert} />;      case 'QUICK_ACTIONS_MENU_CARD':
+        return <AlertsDisplayCard alerts={alerts} isVisible={isAlertsSectionVisible} onToggle={toggleAlertsSection} onDismissAlert={handleDismissAlert} showDismissAllButton={true} />;
+      case 'QUICK_ACTIONS_MENU_CARD':
         return <QuickActionsMenuCard 
           onNavigate={handleNavigate} 
           onOpenNewActivity={handleOpenNewActivityModal} 
@@ -306,9 +385,10 @@ const PilotDashboard = () => {
                     // pero puede causar más re-renders de renderDashboardSection.
                     // Si el rendimiento es un problema, vuelve a desglosar.
     currentDate, weather, weatherLoading, weatherError, handleLogout, handleNavigate,
-    isChecklistComplete, currentOngoingActivityForDisplay, alerts, isAlertsSectionVisible,
+    currentOngoingActivityForDisplay, alerts, isAlertsSectionVisible,
     toggleAlertsSection, handleDismissAlert, handleOpenNewActivityModal, handleOpenNewIncidentModal,
-    memoizedActivityListsForDisplay, getStatusStyling, handleActivityAction, handleCreateQuickActivity
+    memoizedActivityListsForDisplay, getStatusStyling, handleActivityAction, handleCreateQuickActivity,
+    isProjectDetailsVisible, toggleProjectDetails
   ]);
 
   console.log('PilotDashboard: Final render pass. currentProject.name:', currentProject?.name);
@@ -337,11 +417,113 @@ const PilotDashboard = () => {
 const styles = StyleSheet.create({
   screenContainer: { flex: 1, backgroundColor: '#f0f2f5' },
   scrollableContent_contentContainer_main: { paddingBottom: 20, paddingHorizontal: 16 },
+  highlightedButton: {
+    backgroundColor: '#2563eb',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: 8,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  highlightedButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
   errorCard: {
     backgroundColor: '#fee2e2', padding: 15, borderRadius: 8,
     marginVertical: 10, alignItems: 'center',
   },
-  errorText: { color: '#b91c1c', fontSize: 16, fontWeight: '500' }
+  errorText: { color: '#b91c1c', fontSize: 16, fontWeight: '500' },
+  projectSummaryContainer: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#111827',
+  },
+  activityCard: {
+    backgroundColor: '#e0f7fa',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  activityHeader: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activityIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#4db6e4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  activityInfo: {
+    flex: 1,
+  },
+  activityType: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#111827',
+  },
+  activityDuration: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  subtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  activityDetail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  activityDetailText: {
+    fontSize: 14,
+    color: '#374151',
+    marginLeft: 8,
+  },
+  historyButton: {
+    marginTop: 16,
+    backgroundColor: '#2563eb',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  historyButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
 export default PilotDashboard; // Esta exportación default es para la PANTALLA.
