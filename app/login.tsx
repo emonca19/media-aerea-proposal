@@ -2,19 +2,19 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    Alert,
-    Animated,
-    Easing,
-    Image,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View
+  Alert,
+  Animated,
+  Easing,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from 'react-native';
 import { theme } from '../src/constants/theme';
 import { useTheme } from '../src/hooks/useTheme';
@@ -181,16 +181,15 @@ export default function LoginScreen() {
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'], // Gira continuamente
   });
-
+z
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : (Platform.OS === 'android' ? 'height' : undefined)} // Disable behavior for web
       style={styles.container}
       enabled={Platform.OS !== 'web'} // Disable KAV entirely for web
     >
-      <TouchableWithoutFeedback onPress={Platform.OS === 'web' ? undefined : Keyboard.dismiss}>
-        <LinearGradient
-          colors={['rgb(12,4,67)', 'rgb(151,68,195)']}
+      <TouchableWithoutFeedback onPress={Platform.OS === 'web' ? undefined : Keyboard.dismiss}>        <LinearGradient
+          colors={['rgb(12,4,67)', 'rgb(80,36,131)', 'rgb(151,68,195)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
@@ -380,57 +379,68 @@ const styles = StyleSheet.create({
   formContainer: {
     width: '100%',
     padding: theme.dark.dimensions.spacing.xl,
-    borderRadius: theme.dark.dimensions.borderRadius.large,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     backdropFilter: 'blur(10px)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
     elevation: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   inputContainer: {
     marginBottom: theme.dark.dimensions.spacing.lg,
   },
   inputLabel: {
-    color: 'rgb(162,179,201)',
+    color: 'rgba(255, 255, 255, 0.9)',
     marginBottom: theme.dark.dimensions.spacing.xs,
     fontSize: theme.dark.dimensions.fontSize.sm,
     fontWeight: '600',
+    letterSpacing: 0.3,
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: theme.dark.dimensions.borderRadius.medium,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 16,
     color: 'white',
     paddingHorizontal: theme.dark.dimensions.spacing.md,
     paddingVertical: theme.dark.dimensions.spacing.sm,
     fontSize: theme.dark.dimensions.fontSize.md,
-    height: 48,
+    height: 52,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   forgotPassword: {
-    marginTop:-12,
+    marginTop: -8,
     alignSelf: 'flex-start',
     marginBottom: theme.dark.dimensions.spacing.xl,
+    opacity: 0.8,
   },
   forgotPasswordText: {
-    color: 'rgb(162,179,201)',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: theme.dark.dimensions.fontSize.sm,
-    
+    fontWeight: '500',
   },
   loginButton: {
     backgroundColor: 'rgb(151,68,195)',
-    borderRadius: theme.dark.dimensions.borderRadius.medium,
+    borderRadius: 16,
     paddingVertical: theme.dark.dimensions.spacing.md,
     marginBottom: theme.dark.dimensions.spacing.md,
-    height: 48,
+    height: 52,
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowColor: 'rgb(151,68,195)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   loginButtonDisabled: {
     opacity: 0.7,
@@ -445,22 +455,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: theme.dark.dimensions.spacing.lg,
+    paddingTop: theme.dark.dimensions.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
   },
   signupText: {
-    color: 'rgb(162,179,201)',
-    marginTop:-25,
+    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: theme.dark.dimensions.fontSize.sm,
+    marginTop: 0,
   },
   signupLink: {
     color: 'rgb(194, 213, 238)',
     fontSize: theme.dark.dimensions.fontSize.sm,
-    fontWeight: 'bold',
-    marginTop:-25,
-    marginLeft: 4,
+    fontWeight: '600',
+    marginTop: 0,
+    marginLeft: 6,
+    letterSpacing: 0.3,
   },
   errorText: {
     color: '#ff6b6b',
     fontSize: theme.dark.dimensions.fontSize.sm,
     marginTop: theme.dark.dimensions.spacing.xs,
+    textAlign: 'center',
+    letterSpacing: 0.2,
   }
 });
