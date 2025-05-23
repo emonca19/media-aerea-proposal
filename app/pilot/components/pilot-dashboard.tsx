@@ -237,6 +237,9 @@ const PilotDashboard = () => {
   const toggleProjectDetails = useCallback(() => setIsProjectDetailsVisible(prev => !prev), []); // Nueva función para alternar visibilidad
 
   const handleCreateQuickActivity = useCallback((activityData: any) => {
+    const isForNow = activityData.isForNow;
+    const now = new Date();
+    const timeString = `Hoy, ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     const newActivity: Activity = {
       id: `act-${Date.now()}`,
       type: activityData.type,
@@ -244,33 +247,33 @@ const PilotDashboard = () => {
             activityData.type === 'TURBINE_WORK' ? `Trabajo en ${mockTurbines.find(t => t.id === activityData.turbineId)?.name || 'Turbina'}` :
             activityTypes.find(t => t.type === activityData.type)?.label || 'Actividad',
       notes: activityData.notes,
-      status: 'EN_PROGRESO',
-      time: `Hoy, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - En curso`,
-      actualStart: new Date().toISOString(),
-      scheduledStart: null,
+      status: isForNow ? 'EN_PROGRESO' : 'PENDIENTE',
+      time: isForNow ? `${timeString} - En curso` : timeString,
+      actualStart: isForNow ? now.toISOString() : null,
+      scheduledStart: !isForNow ? now.toISOString() : null,
       description: activityData.notes, 
       scheduledEnd: null, 
       actualEnd: null,
     };
-    
-    let baseActivities = [...(currentProject.activities || [])]; // Asegurar que currentProject.activities es un array
-    // Completamos cualquier actividad en progreso antes de iniciar la nueva
-    const currentOngoing = baseActivities.find(act => act.status === 'EN_PROGRESO');
-    if (currentOngoing) {
-      baseActivities = baseActivities.map(act =>
-        act.id === currentOngoing.id ? 
-        { 
-          ...act, 
-          status: 'COMPLETADA', 
-          actualEnd: new Date().toISOString(), 
-          time: `${(act.time || '').split(' - En curso')[0]} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
-        } : act
-      );
+    let baseActivities = [...(currentProject.activities || [])];
+    // Si es para ahora, completamos cualquier actividad en progreso antes de iniciar la nueva
+    if (isForNow) {
+      const currentOngoing = baseActivities.find(act => act.status === 'EN_PROGRESO');
+      if (currentOngoing) {
+        baseActivities = baseActivities.map(act =>
+          act.id === currentOngoing.id ? 
+          { 
+            ...act, 
+            status: 'COMPLETADA', 
+            actualEnd: now.toISOString(), 
+            time: `${(act.time || '').split(' - En curso')[0]} - ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
+          } : act
+        );
+      }
     }
-    
     setCurrentProject(prev => ({ ...prev, activities: [newActivity, ...baseActivities] }));
     setIsNewActivityModalVisible(false);
-    Alert.alert("Éxito", `Actividad "${newActivity.name}" ${activityData.isForNow ? 'iniciada' : 'programada'}.`);
+    Alert.alert("Éxito", `Actividad "${newActivity.name}" ${isForNow ? 'iniciada' : 'programada'}.`);
   }, [currentProject.activities]);
 
   const handleCreateNewIncident = useCallback((incidentData: IncidentFormData) => {
@@ -313,6 +316,15 @@ const PilotDashboard = () => {
     { id: 'journey', type: 'PROJECT_DETAILS_CARD' },
   ], []);
 
+  // Add the missing handler for deleting an activity
+  const handleDeleteActivity = useCallback((activityId: string) => {
+    setCurrentProject(prev => ({
+      ...prev,
+      activities: (prev.activities || []).filter(act => act.id !== activityId)
+    }));
+    Alert.alert("Actividad eliminada", "La actividad ha sido eliminada correctamente.");
+  }, []);
+
   const renderDashboardSection = useCallback(({ item }: { item: DashboardSectionItem }) => {
     switch (item.type) {
       case 'HEADER_INFO_CARD':
@@ -353,6 +365,7 @@ const PilotDashboard = () => {
             onToggleVisibility={toggleProjectDetails}
             onFinishActivity={handleFinishCurrentActivity}
             onStartActivity={handleStartPendingActivity}
+            onDeleteActivity={handleDeleteActivity}
             onViewHistory={() => handleNavigate('/pilot/activity-log')}
             onNavigate={handleNavigate}
           />
@@ -385,7 +398,8 @@ const PilotDashboard = () => {
     currentOngoingActivityForDisplay, alerts, isAlertsSectionVisible,
     toggleAlertsSection, handleDismissAlert, handleOpenNewActivityModal, handleOpenNewIncidentModal,
     memoizedActivityListsForDisplay, getStatusStyling, handleActivityAction, handleCreateQuickActivity,
-    isProjectDetailsVisible, toggleProjectDetails
+    isProjectDetailsVisible, toggleProjectDetails, handleDeleteActivity,
+    handleFinishCurrentActivity, handleStartPendingActivity, ongoingActivities, pendingTodayActivities
   ]);
 
   console.log('PilotDashboard: Final render pass. currentProject.name:', currentProject?.name);
@@ -400,13 +414,22 @@ const PilotDashboard = () => {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={<View><Text>No hay secciones para mostrar.</Text></View>}
       />
-      {/* Usando el nuevo QuickRegisterActivityForm en lugar del ActivityFormModal anterior */}
-      <QuickRegisterActivityForm 
+      {/* Usando el nuevo QuickRegisterActivityForm en lugar del ActivityFormModal anterior */}      <QuickRegisterActivityForm 
         isVisible={isNewActivityModalVisible} 
         onClose={() => setIsNewActivityModalVisible(false)} 
         onSubmit={handleCreateQuickActivity} 
       />
-      <NewIncidentFormModal isVisible={isNewIncidentModalVisible} onClose={() => setIsNewIncidentModalVisible(false)} onSubmit={handleCreateNewIncident} incidentTypes={importedIncidentTypes} />
+      <NewIncidentFormModal 
+        isVisible={isNewIncidentModalVisible} 
+        onClose={() => setIsNewIncidentModalVisible(false)} 
+        onSubmit={handleCreateNewIncident} 
+        incidentTypes={importedIncidentTypes}
+        activities={[...ongoingActivities, ...pendingTodayActivities].map(act => ({
+          id: act.id,
+          name: act.name,
+          status: act.status
+        }))}
+      />
     </View>
   );
 };

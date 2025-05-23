@@ -12,7 +12,7 @@ interface Activity {
   description?: string;
 }
 
-// Props esperadas por ProjectDetailsCard
+// Props esperadas por ProjectForCard
 interface ProjectForCard {
   id?: string;
   name?: string;
@@ -31,6 +31,7 @@ interface ProjectDetailsCardProps {
   onToggleVisibility: () => void;
   onFinishActivity?: (activityId: string) => void;
   onStartActivity?: (activityId: string) => void;
+  onDeleteActivity?: (activityId: string) => void;
   onViewHistory?: () => void;
   onNavigate: (route: string) => void;
 }
@@ -49,12 +50,14 @@ const ActivityItem = React.memo(({
   activity, 
   isOngoing,
   onFinish,
-  onStart 
+  onStart,
+  onDelete
 }: { 
   activity: Activity, 
   isOngoing: boolean,
   onFinish?: () => void,
-  onStart?: () => void
+  onStart?: () => void,
+  onDelete?: () => void
 }) => {
   return (
     <View style={cardStyles.activityItem}>
@@ -64,19 +67,41 @@ const ActivityItem = React.memo(({
           <Text style={cardStyles.activityTime}>{activity.time}</Text>
         )}
       </View>
-      <TouchableOpacity 
-        style={[
-          cardStyles.activityButton,
-          isOngoing ? cardStyles.finishButton : cardStyles.startButton
-        ]}
-        onPress={isOngoing ? onFinish : onStart}
-      >
-        <Ionicons 
-          name={isOngoing ? "checkmark-circle-outline" : "play-circle-outline"} 
-          size={24} 
-          color={isOngoing ? "#10b981" : "#2563eb"} 
-        />
-      </TouchableOpacity>
+      {isOngoing ? (
+        <TouchableOpacity 
+          style={[cardStyles.activityButton, cardStyles.finishButton]}
+          onPress={onFinish}
+        >
+          <Ionicons 
+            name="checkmark-circle-outline" 
+            size={24} 
+            color="#10b981" 
+          />
+        </TouchableOpacity>
+      ) : (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity 
+            style={[cardStyles.activityButton, cardStyles.startButton]}
+            onPress={onStart}
+          >
+            <Ionicons 
+              name="play-circle-outline" 
+              size={24} 
+              color="#2563eb" 
+            />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[cardStyles.activityButton, { backgroundColor: '#fee2e2', marginLeft: 8 }]}
+            onPress={onDelete}
+          >
+            <Ionicons 
+              name="trash-outline" 
+              size={22} 
+              color="#ef4444" 
+            />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 });
@@ -90,6 +115,7 @@ const ProjectDetailsCard: React.FC<ProjectDetailsCardProps> = ({
   onToggleVisibility,
   onFinishActivity,
   onStartActivity,
+  onDeleteActivity,
   onViewHistory,
   onNavigate,
 }) => {
@@ -149,6 +175,7 @@ const ProjectDetailsCard: React.FC<ProjectDetailsCardProps> = ({
                       activity={item}
                       isOngoing={false}
                       onStart={() => onStartActivity?.(item.id)}
+                      onDelete={() => onDeleteActivity?.(item.id)}
                     />
                   )}
                   keyExtractor={item => item.id}

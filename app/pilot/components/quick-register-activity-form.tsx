@@ -47,6 +47,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
   const [selectedTurbine, setSelectedTurbine] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isForNow, setIsForNow] = useState(true);
   
   // Filtra las turbinas que no están completadas para la selección
   const filteredTurbines = mockTurbines.filter(t => t.status !== 'COMPLETED');
@@ -67,6 +68,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
       setSelectedType(null);
       setSelectedTurbine('');
       setNotes('');
+      setIsForNow(true);
     }
   }, [isVisible]);
 
@@ -79,19 +81,17 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
       Alert.alert("Error", "Selecciona un tipo de actividad");
       return;
     }
-
     if (selectedType === 'TURBINE_WORK' && !selectedTurbine) {
       Alert.alert("Error", "Selecciona una turbina");
       return;
     }
-
     const activityData = {
       type: selectedType,
       turbineId: selectedType === 'TURBINE_WORK' ? selectedTurbine : undefined,
       notes: notes,
+      isForNow,
       startTime: new Date(),
     };
-
     onSubmit(activityData);
     onClose();
   };
@@ -190,6 +190,24 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                 </ScrollView>
               </View>
             )}
+
+            {/* OPCIÓN PARA AHORA O MÁS TARDE */}
+            <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 12 }}>
+              <TouchableOpacity
+                style={[styles.timeOptionButton, isForNow && styles.timeOptionButtonSelected]}
+                onPress={() => setIsForNow(true)}
+              >
+                <Ionicons name="flash" size={18} color={isForNow ? '#fff' : '#2563eb'} />
+                <Text style={[styles.timeOptionText, isForNow && styles.timeOptionTextSelected]}>Para ahora</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.timeOptionButton, !isForNow && styles.timeOptionButtonSelected]}
+                onPress={() => setIsForNow(false)}
+              >
+                <Ionicons name="time-outline" size={18} color={!isForNow ? '#fff' : '#2563eb'} />
+                <Text style={[styles.timeOptionText, !isForNow && styles.timeOptionTextSelected]}>Para más tarde</Text>
+              </TouchableOpacity>
+            </View>
 
             {/* CAMPO DE NOTAS */}
             <View style={styles.notesSection}>
@@ -384,6 +402,29 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
     fontSize: 16,
+  },
+  timeOptionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2563eb',
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    marginHorizontal: 6,
+    backgroundColor: '#fff',
+  },
+  timeOptionButtonSelected: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  timeOptionText: {
+    marginLeft: 6,
+    color: '#2563eb',
+    fontWeight: '600',
+  },
+  timeOptionTextSelected: {
+    color: '#fff',
   },
 });
 
