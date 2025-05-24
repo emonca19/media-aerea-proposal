@@ -1,5 +1,5 @@
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -110,6 +110,7 @@ const activityTypes = [
 ];
 
 export default function ActivityLogScreen() {
+  const router = useRouter();
   const [selectedType, setSelectedType] = useState<ActivityType | null>(null);
   const [selectedTurbine, setSelectedTurbine] = useState('');
   const [notes, setNotes] = useState('');
@@ -137,6 +138,28 @@ export default function ActivityLogScreen() {
 
     if (selectedType === 'TURBINE_WORK' && !selectedTurbine) {
       Alert.alert('Error', 'Selecciona una turbina');
+      return;
+    }
+
+    // Validación especial para trabajo en turbina - requiere checklist prevuelo
+    if (selectedType === 'TURBINE_WORK' && selectedTurbine) {
+      Alert.alert(
+        "Checklist Prevuelo Requerido",
+        "Para trabajar en una turbina, primero debes completar el checklist de prevuelo. ¿Deseas ir al checklist ahora?",
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { 
+            text: 'Ir al Checklist', 
+            onPress: () => {
+              // Limpiar formulario antes de navegar
+              setSelectedType(null);
+              setSelectedTurbine('');
+              setNotes('');
+              router.push(`/pilot/preflight-checklist?turbineId=${selectedTurbine}`);
+            }
+          }
+        ]
+      );
       return;
     }
 
