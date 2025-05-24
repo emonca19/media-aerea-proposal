@@ -1,4 +1,4 @@
-import { Activity, Project, Turbine, User, WindPark } from '../types';
+import { Activity, Project, Turbine, User } from '../types';
 
 export const mockUser: User = {
   id: '1',

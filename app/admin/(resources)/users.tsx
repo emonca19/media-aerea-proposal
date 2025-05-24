@@ -131,7 +131,8 @@ const UsersScreen = () => {
       Alert.alert("Error", "Nombre y correo electrónico son obligatorios.");
       return;
     }
-    if (!/\S+@\S+\.\S+/.test(email)) { // Corrected email validation regex
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      // Corrected email validation regex
       Alert.alert("Error", "Correo electrónico inválido.");
       return;
     }
@@ -236,7 +237,6 @@ const UsersScreen = () => {
     setShowFilterModal(false);
   };
 
-
   return (
     <View style={styles.container}>
       <View style={styles.searchFilterContainer}>
@@ -250,7 +250,7 @@ const UsersScreen = () => {
           style={styles.filterButton}
           onPress={() => setShowFilterModal(true)}
         >
-          <Ionicons name="filter" size={24} color="#9C46CE" />
+          <Ionicons name="filter" size={24} color="#ffffff" />
         </TouchableOpacity>
       </View>
       <FlatList
@@ -270,7 +270,7 @@ const UsersScreen = () => {
       </TouchableOpacity>
 
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
@@ -301,7 +301,9 @@ const UsersScreen = () => {
                 onPress={() => setModalVisible(false)}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>
+                <Text
+                  style={[styles.modalButtonText, styles.modalButtonTextCancel]}
+                >
                   Cancelar
                 </Text>
               </TouchableOpacity>
@@ -310,7 +312,12 @@ const UsersScreen = () => {
                 onPress={handleSaveUser}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
+                <Text
+                  style={[
+                    styles.modalButtonText,
+                    styles.modalButtonTextPrimary,
+                  ]}
+                >
                   {isEditing ? "Guardar Cambios" : "Crear"}
                 </Text>
               </TouchableOpacity>
@@ -342,22 +349,27 @@ const UsersScreen = () => {
                 { label: "Activo", value: true },
                 { label: "Inactivo", value: false },
                 { label: "Todos", value: undefined }, // Option to clear status filter
-              ].map(item => (
+              ].map((item) => (
                 <TouchableOpacity
                   key={item.label}
                   style={[
                     styles.filterOptionButton,
-                    activeFilter.isActive === item.value && styles.filterOptionButtonSelected,
+                    activeFilter.isActive === item.value &&
+                      styles.filterOptionButtonSelected,
                   ]}
                   onPress={() =>
-                    setActiveFilter((prev) => ({ ...prev, isActive: item.value }))
+                    setActiveFilter((prev) => ({
+                      ...prev,
+                      isActive: item.value,
+                    }))
                   }
                   activeOpacity={0.7}
                 >
                   <Text
                     style={[
                       styles.filterOptionText,
-                      activeFilter.isActive === item.value && styles.filterOptionTextSelected,
+                      activeFilter.isActive === item.value &&
+                        styles.filterOptionTextSelected,
                     ]}
                   >
                     {item.label}
@@ -369,15 +381,16 @@ const UsersScreen = () => {
             {renderRoleSelector(activeFilter.role as Role, (role) =>
               setActiveFilter((prev) => ({ ...prev, role: role }))
             )}
-             {/* Button to clear role filter */}
-             <TouchableOpacity
-                style={[styles.roleButton, styles.clearRoleButton]}
-                onPress={() => setActiveFilter(prev => ({ ...prev, role: undefined }))}
-                activeOpacity={0.7}
+            {/* Button to clear role filter */}
+            <TouchableOpacity
+              style={[styles.roleButton, styles.clearRoleButton]}
+              onPress={() =>
+                setActiveFilter((prev) => ({ ...prev, role: undefined }))
+              }
+              activeOpacity={0.7}
             >
-                <Text style={styles.clearRoleButtonText}>Limpiar Rol</Text>
+              <Text style={styles.clearRoleButtonText}>Limpiar Rol</Text>
             </TouchableOpacity>
-
 
             <View style={styles.modalButtonsContainer}>
               <TouchableOpacity
@@ -385,7 +398,9 @@ const UsersScreen = () => {
                 onPress={clearFilters}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.modalButtonText, styles.modalButtonTextClear]}>
+                <Text
+                  style={[styles.modalButtonText, styles.modalButtonTextClear]}
+                >
                   Limpiar Todo
                 </Text>
               </TouchableOpacity>
@@ -394,7 +409,12 @@ const UsersScreen = () => {
                 onPress={applyFiltersAndClose}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
+                <Text
+                  style={[
+                    styles.modalButtonText,
+                    styles.modalButtonTextPrimary,
+                  ]}
+                >
                   Aplicar
                 </Text>
               </TouchableOpacity>
@@ -409,16 +429,12 @@ const UsersScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa", // Slightly off-white for a softer look
+    padding: 16,
+    backgroundColor: "#F2F2F2",
   },
   searchFilterContainer: {
     flexDirection: "row",
-    paddingHorizontal: 16,
-    paddingVertical: 12, // Increased vertical padding
-    backgroundColor: "white",
     alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0", // Subtle separator
   },
   searchInput: {
     flex: 1,
@@ -435,22 +451,17 @@ const styles = StyleSheet.create({
   filterButton: {
     padding: 12,
     borderRadius: 24, // Match search input
-    backgroundColor: "#e9ecef", // Light gray background
+    backgroundColor: "#9C46CE", // Light gray background
   },
   userItem: {
-    backgroundColor: "white",
+    backgroundColor: "#ffffff",
     padding: 16, // Increased padding
     marginVertical: 8,
-    marginHorizontal: 16,
+    marginHorizontal: 2,
     borderRadius: 12, // Softer corners
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    elevation: 2, // Softer elevation
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08, // Very subtle shadow
-    shadowRadius: 3,
   },
   userInfo: {
     flex: 1,
@@ -495,11 +506,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 6, // More pronounced FAB shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
   },
   emptyListContainer: {
     flex: 1,
@@ -518,7 +524,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20, // Ensure modal isn't touching screen edges
   },
-  modalContainer: { // Shared by Edit and base for Filter
+  modalContainer: {
+    // Shared by Edit and base for Filter
     width: "100%", // Take full width of overlay padding
     maxWidth: 400, // Max width for larger screens
     backgroundColor: "white",
@@ -531,7 +538,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 10,
   },
-  filterModalContainer: { // Inherits from modalContainer, can add specifics if needed
+  filterModalContainer: {
+    // Inherits from modalContainer, can add specifics if needed
     width: "100%",
     maxWidth: 400,
     backgroundColor: "white",
@@ -548,7 +556,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 24, // More space below title
     color: "#343a40",
-    textAlign: 'center',
+    textAlign: "center",
   },
   input: {
     width: "100%",
@@ -610,7 +618,7 @@ const styles = StyleSheet.create({
     borderColor: "#ced4da",
     flex: 1, // Distribute space
     marginHorizontal: 4, // Small gap
-    alignItems: 'center', // Center text
+    alignItems: "center", // Center text
   },
   filterOptionButtonSelected: {
     backgroundColor: "#9C46CE",
@@ -627,19 +635,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   clearRoleButton: {
-    backgroundColor: 'transparent',
-    borderColor: '#adb5bd',
+    backgroundColor: "transparent",
+    borderColor: "#adb5bd",
     borderWidth: 1,
     paddingVertical: 8,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20, // Space before action buttons
     marginTop: 5,
   },
   clearRoleButtonText: {
-    color: '#495057',
+    color: "#495057",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 
   // --- New Modal Button Styles ---
@@ -649,20 +657,22 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 24, // Increased top margin for separation
   },
-  modalButton: { // Base style for all modal buttons
+  modalButton: {
+    // Base style for all modal buttons
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20, // Generous padding
     marginHorizontal: 6, // Space between buttons
     minWidth: 100, // Ensure decent tap target size
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 1, // Subtle elevation for buttons
   },
-  modalButtonText: { // Base text style for all modal buttons
+  modalButtonText: {
+    // Base text style for all modal buttons
     fontSize: 15, // Slightly smaller for better fit
     fontWeight: "600",
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   // Primary button (Save, Create, Apply)
@@ -675,12 +685,12 @@ const styles = StyleSheet.create({
 
   // Cancel button (Edit/Create modal)
   modalButtonCancel: {
-    backgroundColor: "transparent",
-    borderColor: "#6c757d", // Medium gray for less emphasis than red
-    borderWidth: 1.5,
+    backgroundColor: "#e9ecef", // Match Clear button's background
+    borderColor: "#ced4da", // Match Clear button's border color
+    borderWidth: 1, // Match Clear button's border width
   },
   modalButtonTextCancel: {
-    color: "#6c757d", // Text color matches border
+    color: "#495057", // Darker gray text
   },
 
   // Clear Filters button (Filter modal)

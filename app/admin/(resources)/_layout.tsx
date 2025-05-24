@@ -12,7 +12,7 @@ export default function TabLayout() {
     <MaterialTopTabs
       screenOptions={{
         tabBarActiveTintColor: "#9C46CE",
-        tabBarInactiveTintColor: "#a7a7a7",
+        tabBarInactiveTintColor: "#8f8f8f",
         tabBarIndicatorStyle: styles.tabBarIndicator,
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabBarLabel,
@@ -40,12 +40,19 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: "#ffffff",
     paddingTop: Constants.statusBarHeight, // Reduced paddingTop
+    // Add these lines to remove shadow/elevation
+    elevation: 0, // for Android
+    shadowOpacity: 0, // for iOS
+    borderBottomWidth: 1, // Add this line for the bottom border width
+    borderBottomColor: "#E0E0E0", // Add this line for a light gray border color
   },
   tabBarLabel: {
     fontSize: 15, // Increased font size
     fontWeight: "700", // Increased font weight
   },
   tabBarIndicator: {
+    height: 3,
     backgroundColor: "#9C46CE",
+    borderRadius: 25,
   },
 });

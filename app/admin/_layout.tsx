@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
+import { StatusBar } from "expo-status-bar"; // Added import
 import {
   AccessibilityRole,
   AccessibilityState,
@@ -55,11 +56,11 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
   ) => {
     // Spring-like effect: quick shrink, bounce larger, then settle
     scale.value = withTiming(
-      0.9,
+      0.95, // Changed from 0.9
       { duration: 80, easing: Easing.inOut(Easing.ease) },
       () => {
         scale.value = withTiming(
-          1.1,
+          1.05, // Changed from 1.1
           { duration: 120, easing: Easing.inOut(Easing.ease) },
           () => {
             scale.value = withTiming(1, {
@@ -108,123 +109,119 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
 
 export default function AdminLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: "#ffffff",
-          borderTopColor: "#ffffff",
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        tabBarActiveTintColor: "#9C46CE",
-        tabBarInactiveTintColor: "#a7a7a7",
-        tabBarButton: (tabBarProps) => (
-          <AnimatedTabBarButton {...tabBarProps} />
-        ),
-      }}
-    >
-      {/* Redirección inicial */}
-      <Tabs.Screen
-        name="index"
-        options={{ href: null }}
-        listeners={{
-          tabPress: (e: { preventDefault: () => void }) => {
-            e.preventDefault();
-            return <Redirect href="/admin/dashboard" />;
+    <>
+      <StatusBar style="dark" backgroundColor="#ffffff" />
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: "#ffffff",
+            borderTopColor: "#ffffff",
+            elevation: 0,
+            shadowOpacity: 0,
+            height: 75,
+            borderBlockColor: "#ffffff",
           },
-        }}
-      />
-
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          title: "Inicio",
-          sceneStyle: { backgroundColor: "#ffffff" },
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "home" : "home-outline"}
-              size={size}
-              color={color}
-            />
+          tabBarActiveTintColor: "#9C46CE",
+          tabBarInactiveTintColor: "#8f8f8f",
+          tabBarButton: (tabBarProps) => (
+            <AnimatedTabBarButton {...tabBarProps} />
           ),
         }}
-      />
+      >
+        {/* Redirección inicial */}
+        <Tabs.Screen
+          name="index"
+          options={{ href: null }}
+          listeners={{
+            tabPress: (e: { preventDefault: () => void }) => {
+              e.preventDefault();
+              return <Redirect href="/admin/dashboard" />;
+            },
+          }}
+        />
 
-      <Tabs.Screen
-        name="(projects)"
-        options={{
-          title: "Proyectos",
-          sceneStyle: { backgroundColor: "#ffffff" },
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "document-text" : "document-text-outline"}
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
+        <Tabs.Screen
+          name="dashboard"
+          options={{
+            title: "Inicio",
+            sceneStyle: { backgroundColor: "#ffffff" },
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons
+                name={focused ? "home" : "home-outline"}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
 
-      <Tabs.Screen
-        name="(resources)"
-        options={{
-          title: "Recursos",
-          sceneStyle: { backgroundColor: "#ffffff" },
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "construct" : "construct-outline"}
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
+        <Tabs.Screen
+          name="(projects)"
+          options={{
+            title: "Proyectos",
+            sceneStyle: { backgroundColor: "#ffffff" },
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons
+                name={focused ? "document-text" : "document-text-outline"}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
 
-      <Tabs.Screen
-        name="(tasks)"
-        options={{
-          title: "Tareas",
-          sceneStyle: { backgroundColor: "#ffffff" },
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "checkbox" : "checkbox-outline"}
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
+        <Tabs.Screen
+          name="(resources)"
+          options={{
+            title: "Recursos",
+            sceneStyle: { backgroundColor: "#ffffff" },
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons
+                name={focused ? "construct" : "construct-outline"}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
 
-      <Tabs.Screen
-        name="(kpis)"
-        options={{
-          title: "KPIs",
-          sceneStyle: { backgroundColor: "#ffffff" },
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "stats-chart" : "stats-chart-outline"}
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
+        <Tabs.Screen
+          name="(tasks)"
+          options={{
+            title: "Tareas",
+            sceneStyle: { backgroundColor: "#ffffff" },
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons
+                name={focused ? "checkbox" : "checkbox-outline"}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
 
-      {/* Screens to hide from tab bar */}
-      <Tabs.Screen name="[id]" options={{ href: null }} />
-      <Tabs.Screen name="[turbineId]" options={{ href: null }} />
-      <Tabs.Screen name="equipment" options={{ href: null }} />
-      <Tabs.Screen name="parks" options={{ href: null }} />
-      <Tabs.Screen name="photos" options={{ href: null }} />
-      <Tabs.Screen name="project-details" options={{ href: null }} />
-      <Tabs.Screen name="reports" options={{ href: null }} />
-      <Tabs.Screen name="turbine" options={{ href: null }} />
-      <Tabs.Screen name="clients" options={{ href: null }} />
-      <Tabs.Screen name="(projects)/active-projects" options={{ href: null }} />
-      <Tabs.Screen name="(projects)/clients" options={{ href: null }} />
-      <Tabs.Screen name="(projects)/parks" options={{ href: null }} />
-      <Tabs.Screen name="(projects)/[id]" options={{ href: null }} />
-    </Tabs>
+        <Tabs.Screen
+          name="(kpis)"
+          options={{
+            title: "KPIs",
+            sceneStyle: { backgroundColor: "#ffffff" },
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons
+                name={focused ? "stats-chart" : "stats-chart-outline"}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
+
+        {/* Screens to hide from tab bar */}
+        <Tabs.Screen name="[turbineId]" options={{ href: null }} />
+        <Tabs.Screen name="project-details" options={{ href: null }} />
+        <Tabs.Screen name="reports" options={{ href: null }} />
+        <Tabs.Screen name="turbine" options={{ href: null }} />
+      </Tabs>
+    </>
   );
 }
