@@ -7,7 +7,12 @@ type NotificationTabIconProps = {
   color: string;
   size: number;
   focused: boolean;
+
+
 };
+
+
+
 
 function NotificationTabIcon({ color, size, focused }: NotificationTabIconProps) {
   const [hasNotifications, setHasNotifications] = React.useState(
@@ -132,7 +137,9 @@ export default function PilotLayout() {
           <Tabs.Screen name="support-chat" options={{ href: null }} />
           <Tabs.Screen name="components" options={{ href: null }} />
           <Tabs.Screen name="project-details" options={{ href: null }} />
-          
+          <Tabs.Screen name="components/activity-timeline" options={{ href: null }} />
+
+
           <Tabs.Screen
             name="profile"
             options={{
