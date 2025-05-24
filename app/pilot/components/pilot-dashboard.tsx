@@ -18,6 +18,7 @@ import useWeather from "../../hooks/useWeather"; // Asegúrate que la ruta a hoo
 // Importación nombrada para ActivitiesDisplayList
 import { IncidentFormData } from "../new-incident"; // Importamos el tipo desde el nuevo componente
 import { ActivitiesDisplayList } from "./activities-display-list"; // Ajusta la ruta si es necesario
+import ActivityControl from "./activity-control"; // Importamos el nuevo componente para control de actividad
 import ActivityTimeline, { TimelineActivity } from "./activity-timeline"; // Asegúrate que la ruta sea correcta
 import AlertsDisplayCard from "./alerts-display-card"; // Ajusta la ruta si es necesaria
 import IncidentFormModal from "./incident-form-modal"; // Importamos el nuevo componente modal para incidentes
@@ -114,6 +115,12 @@ import {
   initialCurrentProject as projectDataFromImport
 } from "./pilot-dashboard-data"; // Asegúrate que la ruta sea correcta desde aquí
 
+interface Pause {
+  reason: string;
+  start: string;
+  end?: string;
+}
+
 interface Activity {
   id: string;
   type: string;
@@ -126,6 +133,7 @@ interface Activity {
   scheduledEnd?: string | null;
   actualStart?: string | null;
   actualEnd?: string | null;
+  pauseHistory?: Pause[]; // <-- Añadido para historial de pausas
 }
 interface AlertItem {
   id: string;
@@ -645,6 +653,66 @@ const PilotDashboard = () => {
     );
   }, []);
 
+  // Estado para pausa de actividad
+const [activityPauseState, setActivityPauseState] = useState<{ isPaused: boolean; reason?: string; start?: string; end?: string }>({ isPaused: false });
+
+// Iniciar jornada (inicia una nueva actividad de "Jornada" o la actividad principal del día)
+const handleStartJornada = useCallback(() => {
+  // Abre el modal de registro rápido de actividad
+  setIsNewActivityModalVisible(true);
+}, []);
+
+// Pausar actividad actual con motivo
+const handlePauseActivity = useCallback((reason: string) => {
+  if (!currentOngoingActivityForDisplay) return;
+  setActivityPauseState({ isPaused: true, reason, start: new Date().toISOString() });
+  // Opcional: podrías guardar el motivo y hora de pausa en el objeto de actividad aquí
+  setCurrentProject(prev => ({
+    ...prev,
+    activities: prev.activities.map(act =>
+      act.id === currentOngoingActivityForDisplay.id
+        ? {
+            ...act,
+            pauseHistory: [
+              ...(act.pauseHistory || []),
+              { reason, start: new Date().toISOString() }
+            ],
+            status: act.status // No cambia el status, solo marca pausa
+          }
+        : act
+    ),
+  }));
+}, [currentOngoingActivityForDisplay]);
+
+// Reanudar actividad pausada
+const handleResumeActivity = useCallback(() => {
+  if (!currentOngoingActivityForDisplay) return;
+  setActivityPauseState({ isPaused: false });
+  // Opcional: marca el fin de la pausa en el historial
+  setCurrentProject(prev => ({
+    ...prev,
+    activities: prev.activities.map(act =>
+      act.id === currentOngoingActivityForDisplay.id && act.pauseHistory?.length
+        ? {
+            ...act,
+            pauseHistory: act.pauseHistory.map((pause, idx, arr) =>
+              idx === arr.length - 1 && !pause.end
+                ? { ...pause, end: new Date().toISOString() }
+                : pause
+            ),
+          }
+        : act
+    ),
+  }));
+}, [currentOngoingActivityForDisplay]);
+
+// Finalizar actividad actual
+const handleFinishActivity = useCallback(() => {
+  if (!currentOngoingActivityForDisplay) return;
+  setActivityPauseState({ isPaused: false });
+  handleActivityAction(currentOngoingActivityForDisplay.id, "COMPLETADA");
+}, [currentOngoingActivityForDisplay, handleActivityAction]);
+
   const renderDashboardSection = useCallback(
     ({ item }: { item: DashboardSectionItem }) => {
       switch (item.type) {
@@ -748,12 +816,23 @@ const PilotDashboard = () => {
           );
         case "QUICK_ACTIONS_MENU_CARD":
           return (
-            <QuickActionsMenuCard
-              onNavigate={handleNavigate}
-              onOpenNewActivity={handleOpenNewActivityModal}
-              onOpenNewIncident={handleOpenNewIncidentModal}
-              onSubmitActivity={handleCreateQuickActivity}
-            />
+            <>
+              <ActivityControl
+                ongoingActivity={currentOngoingActivityForDisplay}
+                onStart={handleStartJornada}
+                onPause={handlePauseActivity}
+                onResume={handleResumeActivity}
+                onFinish={handleFinishActivity}
+                isPaused={activityPauseState.isPaused}
+                currentPauseReason={activityPauseState.reason}
+              />
+              <QuickActionsMenuCard
+                onNavigate={handleNavigate}
+                onOpenNewActivity={handleOpenNewActivityModal}
+                onOpenNewIncident={handleOpenNewIncidentModal}
+                onSubmitActivity={handleCreateQuickActivity}
+              />
+            </>
           );
         case "ACTIVITIES_DISPLAY_LIST":
           console.log(
