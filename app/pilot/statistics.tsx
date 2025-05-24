@@ -1,590 +1,760 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack } from 'expo-router';
 import React, { useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp, FadeOutUp, Layout } from 'react-native-reanimated';
+import {
+  Dimensions,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import Animated, {
+  FadeInDown,
+  FadeInUp,
+  SlideInRight
+} from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 
 export default function PilotStatistics() {
-  const stats = {
-    avgTimePerTurbine: '00:42:15',
-    avgPhotoUploadTime: '01:10:00',
-    dailyCompletion: '92%',
-    inspectedTurbines: 18,
-    approvedTurbines: 15,
-    pendingTurbines: 3,
-    performanceTrend: '↑ 12%', // nuevo dato
-    efficiencyRating: '4.8/5' // nuevo dato
+  const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '12m'>('7d');
+
+  // Datos mockeados para motivar al piloto
+  const pilotStats = {
+    overall: {
+      totalFlights: 248,
+      flightHours: '156h 42min',
+      inspectedTurbines: 18,
+      capturedPhotos: 1234,
+      efficiency: 94,
+      rank: 3,
+      totalPilots: 25,
+      achievements: 12
+    },
+    performance: {
+      avgTimePerTurbine: '42min',
+      avgPhotoUploadTime: '8min',
+      completionRate: 96,
+      qualityScore: 4.8,
+      safetyScore: 5.0,
+      punctuality: 98
+    },
+    incidents: {
+      total: 2,
+      resolved: 2,
+      pending: 0,
+      lastIncident: '15 días atrás',
+      safetyStreak: 45 // días sin incidentes
+    }
   };
-  // Datos para los diferentes periodos con valores mejorados para una visualización más atractiva
-  const efficiencyData = {
-    '7d': [
-      { label: 'Jue', value: 82 },
-      { label: 'Vie', value: 86 },
-      { label: 'Sáb', value: 91 },
-      { label: 'Dom', value: 94 },
-      { label: 'Lun', value: 92 },
-      { label: 'Mar', value: 96 },
-      { label: 'Mié', value: 98 },
-    ],
-    '30d': [
-      { label: '1', value: 78 }, 
-      { label: '5', value: 85 }, 
-      { label: '10', value: 82 }, 
-      { label: '15', value: 90 }, 
-      { label: '20', value: 95 }, 
-      { label: '25', value: 93 }, 
-      { label: '30', value: 97 },
-    ],
-    '12m': [
-      { label: 'Ene', value: 75 }, 
-      { label: 'Feb', value: 80 }, 
-      { label: 'Mar', value: 82 }, 
-      { label: 'Abr', value: 85 }, 
-      { label: 'May', value: 90 }, 
-      { label: 'Jun', value: 92 }, 
-      { label: 'Jul', value: 91 }, 
-      { label: 'Ago', value: 93 }, 
-      { label: 'Sep', value: 94 }, 
-      { label: 'Oct', value: 96 }, 
-      { label: 'Nov', value: 97 }, 
-      { label: 'Dic', value: 98 },
-    ],
+
+  // Datos para gráficos por período
+  const chartData = {
+    '7d': {
+      efficiency: [85, 88, 92, 96, 94, 97, 98],
+      flights: [3, 4, 5, 6, 4, 7, 5],
+      labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    },
+    '30d': {
+      efficiency: [82, 85, 88, 90, 92, 94, 96],
+      flights: [15, 18, 22, 25, 20, 28, 24],
+      labels: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7']
+    },
+    '12m': {
+      efficiency: [78, 82, 85, 88, 90, 92, 94, 95, 96, 97, 96, 98],
+      flights: [45, 52, 58, 62, 68, 75, 72, 78, 82, 85, 88, 92],
+      labels: ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
+    }
   };
-  const [period, setPeriod] = useState<'7d' | '30d'>('30d');
-  const data = efficiencyData[period];
-  const maxValue = Math.max(...data.map(d => d.value));  // Grid de métricas mejorado con iconos y mejor presentación visual
-  const statCards = [
-    {
-      label: 'Tiempo promedio por turbina',
-      value: stats.avgTimePerTurbine,
-      icon: <MaterialCommunityIcons name="timer-outline" size={24} color="#4338ca" />, 
-      trend: '+5%',
-      trendColor: '#22c55e',
-    },
-    {
-      label: 'Tiempo de entrega de fotos',
-      value: stats.avgPhotoUploadTime,
-      icon: <Ionicons name="cloud-upload-outline" size={24} color="#4338ca" />, 
-      trend: '-2%',
-      trendColor: '#ef4444',
-    },
-    {
-      label: 'Turbinas inspeccionadas',
-      value: stats.inspectedTurbines,
-      icon: <Ionicons name="eye-outline" size={24} color="#4338ca" />, 
-      trend: '+10%',
-      trendColor: '#22c55e',
-    },
-    {
-      label: 'Turbinas aprobadas',
-      value: `${stats.approvedTurbines} (${Math.round((stats.approvedTurbines/stats.inspectedTurbines)*100)}%)`,
-      icon: <Ionicons name="checkmark-done-outline" size={24} color="#4338ca" />, 
-      trend: '+8%',
-      trendColor: '#22c55e',
-    },
-    {
-      label: 'Turbinas pendientes',
-      value: stats.pendingTurbines,
-      icon: <Ionicons name="time-outline" size={24} color="#4338ca" />, 
-      trend: '-1%',
-      trendColor: '#ef4444',
-    },
-    {
-      label: 'Eficiencia semanal',
-      value: stats.efficiencyRating,
-      icon: <MaterialCommunityIcons name="star-outline" size={24} color="#4338ca" />, 
-      trend: '+3%',
-      trendColor: '#22c55e',
-    },
+
+  // Datos de turbinas inspeccionadas
+  const turbineStats = [
+    { id: 'T001', name: 'Turbina A-01', inspections: 8, status: 'excellent', efficiency: 98 },
+    { id: 'T002', name: 'Turbina A-02', inspections: 6, status: 'good', efficiency: 94 },
+    { id: 'T003', name: 'Turbina B-12', inspections: 12, status: 'excellent', efficiency: 97 },
+    { id: 'T004', name: 'Turbina C-07', inspections: 4, status: 'average', efficiency: 89 },
+    { id: 'T005', name: 'Turbina D-15', inspections: 9, status: 'excellent', efficiency: 96 }
   ];
 
-  const [showMetrics, setShowMetrics] = useState(false);
+  // Logros y badges
+  const achievements = [
+    { id: 1, name: 'Piloto del Mes', icon: 'trophy', color: '#f59e0b', earned: true },
+    { id: 2, name: 'Sin Incidentes 45 días', icon: 'shield-checkmark', color: '#10b981', earned: true },
+    { id: 3, name: 'Eficiencia +95%', icon: 'speedometer', color: '#3b82f6', earned: true },
+    { id: 4, name: '100 Vuelos', icon: 'airplane', color: '#8b5cf6', earned: true },
+    { id: 5, name: 'Mentor', icon: 'school', color: '#ef4444', earned: false },
+    { id: 6, name: '1000 Fotos', icon: 'camera', color: '#06b6d4', earned: true }
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'excellent': return '#10b981';
+      case 'good': return '#3b82f6';
+      case 'average': return '#f59e0b';
+      default: return '#6b7280';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'excellent': return 'Excelente';
+      case 'good': return 'Bueno';
+      case 'average': return 'Regular';
+      default: return 'N/A';
+    }
+  };
+
+  const maxValue = Math.max(...chartData[selectedPeriod].efficiency);
 
   return (
-    <ScrollView 
-      contentContainerStyle={styles.container}
-      showsVerticalScrollIndicator={false}
-    >
-      <Stack.Screen options={{ 
-        title: 'Perfil',
-        headerStyle: { backgroundColor: '#FFFFFF' },
-        headerTintColor: '#1E40AF',
-        headerTitleStyle: { fontWeight: '600' },
-        headerShadowVisible: false
-      }} />
-        <ScrollView 
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Tarjeta de cumplimiento principal mejorada */}
-        <Animated.View 
-          entering={FadeInDown.duration(600).delay(100)}
-          style={{ marginBottom: 20 }}
-        >
+    <View style={styles.container}>
+      <Stack.Screen 
+        options={{
+          headerShown: true,
+          title: "Estadísticas",
+          headerStyle: { backgroundColor: '#1E3A8A' },
+          headerTintColor: '#ffffff',
+          headerTitleStyle: { fontWeight: '600' }
+        }} 
+      />
+      <StatusBar backgroundColor="#1E3A8A" barStyle="light-content" />
+      
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Header con resumen general */}
+        <Animated.View entering={FadeInUp.delay(100)} style={styles.headerCard}>
           <LinearGradient
-            colors={["#2563eb", "#1e40af"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.completionCard}
+            colors={['#1E3A8A', '#3B82F6']}
+            style={styles.gradientCard}
           >
-            <View style={styles.completionContent}>
-              <Text style={styles.completionLabel}>Cumplimiento diario</Text>
-              <Animated.Text 
-                style={styles.completionValue}
-                entering={FadeInDown.duration(800).delay(200)}
-              >
-                {stats.dailyCompletion}
-              </Animated.Text>              <Animated.View 
-                entering={FadeInDown.duration(800).delay(300)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: 'rgba(255,255,255,0.15)',
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 12,
-                }}
-              >
-                <Ionicons name="trending-up" size={16} color="#bbf7d0" style={{marginRight: 6}} />
-                <Text style={styles.completionTrend}>
-                  {stats.performanceTrend}
-                </Text>
-              </Animated.View>
+            <View style={styles.headerContent}>
+              <View style={styles.rankBadge}>
+                <Ionicons name="trophy" size={16} color="#f59e0b" />
+                <Text style={styles.rankText}>#{pilotStats.overall.rank} de {pilotStats.overall.totalPilots}</Text>
+              </View>
+              <Text style={styles.efficiencyBig}>{pilotStats.overall.efficiency}%</Text>
+              <Text style={styles.efficiencyLabel}>Eficiencia General</Text>
+              <View style={styles.headerStats}>
+                <View style={styles.headerStat}>
+                  <Text style={styles.headerStatValue}>{pilotStats.overall.totalFlights}</Text>
+                  <Text style={styles.headerStatLabel}>Vuelos</Text>
+                </View>
+                <View style={styles.headerStat}>
+                  <Text style={styles.headerStatValue}>{pilotStats.overall.flightHours}</Text>
+                  <Text style={styles.headerStatLabel}>Horas</Text>
+                </View>
+                <View style={styles.headerStat}>
+                  <Text style={styles.headerStatValue}>{pilotStats.incidents.safetyStreak}</Text>
+                  <Text style={styles.headerStatLabel}>Días Seguros</Text>
+                </View>
+              </View>
             </View>
           </LinearGradient>
         </Animated.View>
 
-        {/* Tendencia de eficiencia tipo glassmorphism */}
-        <View style={styles.glassCard}>
-          <View style={styles.trendHeader}>
-            <Text style={styles.trendTitle}>Eficiencia</Text>          <View style={styles.periodSelector}>
-              {['30d', '7d'].map(p => (
-                <TouchableOpacity
-                  key={p}
-                  style={[
-                    styles.periodButtonContainer,
-                    period === p && styles.periodButtonContainerActive
-                  ]}
-                  onPress={() => setPeriod(p as '7d' | '30d')}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    style={[
-                      styles.periodButton,
-                      period === p && styles.periodButtonActive
-                    ]}
-                  >
-                    {p}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-          <View style={styles.chartArea}>
-            {/* Eje Y */}
-            <View style={styles.yAxisLabels}>
-              {[maxValue, Math.round(maxValue*0.75), Math.round(maxValue*0.5), 0].map((v, i) => (
-                <Text key={i} style={styles.yAxisText}>{v}%</Text>
-              ))}
-            </View>
-            {/* Gráfico de barras */}
-            <View style={styles.barChartModern}>
-              {data.map((item, idx) => (
-                <View key={item.label} style={styles.barItemModern}>                  <LinearGradient
-                    colors={['#4f46e5', '#1e40af']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0, y: 1 }}
-                    style={[
-                      styles.barModern,
-                      {
-                        height: (item.value / maxValue) * 120,
-                        shadowColor: '#1E40AF',
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.25,
-                        shadowRadius: 6,
-                        borderTopLeftRadius: 10,
-                        borderTopRightRadius: 10,
-                      },
-                    ]}
-                  />
-                  <Text style={styles.barLabelModern}>{item.label}</Text>
-                </View>
-              ))}
-            </View>
-          </View>          {/* Footer con valor total y tendencia mejorados */}
-          <View style={styles.trendFooter}>
-            <View style={styles.trendFooterValueContainer}>
-              <Text style={styles.trendFooterValueLabel}>Eficiencia promedio:</Text>
-              <Text style={styles.trendFooterValueNum}>{Math.round(data.reduce((a, b) => a + b.value, 0) / data.length)}%</Text>
-            </View>
-            <View style={styles.trendFooterBadge}>
-              <Ionicons name="trending-up" size={14} color="#059669" style={{marginRight: 3}} />
-              <Text style={styles.trendFooterBadgeText}>{Math.round(((data[data.length-1].value - data[0].value) / data[0].value) * 100)}%</Text>
-            </View>
-          </View>
-        </View>        {/* Barra de expandir/colapsar métricas con mejor estilo */}
-        <TouchableOpacity
-          style={styles.detailedMetricsButton}
-          onPress={() => setShowMetrics((prev) => !prev)}
-        >
-          <Text style={styles.expandBarText}>{showMetrics ? 'Ocultar métricas' : 'Ver métricas detalladas'}</Text>          <Ionicons
-            name={showMetrics ? 'chevron-up-outline' : 'chevron-down-outline'}
-            size={20}
-            color="#4338ca"
-            style={{ marginLeft: 6 }}
-          />
-        </TouchableOpacity>
-        {/* Grid de métricas animado */}
-        {showMetrics && (
-          <Animated.View
-            entering={FadeInUp.duration(400)}
-            exiting={FadeOutUp.duration(300)}
-            layout={Layout.springify()}
-            style={styles.gridContainer}
-          >          {statCards.map((item, index) => (
-              <Animated.View 
-                key={item.label} 
-                style={styles.statCardModern}
-                entering={FadeInUp.duration(400).delay(100 + index * 50)}
+        {/* Selector de período */}
+        <Animated.View entering={FadeInDown.delay(200)} style={styles.periodSelector}>
+          <Text style={styles.sectionTitle}>Rendimiento</Text>
+          <View style={styles.periodButtons}>
+            {(['7d', '30d', '12m'] as const).map((period) => (
+              <TouchableOpacity
+                key={period}
+                style={[
+                  styles.periodButton,
+                  selectedPeriod === period && styles.periodButtonActive
+                ]}
+                onPress={() => setSelectedPeriod(period)}
               >
-                <View style={styles.statIconContainer}>
-                  {item.icon}
+                <Text style={[
+                  styles.periodButtonText,
+                  selectedPeriod === period && styles.periodButtonTextActive
+                ]}>
+                  {period === '7d' ? '7 días' : period === '30d' ? '30 días' : '12 meses'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Animated.View>
+
+        {/* Gráfico de eficiencia */}
+        <Animated.View entering={FadeInDown.delay(300)} style={styles.chartCard}>
+          <Text style={styles.chartTitle}>Eficiencia por {selectedPeriod === '7d' ? 'Día' : selectedPeriod === '30d' ? 'Semana' : 'Mes'}</Text>
+          <View style={styles.chart}>
+            {chartData[selectedPeriod].efficiency.map((value, index) => {
+              const height = (value / maxValue) * 100;
+              const isHighest = value === maxValue;
+              
+              return (
+                <Animated.View 
+                  key={index} 
+                  style={styles.chartColumn}
+                  entering={SlideInRight.delay(400 + index * 50)}
+                >
+                  <View style={styles.chartBarContainer}>
+                    <View style={[
+                      styles.chartBar,
+                      { height: `${height}%` },
+                      isHighest && styles.chartBarHighest
+                    ]}>
+                      <LinearGradient
+                        colors={isHighest ? ['#10b981', '#059669'] : ['#e0e7ff', '#c7d2fe']}
+                        style={styles.chartBarGradient}
+                      />
+                    </View>
+                    <Text style={[styles.chartValue, isHighest && styles.chartValueHighest]}>
+                      {value}%
+                    </Text>
+                  </View>
+                  <Text style={styles.chartLabel}>{chartData[selectedPeriod].labels[index]}</Text>
+                </Animated.View>
+              );
+            })}
+          </View>
+        </Animated.View>
+
+        {/* Métricas de rendimiento */}
+        <Animated.View entering={FadeInDown.delay(500)} style={styles.metricsGrid}>
+          <View style={styles.metricCard}>
+            <View style={[styles.metricIcon, { backgroundColor: '#dbeafe' }]}>
+              <Ionicons name="time" size={24} color="#3b82f6" />
+            </View>
+            <Text style={styles.metricValue}>{pilotStats.performance.avgTimePerTurbine}</Text>
+            <Text style={styles.metricLabel}>Tiempo promedio por turbina</Text>
+          </View>
+
+          <View style={styles.metricCard}>
+            <View style={[styles.metricIcon, { backgroundColor: '#d1fae5' }]}>
+              <Ionicons name="checkmark-circle" size={24} color="#10b981" />
+            </View>
+            <Text style={styles.metricValue}>{pilotStats.performance.completionRate}%</Text>
+            <Text style={styles.metricLabel}>Tasa de finalización</Text>
+          </View>
+
+          <View style={styles.metricCard}>
+            <View style={[styles.metricIcon, { backgroundColor: '#fef3c7' }]}>
+              <Ionicons name="star" size={24} color="#f59e0b" />
+            </View>
+            <Text style={styles.metricValue}>{pilotStats.performance.qualityScore}</Text>
+            <Text style={styles.metricLabel}>Puntuación de calidad</Text>
+          </View>
+
+          <View style={styles.metricCard}>
+            <View style={[styles.metricIcon, { backgroundColor: '#fecaca' }]}>
+              <Ionicons name="shield-checkmark" size={24} color="#ef4444" />
+            </View>
+            <Text style={styles.metricValue}>{pilotStats.performance.safetyScore}</Text>
+            <Text style={styles.metricLabel}>Puntuación de seguridad</Text>
+          </View>
+        </Animated.View>
+
+        {/* Estado de incidencias */}
+        <Animated.View entering={FadeInDown.delay(600)} style={styles.incidentsCard}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Estado de Seguridad</Text>
+            <View style={styles.safetyBadge}>
+              <Ionicons name="shield-checkmark" size={16} color="#10b981" />
+              <Text style={styles.safetyBadgeText}>Excelente</Text>
+            </View>
+          </View>
+          
+          <View style={styles.incidentsGrid}>
+            <View style={styles.incidentMetric}>
+              <Text style={styles.incidentValue}>{pilotStats.incidents.total}</Text>
+              <Text style={styles.incidentLabel}>Incidencias totales</Text>
+            </View>
+            <View style={styles.incidentMetric}>
+              <Text style={[styles.incidentValue, { color: '#10b981' }]}>{pilotStats.incidents.resolved}</Text>
+              <Text style={styles.incidentLabel}>Resueltas</Text>
+            </View>
+            <View style={styles.incidentMetric}>
+              <Text style={[styles.incidentValue, { color: '#ef4444' }]}>{pilotStats.incidents.pending}</Text>
+              <Text style={styles.incidentLabel}>Pendientes</Text>
+            </View>
+          </View>
+
+          <View style={styles.safetyStreak}>
+            <LinearGradient
+              colors={['#10b981', '#059669']}
+              style={styles.streakBadge}
+            >
+              <Ionicons name="flame" size={20} color="#ffffff" />
+              <Text style={styles.streakText}>{pilotStats.incidents.safetyStreak} días sin incidencias</Text>
+            </LinearGradient>
+          </View>
+        </Animated.View>
+
+        {/* Turbinas inspeccionadas */}
+        <Animated.View entering={FadeInDown.delay(700)} style={styles.turbinesCard}>
+          <Text style={styles.cardTitle}>Turbinas Inspeccionadas</Text>
+          {turbineStats.map((turbine, index) => (
+            <Animated.View 
+              key={turbine.id} 
+              style={styles.turbineItem}
+              entering={FadeInDown.delay(800 + index * 100)}
+            >
+              <View style={styles.turbineInfo}>
+                <View style={[styles.turbineStatus, { backgroundColor: getStatusColor(turbine.status) }]} />
+                <View style={styles.turbineDetails}>
+                  <Text style={styles.turbineName}>{turbine.name}</Text>
+                  <Text style={styles.turbineInspections}>{turbine.inspections} inspecciones</Text>
                 </View>
-                <View style={styles.statTextBlock}>
-                  <Text style={styles.statLabelModern}>{item.label}</Text>
-                  <Text style={styles.statValueModern}>{item.value}</Text>
+              </View>
+              <View style={styles.turbineMetrics}>
+                <Text style={[styles.turbineEfficiency, { color: getStatusColor(turbine.status) }]}>
+                  {turbine.efficiency}%
+                </Text>
+                <Text style={styles.turbineStatusText}>{getStatusText(turbine.status)}</Text>
+              </View>
+            </Animated.View>
+          ))}
+        </Animated.View>
+
+        {/* Logros y badges */}
+        <Animated.View entering={FadeInDown.delay(900)} style={styles.achievementsCard}>
+          <Text style={styles.cardTitle}>Logros y Reconocimientos</Text>
+          <View style={styles.achievementsGrid}>
+            {achievements.map((achievement, index) => (
+              <Animated.View 
+                key={achievement.id} 
+                style={[
+                  styles.achievementItem,
+                  !achievement.earned && styles.achievementLocked
+                ]}
+                entering={SlideInRight.delay(1000 + index * 100)}
+              >
+                <View style={[
+                  styles.achievementIcon,
+                  { backgroundColor: achievement.earned ? achievement.color : '#f3f4f6' }
+                ]}>
+                  <Ionicons 
+                    name={achievement.icon as any} 
+                    size={20} 
+                    color={achievement.earned ? '#ffffff' : '#9ca3af'} 
+                  />
                 </View>
-                <View style={[styles.statTrendBadge, { backgroundColor: item.trendColor === '#22c55e' ? '#bbf7d0' : '#fee2e2' }]}> 
-                  <Text style={[styles.statTrend, { color: item.trendColor }]}>{item.trend}</Text>
-                </View>
+                <Text style={[
+                  styles.achievementName,
+                  !achievement.earned && styles.achievementNameLocked
+                ]}>
+                  {achievement.name}
+                </Text>
+                {achievement.earned && (
+                  <View style={styles.earnedBadge}>
+                    <Ionicons name="checkmark" size={12} color="#10b981" />
+                  </View>
+                )}
               </Animated.View>
             ))}
-          </Animated.View>
-        )}
+          </View>
+        </Animated.View>
+
+        <View style={styles.bottomSpacing} />
       </ScrollView>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    // backgroundColor: '#F9FAFB', // Eliminado el fondo
+    backgroundColor: '#f8fafc',
   },
-  scrollContainer: {
-    paddingBottom: 40,
+  scrollView: {
+    flex: 1,
   },
-  mainCard: {
-    // Eliminado: backgroundColor, borderRadius, padding, etc. (ahora lo maneja completionCard)
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 0,
-    // Sombra opcional si quieres más profundidad
-  },  completionCard: {
-    borderRadius: 20,
-    padding: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#1E40AF',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.28,
-    shadowRadius: 20,
-    elevation: 10,
-    width: '96%', // Ocupar más ancho para mayor presencia
-    maxWidth: 450,
-    alignSelf: 'center', // Centrar el componente
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+  headerCard: {
+    margin: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
-  completionContent: {
-    alignItems: 'center',
-  },
-  completionLabel: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-    letterSpacing: 0.5,
-    textShadowColor: 'rgba(0,0,0,0.08)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },  completionValue: {
-    color: '#fff',
-    fontSize: 54,  // Incrementando tamaño para mejor legibilidad
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0,0,0,0.15)',
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 10,
-    marginBottom: 6,
-    letterSpacing: 1.5,
-  },
-  completionTrend: {
-    color: '#bbf7d0',
-    fontSize: 18,
-    fontWeight: '700',
-    marginTop: 2,
-    textShadowColor: 'rgba(0,0,0,0.10)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },  glassCard: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
+  gradientCard: {
     padding: 24,
-    marginBottom: 28,
-    shadowColor: '#1E40AF',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.12,
-    shadowRadius: 22,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    // backdropFilter: 'blur(12px)', // solo web
-    width: '96%', // Ocupar el 96% del ancho disponible igual que la tarjeta de completitud
-    maxWidth: 450,
-    alignSelf: 'center', // Centrar el componente
-  },  trendHeader: {
+  },
+  headerContent: {
+    alignItems: 'center',
+  },
+  rankBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 16,
+  },
+  rankText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  efficiencyBig: {
+    fontSize: 48,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  efficiencyLabel: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 24,
+  },
+  headerStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  headerStat: {
+    alignItems: 'center',
+  },
+  headerStatValue: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  headerStatLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  periodSelector: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1f2937',
     marginBottom: 12,
   },
-  trendTitle: {
-    color: '#1e293b',
-    fontSize: 20,
-    fontWeight: 'bold',
-    letterSpacing: 0.3,
-  },periodSelector: {
+  periodButtons: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(37,99,235,0.08)',
-    borderRadius: 16,
-    padding: 2,
-  },
-  periodButtonContainer: {
+    backgroundColor: '#f1f5f9',
     borderRadius: 12,
-    marginHorizontal: 2,
-  },
-  periodButtonContainerActive: {
-    backgroundColor: '#2563eb',
+    padding: 4,
   },
   periodButton: {
-    color: '#2563eb',
-    fontWeight: '600',
-    fontSize: 14,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    opacity: 0.7,
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignItems: 'center',
   },
   periodButtonActive: {
-    color: '#fff',
-    opacity: 1,
-  },
-  chartArea: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginTop: 8,
-    marginBottom: 8,
-    minHeight: 140,
-  },
-  yAxisLabels: {
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    height: 120,
-    marginRight: 8,
-  },
-  yAxisText: {
-    color: '#64748b',
-    fontSize: 12,
-    fontWeight: '500',
-    opacity: 0.7,
-  },
-  barChartModern: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    flex: 1,
-    height: 120,
-    justifyContent: 'space-between',
-  },
-  barItemModern: {
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 2,
-  },  barModern: {
-    width: 28,
-    marginBottom: 8,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  barLabelModern: {
-    color: '#64748b',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 2,
-  },  trendFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  trendFooterValue: {
-    color: '#1e293b',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  trendFooterValueContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  trendFooterValueLabel: {
-    color: '#1e293b',
-    fontSize: 15,
-    fontWeight: '600',
-    marginRight: 4,
-  },
-  trendFooterValueNum: {
-    color: '#1e40af',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },  trendFooterBadge: {
-    backgroundColor: '#bbf7d0',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginLeft: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#059669',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  trendFooterBadgeText: {
-    color: '#059669',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginTop: 16,
-    marginBottom: 8,
-    paddingHorizontal: 0,
-    width: '100%',
-    maxWidth: 420,
-    alignSelf: 'center',
-  },  statCardModern: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 16,
-    width: '48%',
-    alignItems: 'flex-start',
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.12,
-    shadowRadius: 14,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    minHeight: 130,
-    marginHorizontal: 0,
-    position: 'relative',
-    overflow: 'hidden',
-  },statIcon: {
-    marginBottom: 8,
-    alignSelf: 'flex-start',
-  },  statIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(79,70,229,0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 14,
-    shadowColor: '#4f46e5',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  statTextBlock: {
-    alignItems: 'flex-start',
-    marginBottom: 2,
-  },  statLabelModern: {
-    fontSize: 14,
-    color: '#4338ca',
-    fontWeight: '600',
-    marginBottom: 6,
-    textAlign: 'left',
-    letterSpacing: 0.3,
-  },
-  statValueModern: {
-    fontSize: 26,
-    color: '#1e293b',
-    fontWeight: 'bold',
-    textAlign: 'left',
-    marginBottom: 6,
-    letterSpacing: 0.2,
-  },  statTrendBadge: {
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    marginTop: 8,
-    alignSelf: 'flex-start',
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 1,
+    elevation: 2,
   },
-  statTrend: {
+  periodButtonText: {
     fontSize: 14,
-    fontWeight: 'bold',
+    color: '#64748b',
+    fontWeight: '500',
   },
-  expandBar: {
-    width: 332,
-    maxWidth: 332,
-    alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: 0,
-    borderRadius: 14,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    shadowColor: 'transparent',
-    elevation: 0,
-  },  expandBarText: {
-    color: '#4338ca',
-    fontWeight: '700',
-    fontSize: 16,
-    letterSpacing: 0.3,
-  },detailedMetricsButton: {
-    width: '96%',
-    maxWidth: 450,
-    alignSelf: 'center',
-    marginTop: 16,
-    marginBottom: 4,
+  periodButtonTextActive: {
+    color: '#1e293b',
+    fontWeight: '600',
+  },
+  chartCard: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 16,
+    marginBottom: 16,
     borderRadius: 16,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  chartTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 20,
+  },
+  chart: {
     flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    height: 120,
+    paddingHorizontal: 8,
+  },
+  chartColumn: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  chartBarContainer: {
+    height: 80,
+    width: 24,
+    justifyContent: 'flex-end',
+    marginBottom: 8,
+    position: 'relative',
+  },
+  chartBar: {
+    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+    minHeight: 4,
+  },
+  chartBarGradient: {
+    flex: 1,
+    borderRadius: 12,
+  },
+  chartBarHighest: {
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  chartValue: {
+    position: 'absolute',
+    top: -20,
+    alignSelf: 'center',
+    fontSize: 10,
+    color: '#6b7280',
+    fontWeight: '600',
+  },
+  chartValueHighest: {
+    color: '#10b981',
+    fontWeight: '700',
+  },
+  chartLabel: {
+    fontSize: 11,
+    color: '#9ca3af',
+    fontWeight: '500',
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    gap: 12,
+  },
+  metricCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    width: (width - 44) / 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  metricIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
+    marginBottom: 12,
+  },
+  metricValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  metricLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  incidentsCard: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  safetyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#d1fae5',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  safetyBadgeText: {
+    fontSize: 12,
+    color: '#065f46',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  incidentsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  incidentMetric: {
+    alignItems: 'center',
+  },
+  incidentValue: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  incidentLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  safetyStreak: {
+    alignItems: 'center',
+  },
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  streakText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  turbinesCard: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  turbineItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  turbineInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  turbineStatus: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 12,
+  },
+  turbineDetails: {
+    flex: 1,
+  },
+  turbineName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 2,
+  },
+  turbineInspections: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  turbineMetrics: {
+    alignItems: 'flex-end',
+  },
+  turbineEfficiency: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  turbineStatusText: {
+    fontSize: 11,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  achievementsCard: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  achievementsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  achievementItem: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    width: (width - 76) / 3,
+    position: 'relative',
+  },
+  achievementLocked: {
+    opacity: 0.5,
+  },
+  achievementIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  achievementName: {
+    fontSize: 10,
+    color: '#374151',
+    textAlign: 'center',
+    fontWeight: '500',
+    lineHeight: 12,
+  },
+  achievementNameLocked: {
+    color: '#9ca3af',
+  },
+  earnedBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#d1fae5',
+    borderRadius: 8,
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomSpacing: {
+    height: 32,
   },
 });

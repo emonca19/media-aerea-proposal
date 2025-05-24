@@ -6,7 +6,6 @@ import { pilot } from './components/pilot-dashboard-data';
 
 export default function PilotProfile() {
   const router = useRouter();
-
   const handleLogout = () => {
     Alert.alert(
       'Cerrar Sesión',
@@ -17,21 +16,10 @@ export default function PilotProfile() {
       ]
     );
   };
+  
   const handleEditProfile = () => {
     // Implementar edición de perfil
     console.log('Editar perfil');
-  };
-
-  const handleSupportChat = () => {
-    router.push('/pilot/support-chat');
-  };
-
-  const handleCalendar = () => {
-    router.push('/pilot/calendar');
-  };
-
-  const handleStatistics = () => {
-    router.push('/pilot/statistics');
   };
 
   return (
@@ -95,92 +83,6 @@ export default function PilotProfile() {
               <Text style={styles.infoLabel}>Fecha de ingreso</Text>
             </View>
             <Text style={styles.infoValue}>15 de Marzo, 2022</Text>
-          </View>
-        </View>        {/* Estadísticas profesionales con gráficos */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Estadísticas Profesionales</Text>
-          
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <View style={styles.statIconContainer}>
-                <Ionicons name="airplane" size={24} color="#1E3A8A" />
-              </View>
-              <Text style={styles.statValue}>248</Text>
-              <Text style={styles.statLabel}>Vuelos totales</Text>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: '92%', backgroundColor: '#1E3A8A' }]} />
-              </View>
-            </View>
-
-            <View style={styles.statItem}>
-              <View style={styles.statIconContainer}>
-                <Ionicons name="time" size={24} color="#059669" />
-              </View>
-              <Text style={styles.statValue}>156h</Text>
-              <Text style={styles.statLabel}>Horas de vuelo</Text>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: '78%', backgroundColor: '#059669' }]} />
-              </View>
-            </View>
-
-            <View style={styles.statItem}>
-              <View style={styles.statIconContainer}>
-                <Ionicons name="construct" size={24} color="#dc2626" />
-              </View>
-              <Text style={styles.statValue}>12</Text>
-              <Text style={styles.statLabel}>Turbinas inspeccionadas</Text>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: '60%', backgroundColor: '#dc2626' }]} />
-              </View>
-            </View>
-
-            <View style={styles.statItem}>
-              <View style={styles.statIconContainer}>
-                <Ionicons name="camera" size={24} color="#7c3aed" />
-              </View>
-              <Text style={styles.statValue}>1,234</Text>
-              <Text style={styles.statLabel}>Fotos capturadas</Text>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: '85%', backgroundColor: '#7c3aed' }]} />
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Gráfico de rendimiento semanal */}
-        <View style={styles.card}>
-          <View style={styles.chartHeader}>
-            <Text style={styles.cardTitle}>Rendimiento Semanal</Text>
-            <TouchableOpacity style={styles.viewMoreButton}>
-              <Text style={styles.viewMoreText}>Ver más</Text>
-              <Ionicons name="chevron-forward" size={16} color="#1E3A8A" />
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.weeklyChart}>
-            {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((day, index) => {
-              const values = [85, 92, 78, 96, 88, 65, 45];
-              const height = (values[index] / 100) * 80;
-              const isToday = index === 4; // Viernes
-              
-              return (
-                <View key={day} style={styles.chartDay}>
-                  <View style={styles.chartBarContainer}>
-                    <View style={[
-                      styles.chartBar, 
-                      { height },
-                      isToday && styles.chartBarToday
-                    ]} />
-                  </View>
-                  <Text style={[styles.chartDayLabel, isToday && styles.chartDayLabelToday]}>
-                    {day}
-                  </Text>
-                  <Text style={[styles.chartDayValue, isToday && styles.chartDayValueToday]}>
-                    {values[index]}%
-                  </Text>
-                </View>
-              );
-            })}
           </View>
         </View>
 
@@ -462,42 +364,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginLeft: 12,
-  },
-  infoValue: {
+  },  infoValue: {
     fontSize: 14,
     color: '#1f2937',
     fontWeight: '500',
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  statItem: {
-    width: '48%',
-    alignItems: 'center',
-    paddingVertical: 16,
-    marginBottom: 8,
-  },
-  statIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'center',
   },
   certificationItem: {
     flexDirection: 'row',
@@ -587,81 +457,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },  bottomSpacing: {
     height: 20,
-  },
-  // Nuevos estilos para gráficos y accesos rápidos
-  progressBar: {
-    width: '100%',
-    height: 6,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 3,
-    marginTop: 8,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  chartHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  viewMoreButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  viewMoreText: {
-    fontSize: 14,
-    color: '#1E3A8A',
-    marginRight: 4,
-    fontWeight: '500',
-  },
-  weeklyChart: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: 120,
-    paddingHorizontal: 8,
-  },
-  chartDay: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  chartBarContainer: {
-    height: 80,
-    width: 24,
-    justifyContent: 'flex-end',
-    marginBottom: 8,
-  },
-  chartBar: {
-    width: '100%',
-    backgroundColor: '#e5e7eb',
-    borderRadius: 12,
-    minHeight: 4,
-  },
-  chartBarToday: {
-    backgroundColor: '#1E3A8A',
-    // Removed shadow and elevation for flat design
-  },
-  chartDayLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginBottom: 2,
-  },
-  chartDayLabelToday: {
-    color: '#1E3A8A',
-    fontWeight: '600',
-  },
-  chartDayValue: {
-    fontSize: 10,
-    color: '#9ca3af',
-  },
-  chartDayValueToday: {
-    color: '#1E3A8A',
-    fontWeight: '600',
   },
   quickActionsGrid: {
     flexDirection: 'row',

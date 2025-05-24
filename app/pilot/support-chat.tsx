@@ -1,10 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'; // Removed Image import
+import {
+    Dimensions,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import Animated, {
+    FadeInDown,
+    FadeInUp,
+    SlideInRight
+} from 'react-native-reanimated';
 
-// Mock admin ID (replace with actual admin ID from your system)
-const ADMIN_ID = 'admin_user_001';
-const PILOT_ID = 'pilot_user_123'; // Example pilot ID
+const { width } = Dimensions.get('window');
 
 interface Message {
   id: string;
@@ -12,169 +29,474 @@ interface Message {
   senderId: string;
   timestamp: Date;
   senderName: string;
-  avatarIcon?: keyof typeof Ionicons.glyphMap;
-  avatarColor?: string;
+  type: 'text' | 'quick_reply' | 'system';
+  isTyping?: boolean;
 }
 
-// Mock avatars - using Ionicons for simplicity
-const adminAvatar = { icon: 'person-circle-outline' as keyof typeof Ionicons.glyphMap, color: '#4A5568' }; // Dark Gray for Admin
-const pilotAvatar = { icon: 'person-circle' as keyof typeof Ionicons.glyphMap, color: '#1D4ED8' }; // Blue for Pilot
+interface QuickReply {
+  id: string;
+  text: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  response: string;
+  followUp?: QuickReply[];
+}
 
-export default function SupportChatScreen() {
-  const [messages, setMessages] = useState<Message[]>([]);
+// Respuestas rápidas predefinidas para pilotos
+const quickReplies: QuickReply[] = [
+  {
+    id: '1',
+    text: 'Problemas con el Dron',
+    icon: 'airplane',
+    response: 'Entiendo que tienes problemas con el dron. ¿Podrías ser más específico sobre el tipo de problema? Te ayudo a resolverlo.',
+    followUp: [
+      {
+        id: '1a',
+        text: 'No enciende',
+        icon: 'power',
+        response: 'Verificaremos el sistema de energía. Primero, confirma si la batería está completamente cargada y si los indicadores LED muestran alguna señal.'
+      },
+      {
+        id: '1b',
+        text: 'Pérdida de señal',
+        icon: 'wifi',
+        response: 'Para problemas de conectividad, verifica que estés dentro del rango operativo y que no haya interferencias electromagnéticas cercanas.'
+      }
+    ]
+  },
+  {
+    id: '2',
+    text: 'Condiciones del Clima',
+    icon: 'cloud',
+    response: 'Las condiciones meteorológicas son cruciales para las operaciones. ¿Qué condiciones específicas te preocupan?',
+    followUp: [
+      {
+        id: '2a',
+        text: 'Viento fuerte',
+        icon: 'leaf',
+        response: 'Velocidades de viento superiores a 15 m/s requieren suspensión de vuelo. Consulta el pronóstico actualizado antes de cada misión.'
+      },
+      {
+        id: '2b',
+        text: 'Lluvia/Tormentas',
+        icon: 'rainy',
+        response: 'Operaciones suspendidas durante precipitaciones. Espera al menos 30 minutos después de que termine la lluvia antes de reanudar.'
+      }
+    ]
+  },
+  {
+    id: '3',
+    text: 'Emergencia',
+    icon: 'warning',
+    response: '🚨 PROTOCOLO DE EMERGENCIA ACTIVADO. Mantén la calma. ¿Cuál es la naturaleza de la emergencia?',
+    followUp: [
+      {
+        id: '3a',
+        text: 'Dron fuera de control',
+        icon: 'alert-circle',
+        response: 'INMEDIATAMENTE: Activa el sistema RTH (Return to Home). Si no responde, prepárate para aterrizaje de emergencia en zona segura.'
+      },
+      {
+        id: '3b',
+        text: 'Lesión personal',
+        icon: 'medical',
+        response: 'Contactando servicios médicos de emergencia. Mantente en tu ubicación actual. ¿Puedes describirme la lesión?'
+      }
+    ]
+  },
+  {
+    id: '4',
+    text: 'Equipos y Mantenimiento',
+    icon: 'construct',
+    response: 'Te ayudo con temas de equipamiento. ¿Qué componente necesita atención?',
+    followUp: [
+      {
+        id: '4a',
+        text: 'Calibración de cámara',
+        icon: 'camera',
+        response: 'Para calibración óptima: 1) Estabiliza el gimbal, 2) Ejecuta calibración automática, 3) Verifica enfoque en punto infinito.'
+      },
+      {
+        id: '4b',
+        text: 'Mantenimiento preventivo',
+        icon: 'checkmark-circle',
+        response: 'Programa de mantenimiento: Revisión semanal de hélices, mensual de motores, y trimestral completa. ¿Cuándo fue tu última revisión?'
+      }
+    ]
+  },
+  {
+    id: '5',
+    text: 'Cambios de Horario',
+    icon: 'time',
+    response: 'Entiendo que necesitas modificar tu programación. ¿Qué ajustes requieres en tu cronograma de vuelo?',
+    followUp: [
+      {
+        id: '5a',
+        text: 'Reprogramar misión',
+        icon: 'calendar',
+        response: 'Revisando disponibilidad de ventanas de vuelo. ¿Qué fecha y hora prefieres? Consideraremos condiciones meteorológicas.'
+      },
+      {
+        id: '5b',
+        text: 'Extensión de tiempo',
+        icon: 'timer',
+        response: 'Evaluando extensión solicitada. ¿Cuánto tiempo adicional necesitas? Verificaré conflictos con otras operaciones.'
+      }
+    ]
+  },
+  {
+    id: '6',
+    text: 'Consulta General',
+    icon: 'help-circle',
+    response: 'Estoy aquí para ayudarte con cualquier consulta. ¿En qué puedo asistirte hoy?'
+  }
+];
+
+const adminProfile = {
+  name: 'Ing. Carlos Mendoza',
+  role: 'Administrador del Proyecto',
+  avatar: 'person-circle',
+  status: 'En línea'
+};
+
+export default function SupportChat() {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      text: '¡Hola! Soy el Ing. Carlos Mendoza, Administrador del Proyecto. Estoy aquí para ayudarte con cualquier consulta operativa, técnica o de emergencia. Utiliza las respuestas rápidas abajo o escribe tu pregunta directamente.',
+      senderId: 'admin',
+      timestamp: new Date(),
+      senderName: adminProfile.name,
+      type: 'system'
+    }
+  ]);
+  
   const [inputText, setInputText] = useState('');
-  const flatListRef = useRef<FlatList<Message>>(null); // Ref for FlatList
+  const [isTyping, setIsTyping] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(true);
+  const [activeQuickReplies, setActiveQuickReplies] = useState<QuickReply[]>(quickReplies);
+  
+  const flatListRef = useRef<FlatList>(null);
 
-  // Simulate loading initial messages or past conversation
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    setMessages([
-      {
-        id: '1',
-        text: 'Hola, ¿en qué puedo ayudarte?',
-        senderId: ADMIN_ID,
-        timestamp: new Date(Date.now() - 60000 * 5),
-        senderName: 'Soporte Admin',
-        avatarIcon: adminAvatar.icon,
-        avatarColor: adminAvatar.color,
-      },
-      {
-        id: '2',
-        text: 'Tengo un problema con el dron XP200.',
-        senderId: PILOT_ID,
-        timestamp: new Date(Date.now() - 60000 * 3),
-        senderName: 'Tú',
-        avatarIcon: pilotAvatar.icon,
-        avatarColor: pilotAvatar.color,
-      },
-    ]);
-  }, []);
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    if (flatListRef.current && messages.length > 0) { // Check messages.length
-      flatListRef.current.scrollToEnd({ animated: true });
+    if (flatListRef.current && messages.length > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
     }
   }, [messages]);
 
-  const handleSend = useCallback(() => {
-    if (inputText.trim().length === 0) {
-      return;
-    }
+  // Simulated admin response with typing indicator
+  const simulateAdminResponse = useCallback((responseText: string, delay: number = 2000) => {
+    setIsTyping(true);
+    setShowQuickReplies(false);
+    
+    setTimeout(() => {
+      setIsTyping(false);
+      const adminReply: Message = {
+        id: Date.now().toString(),
+        text: responseText,
+        senderId: 'admin',
+        timestamp: new Date(),
+        senderName: adminProfile.name,
+        type: 'text'
+      };
+      
+      setMessages(prevMessages => [...prevMessages, adminReply]);
+      setShowQuickReplies(true);
+      setActiveQuickReplies(quickReplies);
+    }, delay);
+  }, []);
+
+  const handleSendMessage = useCallback(() => {
+    if (inputText.trim().length === 0) return;
+
     const newMessage: Message = {
-      id: String(Date.now()),
+      id: Date.now().toString(),
       text: inputText.trim(),
-      senderId: PILOT_ID, // Assume pilot is sending
+      senderId: 'pilot',
       timestamp: new Date(),
-      senderName: 'Tú',
-      avatarIcon: pilotAvatar.icon,
-      avatarColor: pilotAvatar.color,
+      senderName: 'Piloto',
+      type: 'text'
     };
+
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setInputText('');
 
-    // Simulate admin auto-reply after a short delay
-    setTimeout(() => {
-      const adminReply: Message = {
-        id: String(Date.now() + 1),
-        text: 'Recibido. Nuestro equipo de soporte revisará tu consulta y te contactará en breve.',
-        senderId: ADMIN_ID,
-        timestamp: new Date(),
-        senderName: 'Soporte Admin',
-        avatarIcon: adminAvatar.icon,
-        avatarColor: adminAvatar.color,
-      };
-      setMessages(prevMessages => [...prevMessages, adminReply]);
-    }, 1500);
-  }, [inputText]);
+    // Simulate admin response for custom message
+    const responses = [
+      'Gracias por tu mensaje. Estoy revisando tu consulta y te responderé en breve.',
+      'Entiendo tu situación. Permíteme verificar la información y te proporciono una solución.',
+      'He recibido tu consulta. Coordinaré con el equipo técnico para darte la mejor respuesta.',
+      'Tu mensaje es importante para nosotros. Estoy trabajando en una respuesta personalizada.'
+    ];
+    
+    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    simulateAdminResponse(randomResponse, Math.random() * 2000 + 1000);
+  }, [inputText, simulateAdminResponse]);
 
-  const renderMessageItem = ({ item }: { item: Message }) => {
-    const isPilotMessage = item.senderId === PILOT_ID;
+  const handleQuickReply = useCallback((reply: QuickReply) => {
+    // Add user's quick reply as a message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: reply.text,
+      senderId: 'pilot',
+      timestamp: new Date(),
+      senderName: 'Piloto',
+      type: 'quick_reply'
+    };
+
+    setMessages(prevMessages => [...prevMessages, userMessage]);
+
+    // Show admin response
+    simulateAdminResponse(reply.response, 1500);
+
+    // Update quick replies if there are follow-ups
+    if (reply.followUp && reply.followUp.length > 0) {
+      setTimeout(() => {
+        setActiveQuickReplies(reply.followUp!);
+      }, 3000);
+    } else {
+      setTimeout(() => {
+        setActiveQuickReplies(quickReplies);
+      }, 3000);
+    }
+  }, [simulateAdminResponse]);
+
+  const renderMessage = ({ item }: { item: Message }) => {
+    const isUser = item.senderId === 'pilot';
+    const isSystem = item.type === 'system';
+
     return (
-      <View style={[styles.messageRow, isPilotMessage ? styles.pilotRow : styles.adminRow]}>
-        {!isPilotMessage && (
-          <View style={styles.avatarContainer}>
-            {item.avatarIcon &&
-              <Ionicons name={item.avatarIcon} size={32} color={item.avatarColor || '#cccccc'} />
-            }
+      <Animated.View 
+        entering={FadeInUp.delay(100)} 
+        style={[
+          styles.messageRow,
+          isUser ? styles.pilotRow : styles.adminRow
+        ]}
+      >
+        {!isUser && !isSystem && (
+          <View style={styles.avatar}>
+            <Ionicons name="person-circle" size={32} color="#4A90E2" />
           </View>
         )}
-        <View style={styles.messageContentOuterContainer}>
-          <Text style={[styles.senderName, isPilotMessage ? styles.pilotSenderName : styles.adminSenderName]}>
-            {item.senderName}
-          </Text>
-          <View style={[
-            styles.messageBubble,
-            isPilotMessage ? styles.pilotMessage : styles.adminMessage
+        
+        <View style={[
+          styles.messageBubble,
+          isUser ? styles.userBubble : styles.adminBubble,
+          isSystem && styles.systemBubble
+        ]}>
+          <Text style={[
+            styles.messageText,
+            isUser ? styles.userText : styles.adminText
           ]}>
-            <Text style={[
-              styles.messageText,
-              isPilotMessage && styles.pilotMessageText
-            ]}>
-              {item.text}
-            </Text>
-            <Text style={[
-              styles.messageTimestamp,
-              isPilotMessage ? styles.pilotMessageTimestamp : styles.adminMessageTimestamp
-            ]}>
-              {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-          </View>
+            {item.text}
+          </Text>
+          
+          <Text style={[
+            styles.messageTime,
+            isUser ? styles.userTime : styles.adminTime
+          ]}>
+            {item.timestamp.toLocaleTimeString('es-ES', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </Text>
         </View>
-        {isPilotMessage && (
-          <View style={styles.avatarContainer}>
-            {item.avatarIcon &&
-              <Ionicons name={item.avatarIcon} size={32} color={item.avatarColor || '#cccccc'} />
-            }
+
+        {isUser && (
+          <View style={styles.avatar}>
+            <Ionicons name="person" size={32} color="#34C759" />
           </View>
         )}
-      </View>
+      </Animated.View>
+    );
+  };
+
+  const renderTypingIndicator = () => {
+    if (!isTyping) return null;
+
+    return (
+      <Animated.View entering={FadeInUp} style={[styles.messageRow, styles.adminRow]}>
+        <View style={styles.avatar}>
+          <Ionicons name="person-circle" size={32} color="#4A90E2" />
+        </View>
+        
+        <View style={[styles.messageBubble, styles.adminBubble, styles.typingBubble]}>
+          <View style={styles.typingIndicator}>
+            <View style={[styles.typingDot, { animationDelay: 0 }]} />
+            <View style={[styles.typingDot, { animationDelay: 200 }]} />
+            <View style={[styles.typingDot, { animationDelay: 400 }]} />
+          </View>
+          <Text style={styles.typingText}>Admin escribiendo...</Text>
+        </View>
+      </Animated.View>
     );
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0} // Adjusted offset
-    >
-      <FlatList
-        ref={flatListRef} // Assign ref
-        data={messages}
-        renderItem={renderMessageItem}
-        keyExtractor={item => item.id}
-        style={styles.messagesList}
-        contentContainerStyle={{ paddingVertical: 15, paddingHorizontal: 10 }} // Added horizontal padding
-        // inverted prop removed to show messages from top to bottom
-      />
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder="Escribe un mensaje..."
-          placeholderTextColor="#9ca3af"
-          multiline // Allow multiline input
+    <View style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <StatusBar barStyle="light-content" backgroundColor="#4A90E2" />
+      
+      <LinearGradient
+        colors={['#4A90E2', '#357ABD']}
+        style={styles.chatHeader}
+      >
+        <Animated.View entering={FadeInDown} style={styles.adminInfo}>
+          <View style={styles.adminAvatar}>
+            <Ionicons name="person-circle" size={48} color="white" />
+          </View>
+          
+          <View style={styles.adminDetails}>
+            <Text style={styles.adminName}>{adminProfile.name}</Text>
+            <Text style={styles.adminRole}>{adminProfile.role}</Text>
+            
+            <View style={styles.statusContainer}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statusText}>{adminProfile.status}</Text>
+            </View>
+          </View>
+        </Animated.View>
+      </LinearGradient>
+
+      <KeyboardAvoidingView 
+        style={styles.chatContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id}
+          style={styles.messagesList}
+          contentContainerStyle={styles.messagesContent}
+          ListFooterComponent={renderTypingIndicator}
         />
-        <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
-          <Ionicons name="arrow-up-circle" size={30} color="#ffffff" />
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+
+        {showQuickReplies && (
+          <Animated.View entering={SlideInRight} style={styles.quickRepliesContainer}>
+            <Text style={styles.quickRepliesTitle}>Respuestas rápidas:</Text>
+            
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.quickRepliesScroll}
+            >
+              {activeQuickReplies.map((reply) => (
+                <TouchableOpacity
+                  key={reply.id}
+                  onPress={() => handleQuickReply(reply)}
+                  style={styles.quickReplyButton}
+                >
+                  <LinearGradient
+                    colors={['#5BA7F7', '#4A90E2']}
+                    style={styles.quickReplyGradient}
+                  >
+                    <Ionicons name={reply.icon} size={20} color="white" />
+                    <Text style={styles.quickReplyText}>{reply.text}</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        )}
+
+        <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.textInput}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Escribe tu consulta aquí..."
+              placeholderTextColor="#999"
+              multiline
+              maxLength={500}
+            />
+            
+            <TouchableOpacity
+              onPress={handleSendMessage}
+              style={[styles.sendButton, inputText.trim() && styles.sendButtonActive]}
+              disabled={!inputText.trim()}
+            >
+              <LinearGradient
+                colors={inputText.trim() ? ['#34C759', '#2DB653'] : ['#E0E0E0', '#CCCCCC']}
+                style={styles.sendButtonGradient}
+              >
+                <Ionicons 
+                  name="send" 
+                  size={20} 
+                  color={inputText.trim() ? 'white' : '#999'} 
+                />
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EBF4FF', // Lighter blue background
+    backgroundColor: '#F8F9FA',
+  },
+  chatHeader: {
+    paddingTop: StatusBar.currentHeight || 44,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+  },
+  adminInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  adminAvatar: {
+    marginRight: 12,
+  },
+  adminDetails: {
+    flex: 1,
+  },
+  adminName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 2,
+  },
+  adminRole: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 4,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#34C759',
+    marginRight: 6,
+  },
+  statusText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  chatContainer: {
+    flex: 1,
   },
   messagesList: {
     flex: 1,
   },
+  messagesContent: {
+    padding: 16,
+    paddingBottom: 0,
+  },
   messageRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end', // Align items to the bottom of the row (for avatar and bubble)
-    marginVertical: 8,
+    alignItems: 'flex-end',
+    marginVertical: 4,
   },
   pilotRow: {
     justifyContent: 'flex-end',
@@ -182,109 +504,155 @@ const styles = StyleSheet.create({
   adminRow: {
     justifyContent: 'flex-start',
   },
-  avatarContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
+    alignItems: 'center',
     marginHorizontal: 8,
-    // backgroundColor: '#D1D5DB', // Placeholder color if no icon
-  },
-  messageContentOuterContainer: {
-    maxWidth: '75%',
-    flexDirection: 'column', // Stack sender name and bubble vertically
-  },
-  senderName: {
-    fontSize: 12,
-    color: '#6B7280', // Medium gray for sender name
-    marginBottom: 2,
-  },
-  adminSenderName: {
-    alignSelf: 'flex-start',
-    marginLeft: 5, // Align with bubble padding
-  },
-  pilotSenderName: {
-    alignSelf: 'flex-end',
-    marginRight: 5, // Align with bubble padding
   },
   messageBubble: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 18, // Slightly more rounded
-  },
-  pilotMessage: {
-    backgroundColor: '#1D4ED8', // Pilot message color (Vibrant Blue)
-    borderBottomRightRadius: 4, // Tail effect
-    marginLeft: 'auto', // Push to right
-  },
-  adminMessage: {
-    backgroundColor: '#FFFFFF', // Admin message color (White)
-    borderBottomLeftRadius: 4, // Tail effect
-    marginRight: 'auto', // Push to left
-    borderColor: '#E5E7EB',
-    borderWidth: 1,
-    shadowColor: "#000",
+    maxWidth: width * 0.7,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 1,
-    elevation: 1,
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  userBubble: {
+    backgroundColor: '#4A90E2',
+    borderBottomRightRadius: 8,
+  },
+  adminBubble: {
+    backgroundColor: 'white',
+    borderBottomLeftRadius: 8,
+  },
+  systemBubble: {
+    backgroundColor: '#F0F8FF',
+    borderColor: '#4A90E2',
+    borderWidth: 1,
+    marginHorizontal: 20,
+    maxWidth: width * 0.85,
+  },
+  typingBubble: {
+    paddingVertical: 16,
   },
   messageText: {
     fontSize: 16,
-    lineHeight: 22, // Improved readability
+    lineHeight: 22,
   },
-  pilotMessageText: {
-    color: '#FFFFFF',
+  userText: {
+    color: 'white',
   },
-  adminMessageText: { // Explicitly define for admin if needed, otherwise inherits from messageText
-    color: '#1F2937',
+  adminText: {
+    color: '#333',
   },
-  messageTimestamp: {
-    fontSize: 10,
-    marginTop: 5,
+  messageTime: {
+    fontSize: 11,
+    marginTop: 4,
+    opacity: 0.7,
   },
-  pilotMessageTimestamp: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    alignSelf: 'flex-end',
+  userTime: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'right',
   },
-  adminMessageTimestamp: {
-    color: '#A0AEC0', // Lighter gray for admin timestamp
-    alignSelf: 'flex-end',
+  adminTime: {
+    color: '#666',
   },
-  inputContainer: {
+  typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  typingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#4A90E2',
+    marginHorizontal: 2,
+    opacity: 0.4,
+  },
+  typingText: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  quickRepliesContainer: {
+    paddingVertical: 16,
+    paddingLeft: 16,
+    backgroundColor: 'white',
     borderTopWidth: 1,
-    borderTopColor: '#D1D5DB', // Slightly darker border
-    backgroundColor: '#FFFFFF', // White background for input area
+    borderTopColor: '#E8E8E8',
+  },
+  quickRepliesTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4A90E2',
+    marginBottom: 12,
+    marginLeft: 4,
+  },
+  quickRepliesScroll: {
+    paddingRight: 16,
+  },
+  quickReplyButton: {
+    marginRight: 12,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  quickReplyGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  quickReplyText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  inputContainer: {
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   textInput: {
     flex: 1,
-    minHeight: 42, // Slightly taller
-    maxHeight: 120,
-    backgroundColor: '#F3F4F6', // Light gray input background
-    borderRadius: 21, // Fully rounded ends
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    marginRight: 10,
     fontSize: 16,
-    color: '#1F2937',
-    lineHeight: 20, // Adjust line height for multiline
+    color: '#333',
+    maxHeight: 100,
+    paddingVertical: 8,
   },
   sendButton: {
-    backgroundColor: '#1D4ED8', // Match pilot message bubble
-    borderRadius: 21, // Match text input
-    width: 42, // Square button
-    height: 42,
-    alignItems: 'center',
+    marginLeft: 12,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  sendButtonActive: {
+    transform: [{ scale: 1.05 }],
+  },
+  sendButtonGradient: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    elevation: 3,
+    alignItems: 'center',
   },
 });
