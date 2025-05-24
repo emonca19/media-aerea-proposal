@@ -364,12 +364,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
     marginBottom: 16,
+    // Removed shadow and elevation for flat design
   },
   avatarSection: {
     flexDirection: 'row',
@@ -441,11 +437,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    // Removed shadow and elevation for flat design
   },
   cardTitle: {
     fontSize: 18,
@@ -586,11 +578,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#fecaca',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    // Removed shadow and elevation for flat design
   },
   logoutText: {
     fontSize: 16,
@@ -656,11 +644,7 @@ const styles = StyleSheet.create({
   },
   chartBarToday: {
     backgroundColor: '#1E3A8A',
-    shadowColor: '#1E3A8A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    // Removed shadow and elevation for flat design
   },
   chartDayLabel: {
     fontSize: 12,

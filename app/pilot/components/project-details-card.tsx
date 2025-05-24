@@ -205,40 +205,6 @@ const ProjectDetailsCard: React.FC<ProjectDetailsCardProps> = ({
           </View>
         )}
       </View>
-      
-      {/* Card de Información del Proyecto SIEMPRE visible */}
-      <View style={[cardStyles.card_container, cardStyles.projectCardContainer]}>
-        <View style={cardStyles.projectCardHeader}>
-          <Ionicons name="information-circle-outline" size={22} color="#4b5563" />
-          <Text style={cardStyles.card_title_large}>Información del Proyecto</Text>
-        </View>
-        <View style={cardStyles.projectBrief_container}>
-          <Text style={cardStyles.projectBrief_name}>{project.name || 'Proyecto sin Nombre'}</Text>
-          <InfoRow iconName="business-outline" label="Cliente:" value={project.client} />
-          <InfoRow iconName="map-outline" label="Parque:" value={project.location?.split(',')[0]} />
-          <InfoRow iconName="calendar-outline" label="Fechas:" value={project.startDate && project.endDate ? `${project.startDate.substring(0,10)} - ${project.endDate.substring(0,10)}` : undefined} />
-          <InfoRow iconName="airplane-outline" label="Drone:" value={project.drone} />
-        </View>
-        
-        {/* Botones de acciones del proyecto */}
-        <View style={cardStyles.actionButtons}>
-          <TouchableOpacity 
-            style={cardStyles.actionButton} 
-            onPress={() => onNavigate('/pilot/site-map')}
-          >
-            <Ionicons name="map-outline" size={24} color="#10b981" />
-            <Text style={cardStyles.actionButtonText}>Mapa de Sitio</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={cardStyles.actionButton}
-            onPress={() => onNavigate('/pilot/turbines')}
-          >
-            <Ionicons name="flash-outline" size={24} color="#0ea5e9" />
-            <Text style={cardStyles.actionButtonText}>Turbinas</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
     </View>
   );
 };
@@ -249,11 +215,6 @@ const cardStyles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },  projectCardContainer: {
     marginBottom: 16,
     backgroundColor: '#f9fafb',
@@ -418,11 +379,6 @@ const cardStyles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   actionButtonText: {
     marginLeft: 8,

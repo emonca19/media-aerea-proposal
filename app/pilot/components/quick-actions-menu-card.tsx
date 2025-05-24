@@ -110,11 +110,6 @@ const styles = StyleSheet.create({
     width: '100%' // Asegurar que el contenedor ocupe todo el ancho disponible
   },  mainActionButton: {
     borderRadius: 12,
-    elevation: 3,
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
     overflow: 'hidden',
     width: '100%' // Asegurar que ocupe todo el ancho
   },
@@ -151,11 +146,6 @@ const styles = StyleSheet.create({
   },  secondaryActionButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    elevation: 3,
-    shadowColor: '#f97316',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
     width: '100%' // Asegurar que ocupe todo el ancho
   },
   secondaryButtonContent: {

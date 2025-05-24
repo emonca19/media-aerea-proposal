@@ -112,3 +112,5 @@ const AlertsDisplayCard: React.FC<AlertsDisplayCardProps> = ({ alerts, isVisible
 };
 
 export default AlertsDisplayCard;
+
+// All card containers use styles.card_container, which is now flat (no shadow/elevation)

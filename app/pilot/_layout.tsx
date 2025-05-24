@@ -131,6 +131,7 @@ export default function PilotLayout() {
           <Tabs.Screen name="turbines" options={{ href: null }} />
           <Tabs.Screen name="support-chat" options={{ href: null }} />
           <Tabs.Screen name="components" options={{ href: null }} />
+          <Tabs.Screen name="project-details" options={{ href: null }} />
           
           <Tabs.Screen
             name="profile"

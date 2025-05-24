@@ -7,11 +7,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    // Removed shadow and elevation for flat design
   },
   card_title_large: {
     fontSize: 20,
@@ -263,21 +259,14 @@ form_switchContainer: {
     backgroundColor: 'rgba(0, 0, 0, 0.6)', // Standard semi-transparent background
   },
   modal_view: {
-    margin: 20, // Add margin around the modal
+    margin: 20,
     backgroundColor: '#ffffff',
-    borderRadius: 12, // Rounded corners on all sides, matching activity-log cards
-    padding: 20, // Consistent padding
+    borderRadius: 12,
+    padding: 20,
     alignItems: 'stretch',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2, // Standard downward shadow
-    },
-    shadowOpacity: 0.25, // Standard shadow opacity
-    shadowRadius: 4,
-    elevation: 5, // Standard elevation
-    width: '90%', // Modal width
-    maxHeight: '85%', // Modal max height
+    // Removed shadow and elevation for flat design
+    width: '90%',
+    maxHeight: '85%',
   },
   modal_headerContainer: {
     flexDirection: 'row',
@@ -303,11 +292,7 @@ form_switchContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 15,
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 3,
+    // Removed shadow and elevation for flat design
   },
   modal_buttonText: {
     color: '#ffffff', // Ensure text is white as per activity-log actionButtonText
@@ -369,11 +354,7 @@ form_switchContainer: {
     padding: 20,
     borderRadius: 15,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 6,
+    // Removed shadow and elevation for flat design
   },
   headerCard_topRow: {
     flexDirection: 'row',
@@ -447,7 +428,8 @@ form_switchContainer: {
     borderWidth: 1,
     borderColor: '#e5e7eb',
     flexGrow: 1,
-    flexBasis: '45%', // For the standard buttons, allowing 2 per row with a small gap
+    flexBasis: '45%',
+    // Removed shadow and elevation for flat design
   },
   quickAction_button_main: { // Applied to the main, full-width button
     flexBasis: '94%', // Almost full width to allow for margins
