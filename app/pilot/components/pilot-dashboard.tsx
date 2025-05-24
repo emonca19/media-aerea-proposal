@@ -130,14 +130,7 @@ function WelcomeHeader({
       day: 'numeric' 
     });
   };
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('es-MX', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
+  // Removed formatTime function since we're not showing time anymore
 
   const getWeatherIcon = (condition: string) => {
     const conditionLower = condition?.toLowerCase() || '';
@@ -166,11 +159,9 @@ function WelcomeHeader({
             <Text style={welcomeStyles.role}>Piloto de Drones</Text>
           </View>
         </View>
-        
-        <View style={welcomeStyles.rightSection}>
+          <View style={welcomeStyles.rightSection}>
           <View style={welcomeStyles.dateTimeSection}>
             <Text style={welcomeStyles.dateText}>{formatDate(currentDateTime)}</Text>
-            <Text style={welcomeStyles.timeText}>{formatTime(currentDateTime)}</Text>
           </View>          {!weatherLoading && weather && (
             <View style={welcomeStyles.weatherSection}>
               <Ionicons 
@@ -194,7 +185,7 @@ const projectSummaryStyles = StyleSheet.create({
     width: "100%",
     maxWidth: 420,
     alignSelf: "center",
-    marginTop: -7,
+    marginTop: -1,
     marginBottom: 10,
     position: "relative",
   },
@@ -216,11 +207,10 @@ const projectSummaryStyles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-  },
-  card: {
+  },  card: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
     marginHorizontal: 0,
     // Enhanced shadow for better visual impact
     shadowColor: "#1f2937",
@@ -230,11 +220,10 @@ const projectSummaryStyles = StyleSheet.create({
     elevation: 4,
     borderWidth: 1,
     borderColor: "#f3f4f6",
-  },
-  headerRow: {
+  },  headerRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 16,
+    marginBottom: 12,
   },
   iconCircle: {
     width: 48,
@@ -637,20 +626,11 @@ const PilotDashboard = () => {
                   actualEnd:
                     newStatus === "COMPLETADA"
                       ? new Date().toISOString()
-                      : act.actualEnd,
-                  time:
+                      : act.actualEnd,                  time:
                     newStatus === "EN_PROGRESO"
-                      ? `Hoy, ${new Date().toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })} - En curso`
+                      ? "Hoy - En curso"
                       : newStatus === "COMPLETADA"
-                      ? `${
-                          (act.time || "").split(" - En curso")[0]
-                        } - ${new Date().toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}`
+                      ? "Hoy - Completada"
                       : act.time,
                 }
               : act
@@ -699,15 +679,11 @@ const PilotDashboard = () => {
     () => setIsProjectDetailsVisible((prev) => !prev),
     []
   ); // Nueva función para alternar visibilidad
-
   const handleCreateQuickActivity = useCallback(
     (activityData: any) => {
       const isForNow = activityData.isForNow;
       const now = new Date();
-      const timeString = `Hoy, ${now.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`;
+      const timeString = "Hoy"; // Simplified time string without specific time
       const newActivity: Activity = {
         id: `act-${Date.now()}`,
         type: activityData.type,
@@ -742,13 +718,7 @@ const PilotDashboard = () => {
               ? {
                   ...act,
                   status: "COMPLETADA",
-                  actualEnd: now.toISOString(),
-                  time: `${
-                    (act.time || "").split(" - En curso")[0]
-                  } - ${now.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}`,
+                  actualEnd: now.toISOString(),                  time: `Hoy - Completada`,
                 }
               : act
           );
@@ -1065,42 +1035,8 @@ const handleFinishActivity = useCallback(() => {
               statusBg: "#ede9fe",
             });
           });
-          
-          // Add recently completed activities (max 2, only if we have space)
-          if (timelineActivities.length < 6) {
-            const recentActivities = pastActivities.slice(0, Math.min(2, 6 - timelineActivities.length));
-            recentActivities.forEach((activity, index) => {
-              const activityType = activityTypes.find(t => t.type === activity.type);
-              
-              let iconName: any = "checkmark-circle-outline";
-              if (activityType?.icon && activityType.icon !== 'briefcase') {
-                iconName = activityType.icon;
-              } else {
-                // Enhanced completed activity icons
-                const activityTypeLower = activity.type.toLowerCase();
-                if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección')) {
-                  iconName = "checkmark-done-outline";
-                } else if (activityTypeLower.includes('maintenance') || activityTypeLower.includes('mantenimiento')) {
-                  iconName = "checkmark-circle-outline";
-                } else {
-                  iconName = "checkmark-outline";
-                }
-              }
-              
-              timelineActivities.push({
-                id: activity.id,
-                icon: <Ionicons name={iconName} size={28} color="#10b981" />,
-                title: activity.name,
-                time: activity.time || "Completada",
-                duration: activity.actualEnd && activity.actualStart ? 
-                  `${Math.round((new Date(activity.actualEnd).getTime() - new Date(activity.actualStart).getTime()) / 60000)} min` : 
-                  undefined,
-                statusColor: "#10b981",
-                statusLabel: "Completada",
-                statusBg: "#dcfce7",
-              });
-            });
-          }
+            // Add recently completed activities (max 2, only if we have space) - REMOVED per user request
+          // Completed activities should only be viewable in the activity-log
           
           // If no activities, show placeholder
           if (timelineActivities.length === 0) {
@@ -1113,11 +1049,10 @@ const handleFinishActivity = useCallback(() => {
               statusLabel: "Vacío",
               statusBg: "#f3f4f6",
             });
-          }
-
-          return (
+          }          return (
             <ActivityTimeline 
               activities={timelineActivities}
+              onViewHistory={() => handleNavigate("/pilot/activity-log")}
             />
           );
         }
@@ -1289,15 +1224,14 @@ const handleFinishActivity = useCallback(() => {
 };
 
 // Welcome Header Styles - Subtle design inspired by profile
-const welcomeStyles = StyleSheet.create({
-  container: {
+const welcomeStyles = StyleSheet.create({  container: {
     backgroundColor: '#fff',
     width: "100%",
     maxWidth: 420,
     alignSelf: "center",
     marginHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 16,
+    marginTop: 12,
+    marginBottom: 10,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -1306,12 +1240,12 @@ const welcomeStyles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: '#f3f4f6',
-  },  header: {
+  },header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
-    minHeight: 100,
+    padding: 12,
+    minHeight: 70,
   },
   userSection: {
     flexDirection: 'row',
@@ -1323,11 +1257,10 @@ const welcomeStyles = StyleSheet.create({
     position: 'relative',
     marginRight: 16,
     flexShrink: 0,
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  },  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     borderWidth: 2,
     borderColor: '#e5e7eb',
   },
@@ -1335,9 +1268,9 @@ const welcomeStyles = StyleSheet.create({
     position: 'absolute',
     bottom: 2,
     right: 2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: '#22c55e',
     borderWidth: 2,
     borderColor: 'white',
@@ -1345,16 +1278,15 @@ const welcomeStyles = StyleSheet.create({
   userInfo: {
     flex: 1,
     minWidth: 0, // Permite que el texto se corte si es necesario
-  },
-  name: {
-    fontSize: 22,
+  },  name: {
+    fontSize: 18,
     color: '#111827',
     fontWeight: '800',
     marginBottom: 2,
-    lineHeight: 26,
+    lineHeight: 22,
   },
   role: {
-    fontSize: 15,
+    fontSize: 13,
     color: '#6b7280',
     fontWeight: '600',
     lineHeight: 18,
@@ -1406,7 +1338,7 @@ const welcomeStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   screenContainer: { flex: 1, backgroundColor: "#f0f2f5" },
   scrollableContent_contentContainer_main: {
-    paddingBottom: 20,
+    paddingBottom: 0,
     paddingHorizontal: 16,
   },
   highlightedButton: {

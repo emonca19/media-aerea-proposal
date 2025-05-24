@@ -143,16 +143,25 @@ export default function PreflightChecklistScreen() {
       submitChecklist();
     }
   };
-
   const submitChecklist = () => {
+    const successMessage = turbine ? 
+      `¡Checklist completado para ${turbine.name}! Ahora puedes iniciar el trabajo en la turbina.` : 
+      '¡Todo listo para el vuelo!';
+      
     Alert.alert(
       'Checklist Completado',
-      '¡Todo listo para el vuelo!',
+      successMessage,
       [
         { 
           text: 'Continuar', 
           onPress: () => {
-            router.push(turbine ? '/pilot/activity-log' : '/pilot/dashboard');
+            if (turbine) {
+              // Si hay una turbina específica, ir al activity log con un mensaje
+              router.push('/pilot/activity-log');
+              // Opcional: Aquí podrías pasar parámetros para pre-seleccionar la turbina
+            } else {
+              router.push('/pilot/dashboard');
+            }
             // Reset form states
             setPreflightChecklist(initialPreflightChecklist);
             setGeneralNotes('');
