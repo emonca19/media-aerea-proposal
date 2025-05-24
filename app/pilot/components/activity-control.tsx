@@ -4,12 +4,6 @@ import React, { useState } from "react";
 import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { activityTypes } from './quick-register-activity-form';
 
-interface Pause {
-  reason: string;
-  start: string;
-  end?: string;
-}
-
 interface ActivityControlProps {
   ongoingActivity: any | null;
   onStart: () => void;
@@ -24,20 +18,8 @@ const PAUSE_REASONS = [
   { label: "Esperando permiso", icon: "clock-outline", color: "#f59e0b" },
   { label: "Clima", icon: "weather-partly-cloudy", color: "#38bdf8" },
   { label: "Descanso", icon: "coffee-outline", color: "#a78bfa" },
-  { label: "Revisión técnica", icon: "tools", color: "#f87171" },
-  { label: "Otro", icon: "dots-horizontal", color: "#64748b" },
+  { label: "Revisión técnica", icon: "tools", color: "#f87171" },  { label: "Otro", icon: "dots-horizontal", color: "#64748b" },
 ];
-
-function getActivityIcon(type: string) {
-  if (type === 'movilizacion' || type === 'movilización') {
-    return <MaterialCommunityIcons name="car" size={40} color="#111" style={{ marginRight: 14 }} />;
-  }
-  const found = activityTypes.find((t) => t.type === type);
-  if (found && found.icon) {
-    return <MaterialCommunityIcons name={found.icon as any} size={40} color="#111" style={{ marginRight: 14 }} />;
-  }
-  return <Ionicons name="briefcase-outline" size={40} color="#111" style={{ marginRight: 14 }} />;
-}
 
 export default function ActivityControl({
   ongoingActivity,
@@ -51,66 +33,65 @@ export default function ActivityControl({
   const [pauseModalVisible, setPauseModalVisible] = useState(false);
   const [pauseReason, setPauseReason] = useState<string>("");
   const [pauseNotes, setPauseNotes] = useState("");
-  const [now, setNow] = useState(Date.now());
   const [pauseStart, setPauseStart] = useState<number | null>(null);
   const [accumulated, setAccumulated] = useState(0); // tiempo acumulado antes de pausar
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
-  // Actualiza el tiempo real solo cuando no está en pausa
+  const hasActivity = ongoingActivity && ongoingActivity.actualStart;
+
+  // Update current time continuously
   React.useEffect(() => {
-    if (!ongoingActivity || !ongoingActivity.actualStart) return;
-    let interval: any;
-    if (!isPaused) {
-      interval = setInterval(() => setNow(Date.now()), 1000);
-    }
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
     return () => clearInterval(interval);
-  }, [ongoingActivity && ongoingActivity.actualStart, isPaused]);
-
-  // Actualiza el tiempo de pausa en tiempo real cuando está en pausa
-  const [pauseNow, setPauseNow] = useState(Date.now());
-  React.useEffect(() => {
-    if (!isPaused) return;
-    const interval = setInterval(() => setPauseNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, [isPaused]);
-
+  }, []);
   // Maneja el inicio y fin de la pausa
   React.useEffect(() => {
-    if (!ongoingActivity || !ongoingActivity.actualStart) return;
-    if (isPaused) {
-      setPauseStart(Date.now());
+    if (!hasActivity) return;
+    if (isPaused && !pauseStart) {
+      const now = Date.now();
+      setPauseStart(now);
       // Acumula el tiempo trabajado hasta el momento de pausar
-      setAccumulated((prev) => {
-        const start = new Date(ongoingActivity.actualStart).getTime();
-        return prev + (Date.now() - start - prev);
-      });
-    } else if (pauseStart) {
-      // Al reanudar, actualiza actualStart para que el contador siga desde donde se quedó
-      if (ongoingActivity.actualStart) {
-        const newStart = Date.now() - accumulated;
-        ongoingActivity.actualStart = new Date(newStart).toISOString();
-      }
+      const start = new Date(ongoingActivity.actualStart).getTime();
+      const totalPauseTime = ongoingActivity?.pauseHistory?.reduce((total: number, pause: any) => {
+        if (pause.end) {
+          return total + (new Date(pause.end).getTime() - new Date(pause.start).getTime());
+        }
+        return total;
+      }, 0) || 0;
+      setAccumulated(now - start - totalPauseTime);
+    } else if (!isPaused && pauseStart) {
+      // Al reanudar, resetear pauseStart
       setPauseStart(null);
     }
-    // eslint-disable-next-line
-  }, [isPaused]);
+  }, [isPaused, hasActivity, ongoingActivity, pauseStart]);
+
+  // Calculate total pause time from all pauses
+  function getTotalPauseTime() {
+    if (!ongoingActivity?.pauseHistory) return 0;
+    return ongoingActivity.pauseHistory.reduce((total: number, pause: any) => {
+      if (pause.end) {
+        return total + (new Date(pause.end).getTime() - new Date(pause.start).getTime());
+      }
+      return total;
+    }, 0);
+  }
 
   // Calcula el tiempo mostrado
   function getElapsed() {
     if (!ongoingActivity?.actualStart) return 0;
+    const start = new Date(ongoingActivity.actualStart).getTime();
+    const totalPauseTime = getTotalPauseTime();
+    
     if (isPaused && pauseStart) {
+      // Durante la pausa, mostrar el tiempo acumulado hasta el momento de pausar
       return accumulated;
     }
-    const start = new Date(ongoingActivity.actualStart).getTime();
-    return accumulated + (Date.now() - start - accumulated);
+    
+    // Tiempo total transcurrido menos las pausas
+    return currentTime - start - totalPauseTime;
   }
-
-  // Obtener fecha y hora actual en formato legible
-  const [currentDate, setCurrentDate] = useState(new Date());
-  React.useEffect(() => {
-    const interval = setInterval(() => setCurrentDate(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Formato de fecha y hora
   function formatDateTime(date: Date) {
     return date.toLocaleDateString('es-MX', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) +
@@ -120,67 +101,8 @@ export default function ActivityControl({
   // Compacto y visual, con icono, nombre, tiempo y botones grandes
   return (
     <View style={styles.container}>
-      {/* Quitar fecha/hora actual, solo mostrar contenido principal */}
-      {!ongoingActivity ? (
-        <View style={{ position: 'relative', width: '100%' }}>
-          <LinearGradient
-            colors={["#4F6DF5", "#6A82FB"]}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={{
-              borderRadius: 16,
-              paddingVertical: 22,
-              paddingHorizontal: 36,
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginVertical: 10,
-              alignSelf: 'center',
-              shadowColor: '#4F6DF5',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.18,
-              shadowRadius: 12,
-              elevation: 6,
-              width: '100%',
-              flexDirection: 'row',
-              gap: 18,
-            }}
-          >
-            <View style={{
-              backgroundColor: '#e0e7ff',
-              borderRadius: 999,
-              padding: 10,
-              marginRight: 10,
-              shadowColor: '#4F6DF5',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.12,
-              shadowRadius: 6,
-              elevation: 2,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <Ionicons name="play" size={22} color="#4F6DF5" />
-            </View>
-            <Text style={{
-              color: '#fff',
-              fontSize: 22,
-              fontWeight: 'bold',
-              textAlign: 'center',
-              letterSpacing: 0.5,
-              flex: 1,
-            }}>
-              Iniciar jornada
-            </Text>
-          </LinearGradient>
-          <TouchableOpacity
-            style={{
-              position: 'absolute',
-              left: 0, right: 0, top: 0, bottom: 0,
-              borderRadius: 16,
-            }}
-            onPress={onStart}
-            activeOpacity={0.85}
-          />
-        </View>
-      ) : (
+      {/* Removed "iniciar jornada" button as requested */}
+      {ongoingActivity && (
         <>
           <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', width: '100%', marginBottom: 10 }}>
             <Text style={{ fontSize: 14, color: '#8A94A6', fontWeight: '400', marginBottom: 10, textAlign: 'center' }}>Actividad en curso</Text>
@@ -199,13 +121,12 @@ export default function ActivityControl({
             })()}
           </View>
           <Text style={styles.cardTitle} numberOfLines={2}>
-            {ongoingActivity.name || 'Actividad'}
+            {ongoingActivity.description || ongoingActivity.type || 'Actividad en curso'}
           </Text>
           {/* Nueva etiqueta y contador principal de actividad */}
           <Text style={{ color: '#64748b', fontSize: 15, fontWeight: '500', textAlign: 'center', marginBottom: 0 }}>
             Tiempo transcurrido
-          </Text>
-          <Text
+          </Text>          <Text
             style={{
               fontSize: 48,
               color: '#111',
@@ -219,56 +140,55 @@ export default function ActivityControl({
           </Text>
           {/* Mostrar fecha/hora de inicio de la actividad si existe */}
           {ongoingActivity.actualStart && (
-            <Text style={{ color: '#8A94A6', fontSize: 13, textAlign: 'center', marginBottom: 2 }}>
+            <Text style={{ color: '#8A94A6', fontSize: 13, textAlign: 'center', marginBottom: 8 }}>
               Inicio: {formatDateTime(new Date(ongoingActivity.actualStart))}
             </Text>
-          )}
-          {/* Si está en pausa, mostrar tiempo de pausa debajo */}
-          {isPaused && (
-            <View style={{ alignItems: 'center', marginTop: 2 }}>
+          )}          {/* Si está en pausa, mostrar información de pausa debajo con texto más pequeño */}
+          {isPaused && pauseStart && (
+            <View style={{ alignItems: 'center', marginTop: 4, marginBottom: 8 }}>
               <Text style={{
+                color: '#f59e0b',
+                fontWeight: '500',
+                fontSize: 12,
+                textAlign: 'center',
+                marginBottom: 2,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}>En pausa</Text>
+              <Text style={{
+                fontSize: 16,
                 color: '#f59e0b',
                 fontWeight: '600',
-                fontSize: 16,
                 textAlign: 'center',
-                marginBottom: 0,
-              }}>Pausa</Text>
-              <Text style={{
-                fontSize: 28,
-                color: '#f59e0b',
-                fontWeight: 'bold',
-                textAlign: 'center',
-                letterSpacing: 1,
-                marginTop: 0,
+                letterSpacing: 0.5,
               }}>
-                {pauseStart ? formatDurationMs(pauseNow - pauseStart) : '00:00:00'}
+                {formatDurationMs(currentTime - pauseStart)}
               </Text>
+              {currentPauseReason && (
+                <Text style={{
+                  fontSize: 11,
+                  color: '#9ca3af',
+                  textAlign: 'center',
+                  marginTop: 2,
+                  fontStyle: 'italic',
+                }}>
+                  Motivo: {currentPauseReason}
+                </Text>
+              )}
             </View>
-          )}
+          )}          {/* Botón principal: Terminar o Reanudar */}
           <View style={styles.cardActionsRow}>
             {!isPaused && (
-              <>
-                <LinearGradient
-                  colors={["#ff5858", "#f857a6"]}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                  style={styles.gradientButton}
-                >
-                  <TouchableOpacity style={styles.gradientBtnContent} onPress={onFinish} activeOpacity={0.9}>
-                    <Ionicons name="stop" size={20} color="#fff" style={{ marginRight: 8 }} />
-                    <Text style={styles.buttonText}>Terminar</Text>
-                  </TouchableOpacity>
-                </LinearGradient>
-                <LinearGradient
-                  colors={["#f7971e", "#ffd200"]}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                  style={styles.gradientButton}
-                >
-                  <TouchableOpacity style={styles.gradientBtnContent} onPress={() => setPauseModalVisible(true)} activeOpacity={0.9}>
-                    <Ionicons name="pause" size={20} color="#fff" style={{ marginRight: 8 }} />
-                    <Text style={styles.buttonText}>Pausar</Text>
-                  </TouchableOpacity>
-                </LinearGradient>
-              </>
+              <LinearGradient
+                colors={["#ff5858", "#f857a6"]}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                style={styles.gradientButton}
+              >
+                <TouchableOpacity style={styles.gradientBtnContent} onPress={onFinish} activeOpacity={0.9}>
+                  <Ionicons name="stop" size={20} color="#fff" style={{ marginRight: 8 }} />
+                  <Text style={styles.buttonText}>Terminar</Text>
+                </TouchableOpacity>
+              </LinearGradient>
             )}
             {isPaused && (
               <LinearGradient
@@ -283,6 +203,18 @@ export default function ActivityControl({
               </LinearGradient>
             )}
           </View>
+          
+          {/* Botón de pausa pequeño debajo */}
+          {!isPaused && (
+            <TouchableOpacity 
+              style={styles.smallPauseButton} 
+              onPress={() => setPauseModalVisible(true)} 
+              activeOpacity={0.7}
+            >
+              <Ionicons name="pause" size={12} color="#9ca3af" style={{ marginRight: 4 }} />
+              <Text style={styles.smallPauseText}>Pausar actividad</Text>
+            </TouchableOpacity>
+          )}
         </>
       )}
       <Modal visible={pauseModalVisible} transparent animationType="slide">
@@ -1103,8 +1035,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18,
     shadowRadius: 12,
     elevation: 6,
-  },
-  timerShadowWrapPaused: {
+  },  timerShadowWrapPaused: {
     backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 50,
     paddingVertical: 10,
@@ -1116,5 +1047,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18,
     shadowRadius: 12,
     elevation: 6,
+  },
+  smallPauseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 12,
+    borderRadius: 6,
+    backgroundColor: 'transparent',
+    alignSelf: 'center',
+  },
+  smallPauseText: {
+    fontSize: 13,
+    color: '#9ca3af',
+    fontWeight: '500',
   },
 });

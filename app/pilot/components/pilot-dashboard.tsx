@@ -27,7 +27,14 @@ import QuickActionsMenuCard from "./quick-actions-menu-card"; // Ajusta la ruta 
 import QuickRegisterActivityForm, {
   activityTypes,
   mockTurbines,
-} from "./quick-register-activity-form"; // Importamos el nuevo componente con sus datos
+} from "./quick-register-activity-form";
+
+import {
+  ChecklistItemData,
+  incidentTypes as importedIncidentTypes,
+  IncidentData,
+  initialCurrentProject as projectDataFromImport
+} from "./pilot-dashboard-data"; // Importamos el nuevo componente con sus datos
 
 // Enhanced ProjectSummaryCard component with more information and visual improvements
 function ProjectSummaryCard({
@@ -40,23 +47,9 @@ function ProjectSummaryCard({
   name?: string;
   client?: string;
   onPress?: () => void;
-}) {
-  // Use project data or fallback to individual props
+}) {  // Use project data or fallback to individual props
   const projectName = project?.name || name || "Proyecto sin Nombre";
   const projectClient = project?.client || client || "Cliente No Especificado";
-  
-  // Calculate progress percentage
-  const progress = project?.progress || 0;
-  
-  // Format dates
-  const startDate = project?.startDate ? new Date(project.startDate).toLocaleDateString('es-ES', { 
-    day: '2-digit', 
-    month: '2-digit' 
-  }) : '';
-  const endDate = project?.endDate ? new Date(project.endDate).toLocaleDateString('es-ES', { 
-    day: '2-digit', 
-    month: '2-digit' 
-  }) : '';
   
   // Get status color and text
   const getStatusColor = (status: string) => {
@@ -76,20 +69,19 @@ function ProjectSummaryCard({
       default: return 'Estado desconocido';
     }
   };
-
-  return (
-    <TouchableOpacity
+  return (    <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
       style={{ width: "100%" }}
     >
-      <View style={projectSummaryStyles.cardWrapper}>
+      <View style={projectSummaryStyles.cardWrapper}>        
         <View style={projectSummaryStyles.card}>
           {/* Header with icon and basic info */}
           <View style={projectSummaryStyles.headerRow}>
             <View style={projectSummaryStyles.iconCircle}>
               <Ionicons name="business-outline" size={28} color="#3b82f6" />
-            </View>            <View style={projectSummaryStyles.headerInfo}>
+            </View>            
+            <View style={projectSummaryStyles.headerInfo}>
               <Text style={projectSummaryStyles.title}>{projectName}</Text>
               <Text style={projectSummaryStyles.subtitle}>{projectClient}</Text>
               {project?.status && (
@@ -98,65 +90,8 @@ function ProjectSummaryCard({
                   <Text style={[projectSummaryStyles.statusText, { color: getStatusColor(project.status) }]}>
                     {getStatusText(project.status)}
                   </Text>
-                </View>
-              )}
+                </View>              )}
             </View>
-          </View>
-
-          {/* Project details section */}
-          <View style={projectSummaryStyles.detailsSection}>
-            {/* Location and dates */}
-            <View style={projectSummaryStyles.infoRow}>
-              <Ionicons name="location-outline" size={16} color="#6b7280" />
-              <Text style={projectSummaryStyles.infoText}>
-                {project?.location || 'Ubicación no especificada'}
-              </Text>
-            </View>
-            
-            {startDate && endDate && (
-              <View style={projectSummaryStyles.infoRow}>
-                <Ionicons name="calendar-outline" size={16} color="#6b7280" />
-                <Text style={projectSummaryStyles.infoText}>
-                  {startDate} - {endDate}
-                </Text>
-              </View>
-            )}
-
-            {project?.drone && (
-              <View style={projectSummaryStyles.infoRow}>
-                <Ionicons name="airplane-outline" size={16} color="#6b7280" />
-                <Text style={projectSummaryStyles.infoText}>
-                  {project.drone}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Progress section */}
-          {progress > 0 && (
-            <View style={projectSummaryStyles.progressSection}>
-              <View style={projectSummaryStyles.progressHeader}>
-                <Text style={projectSummaryStyles.progressLabel}>Progreso del proyecto</Text>
-                <Text style={projectSummaryStyles.progressPercentage}>{progress}%</Text>
-              </View>
-              <View style={projectSummaryStyles.progressBar}>
-                <View 
-                  style={[
-                    projectSummaryStyles.progressFill, 
-                    { 
-                      width: `${progress}%`,
-                      backgroundColor: getStatusColor(project?.status || 'EN_PROGRESO')
-                    }
-                  ]} 
-                />
-              </View>
-            </View>
-          )}
-
-          {/* Footer with action indicator */}
-          <View style={projectSummaryStyles.footer}>
-            <Text style={projectSummaryStyles.actionText}>Ver detalles completos</Text>
-            <Ionicons name="chevron-forward-outline" size={20} color="#9ca3af" />
           </View>
         </View>
       </View>
@@ -172,6 +107,25 @@ const projectSummaryStyles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 10,
     position: "relative",
+  },
+  toggleTab: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    zIndex: 10,
+    backgroundColor: "#f8fafc",
+    borderRadius: 12,
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   card: {
     backgroundColor: "#fff",
@@ -284,32 +238,11 @@ const projectSummaryStyles = StyleSheet.create({
     backgroundColor: "#e5e7eb",
     borderRadius: 4,
     overflow: "hidden",
-  },
-  progressFill: {
+  },  progressFill: {
     height: "100%",
     borderRadius: 4,
   },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#f3f4f6",
-  },
-  actionText: {
-    fontSize: 14,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
-});
-
-import {
-  ChecklistItemData,
-  incidentTypes as importedIncidentTypes,
-  IncidentData,
-  initialCurrentProject as projectDataFromImport
-} from "./pilot-dashboard-data"; // Asegúrate que la ruta sea correcta desde aquí
+});// Asegúrate que la ruta sea correcta desde aquí
 
 interface Pause {
   reason: string;
@@ -901,8 +834,8 @@ const handleFinishActivity = useCallback(() => {
               project={currentProject}
               onPress={() => router.push("/pilot/project-details")}
             />
-          );case "ACTIVITY_TIMELINE": {
-          // Create dynamic timeline based on actual activity data
+          );        case "ACTIVITY_TIMELINE": {
+          // Create dynamic timeline based on actual activity data with improved spacing
           const timelineActivities: TimelineActivity[] = [];
           
           // Add current ongoing activity if any
@@ -915,21 +848,54 @@ const handleFinishActivity = useCallback(() => {
                 <Ionicons name="briefcase-outline" size={28} color="#3b82f6" />,
               title: currentOngoingActivityForDisplay.name,
               time: currentOngoingActivityForDisplay.time || "En curso",
-              duration: undefined,              statusColor: "#3b82f6",
+              duration: undefined,
+              statusColor: "#3b82f6",
               statusLabel: activityPauseState.isPaused ? "Pausada" : "En curso",
               statusBg: activityPauseState.isPaused ? "#fef3c7" : "#dbeafe",
             });
           }
-          
-          // Add upcoming activities today (max 2)
-          const upcomingTodayActivities = pendingTodayActivities.slice(0, 2);
-          upcomingTodayActivities.forEach((activity) => {
+            // Add upcoming activities today (max 3 with better spacing)
+          const upcomingTodayActivities = pendingTodayActivities.slice(0, 3);
+          upcomingTodayActivities.forEach((activity, index) => {
             const activityType = activityTypes.find(t => t.type === activity.type);
+            
+            // Enhanced icon assignment with more specific fallbacks
+            let iconName: any = "time-outline";
+            if (activityType?.icon && activityType.icon !== 'briefcase') {
+              iconName = activityType.icon;
+            } else {
+              // Enhanced fallback icons based on activity type patterns
+              const activityTypeLower = activity.type.toLowerCase();
+              const activityNameLower = activity.name.toLowerCase();
+              
+              if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección') || 
+                  activityNameLower.includes('inspección') || activityNameLower.includes('revisar')) {
+                iconName = "search-outline";
+              } else if (activityTypeLower.includes('vuelo') || activityTypeLower.includes('flight') || 
+                        activityNameLower.includes('vuelo') || activityNameLower.includes('aéreo')) {
+                iconName = "airplane-outline";
+              } else if (activityTypeLower.includes('maintenance') || activityTypeLower.includes('mantenimiento') || 
+                        activityNameLower.includes('mantenimiento') || activityNameLower.includes('reparación')) {
+                iconName = "construct-outline";
+              } else if (activityTypeLower.includes('transporte') || activityTypeLower.includes('movilizacion') || 
+                        activityNameLower.includes('transporte') || activityNameLower.includes('mover')) {
+                iconName = "car-outline";
+              } else if (activityTypeLower.includes('photo') || activityTypeLower.includes('fotografía') || 
+                        activityNameLower.includes('foto') || activityNameLower.includes('imagen')) {
+                iconName = "camera-outline";
+              } else if (activityTypeLower.includes('thermal') || activityTypeLower.includes('térmico') || 
+                        activityNameLower.includes('térmico') || activityNameLower.includes('termográfico')) {
+                iconName = "thermometer-outline";
+              } else {
+                // Assign different icons based on index for variety
+                const fallbackIcons = ["clipboard-outline", "document-text-outline", "layers-outline"];
+                iconName = fallbackIcons[index % fallbackIcons.length];
+              }
+            }
+            
             timelineActivities.push({
               id: activity.id,
-              icon: activityType?.icon ? 
-                <Ionicons name={activityType.icon as any} size={24} color="#f59e0b" /> :
-                <Ionicons name="time-outline" size={24} color="#f59e0b" />,
+              icon: <Ionicons name={iconName} size={28} color="#f59e0b" />,
               title: activity.name,
               time: activity.time || "Programada",
               duration: undefined,
@@ -941,8 +907,9 @@ const handleFinishActivity = useCallback(() => {
           
           // Add future activities (max 2)
           const futureActivities = genericPendingActivities.slice(0, 2);
-          futureActivities.forEach((activity) => {
+          futureActivities.forEach((activity, index) => {
             const activityType = activityTypes.find(t => t.type === activity.type);
+            
             // Parse scheduled start to show better time info
             let timeDisplay = "Programada";
             if (activity.scheduledStart) {
@@ -956,17 +923,36 @@ const handleFinishActivity = useCallback(() => {
               } else if (scheduledDate > tomorrow) {
                 timeDisplay = scheduledDate.toLocaleDateString('es-ES', { 
                   weekday: 'short', 
-                  month: 'short', 
+                  month: 'short',
                   day: 'numeric'
                 });
               }
             }
             
+            // Enhanced future activity icon assignment
+            let iconName: any = "calendar-outline";
+            if (activityType?.icon && activityType.icon !== 'briefcase') {
+              iconName = activityType.icon;
+            } else {
+              const activityTypeLower = activity.type.toLowerCase();
+              const activityNameLower = activity.name.toLowerCase();
+              
+              if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección') || 
+                  activityNameLower.includes('inspección')) {
+                iconName = "search-outline";
+              } else if (activityTypeLower.includes('maintenance') || activityTypeLower.includes('mantenimiento') || 
+                        activityNameLower.includes('mantenimiento')) {
+                iconName = "settings-outline";
+              } else {
+                // Alternate icons for variety
+                const alternateIcons = ["calendar-outline", "bookmark-outline", "flag-outline", "timer-outline"];
+                iconName = alternateIcons[index % alternateIcons.length];
+              }
+            }
+            
             timelineActivities.push({
               id: activity.id,
-              icon: activityType?.icon ? 
-                <Ionicons name={activityType.icon as any} size={24} color="#8b5cf6" /> :
-                <Ionicons name="calendar-outline" size={24} color="#8b5cf6" />,
+              icon: <Ionicons name={iconName} size={28} color="#8b5cf6" />,
               title: activity.name,
               time: timeDisplay,
               duration: undefined,
@@ -977,15 +963,29 @@ const handleFinishActivity = useCallback(() => {
           });
           
           // Add recently completed activities (max 2, only if we have space)
-          if (timelineActivities.length < 5) {
-            const recentActivities = pastActivities.slice(0, Math.min(2, 5 - timelineActivities.length));
-            recentActivities.forEach((activity) => {
+          if (timelineActivities.length < 6) {
+            const recentActivities = pastActivities.slice(0, Math.min(2, 6 - timelineActivities.length));
+            recentActivities.forEach((activity, index) => {
               const activityType = activityTypes.find(t => t.type === activity.type);
+              
+              let iconName: any = "checkmark-circle-outline";
+              if (activityType?.icon && activityType.icon !== 'briefcase') {
+                iconName = activityType.icon;
+              } else {
+                // Enhanced completed activity icons
+                const activityTypeLower = activity.type.toLowerCase();
+                if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección')) {
+                  iconName = "checkmark-done-outline";
+                } else if (activityTypeLower.includes('maintenance') || activityTypeLower.includes('mantenimiento')) {
+                  iconName = "checkmark-circle-outline";
+                } else {
+                  iconName = "checkmark-outline";
+                }
+              }
+              
               timelineActivities.push({
                 id: activity.id,
-                icon: activityType?.icon ? 
-                  <Ionicons name={activityType.icon as any} size={24} color="#10b981" /> :
-                  <Ionicons name="checkmark-circle-outline" size={24} color="#10b981" />,
+                icon: <Ionicons name={iconName} size={28} color="#10b981" />,
                 title: activity.name,
                 time: activity.time || "Completada",
                 duration: activity.actualEnd && activity.actualStart ? 
@@ -1002,13 +1002,16 @@ const handleFinishActivity = useCallback(() => {
           if (timelineActivities.length === 0) {
             timelineActivities.push({
               id: "placeholder",
-              icon: <Ionicons name="time-outline" size={24} color="#9ca3af" />,
+              icon: <Ionicons name="time-outline" size={26} color="#9ca3af" />,
               title: "No hay actividades registradas",
               time: "Inicia una nueva actividad",
               statusColor: "#9ca3af",
               statusLabel: "Vacío",
               statusBg: "#f3f4f6",
-            });          }return (
+            });
+          }
+
+          return (
             <ActivityTimeline 
               activities={timelineActivities}
             />

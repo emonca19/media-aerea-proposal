@@ -62,8 +62,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 16, // Un poco más grande
-    marginVertical: 10, // Un poco más de margen
+    padding: 16,
+    marginVertical: 10,
     shadowColor: 'transparent',
     borderWidth: 1,
     borderColor: '#f3f4f6',
@@ -72,25 +72,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8, // Un poco más de espacio
+    marginBottom: 12,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#22223b',
-    letterSpacing: 0.2,
   },
   timelineContainer: {
-    marginTop: 0,
+    marginTop: 4,
   },
   timelineRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16, // Un poco más de espacio entre actividades
-    minHeight: 48, // Un poco más alto
+    marginBottom: 16,
+    minHeight: 48,
   },
   timelineLineContainer: {
-    width: 40, // Un poco más ancho
+    width: 36,
     alignItems: 'center',
     position: 'relative',
     justifyContent: 'flex-start',
@@ -99,12 +98,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     width: '100%',
-    height: 48, // Un poco más alto
+    height: 48,
   },
   timelineLine: {
     position: 'absolute',
-    top: 30,
-    left: 18,
+    top: 28,
+    left: 16,
     width: 2,
     height: 32,
     backgroundColor: '#e5e7eb',
@@ -114,16 +113,16 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    borderWidth: 2.5,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
-    marginBottom: 1,
-    marginTop: 1,
+    marginBottom: 2,
+    marginTop: 2,
   },
   timelineContent: {
     flex: 1,
-    paddingLeft: 8,
+    paddingLeft: 12,
     justifyContent: 'center',
   },
   activityTitle: {
@@ -131,26 +130,25 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#22223b',
     marginBottom: 3,
-    letterSpacing: 0.1,
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 0,
+    marginTop: 1,
   },
   activityTime: {
     fontSize: 13,
     color: '#64748b',
     fontWeight: '500',
-    marginRight: 2,
+    marginRight: 3,
   },
   activityDuration: {
     fontSize: 12,
     color: '#9ca3af',
-    marginLeft: 2,
+    marginLeft: 3,
   },
   statusBadge: {
-    minWidth: 50,
+    minWidth: 45,
     alignSelf: 'center',
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -158,10 +156,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     justifyContent: 'center',
     alignItems: 'center',
-  },  statusText: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.1,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
 
