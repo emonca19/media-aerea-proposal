@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from "react";
 import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { activityTypes } from './quick-register-activity-form';
@@ -28,11 +29,14 @@ const PAUSE_REASONS = [
 ];
 
 function getActivityIcon(type: string) {
+  if (type === 'movilizacion' || type === 'movilización') {
+    return <MaterialCommunityIcons name="car" size={40} color="#111" style={{ marginRight: 14 }} />;
+  }
   const found = activityTypes.find((t) => t.type === type);
   if (found && found.icon) {
-    return <MaterialCommunityIcons name={found.icon as any} size={32} color="#2563eb" style={{ marginRight: 10 }} />;
+    return <MaterialCommunityIcons name={found.icon as any} size={40} color="#111" style={{ marginRight: 14 }} />;
   }
-  return <Ionicons name="briefcase-outline" size={32} color="#2563eb" style={{ marginRight: 10 }} />;
+  return <Ionicons name="briefcase-outline" size={40} color="#111" style={{ marginRight: 14 }} />;
 }
 
 export default function ActivityControl({
@@ -49,70 +53,237 @@ export default function ActivityControl({
   const [pauseNotes, setPauseNotes] = useState("");
   const [now, setNow] = useState(Date.now());
   const [pauseStart, setPauseStart] = useState<number | null>(null);
+  const [accumulated, setAccumulated] = useState(0); // tiempo acumulado antes de pausar
 
-  // Real-time timer update
+  // Actualiza el tiempo real solo cuando no está en pausa
   React.useEffect(() => {
     if (!ongoingActivity || !ongoingActivity.actualStart) return;
-    if (isPaused) {
-      // Pausa: inicia contador de pausa
-      setPauseStart(Date.now());
-    } else {
-      setPauseStart(null);
+    let interval: any;
+    if (!isPaused) {
+      interval = setInterval(() => setNow(Date.now()), 1000);
     }
-    const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, [ongoingActivity && ongoingActivity.actualStart, isPaused]);
 
+  // Actualiza el tiempo de pausa en tiempo real cuando está en pausa
+  const [pauseNow, setPauseNow] = useState(Date.now());
+  React.useEffect(() => {
+    if (!isPaused) return;
+    const interval = setInterval(() => setPauseNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [isPaused]);
+
+  // Maneja el inicio y fin de la pausa
+  React.useEffect(() => {
+    if (!ongoingActivity || !ongoingActivity.actualStart) return;
+    if (isPaused) {
+      setPauseStart(Date.now());
+      // Acumula el tiempo trabajado hasta el momento de pausar
+      setAccumulated((prev) => {
+        const start = new Date(ongoingActivity.actualStart).getTime();
+        return prev + (Date.now() - start - prev);
+      });
+    } else if (pauseStart) {
+      // Al reanudar, actualiza actualStart para que el contador siga desde donde se quedó
+      if (ongoingActivity.actualStart) {
+        const newStart = Date.now() - accumulated;
+        ongoingActivity.actualStart = new Date(newStart).toISOString();
+      }
+      setPauseStart(null);
+    }
+    // eslint-disable-next-line
+  }, [isPaused]);
+
+  // Calcula el tiempo mostrado
+  function getElapsed() {
+    if (!ongoingActivity?.actualStart) return 0;
+    if (isPaused && pauseStart) {
+      return accumulated;
+    }
+    const start = new Date(ongoingActivity.actualStart).getTime();
+    return accumulated + (Date.now() - start - accumulated);
+  }
+
+  // Obtener fecha y hora actual en formato legible
+  const [currentDate, setCurrentDate] = useState(new Date());
+  React.useEffect(() => {
+    const interval = setInterval(() => setCurrentDate(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Formato de fecha y hora
+  function formatDateTime(date: Date) {
+    return date.toLocaleDateString('es-MX', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) +
+      ' ' + date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
   // Compacto y visual, con icono, nombre, tiempo y botones grandes
   return (
-    <View style={styles.compactModernContainer}>
+    <View style={styles.container}>
+      {/* Quitar fecha/hora actual, solo mostrar contenido principal */}
       {!ongoingActivity ? (
-        <TouchableOpacity style={styles.compactStartButton} onPress={onStart}>
-          <Ionicons name="play" size={22} color="#fff" style={{ marginRight: 8 }} />
-          <Text style={styles.compactStartButtonText}>Iniciar Jornada</Text>
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.compactModernActiveBox}>
-          <View style={styles.compactModernHeaderRow}>
-            <View style={styles.compactModernIconBox}>{getActivityIcon(ongoingActivity.type)}</View>
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <Text style={styles.compactModernTitle} numberOfLines={1}>{ongoingActivity.name || "Actividad en curso"}</Text>
-              {isPaused && (
-                <Text style={styles.compactModernPausedText}>Pausada: {currentPauseReason}</Text>
-              )}
+        <View style={{ position: 'relative', width: '100%' }}>
+          <LinearGradient
+            colors={["#4F6DF5", "#6A82FB"]}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={{
+              borderRadius: 16,
+              paddingVertical: 22,
+              paddingHorizontal: 36,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginVertical: 10,
+              alignSelf: 'center',
+              shadowColor: '#4F6DF5',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.18,
+              shadowRadius: 12,
+              elevation: 6,
+              width: '100%',
+              flexDirection: 'row',
+              gap: 18,
+            }}
+          >
+            <View style={{
+              backgroundColor: '#e0e7ff',
+              borderRadius: 999,
+              padding: 10,
+              marginRight: 10,
+              shadowColor: '#4F6DF5',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.12,
+              shadowRadius: 6,
+              elevation: 2,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Ionicons name="play" size={22} color="#4F6DF5" />
             </View>
+            <Text style={{
+              color: '#fff',
+              fontSize: 22,
+              fontWeight: 'bold',
+              textAlign: 'center',
+              letterSpacing: 0.5,
+              flex: 1,
+            }}>
+              Iniciar jornada
+            </Text>
+          </LinearGradient>
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              left: 0, right: 0, top: 0, bottom: 0,
+              borderRadius: 16,
+            }}
+            onPress={onStart}
+            activeOpacity={0.85}
+          />
+        </View>
+      ) : (
+        <>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', width: '100%', marginBottom: 10 }}>
+            <Text style={{ fontSize: 14, color: '#8A94A6', fontWeight: '400', marginBottom: 10, textAlign: 'center' }}>Actividad en curso</Text>
           </View>
-          <View style={styles.compactModernTimerBox}>
-            <Text style={styles.compactModernTimeLabel}>{isPaused ? "Tiempo en pausa" : "Total trabajado hoy"}</Text>
-            <View style={styles.compactModernTimerBg}>
-              <Text style={isPaused ? styles.compactModernPausedTimer : styles.compactModernTimer}>
-                {isPaused && pauseStart
-                  ? formatDuration(new Date(pauseStart).toISOString(), undefined, now)
-                  : formatDuration(ongoingActivity.actualStart, undefined, now)}
+          <View style={styles.iconCircleBox}>
+            {(() => {
+              const type = ongoingActivity.type;
+              if (type === 'movilizacion' || type === 'movilización') {
+                return <MaterialCommunityIcons name="car" size={36} color="#4F6DF5" />;
+              }
+              const found = activityTypes.find((t) => t.type === type);
+              if (found && found.icon) {
+                return <MaterialCommunityIcons name={found.icon as any} size={36} color="#4F6DF5" />;
+              }
+              return <Ionicons name="briefcase-outline" size={36} color="#4F6DF5" />;
+            })()}
+          </View>
+          <Text style={styles.cardTitle} numberOfLines={2}>
+            {ongoingActivity.name || 'Actividad'}
+          </Text>
+          {/* Nueva etiqueta y contador principal de actividad */}
+          <Text style={{ color: '#64748b', fontSize: 15, fontWeight: '500', textAlign: 'center', marginBottom: 0 }}>
+            Tiempo transcurrido
+          </Text>
+          <Text
+            style={{
+              fontSize: 48,
+              color: '#111',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              marginVertical: 10,
+              letterSpacing: 2,
+            }}
+          >
+            {formatDurationMs(getElapsed())}
+          </Text>
+          {/* Mostrar fecha/hora de inicio de la actividad si existe */}
+          {ongoingActivity.actualStart && (
+            <Text style={{ color: '#8A94A6', fontSize: 13, textAlign: 'center', marginBottom: 2 }}>
+              Inicio: {formatDateTime(new Date(ongoingActivity.actualStart))}
+            </Text>
+          )}
+          {/* Si está en pausa, mostrar tiempo de pausa debajo */}
+          {isPaused && (
+            <View style={{ alignItems: 'center', marginTop: 2 }}>
+              <Text style={{
+                color: '#f59e0b',
+                fontWeight: '600',
+                fontSize: 16,
+                textAlign: 'center',
+                marginBottom: 0,
+              }}>Pausa</Text>
+              <Text style={{
+                fontSize: 28,
+                color: '#f59e0b',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                letterSpacing: 1,
+                marginTop: 0,
+              }}>
+                {pauseStart ? formatDurationMs(pauseNow - pauseStart) : '00:00:00'}
               </Text>
             </View>
-          </View>
-          <View style={styles.compactModernActionsRow}>
+          )}
+          <View style={styles.cardActionsRow}>
             {!isPaused && (
               <>
-                <TouchableOpacity style={styles.compactModernActionBtn} onPress={onFinish}>
-                  <Ionicons name="stop" size={20} color="#fff" style={{ marginRight: 6 }} />
-                  <Text style={styles.compactModernActionLabel}>Terminar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.compactModernActionBtn} onPress={() => setPauseModalVisible(true)}>
-                  <Ionicons name="pause" size={20} color="#fff" style={{ marginRight: 6 }} />
-                  <Text style={styles.compactModernActionLabel}>Pausar</Text>
-                </TouchableOpacity>
+                <LinearGradient
+                  colors={["#ff5858", "#f857a6"]}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                  style={styles.gradientButton}
+                >
+                  <TouchableOpacity style={styles.gradientBtnContent} onPress={onFinish} activeOpacity={0.9}>
+                    <Ionicons name="stop" size={20} color="#fff" style={{ marginRight: 8 }} />
+                    <Text style={styles.buttonText}>Terminar</Text>
+                  </TouchableOpacity>
+                </LinearGradient>
+                <LinearGradient
+                  colors={["#f7971e", "#ffd200"]}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                  style={styles.gradientButton}
+                >
+                  <TouchableOpacity style={styles.gradientBtnContent} onPress={() => setPauseModalVisible(true)} activeOpacity={0.9}>
+                    <Ionicons name="pause" size={20} color="#fff" style={{ marginRight: 8 }} />
+                    <Text style={styles.buttonText}>Pausar</Text>
+                  </TouchableOpacity>
+                </LinearGradient>
               </>
             )}
             {isPaused && (
-              <TouchableOpacity style={styles.compactModernActionBtn} onPress={onResume}>
-                <Ionicons name="play" size={20} color="#fff" style={{ marginRight: 6 }} />
-                <Text style={styles.compactModernActionLabel}>Reanudar</Text>
-              </TouchableOpacity>
+              <LinearGradient
+                colors={["#43cea2", "#185a9d"]}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                style={styles.gradientButton}
+              >
+                <TouchableOpacity style={styles.gradientBtnContent} onPress={onResume} activeOpacity={0.9}>
+                  <Ionicons name="play" size={20} color="#fff" style={{ marginRight: 8 }} />
+                  <Text style={styles.buttonText}>Reanudar</Text>
+                </TouchableOpacity>
+              </LinearGradient>
             )}
           </View>
-        </View>
+        </>
       )}
       <Modal visible={pauseModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -171,14 +342,12 @@ export default function ActivityControl({
   );
 }
 
-function formatDuration(start: string | undefined, end?: string, nowOverride?: number) {
-  if (!start) return '00:00:00';
-  const startDate = new Date(start);
-  const endDate = end ? new Date(end) : (nowOverride ? new Date(nowOverride) : new Date());
-  const diff = Math.max(0, endDate.getTime() - startDate.getTime());
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+function formatDurationMs(ms: number) {
+  if (!ms || ms < 0) return '00:00:00';
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
   return `${hours.toString().padStart(2, '0')}:${minutes
     .toString()
     .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -733,5 +902,219 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  bigBlackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#111',
+    paddingVertical: 18,
+    paddingHorizontal: 32,
+    borderRadius: 14,
+    margin: 6,
+    minHeight: 56,
+    minWidth: 0,
+    flex: 1,
+  },
+  bigBlackButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  bigTimerText: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: '#111',
+    textAlign: 'center',
+    letterSpacing: 1,
+    marginVertical: 2,
+  },
+  bigPausedTimerText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#f59e0b',
+    textAlign: 'center',
+    letterSpacing: 1,
+    marginVertical: 2,
+  },
+  cardContainer: {
+    backgroundColor: '#F4F7FF',
+    borderRadius: 22,
+    padding: 24,
+    marginBottom: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    alignItems: 'center',
+  },
+  iconCircleBox: {
+    backgroundColor: '#E8EDFB',
+    borderRadius: 999,
+    width: 64,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#4F6DF5',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  cardMainTimer: {
+    fontSize: 38,
+    color: '#4F6DF5',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 4,
+    marginTop: 2,
+    letterSpacing: 1,
+  },
+  pausedTimeBox: {
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  pausedTimeLabel: {
+    fontSize: 16,
+    color: '#f59e0b',
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  pausedTimeMain: {
+    fontSize: 38,
+    color: '#f59e0b',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
+  cardActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 14,
+    marginTop: 18,
+    width: '100%',
+  },
+  primaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4F6DF5',
+    paddingVertical: 16,
+    paddingHorizontal: 28,
+    borderRadius: 12,
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  dangerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EF4444',
+    paddingVertical: 16,
+    paddingHorizontal: 22,
+    borderRadius: 12,
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  warningButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F59E0B',
+    paddingVertical: 16,
+    paddingHorizontal: 22,
+    borderRadius: 12,
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  gradientButton: {
+    flex: 1,
+    borderRadius: 14,
+    marginHorizontal: 4,
+    marginVertical: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  gradientBtnContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 22,
+    borderRadius: 14,
+  },
+  timerGradientCircle: {
+    borderRadius: 999,
+    padding: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 8,
+    width: 160,
+    alignSelf: 'center',
+    shadowColor: '#4F6DF5',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  timerGradientCirclePaused: {
+    borderRadius: 999,
+    padding: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 8,
+    width: 160,
+    alignSelf: 'center',
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  timerShadowWrap: {
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderRadius: 50,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#4F6DF5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  timerShadowWrapPaused: {
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: 50,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 6,
   },
 });
