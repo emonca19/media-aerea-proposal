@@ -1,17 +1,16 @@
+import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Image
+  View
 } from 'react-native';
-import { Card } from '../../src/components/common';
-import { MaterialCommunityIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
 
 
 // Datos simulados más completos
@@ -45,31 +44,58 @@ const mockDrones = [
 
 const mockActivities = [
   {
+    id: '0',
+    type: 'OTHER',
+    startTime: new Date('2023-05-18T07:00:00'),
+    endTime: new Date('2023-05-18T07:05:00'),
+    notes: 'Inicio de jornada',
+    operator: 'Juan Pérez'
+  },
+  {
     id: '1',
-    type: 'TURBINE_WORK',
-    turbineId: '1',
-    startTime: new Date('2023-05-18T09:30:00'),
-    endTime: new Date('2023-05-18T11:45:00'),
-    notes: 'Inspección de aspas y sistemas eléctricos. Se encontró desgaste moderado en el aspa norte.',
+    type: 'MOBILIZATION',
+    startTime: new Date('2023-05-18T07:05:00'),
+    endTime: new Date('2023-05-18T08:00:00'),
+    notes: 'Movilización al parque eólico',
     operator: 'Juan Pérez'
   },
   {
     id: '2',
-    type: 'MOBILIZATION',
+    type: 'OTHER',
     startTime: new Date('2023-05-18T08:00:00'),
-    endTime: new Date('2023-05-18T09:15:00'),
-    notes: 'Traslado al parque eólico con equipo de inspección',
-    operator: 'Juan Pérez'
+    endTime: new Date('2023-05-18T08:10:00'),
+    notes: 'Llegada al sitio',
+    operator: 'Juan Pérez',
+    subActivities: [
+      {
+        id: '2-1',
+        type: 'BREAK',
+        startTime: new Date('2023-05-18T08:10:00'),
+        endTime: new Date('2023-05-18T08:30:00'),
+        notes: 'Esperando permiso de acceso',
+        operator: 'Juan Pérez'
+      }
+    ]
   },
   {
     id: '3',
     type: 'TURBINE_WORK',
-    turbineId: '4',
-    startTime: new Date('2023-05-18T13:30:00'),
-    endTime: null, // En progreso
-    notes: 'Inspección de la base y torre. Pendiente reporte completo.',
-    operator: 'Juan Pérez'
-  },
+    turbineId: '1',
+    startTime: new Date('2023-05-18T08:30:00'),
+    endTime: new Date('2023-05-18T10:00:00'),
+    notes: 'Inspección de aspas y sistemas eléctricos.',
+    operator: 'Juan Pérez',
+    subActivities: [
+      {
+        id: '3-1',
+        type: 'BREAK',
+        startTime: new Date('2023-05-18T09:00:00'),
+        endTime: new Date('2023-05-18T09:15:00'),
+        notes: 'Pausa para hidratación',
+        operator: 'Juan Pérez'
+      }
+    ]
+  }
 ];
 
 type ActivityType = 'MOBILIZATION' | 'TURBINE_WORK' | 'BREAK' | 'WEATHER_DELAY' | 'OTHER' | 'MEAL';
@@ -80,7 +106,7 @@ const activityTypes = [
   { type: 'BREAK', label: 'Descanso', icon: 'coffee' },
   { type: 'MEAL', label: 'Tiempo de Comida', icon: 'food' },
   { type: 'WEATHER_DELAY', label: 'Retraso por Clima', icon: 'weather-cloudy' },
-  { type: 'OTHER', label: 'Otro', icon: 'dots-horizontal' }
+  { type: 'OTHER', label: 'Llegada al sitio', icon: 'map-marker' }
 ];
 
 export default function ActivityLogScreen() {
@@ -181,10 +207,10 @@ export default function ActivityLogScreen() {
           ]}
           onPress={() => setActiveTab('register')}
         >
-          <MaterialCommunityIcons 
-            name="clock-outline" 
+          <Ionicons 
+            name="add-circle-outline" 
             size={20} 
-            color={activeTab === 'register' ? '#ffffff' : '#64748b'} 
+            color={activeTab === 'register' ? '#2563eb' : '#64748b'} 
           />
           <Text style={[
             styles.tabText,
@@ -204,7 +230,7 @@ export default function ActivityLogScreen() {
           <Ionicons 
             name="time-outline" 
             size={20} 
-            color={activeTab === 'activities' ? '#ffffff' : '#64748b'} 
+            color={activeTab === 'activities' ? '#2563eb' : '#64748b'} 
           />
           <Text style={[
             styles.tabText,
@@ -224,7 +250,7 @@ export default function ActivityLogScreen() {
           <FontAwesome 
             name="folder-o" 
             size={20} 
-            color={activeTab === 'project' ? '#ffffff' : '#64748b'} 
+            color={activeTab === 'project' ? '#2563eb' : '#64748b'} 
           />
           <Text style={[
             styles.tabText,
@@ -342,69 +368,128 @@ export default function ActivityLogScreen() {
             <Text style={styles.subtitle}>
               {currentTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
             </Text>
-            
-            {todayActivities.length > 0 ? (
-              todayActivities.map((activity, index) => {
-                const activityType = activityTypes.find(t => t.type === activity.type);
-                const turbine = activity.turbineId ? mockTurbines.find(t => t.id === activity.turbineId) : null;
-                
-                return (
-                  <Card key={activity.id} style={[
-                    styles.activityCard,
-                    index === todayActivities.length - 1 && { marginBottom: 0 }
-                  ]}>
-                    <View style={styles.activityHeader}>
-                      <View style={styles.activityIconContainer}>
-                        <MaterialCommunityIcons 
-                          name={(activityType?.icon || 'clock') as any} 
-                          size={24} 
-                          color={activity.endTime ? '#10b981' : '#3b82f6'} 
-                        />
+            <View style={{ flexDirection: 'column', marginTop: 8, position: 'relative', alignItems: 'flex-start', paddingHorizontal: 0, width: '100%' }}>
+              {todayActivities.length > 0 ? (
+                todayActivities.map((activity, index, arr) => {
+                  // Detectar si es 'Inicio de jornada'
+                  const isStartOfDay = activity.notes && activity.notes.toLowerCase().includes('inicio de jornada');
+                  if (isStartOfDay) {
+                    // Línea punteada horizontal con bloque central destacado
+                    return (
+                      <View key={activity.id} style={{ width: '100%', alignItems: 'center', marginVertical: 2 }}>
+                        <View style={styles.dottedLineContainer}>
+                          <View style={styles.dottedLine} />
+                          <View style={styles.startDayBlock}>
+                            <MaterialCommunityIcons name="weather-sunset" size={22} color="#2563eb" style={{ marginRight: 8 }} />
+                            <Text style={styles.startDayText}>Inicio de Jornada</Text>
+                            <Text style={styles.startDayHour}>{formatTime(activity.startTime)}</Text>
+                          </View>
+                          <View style={styles.dottedLine} />
+                        </View>
                       </View>
-                      <View style={styles.activityInfo}>
-                        <Text style={styles.activityType}>{activityType?.label || activity.type}</Text>
-                        <Text style={styles.activityDuration}>
-                          {formatTime(activity.startTime)} - {formatTime(activity.endTime)}
-                          {activity.endTime && ` • ${formatDuration(activity.startTime, activity.endTime)}`}
-                        </Text>
-                        {!activity.endTime && (
-                          <TouchableOpacity 
-                            style={styles.stopButton}
-                            onPress={() => handleStopActivity(activity.id)}
-                          >
-                            <Text style={styles.stopButtonText}>Finalizar</Text>
-                          </TouchableOpacity>
-                        )}
+                    );
+                  }
+                  const activityType = activityTypes.find(t => t.type === activity.type);
+                  const turbine = activity.turbineId ? mockTurbines.find(t => t.id === activity.turbineId) : null;
+                  const completed = !!activity.endTime;
+                  const mainColor = completed ? '#10b981' : '#2563eb';
+                  // Subactividades (pausas)
+                  const subActivities = activity.subActivities || [];
+                  // Determinar margen inferior: menos margen si no hay subactividades
+                  const activityMarginBottom = subActivities.length > 0 ? 12 : 6;
+                  return (
+                    <View key={activity.id} style={{ flexDirection: 'row', alignItems: 'flex-start', minHeight: 100, marginBottom: activityMarginBottom, position: 'relative', width: '100%' }}>
+                      <View style={{ width: 0 }} />
+                      <View style={{ flex: 1, marginLeft: 0, marginTop: 0, marginRight: 0, maxWidth: '100%' }}>
+                        <View style={[styles.fixedActivityCard, { marginBottom: subActivities.length > 0 ? 6 : 0 }]}> 
+                          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, flexWrap: 'wrap' }}>
+                            <Text style={{ color: '#64748b', fontSize: 14, fontWeight: '600' }}>
+                              {formatTime(activity.startTime)}
+                              {activity.endTime && ` - ${formatTime(activity.endTime)}`}
+                            </Text>
+                            {activity.endTime && (
+                              <Text style={{ color: '#10b981', fontSize: 13, fontWeight: 'bold', marginLeft: 10 }}>
+                                {formatDuration(activity.startTime, activity.endTime)}
+                              </Text>
+                            )}
+                          </View>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, flexWrap: 'wrap' }}>
+                            <MaterialCommunityIcons
+                              name={(activityType?.icon || 'clock') as any}
+                              size={20}
+                              color={mainColor}
+                              style={{ marginRight: 8 }}
+                            />
+                            <Text style={{ color: mainColor, fontWeight: '700', fontSize: 16 }}>{activityType?.label || activity.type}</Text>
+                          </View>
+                          {turbine && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                              <Ionicons name="cog" size={15} color="#64748b" style={{ marginRight: 6 }} />
+                              <Text style={{ color: '#475569', fontSize: 13 }}>{turbine.name} • {turbine.status === 'COMPLETED' ? 'Completada' : 'En progreso'}</Text>
+                            </View>
+                          )}
+                          {activity.notes && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                              <Ionicons name="document-text" size={15} color="#64748b" style={{ marginRight: 6 }} />
+                              <Text style={{ color: '#475569', fontSize: 13 }}>{activity.notes}</Text>
+                            </View>
+                          )}
+                          {/* Detalles adicionales de la actividad (solo lo esencial) */}
+                          <View style={{ marginTop: 6, gap: 2 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                              <Ionicons name="person" size={14} color="#64748b" style={{ marginRight: 5 }} />
+                              <Text style={{ color: '#64748b', fontSize: 13 }}>Operador: {activity.operator}</Text>
+                            </View>
+                            {activity.type === 'TURBINE_WORK' && turbine && (
+                              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                                <MaterialCommunityIcons name="wind-turbine" size={14} color="#3b82f6" style={{ marginRight: 5 }} />
+                                <Text style={{ color: '#475569', fontSize: 13 }}>Turbina: {turbine.name} ({turbine.status === 'COMPLETED' ? 'Completada' : 'En progreso'})</Text>
+                              </View>
+                            )}
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                              <MaterialCommunityIcons name="drone" size={14} color="#64748b" style={{ marginRight: 5 }} />
+                              <Text style={{ color: '#64748b', fontSize: 13 }}>Dron: {assignedDrone.model}</Text>
+                            </View>
+                          </View>
+                        </View>
+                        {/* Subactividades (pausas), indentadas y tamaño fijo */}
+                        {subActivities.length > 0 && subActivities.map((sub, subIdx) => {
+                          const subType = activityTypes.find(t => t.type === sub.type);
+                          return (
+                            <View key={sub.id} style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: subIdx === 0 ? 0 : 4, marginBottom: 0, marginLeft: 28, marginRight: 0 }}>
+                              <View style={{ width: 0, marginRight: 0 }} />
+                              <View style={[styles.fixedSubActivityCard, { marginBottom: 0, marginTop: 0 }]}> 
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2, flexWrap: 'wrap', marginLeft: 2 }}>
+                                  <MaterialCommunityIcons name={subType?.icon as any} size={16} color="#f59e0b" style={{ marginRight: 6 }} />
+                                  <Text style={{ color: '#b45309', fontWeight: '700', fontSize: 14 }}>{subType?.label || 'Pausa'}</Text>
+                                  <Text style={{ color: '#b45309', fontSize: 13, marginLeft: 8 }}>{formatTime(sub.startTime)} - {formatTime(sub.endTime)}</Text>
+                                  {sub.endTime && sub.startTime && (
+                                    <Text style={{ color: '#eab308', fontSize: 13, marginLeft: 8, fontWeight: 'bold' }}>({formatDuration(sub.startTime, sub.endTime)})</Text>
+                                  )}
+                                </View>
+                                <Text style={{ color: '#a16207', fontSize: 13, marginLeft: 2 }}>{sub.notes}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                                  <Ionicons name="person" size={13} color="#a16207" style={{ marginRight: 4 }} />
+                                  <Text style={{ color: '#a16207', fontSize: 12 }}>Operador: {sub.operator}</Text>
+                                </View>
+                              </View>
+                            </View>
+                          );
+                        })}
                       </View>
                     </View>
-                    
-                    {turbine && (
-                      <View style={styles.activityDetail}>
-                        <Ionicons name="cog" size={16} color="#64748b" />
-                        <Text style={styles.activityDetailText}>
-                          {turbine.name} • {turbine.status === 'COMPLETED' ? 'Completada' : 'En progreso'}
-                        </Text>
-                      </View>
-                    )}
-                    
-                    {activity.notes && (
-                      <View style={styles.activityDetail}>
-                        <Ionicons name="document-text" size={16} color="#64748b" />
-                        <Text style={styles.activityDetailText}>{activity.notes}</Text>
-                      </View>
-                    )}
-                  </Card>
-                );
-              })
-            ) : (
-              <View style={styles.emptyState}>
-                <Image
-                  source={require('../../assets/images/no-activities.png')}
-                  style={styles.emptyImage}
-                />
-                <Text style={styles.emptyText}>No hay actividades registradas hoy</Text>
-              </View>
-            )}
+                  );
+                })
+              ) : (
+                <View style={styles.emptyState}>
+                  <Image
+                    source={require('../../assets/images/no-activities.png')}
+                    style={styles.emptyImage}
+                  />
+                  <Text style={styles.emptyText}>No hay actividades registradas hoy</Text>
+                </View>
+              )}
+            </View>
           </View>
         )}
 
@@ -876,5 +961,80 @@ const styles = StyleSheet.create({
   emptyText: {
     color: '#64748b',
     fontSize: 16,
+  },
+  fixedActivityCard: {
+    width: '100%',
+    minHeight: 64,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 0,
+    marginTop: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    alignSelf: 'stretch',
+  },
+  fixedSubActivityCard: {
+    width: '100%',
+    minHeight: 48,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginBottom: 0,
+    marginTop: 0,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    alignSelf: 'stretch',
+  },
+  dottedLineContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginVertical: 8,
+  },
+  dottedLine: {
+    flex: 1,
+    borderBottomWidth: 1,
+    borderStyle: 'dotted',
+    borderColor: '#cbd5e1',
+    height: 1,
+  },
+  startDayBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    borderRadius: 16,
+    paddingVertical: 4,
+    paddingHorizontal: 16,
+    marginHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#e0e7ef',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  startDayText: {
+    fontWeight: '600',
+    color: '#2563eb',
+    fontSize: 15,
+    marginRight: 8,
+  },
+  startDayHour: {
+    color: '#64748b',
+    fontSize: 14,
+    fontWeight: '400',
   },
 });

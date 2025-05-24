@@ -96,9 +96,9 @@ export default function PilotLayout() {
             }}
           />
           <Tabs.Screen
-            name="new-activity"
+            name="activity-log"
             options={{
-              title: 'Registrar',
+              title: 'Actividades',
               tabBarIcon: ({ color, size, focused }) => (
                 <Ionicons
                   name={focused ? "reader" : "reader-outline"}
@@ -108,9 +108,6 @@ export default function PilotLayout() {
               ),
             }}
           />
-          <Tabs.Screen name="activity-log" options={{ href: null }} />
-          <Tabs.Screen name="statistics" options={{ href: null }} />
-          <Tabs.Screen name="incidents" options={{ href: null }} />
           <Tabs.Screen
             name="notifications"
             options={{
@@ -118,6 +115,22 @@ export default function PilotLayout() {
               tabBarIcon: (props) => <NotificationTabIcon {...props} />,
             }}
           />
+          <Tabs.Screen
+            name="profile"
+            options={{
+              title: "Perfil",
+              tabBarIcon: ({ color, size, focused }) => (
+                <Ionicons
+                  name={focused ? "person" : "person-outline"}
+                  size={size}
+                  color={color}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen name="new-activity" options={{ href: null }} />
+          <Tabs.Screen name="statistics" options={{ href: null }} />
+          <Tabs.Screen name="incidents" options={{ href: null }} />
           <Tabs.Screen name="preflight-checklist" options={{ href: null }} />
           <Tabs.Screen name="project-history" options={{ href: null }} />
           <Tabs.Screen name="components/pilot-dashboard" options={{ href: null }} />
@@ -139,21 +152,6 @@ export default function PilotLayout() {
           <Tabs.Screen name="project-details" options={{ href: null }} />
           <Tabs.Screen name="components/activity-timeline" options={{ href: null }} />
           <Tabs.Screen name="components/activity-control" options={{ href: null }} />
-
-
-          <Tabs.Screen
-            name="profile"
-            options={{
-              title: "Perfil",
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons
-                  name={focused ? "person" : "person-outline"}
-                  size={size}
-                  color={color}
-                />
-              ),
-            }}
-          />
         </Tabs>
       </View>
     </SafeAreaView>
