@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { Animated, Dimensions, GestureResponderEvent, Modal, PanResponder, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { Animated, Dimensions, GestureResponderEvent, Modal, PanResponder, PanResponderGestureState, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // --- Interfaces (sin cambios) ---
 interface Touch { pageX: number; pageY: number; }
@@ -148,7 +148,7 @@ const SiteMap: React.FC = () => {
   const floatingLabelAnim = useRef(new Animated.Value(0)).current;
   const screenDimensions = Dimensions.get('window');
   
-  const getPinchDistance = (touches: Array<{ pageX: number; pageY: number }>): number => {
+  const getPinchDistance = (touches: { pageX: number; pageY: number }[]): number => {
     if (touches.length < 2) return 0;
     const dx = touches[0].pageX - touches[1].pageX;
     const dy = touches[0].pageY - touches[1].pageY;

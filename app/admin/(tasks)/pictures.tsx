@@ -51,13 +51,13 @@ export default function PicturesReviewScreen() {
 
   const handleApproveSubmission = () => {
     if (!selectedSubmission) return;
-
     const review: PhotoReview = {
       submissionId: selectedSubmission.id,
       action: "APPROVE",
       completeness: completenessScore,
       legibility: legibilityScore,
       reviewedBy: "Admin Usuario",
+      reviewDate: new Date(),
     };
 
     updateSubmissionStatus(review);
@@ -80,7 +80,6 @@ export default function PicturesReviewScreen() {
       Alert.alert("Error", "Debe proporcionar un motivo de rechazo");
       return;
     }
-
     const review: PhotoReview = {
       submissionId: selectedSubmission.id,
       action: "REJECT",
@@ -88,6 +87,7 @@ export default function PicturesReviewScreen() {
       legibility: legibilityScore,
       rejectionReason: rejectionReason.trim(),
       reviewedBy: "Admin Usuario",
+      reviewDate: new Date(),
     };
 
     updateSubmissionStatus(review);
@@ -112,7 +112,7 @@ export default function PicturesReviewScreen() {
               legibility: review.legibility,
               rejectionReason: review.rejectionReason,
               reviewedBy: review.reviewedBy,
-              reviewedAt: new Date().toISOString(),
+              reviewedAt: new Date(),
               notificationSent: true,
             }
           : submission
@@ -181,8 +181,7 @@ export default function PicturesReviewScreen() {
               minute: "2-digit",
             })}
           </Text>
-        </View>
-
+        </View>{" "}
         <View style={styles.detailRow}>
           <MaterialCommunityIcons
             name="wind-turbine"
@@ -190,10 +189,9 @@ export default function PicturesReviewScreen() {
             color="#6b7280"
           />
           <Text style={styles.detailText}>
-            {item.turbinesInspected} turbinas inspeccionadas
+            {item.turbinesInspected.length} turbinas inspeccionadas
           </Text>
         </View>
-
         <View style={styles.detailRow}>
           <Ionicons name="camera-outline" size={16} color="#6b7280" />
           <Text style={styles.detailText}>
@@ -398,7 +396,8 @@ export default function PicturesReviewScreen() {
                       ).toLocaleDateString("es-ES")}
                     </Text>
                     <Text style={styles.infoText}>
-                      Turbinas: {selectedSubmission.turbinesInspected}
+                      Turbinas:{" "}
+                      {selectedSubmission.turbinesInspected.join(", ")}
                     </Text>
                     <Text style={styles.infoText}>
                       Fotos: {selectedSubmission.actualPhotos}/

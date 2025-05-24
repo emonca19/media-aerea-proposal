@@ -21,7 +21,7 @@ export default function ParksScreen() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const parkTurbines = selectedPark
-    ? mockTurbines.filter((t) => t.parkId === selectedPark)
+    ? mockTurbines.filter((t) => t.windParkId === selectedPark)
     : [];
 
   const filteredParks = mockParks.filter(
@@ -149,7 +149,7 @@ export default function ParksScreen() {
                   <View style={styles.stat}>
                     <Text style={styles.statLabel}>Turbinas Totales</Text>
                     <Text style={styles.statValue}>
-                      {mockTurbines.filter((t) => t.parkId === park.id).length}
+                      {mockTurbines.filter((t) => t.windParkId === park.id).length}
                     </Text>
                   </View>
                   <View style={styles.stat}>
@@ -157,7 +157,7 @@ export default function ParksScreen() {
                     <Text style={styles.statValue}>
                       {
                         mockTurbines.filter(
-                          (t) => t.parkId === park.id && t.status === "APPROVED"
+                          (t) => t.windParkId === park.id && t.status === "APPROVED"
                         ).length
                       }
                     </Text>
