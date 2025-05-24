@@ -18,8 +18,7 @@ interface ActivityTimelineProps {
   activities: TimelineActivity[];
 }
 
-const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities }) => {
-  return (
+const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities }) => {  return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>Línea de tiempo</Text>
@@ -159,8 +158,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  statusText: {
+  },  statusText: {
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.1,

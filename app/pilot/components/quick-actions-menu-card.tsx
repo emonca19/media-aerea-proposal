@@ -1,6 +1,5 @@
 // app/pilot/dashboard/components/QuickActionsMenuCard.tsx
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { styles as globalStyles } from './pilot-dashboard-styles';
@@ -43,50 +42,37 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({
   return (
     <View style={globalStyles.card_container}>
       <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
-      
-      <View style={styles.actionsContainer}>
+        <View style={styles.actionsContainer}>
         <TouchableOpacity 
           activeOpacity={0.85}
-          style={styles.mainActionButton} 
+          style={styles.timelineStyleButton} 
           onPress={onOpenNewActivity}
         >
-          <LinearGradient
-            colors={['#3b82f6', '#1d4ed8']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gradientBackground}
-          >
-            <View style={styles.mainButtonContent}>
-              <View style={styles.iconContainer}>
-                <Ionicons name="add-circle" size={32} color="white" />
-              </View>
-              <View style={styles.labelContainer}>
-                <Text style={styles.mainActionLabel}>Registrar Nueva Actividad</Text>
-                <Text style={styles.mainActionSubtitle}>Captura y monitorea tu trabajo</Text>
-              </View>
+          <View style={styles.timelineButtonContent}>
+            <View style={[styles.timelineIconCircle, { borderColor: '#3b82f6', backgroundColor: '#eff6ff' }]}>
+              <Ionicons name="add-circle" size={24} color="#3b82f6" />
             </View>
-          </LinearGradient>
-        </TouchableOpacity>        <TouchableOpacity 
+            <View style={styles.timelineButtonText}>
+              <Text style={styles.timelineActionLabel}>Registrar Nueva Actividad</Text>
+              <Text style={styles.timelineActionSubtitle}>Captura y monitorea tu trabajo</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
           activeOpacity={0.85}
-          style={styles.secondaryActionButton} 
+          style={styles.timelineStyleButton} 
           onPress={onOpenNewIncident}
         >
-          <LinearGradient
-            colors={['#f97316', '#ea580c']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gradientBackground}
-          >
-            <View style={styles.mainButtonContent}>
-              <View style={styles.iconContainer}>
-                <Ionicons name="warning" size={28} color="white" />
-              </View>
-              <View style={styles.labelContainer}>
-                <Text style={styles.mainActionLabel}>Reportar Incidente</Text>
-                <Text style={styles.mainActionSubtitle}>Notificar problemas o emergencias</Text>
-              </View>
+          <View style={styles.timelineButtonContent}>
+            <View style={[styles.timelineIconCircle, { borderColor: '#f97316', backgroundColor: '#fff7ed' }]}>
+              <Ionicons name="warning" size={24} color="#f97316" />
             </View>
-          </LinearGradient>
+            <View style={styles.timelineButtonText}>
+              <Text style={styles.timelineActionLabel}>Reportar Incidente</Text>
+              <Text style={styles.timelineActionSubtitle}>Notificar problemas o emergencias</Text>
+            </View>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -105,60 +91,44 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
     marginBottom: 12
-  },  actionsContainer: {
-    gap: 14,
-    width: '100%' // Asegurar que el contenedor ocupe todo el ancho disponible
-  },  mainActionButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    width: '100%' // Asegurar que ocupe todo el ancho
   },
-  gradientBackground: {
-    borderRadius: 12,
-    overflow: 'hidden'
+  actionsContainer: {
+    gap: 12,
+    width: '100%'
   },
-  mainButtonContent: {
+  timelineStyleButton: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 12,
+    width: '100%'
+  },
+  timelineButtonContent: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16
+    alignItems: 'center'
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  timelineIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14
+    marginRight: 12
   },
-  labelContainer: {
+  timelineButtonText: {
     flex: 1
   },
-  mainActionLabel: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: 'white'
-  },
-  mainActionSubtitle: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.85)',
-    marginTop: 2
-  },  secondaryActionButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    width: '100%' // Asegurar que ocupe todo el ancho
-  },
-  secondaryButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 14,
-    gap: 10
-  },
-  secondaryActionLabel: {
-    fontSize: 16,
+  timelineActionLabel: {
+    fontSize: 15,
     fontWeight: '600',
-    color: 'white'
+    color: '#22223b',
+    marginBottom: 2
+  },
+  timelineActionSubtitle: {
+    fontSize: 13,
+    color: '#64748b'
   }
 });
 

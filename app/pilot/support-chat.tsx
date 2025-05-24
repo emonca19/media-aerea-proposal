@@ -3,22 +3,22 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    Dimensions,
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Dimensions,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Animated, {
-    FadeInDown,
-    FadeInUp,
-    SlideInRight
+  FadeInDown,
+  FadeInUp,
+  SlideInRight
 } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');

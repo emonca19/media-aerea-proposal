@@ -29,16 +29,54 @@ import QuickRegisterActivityForm, {
   mockTurbines,
 } from "./quick-register-activity-form"; // Importamos el nuevo componente con sus datos
 
-// Nuevo componente para el resumen del proyecto actual tipo card visual
+// Enhanced ProjectSummaryCard component with more information and visual improvements
 function ProjectSummaryCard({
+  project,
   name,
   client,
   onPress,
 }: {
-  name: string;
-  client: string;
+  project: any;
+  name?: string;
+  client?: string;
   onPress?: () => void;
 }) {
+  // Use project data or fallback to individual props
+  const projectName = project?.name || name || "Proyecto sin Nombre";
+  const projectClient = project?.client || client || "Cliente No Especificado";
+  
+  // Calculate progress percentage
+  const progress = project?.progress || 0;
+  
+  // Format dates
+  const startDate = project?.startDate ? new Date(project.startDate).toLocaleDateString('es-ES', { 
+    day: '2-digit', 
+    month: '2-digit' 
+  }) : '';
+  const endDate = project?.endDate ? new Date(project.endDate).toLocaleDateString('es-ES', { 
+    day: '2-digit', 
+    month: '2-digit' 
+  }) : '';
+  
+  // Get status color and text
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'EN_PROGRESO': return '#3b82f6';
+      case 'COMPLETADO': return '#10b981';
+      case 'PAUSADO': return '#f59e0b';
+      default: return '#6b7280';
+    }
+  };
+  
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'EN_PROGRESO': return 'En Progreso';
+      case 'COMPLETADO': return 'Completado';
+      case 'PAUSADO': return 'Pausado';
+      default: return 'Estado desconocido';
+    }
+  };
+
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -47,14 +85,78 @@ function ProjectSummaryCard({
     >
       <View style={projectSummaryStyles.cardWrapper}>
         <View style={projectSummaryStyles.card}>
-          <View style={projectSummaryStyles.iconCircle}>
-            {/* Usa un icono de dron de MaterialCommunityIcons si está disponible */}
-            {/* Si no, usa un icono de vuelo genérico */}
-            <Ionicons name="map-outline" size={32} color="#a78bfa" />
+          {/* Header with icon and basic info */}
+          <View style={projectSummaryStyles.headerRow}>
+            <View style={projectSummaryStyles.iconCircle}>
+              <Ionicons name="business-outline" size={28} color="#3b82f6" />
+            </View>            <View style={projectSummaryStyles.headerInfo}>
+              <Text style={projectSummaryStyles.title}>{projectName}</Text>
+              <Text style={projectSummaryStyles.subtitle}>{projectClient}</Text>
+              {project?.status && (
+                <View style={[projectSummaryStyles.statusBadge, { backgroundColor: getStatusColor(project.status) + '20', borderColor: getStatusColor(project.status) }]}>
+                  <View style={[projectSummaryStyles.statusDot, { backgroundColor: getStatusColor(project.status) }]} />
+                  <Text style={[projectSummaryStyles.statusText, { color: getStatusColor(project.status) }]}>
+                    {getStatusText(project.status)}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
-          <View style={{ flex: 1, justifyContent: "center" }}>
-            <Text style={projectSummaryStyles.title}>{name}</Text>
-            <Text style={projectSummaryStyles.subtitle}>{client}</Text>
+
+          {/* Project details section */}
+          <View style={projectSummaryStyles.detailsSection}>
+            {/* Location and dates */}
+            <View style={projectSummaryStyles.infoRow}>
+              <Ionicons name="location-outline" size={16} color="#6b7280" />
+              <Text style={projectSummaryStyles.infoText}>
+                {project?.location || 'Ubicación no especificada'}
+              </Text>
+            </View>
+            
+            {startDate && endDate && (
+              <View style={projectSummaryStyles.infoRow}>
+                <Ionicons name="calendar-outline" size={16} color="#6b7280" />
+                <Text style={projectSummaryStyles.infoText}>
+                  {startDate} - {endDate}
+                </Text>
+              </View>
+            )}
+
+            {project?.drone && (
+              <View style={projectSummaryStyles.infoRow}>
+                <Ionicons name="airplane-outline" size={16} color="#6b7280" />
+                <Text style={projectSummaryStyles.infoText}>
+                  {project.drone}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Progress section */}
+          {progress > 0 && (
+            <View style={projectSummaryStyles.progressSection}>
+              <View style={projectSummaryStyles.progressHeader}>
+                <Text style={projectSummaryStyles.progressLabel}>Progreso del proyecto</Text>
+                <Text style={projectSummaryStyles.progressPercentage}>{progress}%</Text>
+              </View>
+              <View style={projectSummaryStyles.progressBar}>
+                <View 
+                  style={[
+                    projectSummaryStyles.progressFill, 
+                    { 
+                      width: `${progress}%`,
+                      backgroundColor: getStatusColor(project?.status || 'EN_PROGRESO')
+                    }
+                  ]} 
+                />
+              </View>
+            </View>
+          )}
+
+          {/* Footer with action indicator */}
+          <View style={projectSummaryStyles.footer}>
+            <Text style={projectSummaryStyles.actionText}>Ver detalles completos</Text>
+            <Ionicons name="chevron-forward-outline" size={20} color="#9ca3af" />
           </View>
         </View>
       </View>
@@ -72,38 +174,132 @@ const projectSummaryStyles = StyleSheet.create({
     position: "relative",
   },
   card: {
-    flexDirection: "row",
-    alignItems: "center",
     backgroundColor: "#fff",
-    borderRadius: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
+    borderRadius: 16,
+    padding: 20,
     marginHorizontal: 0,
-    // Sombra sutil para efecto flotante
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 1,
+    // Enhanced shadow for better visual impact
+    shadowColor: "#1f2937",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 16,
   },
   iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#ede9fe",
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#eff6ff",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 18,
+    marginRight: 16,
+    borderWidth: 2,
+    borderColor: "#dbeafe",
+  },
+  headerInfo: {
+    flex: 1,
   },
   title: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
     color: "#111827",
-    marginBottom: 1,
+    marginBottom: 4,
+    lineHeight: 24,
   },
   subtitle: {
     fontSize: 15,
-    color: "#9ca3af",
+    color: "#6b7280",
+    fontWeight: "500",
+    marginBottom: 8,
+  },
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignSelf: "flex-start",
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  detailsSection: {
+    marginBottom: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#f3f4f6",
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    color: "#4b5563",
+    marginLeft: 8,
+    flex: 1,
+  },
+  progressSection: {
+    marginBottom: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#f3f4f6",
+  },
+  progressHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  progressLabel: {
+    fontSize: 14,
+    color: "#374151",
+    fontWeight: "500",
+  },
+  progressPercentage: {
+    fontSize: 14,
+    color: "#3b82f6",
+    fontWeight: "700",
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#e5e7eb",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 4,
+  },
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#f3f4f6",
+  },
+  actionText: {
+    fontSize: 14,
+    color: "#6b7280",
     fontWeight: "500",
   },
 });
@@ -293,10 +489,6 @@ const PilotDashboard = () => {
     "PilotDashboard State: Initial currentProject.activities count =",
     currentProject?.activities?.length
   );
-
-  const [isChecklistComplete, setIsChecklistComplete] = useState<boolean>(() =>
-    (currentProject.checklist || []).every((item) => item.completed)
-  );
   const [alerts, setAlerts] = useState<AlertItem[]>(
     () => currentProject.alerts || []
   );
@@ -317,23 +509,11 @@ const PilotDashboard = () => {
   const [isNewIncidentModalVisible, setIsNewIncidentModalVisible] =
     useState(false);
   const [isProjectDetailsVisible, setIsProjectDetailsVisible] = useState(true); // Nuevo estado para la visibilidad de Mi Jornada Hoy
-
-  const projectLocationString =
-    typeof currentProject.location === "string"
-      ? currentProject.location
-      : undefined;
   const {
     weather,
     loading: weatherLoading,
     error: weatherError,
   } = useWeather();
-
-  useEffect(() => {
-    setIsChecklistComplete(
-      (currentProject.checklist || []).every((item) => item.completed)
-    );
-  }, [currentProject.checklist]);
-
   useEffect(() => {
     setAlerts(currentProject.alerts || []);
   }, [currentProject.alerts]);
@@ -715,69 +895,123 @@ const handleFinishActivity = useCallback(() => {
 
   const renderDashboardSection = useCallback(
     ({ item }: { item: DashboardSectionItem }) => {
-      switch (item.type) {
-        case "PROJECT_SUMMARY_CARD":
+      switch (item.type) {        case "PROJECT_SUMMARY_CARD":
           return (
             <ProjectSummaryCard
-              name={currentProject.name || "Proyecto sin Nombre"}
-              client={currentProject.client || "Cliente No Especificado"}
+              project={currentProject}
               onPress={() => router.push("/pilot/project-details")}
             />
-          );
-        case "ACTIVITY_TIMELINE": {
-          // Hardcoded timeline data to match the provided image, now with the closest available Ionicons
-          const timelineActivities: TimelineActivity[] = [
-            {
-              id: "1",
-              icon: (
-                <Ionicons name="airplane-outline" size={24} color="#6366f1" />
-              ),
-              title: "Vuelo de Inspección",
-              time: "10:27",
+          );case "ACTIVITY_TIMELINE": {
+          // Create dynamic timeline based on actual activity data
+          const timelineActivities: TimelineActivity[] = [];
+          
+          // Add current ongoing activity if any
+          if (currentOngoingActivityForDisplay) {
+            const activityType = activityTypes.find(t => t.type === currentOngoingActivityForDisplay.type);
+            timelineActivities.push({
+              id: currentOngoingActivityForDisplay.id,
+              icon: activityType?.icon ? 
+                <Ionicons name={activityType.icon as any} size={28} color="#3b82f6" /> :
+                <Ionicons name="briefcase-outline" size={28} color="#3b82f6" />,
+              title: currentOngoingActivityForDisplay.name,
+              time: currentOngoingActivityForDisplay.time || "En curso",
+              duration: undefined,              statusColor: "#3b82f6",
+              statusLabel: activityPauseState.isPaused ? "Pausada" : "En curso",
+              statusBg: activityPauseState.isPaused ? "#fef3c7" : "#dbeafe",
+            });
+          }
+          
+          // Add upcoming activities today (max 2)
+          const upcomingTodayActivities = pendingTodayActivities.slice(0, 2);
+          upcomingTodayActivities.forEach((activity) => {
+            const activityType = activityTypes.find(t => t.type === activity.type);
+            timelineActivities.push({
+              id: activity.id,
+              icon: activityType?.icon ? 
+                <Ionicons name={activityType.icon as any} size={24} color="#f59e0b" /> :
+                <Ionicons name="time-outline" size={24} color="#f59e0b" />,
+              title: activity.name,
+              time: activity.time || "Programada",
               duration: undefined,
-              statusColor: "#6366f1",
-              statusLabel: "En curso",
+              statusColor: "#f59e0b",
+              statusLabel: "Próxima",
+              statusBg: "#fef3c7",
+            });
+          });
+          
+          // Add future activities (max 2)
+          const futureActivities = genericPendingActivities.slice(0, 2);
+          futureActivities.forEach((activity) => {
+            const activityType = activityTypes.find(t => t.type === activity.type);
+            // Parse scheduled start to show better time info
+            let timeDisplay = "Programada";
+            if (activity.scheduledStart) {
+              const scheduledDate = new Date(activity.scheduledStart);
+              const today = new Date();
+              const tomorrow = new Date(today);
+              tomorrow.setDate(today.getDate() + 1);
+              
+              if (scheduledDate.toDateString() === tomorrow.toDateString()) {
+                timeDisplay = `Mañana, ${scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+              } else if (scheduledDate > tomorrow) {
+                timeDisplay = scheduledDate.toLocaleDateString('es-ES', { 
+                  weekday: 'short', 
+                  month: 'short', 
+                  day: 'numeric'
+                });
+              }
+            }
+            
+            timelineActivities.push({
+              id: activity.id,
+              icon: activityType?.icon ? 
+                <Ionicons name={activityType.icon as any} size={24} color="#8b5cf6" /> :
+                <Ionicons name="calendar-outline" size={24} color="#8b5cf6" />,
+              title: activity.name,
+              time: timeDisplay,
+              duration: undefined,
+              statusColor: "#8b5cf6",
+              statusLabel: "Futura",
               statusBg: "#ede9fe",
-            },
-            {
-              id: "2",
-              icon: (
-                <Ionicons name="walk-outline" size={24} color="#a3b63a" />
-              ),
-              title: "Desplazamiento en campo",
-              time: "10:20 - 10:26",
-              duration: "6 min",
-              statusColor: "#a3b63a",
-              statusLabel: "6 min",
-              statusBg: "#f7fbe7",
-            },
-            {
-              id: "3",
-              icon: (
-                <Ionicons name="time-outline" size={24} color="#49594a" />
-              ),
-              title: "Esperando permiso",
-              time: "09:50 - 10:20",
-              duration: "30 min",
-              statusColor: "#49594a",
-              statusLabel: "30 min",
-              statusBg: "#e6e9e6",
-            },
-            {
-              id: "4",
-              icon: (
-                <Ionicons name="location-outline" size={24} color="#c97c6a" />
-              ),
-              title: "Llegada al sitio",
-              time: "09:50",
-              duration: "0 min",
-              statusColor: "#c97c6a",
-              statusLabel: "0 min",
-              statusBg: "#f7eae7",
-            },
-          ];
-          return (
-            <ActivityTimeline activities={timelineActivities} />
+            });
+          });
+          
+          // Add recently completed activities (max 2, only if we have space)
+          if (timelineActivities.length < 5) {
+            const recentActivities = pastActivities.slice(0, Math.min(2, 5 - timelineActivities.length));
+            recentActivities.forEach((activity) => {
+              const activityType = activityTypes.find(t => t.type === activity.type);
+              timelineActivities.push({
+                id: activity.id,
+                icon: activityType?.icon ? 
+                  <Ionicons name={activityType.icon as any} size={24} color="#10b981" /> :
+                  <Ionicons name="checkmark-circle-outline" size={24} color="#10b981" />,
+                title: activity.name,
+                time: activity.time || "Completada",
+                duration: activity.actualEnd && activity.actualStart ? 
+                  `${Math.round((new Date(activity.actualEnd).getTime() - new Date(activity.actualStart).getTime()) / 60000)} min` : 
+                  undefined,
+                statusColor: "#10b981",
+                statusLabel: "Completada",
+                statusBg: "#dcfce7",
+              });
+            });
+          }
+          
+          // If no activities, show placeholder
+          if (timelineActivities.length === 0) {
+            timelineActivities.push({
+              id: "placeholder",
+              icon: <Ionicons name="time-outline" size={24} color="#9ca3af" />,
+              title: "No hay actividades registradas",
+              time: "Inicia una nueva actividad",
+              statusColor: "#9ca3af",
+              statusLabel: "Vacío",
+              statusBg: "#f3f4f6",
+            });          }return (
+            <ActivityTimeline 
+              activities={timelineActivities}
+            />
           );
         }
         case "REGISTER_ACTIVITY_BUTTON":
