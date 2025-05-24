@@ -90,13 +90,7 @@ export default function ActivityControl({
     }
     
     // Tiempo total transcurrido menos las pausas
-    return currentTime - start - totalPauseTime;
-  }
-  // Formato de fecha y hora
-  function formatDateTime(date: Date) {
-    return date.toLocaleDateString('es-MX', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) +
-      ' ' + date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  }
+    return currentTime - start - totalPauseTime;  }
 
   // Compacto y visual, con icono, nombre, tiempo y botones grandes
   return (
@@ -134,16 +128,10 @@ export default function ActivityControl({
               textAlign: 'center',
               marginVertical: 10,
               letterSpacing: 2,
-            }}
-          >
+            }}          >
             {formatDurationMs(getElapsed())}
           </Text>
-          {/* Mostrar fecha/hora de inicio de la actividad si existe */}
-          {ongoingActivity.actualStart && (
-            <Text style={{ color: '#8A94A6', fontSize: 13, textAlign: 'center', marginBottom: 8 }}>
-              Inicio: {formatDateTime(new Date(ongoingActivity.actualStart))}
-            </Text>
-          )}          {/* Si está en pausa, mostrar información de pausa debajo con texto más pequeño */}
+          {/* Si está en pausa, mostrar información de pausa debajo con texto más pequeño */}
           {isPaused && pauseStart && (
             <View style={{ alignItems: 'center', marginTop: 4, marginBottom: 8 }}>
               <Text style={{
@@ -275,14 +263,18 @@ export default function ActivityControl({
 }
 
 function formatDurationMs(ms: number) {
-  if (!ms || ms < 0) return '00:00:00';
+  if (!ms || ms < 0) return '00:00';
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return `${hours.toString().padStart(2, '0')}:${minutes
-    .toString()
-    .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  
+  if (hours > 0) {
+    return `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}`;
+  } else {
+    return `${minutes.toString().padStart(2, '0')}:${(totalSeconds % 60).toString().padStart(2, '0')}`;
+  }
 }
 
 const styles = StyleSheet.create({

@@ -157,6 +157,27 @@ export default function NewActivityScreen() { // Props removidas por ahora
       }
     }
 
+    // Validación especial para trabajo en turbina - requiere checklist prevuelo
+    if (activityTypeId === 'ACT_TRABAJO_TURBINA' && selectedAssetId && isForNow) {
+      Alert.alert(
+        "Checklist Prevuelo Requerido",
+        "Para trabajar en una turbina, primero debes completar el checklist de prevuelo. ¿Deseas ir al checklist ahora?",
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { 
+            text: 'Ir al Checklist', 
+            onPress: () => {
+              if (router.canGoBack()) {
+                router.back();
+              }
+              router.push(`/pilot/preflight-checklist?turbineId=${selectedAssetId}`);
+            }
+          }
+        ]
+      );
+      return;
+    }
+
     const pendingTimeString = isForNow ? new Date().toISOString() : dateForLater.toISOString();
     const activityData: ActivityFormData = {
       type: activityTypeId,
@@ -347,27 +368,25 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  scrollContentContainer: {
-    padding: 20,
-    paddingBottom: 70, // Espacio para el botón de acción al final
+  },  scrollContentContainer: {
+    padding: 16, // Reducido de 20 a 16
+    paddingBottom: 60, // Reducido de 70 a 60
   },
   currentTime: {
     color: '#64748b',
-    fontSize: 14,
-    marginBottom: 24, // Aumentado un poco el margen
+    fontSize: 13, // Reducido de 14 a 13
+    marginBottom: 16, // Reducido de 24 a 16
     textAlign: 'center',
   },
   subtitle: {
     color: '#374151',
-    fontSize: 16,
+    fontSize: 15, // Reducido de 16 a 15
     fontWeight: '600',
-    marginBottom: 12,
-    marginTop: 12, // Espacio consistente arriba y abajo de subtítulos
-  },
-  subtitleSwitchLabel: { // Estilo específico para el label del Switch para alinearlo
+    marginBottom: 10, // Reducido de 12 a 10
+    marginTop: 10, // Reducido de 12 a 10
+  },  subtitleSwitchLabel: { // Estilo específico para el label del Switch para alinearlo
     color: '#374151',
-    fontSize: 16,
+    fontSize: 15, // Reducido de 16 a 15
     fontWeight: '600',
     // No necesita marginBottom si globalFormStyles.form_switchContainer ya lo maneja
   },
@@ -375,25 +394,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between', // Asegura que las tarjetas se distribuyan
-    marginBottom: 16, // Reducido un poco el margen si el siguiente elemento es un subtítulo
+    marginBottom: 12, // Reducido de 16 a 12
   },
   typeCard: {
     width: '48%', // Dos tarjetas por fila
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    borderRadius: 12,
-    padding: 16, // Consistente con ActivityLogScreen
+    borderRadius: 10, // Reducido de 12 a 10
+    padding: 12, // Reducido de 16 a 12
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 6, // Reducido de 8 a 6
     shadowColor: '#b0b8c3',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1, // Sombra sutil
     shadowRadius: 4,
     elevation: 2,
-    minHeight: 90,
-    marginBottom: 12, // Espacio entre filas de tarjetas
+    minHeight: 80, // Reducido de 90 a 80
+    marginBottom: 10, // Reducido de 12 a 10
   },
   typeCardSelected: {
     backgroundColor: '#3b82f6',
@@ -401,51 +420,49 @@ const styles = StyleSheet.create({
     shadowColor: '#3b82f6',
     shadowOpacity: 0.25, // Sombra más pronunciada al seleccionar
     elevation: 4,
-  },
-  typeLabel: {
+  },  typeLabel: {
     color: '#1e3a8a',
     fontWeight: '500',
     textAlign: 'center',
-    fontSize: 13,
+    fontSize: 12, // Reducido de 13 a 12
   },
   typeLabelSelected: {
     color: '#ffffff',
   },
   assetSelection: {
-    marginBottom: 16,
+    marginBottom: 12, // Reducido de 16 a 12
   },
   assetScroll: {
     paddingHorizontal: 2, // Para que se vea la sombra de las tarjetas en los bordes
-    paddingVertical: 8,
-    gap: 12, // Espacio entre tarjetas de assets
+    paddingVertical: 6, // Reducido de 8 a 6
+    gap: 10, // Reducido de 12 a 10
   },
   assetCard: {
-    width: 120, // Más similar a turbineCard de ActivityLogScreen
+    width: 110, // Reducido de 120 a 110
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 10, // Reducido de 12 a 10
+    padding: 10, // Reducido de 12 a 10
     alignItems: 'center',
     justifyContent: 'center', // Centrar contenido verticalmente
-    gap: 8, // Similar a turbineCard
+    gap: 6, // Reducido de 8 a 6
     shadowColor: '#b0b8c3',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
-    minHeight: 100, // Para mantener una altura consistente
+    minHeight: 90, // Reducido de 100 a 90
   },
   assetCardSelected: {
     backgroundColor: '#f59e0b', // Color de selección para assets
     borderColor: '#d97706',
     shadowColor: '#f59e0b',
     elevation: 4,
-  },
-  assetName: {
+  },  assetName: {
     color: '#1e3a8a',
     fontWeight: '600',
-    fontSize: 14, // Reducido un poco para caber mejor en 120px
+    fontSize: 13, // Reducido de 14 a 13
     textAlign: 'center',
   },
   assetNameSelected: {
@@ -453,7 +470,7 @@ const styles = StyleSheet.create({
   },
   assetStatus: {
     color: '#64748b',
-    fontSize: 10,
+    fontSize: 9, // Reducido de 10 a 9
     fontWeight: '500',
     textAlign: 'center',
     textTransform: 'uppercase',
@@ -467,23 +484,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc', // Un fondo ligeramente diferente para los inputs
     borderWidth: 1,
     borderColor: '#cbd5e1', // Un borde más suave
-    borderRadius: 10,
-    padding: 16,
+    borderRadius: 8, // Reducido de 10 a 8
+    padding: 14, // Reducido de 16 a 14
     textAlignVertical: 'top', // Para multiline
     color: '#1e3a8a',
     fontSize: 14,
-    marginBottom: 16, // Reducido si el siguiente es un subtítulo
-    minHeight: 80, // Altura mínima para el input de notas
+    marginBottom: 12, // Reducido de 16 a 12
+    minHeight: 70, // Reducido de 80 a 70
   },
   datePickerContainer: {
-    marginBottom: 16,
-  },
-  dateDisplayRow: {
+    marginBottom: 12, // Reducido de 16 a 12
+  },  dateDisplayRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 10, // Espacio entre botones de fecha y hora
-    marginBottom: Platform.OS === 'ios' ? 10 : 16, // Margen para el picker si es spinner
+    gap: 8, // Reducido de 10 a 8
+    marginBottom: Platform.OS === 'ios' ? 8 : 12, // Reducido
   },
   datePickerButton: {
     flex: 1, // Para que ocupen el espacio disponible
@@ -491,23 +507,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#eff6ff', // Fondo azul claro
-    paddingVertical: 12,
-    paddingHorizontal: 10,
+    paddingVertical: 10, // Reducido de 12 a 10
+    paddingHorizontal: 8, // Reducido de 10 a 8
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#dbeafe', // Borde azul más claro
   },
   datePickerButtonText: {
-    marginLeft: 8,
+    marginLeft: 6, // Reducido de 8 a 6
     color: '#1e40af', // Texto azul oscuro
-    fontSize: 14,
+    fontSize: 13, // Reducido de 14 a 13
     fontWeight: '500',
   },
   actionButton: {
     backgroundColor: '#2563eb', // Azul más oscuro para el botón principal
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    borderRadius: 10, // Reducido de 12 a 10
+    paddingVertical: 14, // Reducido de 16 a 14
+    paddingHorizontal: 18, // Reducido de 20 a 18
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#2563eb',
@@ -515,12 +531,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 6,
     elevation: 4,
-    marginTop: 20, // Margen superior antes del botón
+    marginTop: 16, // Reducido de 20 a 16
   },
   actionButtonText: {
     color: '#ffffff',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 15, // Reducido de 16 a 15
   },
 });
 
