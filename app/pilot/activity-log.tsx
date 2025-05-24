@@ -103,7 +103,7 @@ type ActivityType = 'MOBILIZATION' | 'TURBINE_WORK' | 'BREAK' | 'WEATHER_DELAY' 
 const activityTypes = [
   { type: 'MOBILIZATION', label: 'Movilización', icon: 'bus' },
   { type: 'TURBINE_WORK', label: 'Trabajo en Turbina', icon: 'wind-turbine' },
-  { type: 'BREAK', label: 'Descanso', icon: 'coffee' },
+  { type: 'BREAK', label: 'Pausa', icon: 'pause-circle' },
   { type: 'MEAL', label: 'Tiempo de Comida', icon: 'food' },
   { type: 'WEATHER_DELAY', label: 'Retraso por Clima', icon: 'weather-cloudy' },
   { type: 'OTHER', label: 'Llegada al sitio', icon: 'map-marker' }
@@ -360,14 +360,14 @@ export default function ActivityLogScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-        )}
-
-        {activeTab === 'activities' && (
+        )}        {activeTab === 'activities' && (
           <View style={styles.activitiesSection}>
-            <Text style={styles.sectionTitle}>Registro del Día</Text>
-            <Text style={styles.subtitle}>
-              {currentTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <Text style={styles.sectionTitle}>Registro del Día</Text>
+              <Text style={styles.subtitle}>
+                {currentTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </Text>
+            </View>
             <View style={{ flexDirection: 'column', marginTop: 8, position: 'relative', alignItems: 'flex-start', paddingHorizontal: 0, width: '100%' }}>
               {todayActivities.length > 0 ? (
                 todayActivities.map((activity, index, arr) => {
@@ -390,9 +390,8 @@ export default function ActivityLogScreen() {
                     );
                   }
                   const activityType = activityTypes.find(t => t.type === activity.type);
-                  const turbine = activity.turbineId ? mockTurbines.find(t => t.id === activity.turbineId) : null;
-                  const completed = !!activity.endTime;
-                  const mainColor = completed ? '#10b981' : '#2563eb';
+                  const turbine = activity.turbineId ? mockTurbines.find(t => t.id === activity.turbineId) : null;                  const completed = !!activity.endTime;
+                  const mainColor = '#2563eb'; // Always blue for consistency
                   // Subactividades (pausas)
                   const subActivities = activity.subActivities || [];
                   // Determinar margen inferior: menos margen si no hay subactividades
@@ -400,56 +399,73 @@ export default function ActivityLogScreen() {
                   return (
                     <View key={activity.id} style={{ flexDirection: 'row', alignItems: 'flex-start', minHeight: 100, marginBottom: activityMarginBottom, position: 'relative', width: '100%' }}>
                       <View style={{ width: 0 }} />
-                      <View style={{ flex: 1, marginLeft: 0, marginTop: 0, marginRight: 0, maxWidth: '100%' }}>
-                        <View style={[styles.fixedActivityCard, { marginBottom: subActivities.length > 0 ? 6 : 0 }]}> 
-                          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, flexWrap: 'wrap' }}>
-                            <Text style={{ color: '#64748b', fontSize: 14, fontWeight: '600' }}>
-                              {formatTime(activity.startTime)}
-                              {activity.endTime && ` - ${formatTime(activity.endTime)}`}
-                            </Text>
+                      <View style={{ flex: 1, marginLeft: 0, marginTop: 0, marginRight: 0, maxWidth: '100%' }}>                        <View style={[styles.fixedActivityCard, { marginBottom: subActivities.length > 0 ? 6 : 0 }]}>                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                              <MaterialCommunityIcons
+                                name={(activityType?.icon || 'clock') as any}
+                                size={20}
+                                color={mainColor}
+                                style={{ marginRight: 8 }}
+                              />
+                              <Text style={{ color: mainColor, fontWeight: '700', fontSize: 16 }}>{activityType?.label || activity.type}</Text>
+                            </View>
                             {activity.endTime && (
-                              <Text style={{ color: '#10b981', fontSize: 13, fontWeight: 'bold', marginLeft: 10 }}>
-                                {formatDuration(activity.startTime, activity.endTime)}
-                              </Text>
+                              <View style={{ 
+                                backgroundColor: '#f8fafc', 
+                                paddingHorizontal: 12, 
+                                paddingVertical: 8, 
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                borderColor: '#e2e8f0'
+                              }}>
+                                <Text style={{ color: '#1e293b', fontSize: 12, fontWeight: '700' }}>
+                                  {formatDuration(activity.startTime, activity.endTime)}
+                                </Text>
+                              </View>
                             )}
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, flexWrap: 'wrap' }}>
-                            <MaterialCommunityIcons
-                              name={(activityType?.icon || 'clock') as any}
-                              size={20}
-                              color={mainColor}
-                              style={{ marginRight: 8 }}
-                            />
-                            <Text style={{ color: mainColor, fontWeight: '700', fontSize: 16 }}>{activityType?.label || activity.type}</Text>
                           </View>
                           {turbine && (
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
                               <Ionicons name="cog" size={15} color="#64748b" style={{ marginRight: 6 }} />
                               <Text style={{ color: '#475569', fontSize: 13 }}>{turbine.name} • {turbine.status === 'COMPLETED' ? 'Completada' : 'En progreso'}</Text>
                             </View>
-                          )}
-                          {activity.notes && (
+                          )}                          {activity.notes && (
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                               <Ionicons name="document-text" size={15} color="#64748b" style={{ marginRight: 6 }} />
                               <Text style={{ color: '#475569', fontSize: 13 }}>{activity.notes}</Text>
                             </View>
                           )}
-                          {/* Detalles adicionales de la actividad (solo lo esencial) */}
+                          
+                          {/* Time information */}
+                          <View style={{ marginTop: 6 }}>
+                            <Text style={{ color: '#64748b', fontSize: 12, marginBottom: 1 }}>
+                              Fecha Inicio: {formatTime(activity.startTime)}
+                            </Text>
+                            {activity.endTime && (
+                              <Text style={{ color: '#64748b', fontSize: 12 }}>
+                                Fecha Fin: {formatTime(activity.endTime)}
+                              </Text>
+                            )}
+                          </View>{/* Detalles adicionales de la actividad (solo lo esencial) */}
                           <View style={{ marginTop: 6, gap: 2 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                              <Ionicons name="person" size={14} color="#64748b" style={{ marginRight: 5 }} />
-                              <Text style={{ color: '#64748b', fontSize: 13 }}>Operador: {activity.operator}</Text>
-                            </View>
+                            {activity.type === 'TURBINE_WORK' && (
+                              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                                <Ionicons name="person" size={14} color="#64748b" style={{ marginRight: 5 }} />
+                                <Text style={{ color: '#64748b', fontSize: 13 }}>Operador: {activity.operator}</Text>
+                              </View>
+                            )}
                             {activity.type === 'TURBINE_WORK' && turbine && (
                               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
                                 <MaterialCommunityIcons name="wind-turbine" size={14} color="#3b82f6" style={{ marginRight: 5 }} />
                                 <Text style={{ color: '#475569', fontSize: 13 }}>Turbina: {turbine.name} ({turbine.status === 'COMPLETED' ? 'Completada' : 'En progreso'})</Text>
                               </View>
                             )}
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                              <MaterialCommunityIcons name="drone" size={14} color="#64748b" style={{ marginRight: 5 }} />
-                              <Text style={{ color: '#64748b', fontSize: 13 }}>Dron: {assignedDrone.model}</Text>
-                            </View>
+                            {activity.type === 'TURBINE_WORK' && (
+                              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                                <MaterialCommunityIcons name="drone" size={14} color="#64748b" style={{ marginRight: 5 }} />
+                                <Text style={{ color: '#64748b', fontSize: 13 }}>Dron: {assignedDrone.model}</Text>
+                              </View>
+                            )}
                           </View>
                         </View>
                         {/* Subactividades (pausas), indentadas y tamaño fijo */}
@@ -458,19 +474,34 @@ export default function ActivityLogScreen() {
                           return (
                             <View key={sub.id} style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: subIdx === 0 ? 0 : 4, marginBottom: 0, marginLeft: 28, marginRight: 0 }}>
                               <View style={{ width: 0, marginRight: 0 }} />
-                              <View style={[styles.fixedSubActivityCard, { marginBottom: 0, marginTop: 0 }]}> 
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2, flexWrap: 'wrap', marginLeft: 2 }}>
-                                  <MaterialCommunityIcons name={subType?.icon as any} size={16} color="#f59e0b" style={{ marginRight: 6 }} />
-                                  <Text style={{ color: '#b45309', fontWeight: '700', fontSize: 14 }}>{subType?.label || 'Pausa'}</Text>
-                                  <Text style={{ color: '#b45309', fontSize: 13, marginLeft: 8 }}>{formatTime(sub.startTime)} - {formatTime(sub.endTime)}</Text>
+                              <View style={[styles.fixedSubActivityCard, { marginBottom: 0, marginTop: 0 }]}>                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2, marginLeft: 2 }}>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                                    <MaterialCommunityIcons name={subType?.icon as any} size={16} color={sub.type === 'BREAK' ? '#d97706' : '#2563eb'} style={{ marginRight: 6 }} />
+                                    <Text style={{ color: sub.type === 'BREAK' ? '#d97706' : '#2563eb', fontWeight: '700', fontSize: 14 }}>{subType?.label || 'Pausa'}</Text>
+                                  </View>
                                   {sub.endTime && sub.startTime && (
-                                    <Text style={{ color: '#eab308', fontSize: 13, marginLeft: 8, fontWeight: 'bold' }}>({formatDuration(sub.startTime, sub.endTime)})</Text>
+                                    <View style={{
+                                      backgroundColor: sub.type === 'BREAK' ? '#fef3c7' : '#e0f2fe',
+                                      paddingHorizontal: 8,
+                                      paddingVertical: 4,
+                                      borderRadius: 6,
+                                      borderWidth: 1,
+                                      borderColor: sub.type === 'BREAK' ? '#f59e0b' : '#0891b2'
+                                    }}>
+                                      <Text style={{ color: sub.type === 'BREAK' ? '#92400e' : '#0c4a6e', fontSize: 11, fontWeight: '600' }}>
+                                        {formatDuration(sub.startTime, sub.endTime)}
+                                      </Text>
+                                    </View>
                                   )}
                                 </View>
-                                <Text style={{ color: '#a16207', fontSize: 13, marginLeft: 2 }}>{sub.notes}</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                                  <Ionicons name="person" size={13} color="#a16207" style={{ marginRight: 4 }} />
-                                  <Text style={{ color: '#a16207', fontSize: 12 }}>Operador: {sub.operator}</Text>
+                                <Text style={{ color: '#64748b', fontSize: 13, marginLeft: 2 }}>{sub.notes}</Text>
+                                <View style={{ marginTop: 4, marginLeft: 2 }}>
+                                  <Text style={{ color: '#64748b', fontSize: 12, marginBottom: 1 }}>
+                                    Fecha Inicio: {formatTime(sub.startTime)}
+                                  </Text>
+                                  <Text style={{ color: '#64748b', fontSize: 12 }}>
+                                    Fecha Fin: {formatTime(sub.endTime)}
+                                  </Text>
                                 </View>
                               </View>
                             </View>
