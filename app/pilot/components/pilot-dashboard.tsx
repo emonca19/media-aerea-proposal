@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
+  Image,
   StatusBar,
   StyleSheet,
   Text,
@@ -33,6 +34,7 @@ import {
   ChecklistItemData,
   incidentTypes as importedIncidentTypes,
   IncidentData,
+  pilot,
   initialCurrentProject as projectDataFromImport
 } from "./pilot-dashboard-data"; // Importamos el nuevo componente con sus datos
 
@@ -99,12 +101,100 @@ function ProjectSummaryCard({
   );
 }
 
+// Subtle Welcome Header component inspired by profile
+function WelcomeHeader({
+  pilotName,
+  currentDate,
+  weather,
+  weatherLoading,
+}: {
+  pilotName: string;
+  currentDate: string;
+  weather: any;
+  weatherLoading: boolean;
+}) {
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('es-MX', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('es-MX', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
+  const getWeatherIcon = (condition: string) => {
+    const conditionLower = condition?.toLowerCase() || '';
+    if (conditionLower.includes('sol') || conditionLower.includes('despejado')) {
+      return 'sunny-outline';
+    } else if (conditionLower.includes('nublado') || conditionLower.includes('nube')) {
+      return 'partly-sunny-outline';
+    } else if (conditionLower.includes('lluvia') || conditionLower.includes('lluvioso')) {
+      return 'rainy-outline';
+    } else if (conditionLower.includes('viento')) {
+      return 'leaf-outline';
+    }
+    return 'cloud-outline';
+  };
+
+  return (
+    <View style={welcomeStyles.container}>
+      <View style={welcomeStyles.header}>
+        <View style={welcomeStyles.userSection}>
+          <View style={welcomeStyles.avatarContainer}>
+            <Image source={pilot.avatar} style={welcomeStyles.avatar} />
+            <View style={welcomeStyles.statusIndicator} />
+          </View>
+          <View style={welcomeStyles.userInfo}>
+            <Text style={welcomeStyles.name}>{pilotName}</Text>
+            <Text style={welcomeStyles.role}>Piloto de Drones</Text>
+          </View>
+        </View>
+        
+        <View style={welcomeStyles.rightSection}>
+          <View style={welcomeStyles.dateTimeSection}>
+            <Text style={welcomeStyles.dateText}>{formatDate(currentDateTime)}</Text>
+            <Text style={welcomeStyles.timeText}>{formatTime(currentDateTime)}</Text>
+          </View>          {!weatherLoading && weather && (
+            <View style={welcomeStyles.weatherSection}>
+              <Ionicons 
+                name={getWeatherIcon(weather.condition)} 
+                size={16} 
+                color="#6b7280" 
+              />
+              <Text style={welcomeStyles.weatherText}>
+                {weather.temperature}°
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 const projectSummaryStyles = StyleSheet.create({
   cardWrapper: {
     width: "100%",
     maxWidth: 420,
     alignSelf: "center",
-    marginTop: 18,
+    marginTop: -7,
     marginBottom: 10,
     position: "relative",
   },
@@ -399,6 +489,7 @@ console.log(
 type DashboardSectionItem = {
   id: string;
   type:
+    | "WELCOME_HEADER"
     | "PROJECT_SUMMARY_CARD"
     | "REGISTER_ACTIVITY_BUTTON"
     | "ACTIVITY_TIMELINE"
@@ -741,10 +832,10 @@ const PilotDashboard = () => {
     genericPendingActivities,
     unassignedTimeActivities,
     pastActivities,
-  ]);
-  // Reordenar las secciones según la solicitud del usuario
+  ]);  // Reordenar las secciones según la solicitud del usuario
   const dashboardSections = useMemo(
     (): DashboardSectionItem[] => [
+      { id: "welcome-header", type: "WELCOME_HEADER" },
       { id: "project-summary", type: "PROJECT_SUMMARY_CARD" },
       { id: "quickActions", type: "QUICK_ACTIONS_MENU_CARD" },
       { id: "timeline", type: "ACTIVITY_TIMELINE" }, // Reemplaza journey
@@ -825,10 +916,23 @@ const handleFinishActivity = useCallback(() => {
   setActivityPauseState({ isPaused: false });
   handleActivityAction(currentOngoingActivityForDisplay.id, "COMPLETADA");
 }, [currentOngoingActivityForDisplay, handleActivityAction]);
-
   const renderDashboardSection = useCallback(
     ({ item }: { item: DashboardSectionItem }) => {
-      switch (item.type) {        case "PROJECT_SUMMARY_CARD":
+      switch (item.type) {
+        case "WELCOME_HEADER":
+          return (
+            <WelcomeHeader
+              pilotName={pilot.name}
+              currentDate={new Date().toLocaleDateString('es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric'              })}
+              weather={weather}
+              weatherLoading={weatherLoading}
+            />
+          );
+        case "PROJECT_SUMMARY_CARD":
           return (
             <ProjectSummaryCard
               project={currentProject}
@@ -1050,19 +1154,20 @@ const handleFinishActivity = useCallback(() => {
               onDismissAlert={handleDismissAlert}
               showDismissAllButton={true}
             />
-          );
-        case "QUICK_ACTIONS_MENU_CARD":
+          );        case "QUICK_ACTIONS_MENU_CARD":
           return (
             <>
-              <ActivityControl
-                ongoingActivity={currentOngoingActivityForDisplay}
-                onStart={handleStartJornada}
-                onPause={handlePauseActivity}
-                onResume={handleResumeActivity}
-                onFinish={handleFinishActivity}
-                isPaused={activityPauseState.isPaused}
-                currentPauseReason={activityPauseState.reason}
-              />
+              {currentOngoingActivityForDisplay && (
+                <ActivityControl
+                  ongoingActivity={currentOngoingActivityForDisplay}
+                  onStart={handleStartJornada}
+                  onPause={handlePauseActivity}
+                  onResume={handleResumeActivity}
+                  onFinish={handleFinishActivity}
+                  isPaused={activityPauseState.isPaused}
+                  currentPauseReason={activityPauseState.reason}
+                />
+              )}
               <QuickActionsMenuCard
                 onNavigate={handleNavigate}
                 onOpenNewActivity={handleOpenNewActivityModal}
@@ -1182,6 +1287,121 @@ const handleFinishActivity = useCallback(() => {
     </View>
   );
 };
+
+// Welcome Header Styles - Subtle design inspired by profile
+const welcomeStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#fff',
+    width: "100%",
+    maxWidth: 420,
+    alignSelf: "center",
+    marginHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    minHeight: 100,
+  },
+  userSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0, // Permite que el texto se corte si es necesario
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: 16,
+    flexShrink: 0,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+  },
+  statusIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#22c55e',
+    borderWidth: 2,
+    borderColor: 'white',
+  },
+  userInfo: {
+    flex: 1,
+    minWidth: 0, // Permite que el texto se corte si es necesario
+  },
+  name: {
+    fontSize: 22,
+    color: '#111827',
+    fontWeight: '800',
+    marginBottom: 2,
+    lineHeight: 26,
+  },
+  role: {
+    fontSize: 15,
+    color: '#6b7280',
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  rightSection: {
+    alignItems: 'flex-end',
+    gap: 8,
+    flexShrink: 0,
+    minWidth: 100,
+  },  dateTimeSection: {
+    alignItems: 'flex-end',
+    maxWidth: 120,
+  },
+  dateText: {
+    fontSize: 12,
+    color: '#374151',
+    fontWeight: '600',
+    textTransform: 'capitalize',
+    textAlign: 'right',
+    lineHeight: 14,
+  },
+  timeText: {
+    fontSize: 14,
+    color: '#111827',
+    fontWeight: '700',
+    marginTop: 2,
+    textAlign: 'right',
+    lineHeight: 16,
+  },
+  weatherSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    maxWidth: 80,
+  },
+  weatherText: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+});
 
 const styles = StyleSheet.create({
   screenContainer: { flex: 1, backgroundColor: "#f0f2f5" },

@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   description: {
     color: "#333",
-    marginBottom: 12,
+    marginBottom: 8,
   },
   dates: {
     flexDirection: "row",
