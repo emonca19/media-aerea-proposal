@@ -16,7 +16,7 @@ export const mockPhotoSubmissionReviews: PhotoSubmissionReview[] = [
     reviewedBy: "admin_001",
     reviewedAt: new Date("2025-05-22T14:15:00Z"),
     rejectionReason:
-      "Several photos are blurry and blade details are not clearly visible. Please retake photos of turbines T-003 and T-007.",
+      "Varias fotos están borrosas y los detalles de las palas no son claramente visibles. Por favor retome fotos de turbinas T-003 y T-007.",
   },
   {
     status: "APPROVED" as PhotoSubmissionStatus,
@@ -31,9 +31,9 @@ export const mockPhotoSubmissions: PhotoSubmission[] = [
   {
     id: "photo_sub_001",
     pilotId: "pilot_001",
-    pilotName: "John Smith",
+    pilotName: "Juan Carlos Méndez",
     projectId: "proj_001",
-    projectName: "WindFarm Alpha Inspection Q2 2025",
+    projectName: "Inspección Parque Eólico Alfa Q2 2025",
     submissionDate: new Date("2025-05-23T09:00:00Z"),
     driveLink: "https://drive.google.com/",
     turbinesInspected: ["turbine_001", "turbine_002", "turbine_003"],
@@ -44,9 +44,9 @@ export const mockPhotoSubmissions: PhotoSubmission[] = [
   {
     id: "photo_sub_002",
     pilotId: "pilot_002",
-    pilotName: "Sarah Johnson",
+    pilotName: "Ana Patricia Morales",
     projectId: "proj_002",
-    projectName: "Coastal Wind Inspection Phase 1",
+    projectName: "Inspección Eólica Costera Fase 1",
     submissionDate: new Date("2025-05-22T13:30:00Z"),
     driveLink: "https://drive.google.com/",
     turbinesInspected: [
@@ -62,9 +62,9 @@ export const mockPhotoSubmissions: PhotoSubmission[] = [
   {
     id: "photo_sub_003",
     pilotId: "pilot_003",
-    pilotName: "Mike Rodriguez",
+    pilotName: "Miguel Rodríguez",
     projectId: "proj_001",
-    projectName: "WindFarm Alpha Inspection Q2 2025",
+    projectName: "Inspección Parque Eólico Alfa Q2 2025",
     submissionDate: new Date("2025-05-21T16:00:00Z"),
     driveLink: "https://drive.google.com/",
     turbinesInspected: ["turbine_008", "turbine_009"],
@@ -75,9 +75,9 @@ export const mockPhotoSubmissions: PhotoSubmission[] = [
   {
     id: "photo_sub_004",
     pilotId: "pilot_004",
-    pilotName: "Emma Davis",
+    pilotName: "Carmen Elena Vásquez",
     projectId: "proj_003",
-    projectName: "Mountain Ridge Emergency Inspection",
+    projectName: "Inspección de Emergencia Sierra de Montaña",
     submissionDate: new Date("2025-05-24T08:15:00Z"),
     driveLink: "https://drive.google.com/",
     turbinesInspected: ["turbine_010", "turbine_011"],
@@ -88,13 +88,13 @@ export const mockPhotoSubmissions: PhotoSubmission[] = [
   {
     id: "photo_sub_005",
     pilotId: "pilot_001",
-    pilotName: "John Smith",
+    pilotName: "Juan Carlos Méndez",
     projectId: "proj_001",
-    projectName: "WindFarm Alpha Inspection Q2 2025",
+    projectName: "Inspección Parque Eólico Alfa Q2 2025",
     submissionDate: new Date("2025-05-24T14:30:00Z"),
     driveLink: "https://drive.google.com/",
     turbinesInspected: ["turbine_012"],
-    // No review yet - still pending
+    // No hay revisión aún - pendiente
     createdAt: new Date("2025-05-24T14:30:00Z"),
     updatedAt: new Date("2025-05-24T14:30:00Z"),
   },

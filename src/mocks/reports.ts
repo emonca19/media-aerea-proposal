@@ -29,7 +29,7 @@ export const mockReportFilters: ReportFilter[] = [
 export const mockReports: Report[] = [
   {
     id: "report_001",
-    name: "May 2025 Project Progress Report",
+    name: "Reporte de Progreso de Proyectos Mayo 2025",
     type: "PROJECT",
     format: "PDF",
     filters: mockReportFilters[0],
@@ -39,7 +39,7 @@ export const mockReports: Report[] = [
   },
   {
     id: "report_002",
-    name: "Q1 2025 Pilot Performance Analysis",
+    name: "Análisis de Rendimiento de Pilotos Q1 2025",
     type: "PILOT",
     format: "EXCEL",
     filters: {
@@ -53,7 +53,7 @@ export const mockReports: Report[] = [
   },
   {
     id: "report_003",
-    name: "Client Activity Summary - GreenEnergy Corp",
+    name: "Resumen de Actividad Cliente - Energía Verde Corp",
     type: "CLIENT",
     format: "CSV",
     filters: {
@@ -67,7 +67,7 @@ export const mockReports: Report[] = [
   },
   {
     id: "report_004",
-    name: "Desert Wind Farm Completion Report",
+    name: "Reporte de Finalización Parque Eólico Desértico",
     type: "PROJECT",
     format: "PDF",
     filters: mockReportFilters[1],
@@ -77,7 +77,7 @@ export const mockReports: Report[] = [
   },
   {
     id: "report_005",
-    name: "Turbine Inspection Status - May 2025",
+    name: "Estado de Inspección de Turbinas - Mayo 2025",
     type: "TURBINE",
     format: "EXCEL",
     filters: {
@@ -158,7 +158,7 @@ export const mockProjectReports: ProjectReport[] = [
 export const mockPilotReports: PilotReport[] = [
   {
     pilotId: "pilot_001",
-    pilotName: "John Smith",
+    pilotName: "Juan Carlos Méndez",
     period: {
       startDate: new Date("2025-05-01"),
       endDate: new Date("2025-05-24"),
@@ -183,7 +183,7 @@ export const mockPilotReports: PilotReport[] = [
   },
   {
     pilotId: "pilot_002",
-    pilotName: "Sarah Johnson",
+    pilotName: "Ana Patricia Morales",
     period: {
       startDate: new Date("2025-05-01"),
       endDate: new Date("2025-05-24"),
@@ -208,7 +208,7 @@ export const mockPilotReports: PilotReport[] = [
   },
   {
     pilotId: "pilot_003",
-    pilotName: "Mike Rodriguez",
+    pilotName: "Miguel Rodríguez",
     period: {
       startDate: new Date("2025-05-01"),
       endDate: new Date("2025-05-24"),

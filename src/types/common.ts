@@ -21,6 +21,8 @@ export type ActivityType =
   | "DEMOBILIZATION"
   | "OTHER";
 
+export type ActivityStatus = "PLANNED" | "IN_PROGRESS" | "COMPLETED";
+
 export type PhotoSubmissionStatus = "PENDING_REVIEW" | "APPROVED" | "REJECTED";
 
 export type IncidentType =

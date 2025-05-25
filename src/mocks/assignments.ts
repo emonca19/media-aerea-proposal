@@ -15,7 +15,7 @@ export const mockProjectAssignments: ProjectAssignment[] = [
     estimatedDuration: 26,
     assignedBy: "admin_001",
     confirmed: true,
-    notes: "Primary assignment for WindFarm Alpha inspection",
+    notes: "Asignación principal para inspección Parque Eólico Alfa",
     createdAt: new Date("2025-05-15T10:00:00Z"),
     updatedAt: new Date("2025-05-18T14:30:00Z"),
   },
@@ -29,7 +29,7 @@ export const mockProjectAssignments: ProjectAssignment[] = [
     estimatedDuration: 19,
     assignedBy: "admin_001",
     confirmed: false,
-    notes: "Pending pilot confirmation for coastal wind farm",
+    notes: "Pendiente confirmación del piloto para parque eólico costero",
     createdAt: new Date("2025-05-20T09:00:00Z"),
     updatedAt: new Date("2025-05-20T09:00:00Z"),
   },
@@ -43,7 +43,7 @@ export const mockProjectAssignments: ProjectAssignment[] = [
     estimatedDuration: 15,
     assignedBy: "admin_002",
     confirmed: true,
-    notes: "Emergency inspection assignment",
+    notes: "Asignación de inspección de emergencia",
     createdAt: new Date("2025-05-22T16:00:00Z"),
     updatedAt: new Date("2025-05-23T08:00:00Z"),
   },
@@ -52,7 +52,7 @@ export const mockProjectAssignments: ProjectAssignment[] = [
 export const mockPilotAvailability: PilotAvailability[] = [
   {
     pilotId: "pilot_001",
-    pilotName: "John Smith",
+    pilotName: "Juan Carlos Méndez",
     available: false,
     currentProject: "proj_001",
     availability: [
@@ -64,7 +64,7 @@ export const mockPilotAvailability: PilotAvailability[] = [
   },
   {
     pilotId: "pilot_002",
-    pilotName: "Sarah Johnson",
+    pilotName: "Ana Patricia Morales",
     available: true,
     availability: [
       {
@@ -79,7 +79,7 @@ export const mockPilotAvailability: PilotAvailability[] = [
   },
   {
     pilotId: "pilot_003",
-    pilotName: "Mike Rodriguez",
+    pilotName: "Miguel Rodríguez",
     available: false,
     currentProject: "proj_001",
     availability: [
@@ -91,7 +91,7 @@ export const mockPilotAvailability: PilotAvailability[] = [
   },
   {
     pilotId: "pilot_004",
-    pilotName: "Emma Davis",
+    pilotName: "Carmen Elena Vásquez",
     available: false,
     currentProject: "proj_003",
     availability: [
@@ -106,7 +106,7 @@ export const mockPilotAvailability: PilotAvailability[] = [
 export const mockDroneAvailability: DroneAvailability[] = [
   {
     droneId: "drone_001",
-    droneName: "DJI Mavic 3 - Unit 001",
+    droneName: "DJI Mavic 3 - Unidad 001",
     available: false,
     currentProject: "proj_001",
     status: "OPERATIONAL",
@@ -114,13 +114,13 @@ export const mockDroneAvailability: DroneAvailability[] = [
   },
   {
     droneId: "drone_002",
-    droneName: "DJI Mavic 3 - Unit 002",
+    droneName: "DJI Mavic 3 - Unidad 002",
     available: true,
     status: "OPERATIONAL",
   },
   {
     droneId: "drone_003",
-    droneName: "DJI Mavic 3 - Unit 003",
+    droneName: "DJI Mavic 3 - Unidad 003",
     available: false,
     currentProject: "proj_001",
     status: "OPERATIONAL",
@@ -128,7 +128,7 @@ export const mockDroneAvailability: DroneAvailability[] = [
   },
   {
     droneId: "drone_004",
-    droneName: "DJI Air 2S - Unit 001",
+    droneName: "DJI Air 2S - Unidad 001",
     available: false,
     currentProject: "proj_003",
     status: "OPERATIONAL",
@@ -136,7 +136,7 @@ export const mockDroneAvailability: DroneAvailability[] = [
   },
   {
     droneId: "drone_005",
-    droneName: "DJI Mini 3 Pro - Unit 001",
+    droneName: "DJI Mini 3 Pro - Unidad 001",
     available: false,
     status: "MAINTENANCE",
   },

@@ -6,7 +6,7 @@ export const mockIncidents: Incident[] = [
     id: "incident_001",
     type: "WEATHER" as IncidentType,
     description:
-      "Strong wind gusts exceeded safe operating limits during turbine inspection. Operation suspended for safety.",
+      "Ráfagas de viento fuerte excedieron los límites seguros de operación durante la inspección del aerogenerador. Operación suspendida por seguridad.",
     projectId: "proj_001",
     turbineId: "turbine_003",
     pilotId: "pilot_001",
@@ -23,7 +23,7 @@ export const mockIncidents: Incident[] = [
     id: "incident_002",
     type: "EQUIPMENT" as IncidentType,
     description:
-      "Drone experienced gimbal malfunction during flight. Emergency landing performed successfully.",
+      "El dron experimentó una falla en el gimbal durante el vuelo. Se realizó aterrizaje de emergencia exitosamente.",
     projectId: "proj_002",
     turbineId: "turbine_008",
     pilotId: "pilot_002",
@@ -40,7 +40,7 @@ export const mockIncidents: Incident[] = [
     id: "incident_003",
     type: "CLIENT_PRIORITY" as IncidentType,
     description:
-      "Client requested immediate inspection of turbine due to unusual vibration reports from maintenance team.",
+      "El cliente solicitó inspección inmediata del aerogenerador debido a reportes inusuales de vibración del equipo de mantenimiento.",
     projectId: "proj_001",
     turbineId: "turbine_012",
     pilotId: "pilot_003",
@@ -56,7 +56,7 @@ export const mockIncidents: Incident[] = [
     id: "incident_004",
     type: "ACCIDENT" as IncidentType,
     description:
-      "Minor collision with bird during flight. Drone sustained minor damage to front sensor. No injuries reported.",
+      "Colisión menor con ave durante el vuelo. El dron sufrió daño menor en el sensor frontal. No se reportaron lesiones.",
     projectId: "proj_003",
     turbineId: "turbine_005",
     pilotId: "pilot_004",
@@ -73,7 +73,7 @@ export const mockIncidents: Incident[] = [
     id: "incident_005",
     type: "OTHER" as IncidentType,
     description:
-      "Unauthorized personnel entered restricted flight zone. Flight operations temporarily halted until area was cleared.",
+      "Personal no autorizado ingresó a la zona de vuelo restringida. Las operaciones de vuelo se detuvieron temporalmente hasta que el área fue despejada.",
     projectId: "proj_002",
     pilotId: "pilot_002",
     dateTime: new Date("2025-05-18T13:20:00Z"),

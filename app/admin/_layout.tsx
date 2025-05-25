@@ -155,6 +155,21 @@ export default function AdminLayout() {
         />
 
         <Tabs.Screen
+          name="(tasks)"
+          options={{
+            title: "Tareas",
+            sceneStyle: { backgroundColor: "#ffffff" },
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons
+                name={focused ? "checkbox" : "checkbox-outline"}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
+
+        <Tabs.Screen
           name="(projects)"
           options={{
             title: "Proyectos",
@@ -177,21 +192,6 @@ export default function AdminLayout() {
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons
                 name={focused ? "construct" : "construct-outline"}
-                size={size}
-                color={color}
-              />
-            ),
-          }}
-        />
-
-        <Tabs.Screen
-          name="(tasks)"
-          options={{
-            title: "Tareas",
-            sceneStyle: { backgroundColor: "#ffffff" },
-            tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons
-                name={focused ? "checkbox" : "checkbox-outline"}
                 size={size}
                 color={color}
               />
