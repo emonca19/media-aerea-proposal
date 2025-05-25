@@ -1,5 +1,6 @@
 // app/pilot/dashboard/components/QuickActionsMenuCard.tsx
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { styles as globalStyles } from './pilot-dashboard-styles';
@@ -37,43 +38,39 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({
     } else {
       onOpenNewActivity();
     }
-  };
-  
-  return (
-    <View style={globalStyles.card_container}>
-      <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
-        <View style={styles.actionsContainer}>
-        <TouchableOpacity 
-          activeOpacity={0.85}
-          style={styles.timelineStyleButton} 
-          onPress={onOpenNewActivity}
+  };  return (
+    <View style={[globalStyles.card_container, styles.quickActionsCard]}>      <View style={styles.actionsContainer}>        <LinearGradient
+          colors={["#10b981", "#059669"]}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={styles.gradientButtonPrimary}
         >
-          <View style={styles.timelineButtonContent}>
-            <View style={[styles.timelineIconCircle, { borderColor: '#3b82f6', backgroundColor: '#eff6ff' }]}>
-              <Ionicons name="add-circle" size={24} color="#3b82f6" />
+          <TouchableOpacity 
+            activeOpacity={0.9}
+            style={styles.gradientBtnContentPrimary}
+            onPress={onOpenNewActivity}
+          >
+            <View style={styles.buttonIconContainer}>
+              <Ionicons name="add-circle" size={24} color="#ffffff" />
             </View>
-            <View style={styles.timelineButtonText}>
-              <Text style={styles.timelineActionLabel}>Registrar Nueva Actividad</Text>
-              <Text style={styles.timelineActionSubtitle}>Captura y monitorea tu trabajo</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          activeOpacity={0.85}
-          style={styles.timelineStyleButton} 
-          onPress={onOpenNewIncident}
+            <Text style={styles.buttonTextPrimary}>Actividad</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+          <LinearGradient
+          colors={["#f59e0b", "#d97706"]}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={styles.gradientButtonSecondary}
         >
-          <View style={styles.timelineButtonContent}>
-            <View style={[styles.timelineIconCircle, { borderColor: '#f97316', backgroundColor: '#fff7ed' }]}>
-              <Ionicons name="warning" size={24} color="#f97316" />
+          <TouchableOpacity 
+            activeOpacity={0.9}
+            style={styles.gradientBtnContentSecondary}
+            onPress={onOpenNewIncident}
+          >
+            <View style={styles.buttonIconContainer}>
+              <Ionicons name="warning" size={20} color="#ffffff" />
             </View>
-            <View style={styles.timelineButtonText}>
-              <Text style={styles.timelineActionLabel}>Reportar Incidente</Text>
-              <Text style={styles.timelineActionSubtitle}>Notificar problemas o emergencias</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
+            <Text style={styles.buttonTextSecondary}>Incidente</Text>
+          </TouchableOpacity>
+        </LinearGradient>
       </View>
 
       <QuickRegisterActivityForm
@@ -85,51 +82,74 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  sectionTitle: {
-    fontSize: 18, 
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 12
-  },
-  actionsContainer: {
-    gap: 12,
-    width: '100%'
-  },
-  timelineStyleButton: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    padding: 12,
-    width: '100%'
-  },
-  timelineButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  timelineIconCircle: {
-    width: 32,
-    height: 32,
+const styles = StyleSheet.create({  quickActionsCard: {
+    backgroundColor: '#f8fafc',
     borderRadius: 16,
-    borderWidth: 2,
+    padding: 16,
+    marginTop: -7,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },  actionsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    width: '100%',
+  },
+  gradientButtonPrimary: {
+    flex: 1.6,
+    borderRadius: 12,
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  gradientButtonSecondary: {
+    flex: 1,
+    borderRadius: 12,
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },gradientBtnContentPrimary: {
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    borderRadius: 14,
   },
-  timelineButtonText: {
-    flex: 1
+  gradientBtnContentSecondary: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+    borderRadius: 14,
+  },buttonIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
   },
-  timelineActionLabel: {
+  buttonTextPrimary: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#22223b',
-    marginBottom: 2
+    color: '#ffffff',
+    textAlign: 'center',
   },
-  timelineActionSubtitle: {
+  buttonTextSecondary: {
     fontSize: 13,
-    color: '#64748b'
-  }
+    fontWeight: '600',
+    color: '#ffffff',
+    textAlign: 'center',
+    marginTop: 2,
+  },
 });
 
 export default QuickActionsMenuCard;

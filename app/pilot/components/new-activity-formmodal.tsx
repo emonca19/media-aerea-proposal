@@ -5,6 +5,7 @@ import { Stack, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  FlatList,
   Platform,
   ScrollView,
   StyleSheet,
@@ -40,6 +41,16 @@ export interface ActivityFormData {
   isForNow: boolean;
   pendingTime: string; // ISO date string
   assetId?: string; // Renombrado de turbineId a assetId para generalizar
+}
+
+// Interfaz para actividades programadas
+interface ScheduledActivity {
+  id: string;
+  type: string;
+  customName: string;
+  notes: string;
+  pendingTime: Date;
+  assetId?: string;
 }
 
 // Ya no necesitamos NewActivityScreenProps si onSubmit se maneja internamente
@@ -80,6 +91,8 @@ export default function NewActivityScreen() { // Props removidas por ahora
   const [showDateTimePicker, setShowDateTimePicker] = useState(false);
   const [dateTimePickerMode, setDateTimePickerMode] = useState<'date' | 'time'>('date');
   const [currentTimeString, setCurrentTimeString] = useState('');
+  // Lista de actividades programadas
+  const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([]);
 
   const selectedActivityInfo = quickActivityTypes.find(act => act.id === activityTypeId);
   // Determina si la actividad seleccionada requiere la selección de un asset
@@ -139,66 +152,202 @@ export default function NewActivityScreen() { // Props removidas por ahora
     setShowDateTimePicker(true);
   };
 
-  // --- Submit Handler ---
-  const handleSubmit = () => {
+  // --- Handle Add Scheduled Activity ---
+  const handleAddScheduledActivity = () => {
     if (!activityTypeId) {
-        Alert.alert("Entrada Requerida", "Selecciona un tipo de actividad."); return;
+      Alert.alert("Entrada Requerida", "Selecciona un tipo de actividad.");
+      return;
     }
+    
     if (requiresAssetSelection && !selectedAssetId) {
       const assetTypeName = selectedActivityInfo?.label.includes("Turbina") ? "Turbina" : "Equipo/Sitio";
-      Alert.alert("Entrada Requerida", `Selecciona un ${assetTypeName} para esta actividad.`); return;
+      Alert.alert("Entrada Requerida", `Selecciona un ${assetTypeName} para esta actividad.`);
+      return;
     }
 
     let finalActivityName = selectedActivityInfo?.label || "Actividad";
     if (activityTypeId === 'ACT_OTRO') {
       finalActivityName = customActivityNameInput.trim();
       if (!finalActivityName) {
-        Alert.alert("Entrada Requerida", "Ingresa un nombre para la actividad personalizada."); return;
+        Alert.alert("Entrada Requerida", "Ingresa un nombre para la actividad personalizada.");
+        return;
       }
     }
 
-    // Validación especial para trabajo en turbina - requiere checklist prevuelo
-    if (activityTypeId === 'ACT_TRABAJO_TURBINA' && selectedAssetId && isForNow) {
+    // Validación especial para trabajo en turbina
+    if (activityTypeId === 'ACT_TRABAJO_TURBINA' && selectedAssetId) {
       Alert.alert(
         "Checklist Prevuelo Requerido",
-        "Para trabajar en una turbina, primero debes completar el checklist de prevuelo. ¿Deseas ir al checklist ahora?",
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { 
-            text: 'Ir al Checklist', 
-            onPress: () => {
-              if (router.canGoBack()) {
-                router.back();
-              }
-              router.push(`/pilot/preflight-checklist?turbineId=${selectedAssetId}`);
-            }
-          }
-        ]
+        "Para trabajar en una turbina, se requerirá un checklist de prevuelo antes de iniciar esta actividad."
       );
-      return;
     }
 
-    const pendingTimeString = isForNow ? new Date().toISOString() : dateForLater.toISOString();
-    const activityData: ActivityFormData = {
+    // Crear la nueva actividad programada
+    const newScheduledActivity: ScheduledActivity = {
+      id: Date.now().toString(), // ID único usando timestamp
       type: activityTypeId,
       customName: finalActivityName,
       notes: activityNotes.trim(),
-      isForNow,
-      pendingTime: pendingTimeString,
+      pendingTime: new Date(dateForLater),
       assetId: requiresAssetSelection ? selectedAssetId : undefined,
     };
 
-    console.log('Submitting Activity:', activityData);
-    Alert.alert('Actividad Registrada', `Actividad "${finalActivityName}" guardada.`);
-    // Aquí se llamaría a una API para guardar los datos
-    // onSubmit(activityData); // Si se pasara como prop
+    // Añadir a la lista de actividades programadas
+    setScheduledActivities([...scheduledActivities, newScheduledActivity]);
 
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      // router.replace('/pilot/dashboard'); // O a donde sea apropiado
-      console.log("No se puede regresar, actividad enviada desde contexto raíz o similar.");
+    // Limpiar campos después de añadir
+    if (activityTypeId === 'ACT_OTRO') {
+      setCustomActivityNameInput('');
     }
+    setActivityNotes('');
+    
+    // Feedback al usuario
+    Alert.alert("Actividad Agregada", `"${finalActivityName}" añadida a tu lista de programación.`);
+  };
+
+  // --- Handle Remove Scheduled Activity ---
+  const handleRemoveScheduledActivity = (id: string) => {
+    Alert.alert(
+      "Confirmar Eliminación",
+      "¿Estás seguro de que quieres eliminar esta actividad programada?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Eliminar", 
+          style: "destructive", 
+          onPress: () => {
+            setScheduledActivities(scheduledActivities.filter(activity => activity.id !== id));
+          }
+        }
+      ]
+    );
+  };
+
+  // --- Submit Handler ---
+  const handleSubmit = () => {
+    // Si hay actividades programadas, guardarlas y regresar
+    if (scheduledActivities.length > 0) {
+      // Aquí iría el código para guardar todas las actividades programadas en la API
+      console.log('Submitting Scheduled Activities:', scheduledActivities);
+      Alert.alert('Actividades Programadas', `Se han registrado ${scheduledActivities.length} actividades.`);
+
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        console.log("No se puede regresar, actividades enviadas desde contexto raíz o similar.");
+      }
+      return;
+    }
+
+    // Si no hay actividades programadas y es "para ahora", crear y enviar una actividad inmediata
+    if (isForNow) {
+      if (!activityTypeId) {
+        Alert.alert("Entrada Requerida", "Selecciona un tipo de actividad.");
+        return;
+      }
+      
+      if (requiresAssetSelection && !selectedAssetId) {
+        const assetTypeName = selectedActivityInfo?.label.includes("Turbina") ? "Turbina" : "Equipo/Sitio";
+        Alert.alert("Entrada Requerida", `Selecciona un ${assetTypeName} para esta actividad.`);
+        return;
+      }
+
+      let finalActivityName = selectedActivityInfo?.label || "Actividad";
+      if (activityTypeId === 'ACT_OTRO') {
+        finalActivityName = customActivityNameInput.trim();
+        if (!finalActivityName) {
+          Alert.alert("Entrada Requerida", "Ingresa un nombre para la actividad personalizada.");
+          return;
+        }
+      }
+
+      // Validación especial para trabajo en turbina - requiere checklist prevuelo
+      if (activityTypeId === 'ACT_TRABAJO_TURBINA' && selectedAssetId && isForNow) {
+        Alert.alert(
+          "Checklist Prevuelo Requerido",
+          "Para trabajar en una turbina, primero debes completar el checklist de prevuelo. ¿Deseas ir al checklist ahora?",
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            { 
+              text: 'Ir al Checklist', 
+              onPress: () => {
+                if (router.canGoBack()) {
+                  router.back();
+                }
+                router.push(`/pilot/preflight-checklist?turbineId=${selectedAssetId}`);
+              }
+            }
+          ]
+        );
+        return;
+      }
+
+      const pendingTimeString = new Date().toISOString();
+      const activityData: ActivityFormData = {
+        type: activityTypeId,
+        customName: finalActivityName,
+        notes: activityNotes.trim(),
+        isForNow: true,
+        pendingTime: pendingTimeString,
+        assetId: requiresAssetSelection ? selectedAssetId : undefined,
+      };
+
+      console.log('Submitting Immediate Activity:', activityData);
+      Alert.alert('Actividad Registrada', `Actividad "${finalActivityName}" guardada.`);
+
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        console.log("No se puede regresar, actividad enviada desde contexto raíz o similar.");
+      }
+    } else {
+      // Si es "para después" pero no hay actividades programadas, mostrar mensaje
+      Alert.alert("Sin Actividades", "Añade al menos una actividad programada o cambia a 'Iniciar ahora'.");
+    }
+  };
+
+  // --- Render Scheduled Activity Item ---
+  const renderScheduledActivityItem = ({ item }: { item: ScheduledActivity }) => {
+    const activityTypeInfo = quickActivityTypes.find(type => type.id === item.type);
+    const associatedAsset = item.assetId ? availableAssets.find(asset => asset.id === item.assetId) : undefined;
+    
+    return (
+      <View style={styles.scheduledActivityItem}>
+        <View style={styles.scheduledActivityContent}>
+          <View style={styles.scheduledActivityHeader}>
+            <MaterialCommunityIcons 
+              name={activityTypeInfo?.icon || 'calendar-clock'} 
+              size={18} 
+              color="#3b82f6"
+            />
+            <Text style={styles.scheduledActivityTitle}>{item.customName}</Text>
+          </View>
+          
+          <Text style={styles.scheduledActivityTime}>
+            {item.pendingTime.toLocaleDateString('es-ES')} - {item.pendingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </Text>
+          
+          {associatedAsset && (
+            <Text style={styles.scheduledActivityAsset}>
+              En: {associatedAsset.name}
+            </Text>
+          )}
+          
+          {item.notes && (
+            <Text style={styles.scheduledActivityNotes} numberOfLines={1} ellipsizeMode="tail">
+              {item.notes}
+            </Text>
+          )}
+        </View>
+        
+        <TouchableOpacity 
+          style={styles.removeActivityButton}
+          onPress={() => handleRemoveScheduledActivity(item.id)}
+        >
+          <Ionicons name="close-circle" size={22} color="#ef4444" />
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   // --- Render ---
@@ -274,7 +423,7 @@ export default function NewActivityScreen() { // Props removidas por ahora
         {/* NOMBRE PERSONALIZADO SI EL TIPO ES "OTRO" */}
         {activityTypeId === 'ACT_OTRO' && (
             <>
-              <Text style={styles.subtitle}>Nombre Actividad Personalizada</Text>
+              <Text style={styles.subtitleCompact}>Nombre Actividad Personalizada</Text>
               <TextInput
                   style={styles.notesInput} // Reutilizamos el estilo de notesInput
                   placeholder="Ej: Calibración de GPS, Reunión Cliente"
@@ -288,7 +437,7 @@ export default function NewActivityScreen() { // Props removidas por ahora
 
 
         {/* NOTAS ADICIONALES */}
-        <Text style={styles.subtitle}>Notas Adicionales (Opcional)</Text>
+        <Text style={styles.subtitleCompact}>Notas Adicionales (Opcional)</Text>
         <TextInput
             style={styles.notesInput}
             placeholder="Detalles relevantes sobre la actividad..."
@@ -315,7 +464,7 @@ export default function NewActivityScreen() { // Props removidas por ahora
 
         {!isForNow && (
             <View style={styles.datePickerContainer}>
-                <Text style={styles.subtitle}>Programar para:</Text>
+                <Text style={styles.subtitleCompact}>Programar para:</Text>
                 <View style={styles.dateDisplayRow}>
                     <TouchableOpacity onPress={() => showMode('date')} style={styles.datePickerButton}>
                         <Ionicons name="calendar-outline" size={20} color="#3b82f6" />
@@ -337,9 +486,35 @@ export default function NewActivityScreen() { // Props removidas por ahora
                         minimumDate={new Date()} // No se puede programar para el pasado
                     />
                 )}
+
+                {/* BOTÓN PARA AÑADIR ACTIVIDAD A LA LISTA */}
+                <TouchableOpacity 
+                    style={styles.addToListButton} 
+                    onPress={handleAddScheduledActivity}
+                >
+                    <Ionicons name="add-circle-outline" size={18} color="#fff" />
+                    <Text style={styles.addToListButtonText}>Añadir a Lista</Text>
+                </TouchableOpacity>
             </View>
         )}
         {/* FIN DE PROGRAMACIÓN DE TIEMPO */}
+
+
+        {/* LISTA DE ACTIVIDADES PROGRAMADAS */}
+        {!isForNow && scheduledActivities.length > 0 && (
+            <View style={styles.scheduledActivitiesContainer}>
+                <Text style={styles.subtitleCompact}>Actividades Programadas ({scheduledActivities.length})</Text>
+                <FlatList
+                    data={scheduledActivities}
+                    renderItem={renderScheduledActivityItem}
+                    keyExtractor={(item) => item.id}
+                    scrollEnabled={false} // No scroll dentro de otro scroll
+                    contentContainerStyle={styles.scheduledActivitiesList}
+                    ItemSeparatorComponent={() => <View style={styles.activitySeparator} />}
+                />
+            </View>
+        )}
+        {/* FIN DE LISTA DE ACTIVIDADES PROGRAMADAS */}
 
 
         {/* BOTÓN DE ACCIÓN */}
@@ -349,7 +524,9 @@ export default function NewActivityScreen() { // Props removidas por ahora
                     ? (requiresAssetSelection && selectedAssetId && availableAssets.find(t => t.id === selectedAssetId)
                         ? `Iniciar en ${availableAssets.find(t => t.id === selectedAssetId)?.name}`
                         : 'Iniciar Actividad Ahora')
-                    : 'Programar Actividad'
+                    : (scheduledActivities.length > 0 
+                        ? `Guardar ${scheduledActivities.length} Actividades` 
+                        : 'Programar Actividad')
                 }
             </Text>
         </TouchableOpacity>
@@ -368,23 +545,32 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },  scrollContentContainer: {
+  },
+  scrollContentContainer: {
     padding: 16, // Reducido de 20 a 16
     paddingBottom: 60, // Reducido de 70 a 60
   },
   currentTime: {
     color: '#64748b',
     fontSize: 13, // Reducido de 14 a 13
-    marginBottom: 16, // Reducido de 24 a 16
+    marginBottom: 12, // Reducido de 16 a 12
     textAlign: 'center',
   },
   subtitle: {
     color: '#374151',
     fontSize: 15, // Reducido de 16 a 15
     fontWeight: '600',
-    marginBottom: 10, // Reducido de 12 a 10
-    marginTop: 10, // Reducido de 12 a 10
-  },  subtitleSwitchLabel: { // Estilo específico para el label del Switch para alinearlo
+    marginBottom: 6, // Reducido de 10 a 6
+    marginTop: 8, // Reducido de 10 a 8
+  },
+  subtitleCompact: {
+    color: '#374151',
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 4, // Más compacto entre título y contenido
+    marginTop: 8,
+  },
+  subtitleSwitchLabel: { // Estilo específico para el label del Switch para alinearlo
     color: '#374151',
     fontSize: 15, // Reducido de 16 a 15
     fontWeight: '600',
@@ -394,7 +580,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between', // Asegura que las tarjetas se distribuyan
-    marginBottom: 12, // Reducido de 16 a 12
+    marginBottom: 10, // Reducido de 12 a 10
   },
   typeCard: {
     width: '48%', // Dos tarjetas por fila
@@ -412,7 +598,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     minHeight: 80, // Reducido de 90 a 80
-    marginBottom: 10, // Reducido de 12 a 10
+    marginBottom: 8, // Reducido de 10 a 8
   },
   typeCardSelected: {
     backgroundColor: '#3b82f6',
@@ -420,7 +606,8 @@ const styles = StyleSheet.create({
     shadowColor: '#3b82f6',
     shadowOpacity: 0.25, // Sombra más pronunciada al seleccionar
     elevation: 4,
-  },  typeLabel: {
+  },
+  typeLabel: {
     color: '#1e3a8a',
     fontWeight: '500',
     textAlign: 'center',
@@ -430,7 +617,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   assetSelection: {
-    marginBottom: 12, // Reducido de 16 a 12
+    marginBottom: 10, // Reducido de 12 a 10
   },
   assetScroll: {
     paddingHorizontal: 2, // Para que se vea la sombra de las tarjetas en los bordes
@@ -459,7 +646,8 @@ const styles = StyleSheet.create({
     borderColor: '#d97706',
     shadowColor: '#f59e0b',
     elevation: 4,
-  },  assetName: {
+  },
+  assetName: {
     color: '#1e3a8a',
     fontWeight: '600',
     fontSize: 13, // Reducido de 14 a 13
@@ -493,13 +681,14 @@ const styles = StyleSheet.create({
     minHeight: 70, // Reducido de 80 a 70
   },
   datePickerContainer: {
-    marginBottom: 12, // Reducido de 16 a 12
-  },  dateDisplayRow: {
+    marginBottom: 10, // Reducido de 12 a 10
+  },
+  dateDisplayRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 8, // Reducido de 10 a 8
-    marginBottom: Platform.OS === 'ios' ? 8 : 12, // Reducido
+    marginBottom: Platform.OS === 'ios' ? 6 : 10, // Reducido
   },
   datePickerButton: {
     flex: 1, // Para que ocupen el espacio disponible
@@ -518,6 +707,92 @@ const styles = StyleSheet.create({
     color: '#1e40af', // Texto azul oscuro
     fontSize: 13, // Reducido de 14 a 13
     fontWeight: '500',
+  },
+  // Nuevos estilos para el botón de añadir a lista
+  addToListButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4f46e5', // Violeta/indigo oscuro
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 8,
+    shadowColor: '#4f46e5',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  addToListButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 14,
+    marginLeft: 6,
+  },
+  // Estilos para la lista de actividades programadas
+  scheduledActivitiesContainer: {
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  scheduledActivitiesList: {
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 4,
+  },
+  scheduledActivityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    padding: 10,
+    shadowColor: '#94a3b8',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  scheduledActivityContent: {
+    flex: 1,
+    marginRight: 10,
+  },
+  scheduledActivityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  scheduledActivityTitle: {
+    color: '#1e3a8a',
+    fontWeight: '600',
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  scheduledActivityTime: {
+    color: '#64748b',
+    fontSize: 12,
+    marginLeft: 26, // Alinear con el título después del icono
+  },
+  scheduledActivityAsset: {
+    color: '#f59e0b',
+    fontSize: 12,
+    fontWeight: '500',
+    marginLeft: 26,
+    marginTop: 2,
+  },
+  scheduledActivityNotes: {
+    color: '#64748b',
+    fontSize: 11,
+    marginLeft: 26,
+    marginTop: 2,
+    fontStyle: 'italic',
+  },
+  removeActivityButton: {
+    padding: 5,
+  },
+  activitySeparator: {
+    height: 8,
   },
   actionButton: {
     backgroundColor: '#2563eb', // Azul más oscuro para el botón principal

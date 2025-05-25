@@ -33,7 +33,6 @@ import QuickRegisterActivityForm, {
 import {
   ChecklistItemData,
   incidentTypes as importedIncidentTypes,
-  IncidentData,
   pilot,
   initialCurrentProject as projectDataFromImport
 } from "./pilot-dashboard-data"; // Asegúrate que la ruta sea correcta
@@ -119,30 +118,31 @@ function ProjectSummaryCard({
       case 'PAUSADO': return 'Pausado';
       default: return 'Estado desconocido';
     }
-  };
-  return (    <TouchableOpacity
+  };  return (
+    <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
       style={{ width: "100%" }}
     >
       <View style={projectSummaryStyles.cardWrapper}>        
-        <View style={projectSummaryStyles.card}>
-          {/* Header with icon and basic info */}
-          <View style={projectSummaryStyles.headerRow}>
-            <View style={projectSummaryStyles.iconCircle}>
-              <Ionicons name="business-outline" size={28} color="#3b82f6" />
+        <View style={projectSummaryStyles.cardCompact}>
+          {/* Header compacto con información esencial */}
+          <View style={projectSummaryStyles.headerRowCompact}>
+            <View style={projectSummaryStyles.iconCircleCompact}>
+              <Ionicons name="business-outline" size={20} color="#3b82f6" />
             </View>            
             <View style={projectSummaryStyles.headerInfo}>
-              <Text style={projectSummaryStyles.title}>{projectName}</Text>
-              <Text style={projectSummaryStyles.subtitle}>{projectClient}</Text>
+              <Text style={projectSummaryStyles.titleCompact}>{projectName}</Text>
+              <Text style={projectSummaryStyles.subtitleCompact}>{projectClient}</Text>
               {project?.status && (
-                <View style={[projectSummaryStyles.statusBadge, { backgroundColor: getStatusColor(project.status) + '20', borderColor: getStatusColor(project.status) }]}>
-                  <View style={[projectSummaryStyles.statusDot, { backgroundColor: getStatusColor(project.status) }]}>
+                <View style={[projectSummaryStyles.statusBadgeCompact, { backgroundColor: getStatusColor(project.status) + '20', borderColor: getStatusColor(project.status) }]}>
+                  <View style={[projectSummaryStyles.statusDotCompact, { backgroundColor: getStatusColor(project.status) }]}>
                   </View>
-                  <Text style={[projectSummaryStyles.statusText, { color: getStatusColor(project.status) }]}>
+                  <Text style={[projectSummaryStyles.statusTextCompact, { color: getStatusColor(project.status) }]}>
                     {getStatusText(project.status)}
                   </Text>
-                </View>              )}
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -183,7 +183,7 @@ function WelcomeHeader({
   // Removed formatTime function since we're not showing time anymore
 
   const getWeatherIcon = (condition: string) => {
-    const conditionLower = condition?.toLowerCase() || '';
+    const conditionLower = (condition || '').toLowerCase() || '';
     if (conditionLower.includes('sol') || conditionLower.includes('despejado')) {
       return 'sunny-outline';
     } else if (conditionLower.includes('nublado') || conditionLower.includes('nube')) {
@@ -371,6 +371,69 @@ const projectSummaryStyles = StyleSheet.create({
     height: "100%",
     borderRadius: 4,
   },
+  // Compact styles for smaller project card
+  cardCompact: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 12,
+    marginHorizontal: 0,
+    shadowColor: "#1f2937",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+  },
+  headerRowCompact: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 0,
+  },  iconCircleCompact: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#eff6ff",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "#dbeafe",
+  },
+  titleCompact: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 2,
+    lineHeight: 20,
+  },
+  subtitleCompact: {
+    fontSize: 13,
+    color: "#6b7280",
+    fontWeight: "500",
+    marginBottom: 6,
+  },
+  statusBadgeCompact: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignSelf: "flex-start",
+  },
+  statusDotCompact: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginRight: 4,
+  },
+  statusTextCompact: {
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
 });// Asegúrate que la ruta sea correcta desde aquí
 
 interface Pause {
@@ -489,40 +552,26 @@ const typedProjectData: Project = {
   incidents: [
     {
       id: "inc-001",
-      type: "SAFETY",
-      label: "Viento Fuerte",
+      type: "SAFETY",      label: "Viento Fuerte",
       description: "Ráfagas de viento superiores a 40 km/h.",
       timestamp: "2024-05-23T10:15:00Z",
       icon: "alert-circle-outline",
-      severity: "MEDIA",
-      status: "ABIERTO",
     },
-  ],
-  alerts: [
+  ],  alerts: [
     {
       id: "alert-001",
       type: "INFO",
       message: "Mantenimiento programado para el dron DR-002 mañana.",
       timestamp: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), // Ayer
-      read: false,
+      severity: "LOW",
     },
     {
       id: "alert-002",
-      type: "WARNING",
-      message: "Batería baja en la estación meteorológica remota.",
+      type: "WARNING",      message: "Batería baja en la estación meteorológica remota.",
       timestamp: new Date().toISOString(), // Hoy
-      read: false,
+      severity: "MEDIUM",
     },
   ],
-  team: [
-    { id: "pilot-007", name: "James Bond", role: "Piloto Principal" },
-    { id: "tech-001", name: "Q", role: "Técnico de Drones" },
-  ],
-  equipment: [
-    { id: "drone-001", name: "DJI Matrice 300 RTK", status: "OPERATIVO" },
-    { id: "sensor-001", name: "Zenmuse H20T", status: "OPERATIVO" },
-  ],
-  // ... other project properties
 };
 
 console.log(
@@ -870,13 +919,13 @@ const PilotDashboard = () => {
     genericPendingActivities,
     unassignedTimeActivities,
     pastActivities,
-  ]);  // Reordenar las secciones según la solicitud del usuario
+  ]);  // Reordenar las secciones: proyecto arriba, luego acciones rápidas
   const dashboardSections = useMemo(
     (): DashboardSectionItem[] => [
       { id: "welcome-header", type: "WELCOME_HEADER" },
-      { id: "project-summary", type: "PROJECT_SUMMARY_CARD" },
-      { id: "quickActions", type: "QUICK_ACTIONS_MENU_CARD" },
-      { id: "timeline", type: "ACTIVITY_TIMELINE" }, // Reemplaza journey
+      { id: "project-summary", type: "PROJECT_SUMMARY_CARD" }, // Proyecto arriba
+      { id: "quickActions", type: "QUICK_ACTIONS_MENU_CARD" }, // Acciones rápidas después del proyecto
+      { id: "timeline", type: "ACTIVITY_TIMELINE" }, // Línea de tiempo al final
     ],
     []
   );
@@ -1022,8 +1071,8 @@ const handleFinishActivity = useCallback(() => {
               }
             } else {
               // Enhanced fallback icons based on activity type patterns
-              const activityTypeLower = activity.type.toLowerCase();
-              const activityNameLower = activity.name.toLowerCase();
+              const activityTypeLower = (activity.type || '').toLowerCase();
+              const activityNameLower = (activity.name || '').toLowerCase();
               
               if (activityTypeLower.includes('turbine') || activityTypeLower.includes('trabajo_turbina') || 
                   activityNameLower.includes('turbina') || activityNameLower.includes('aerogenerador')) {
@@ -1128,8 +1177,8 @@ const handleFinishActivity = useCallback(() => {
                 iconName = activityType.icon;
               }
             } else {
-              const activityTypeLower = activity.type.toLowerCase();
-              const activityNameLower = activity.name.toLowerCase();
+              const activityTypeLower = (activity.type || '').toLowerCase();
+              const activityNameLower = (activity.name || '').toLowerCase();
               
               if (activityTypeLower.includes('turbine') || activityTypeLower.includes('trabajo_turbina') || 
                   activityNameLower.includes('turbina') || activityNameLower.includes('aerogenerador')) {

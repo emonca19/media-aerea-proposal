@@ -2,14 +2,14 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 // Reutilizamos los datos de mockTurbines de ActivityLogScreen para consistencia
@@ -33,6 +33,15 @@ export const activityTypes = [
   { type: 'OTHER' as ActivityType, label: 'Otro', icon: 'dots-horizontal' }
 ];
 
+// Interfaz para las actividades programadas
+interface ScheduledActivity {
+  id: string;
+  type: ActivityType;
+  turbineId?: string;
+  notes: string;
+  scheduledTime: Date; // Mantenemos por compatibilidad, pero ya no se mostrará
+}
+
 interface QuickRegisterActivityFormProps {
   isVisible: boolean;
   onClose: () => void;
@@ -48,74 +57,158 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
   const [selectedType, setSelectedType] = useState<ActivityType | null>(null);
   const [selectedTurbine, setSelectedTurbine] = useState<string>('');
   const [notes, setNotes] = useState('');
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [isForNow, setIsForNow] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());  const [isForNow, setIsForNow] = useState(true);
+  // Estados para manejar actividades programadas
+  const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([]);
   
-  // Filtra las turbinas que no están completadas para la selección
-  const filteredTurbines = mockTurbines.filter(t => t.status !== 'COMPLETED');
-  
-  // Actualizar la hora actual cada minuto
+  // Actualiza el tiempo actual cada segundo
   useEffect(() => {
-    const updateTime = () => {
+    const timer = setInterval(() => {
       setCurrentTime(new Date());
-    };
-    updateTime();
-    const timer = setInterval(updateTime, 60000);
+    }, 1000);
     return () => clearInterval(timer);
-  }, []);
-  
-  // Resetea el formulario cuando se abre/cierra el modal
+  }, []);  // Resetea el formulario cuando se abre/cierra el modal
   useEffect(() => {
     if (isVisible) {
       setSelectedType(null);
       setSelectedTurbine('');
       setNotes('');
       setIsForNow(true);
+      setScheduledActivities([]);
     }
   }, [isVisible]);
 
   const formatTime = (date: Date | null) => {
     if (!date) return '--:--';
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };  const handleSubmit = () => {
+  };
+    // Función para añadir actividad a la lista programada
+  const handleAddToScheduledList = () => {
     if (!selectedType) {
-      Alert.alert("Error", "Selecciona un tipo de actividad");
+      Alert.alert('Error', 'Selecciona un tipo de actividad');
       return;
     }
+    
+    // Si el tipo es TURBINE_WORK y no se ha seleccionado turbina
     if (selectedType === 'TURBINE_WORK' && !selectedTurbine) {
-      Alert.alert("Error", "Selecciona una turbina");
+      Alert.alert('Error', 'Selecciona una turbina para esta actividad');
       return;
     }
-    
-    // Validación especial para trabajo en turbina - requiere checklist prevuelo
-    if (selectedType === 'TURBINE_WORK' && selectedTurbine && isForNow) {
-      Alert.alert(
-        "Checklist Prevuelo Requerido",
-        "Para trabajar en una turbina, primero debes completar el checklist de prevuelo. ¿Deseas ir al checklist ahora?",
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { 
-            text: 'Ir al Checklist',
-            onPress: () => {
-              onClose(); // Cerrar este modal primero
-              // Navegación al checklist de prevuelo con el ID de la turbina
-              router.push(`/pilot/preflight-checklist?turbineId=${selectedTurbine}`);
-            }
-          }
-        ]
-      );
-      return;
-    }
-    
-    const activityData = {
+
+    const newActivity: ScheduledActivity = {
+      id: Date.now().toString(),
       type: selectedType,
-      turbineId: selectedType === 'TURBINE_WORK' ? selectedTurbine : undefined,
-      notes: notes,
-      isForNow,
-      startTime: new Date(),
+      notes: '',
+      scheduledTime: new Date(),
+      ...(selectedType === 'TURBINE_WORK' ? { turbineId: selectedTurbine } : {}),
     };
-    onSubmit(activityData);
-    onClose();
+
+    setScheduledActivities([...scheduledActivities, newActivity]);
+    
+    // Reset form fields
+    setSelectedType(null);
+    setSelectedTurbine('');
+  };
+  // Función para eliminar una actividad de la lista programada
+  const handleRemoveScheduledActivity = (id: string) => {
+    setScheduledActivities(scheduledActivities.filter(activity => activity.id !== id));
+  };
+  
+  // Funciones para reordenar actividades
+  const handleMoveActivityUp = (index: number) => {
+    if (index <= 0) return; // No se puede mover más arriba si ya es el primero
+    
+    const newActivities = [...scheduledActivities];
+    const temp = newActivities[index];
+    newActivities[index] = newActivities[index - 1];
+    newActivities[index - 1] = temp;
+    setScheduledActivities(newActivities);
+  };
+  
+  const handleMoveActivityDown = (index: number) => {
+    if (index >= scheduledActivities.length - 1) return; // No se puede mover más abajo si ya es el último
+    
+    const newActivities = [...scheduledActivities];
+    const temp = newActivities[index];
+    newActivities[index] = newActivities[index + 1];
+    newActivities[index + 1] = temp;
+    setScheduledActivities(newActivities);
+  };
+    // Esta validación se realiza directamente en handleSubmit
+    // Ya no necesitamos esta función porque renderizamos directamente en el JSX
+  const handleSubmit = () => {
+    // Si hay actividades programadas, enviarlas todas
+    if (!isForNow && scheduledActivities.length > 0) {
+      // Crear una hora base para hoy
+      const baseTime = new Date();
+      baseTime.setHours(baseTime.getHours() + 1); // Empieza 1 hora después
+      
+      // Asignar una hora incremental a cada actividad en el orden actual (para mantener la secuencia)
+      const activitiesData = scheduledActivities.map((act, index) => {
+        const scheduledTime = new Date(baseTime);
+        scheduledTime.setMinutes(scheduledTime.getMinutes() + (index * 30)); // Cada 30 minutos
+        
+        return {
+          type: act.type,
+          turbineId: act.turbineId,
+          notes: act.notes,
+          isForNow: false,
+          scheduledTime: scheduledTime,
+        };
+      });
+      
+      onSubmit({
+        isMultiple: true,
+        activities: activitiesData
+      });
+      onClose();
+      return;
+    }
+    
+    // Para actividad inmediata o si no hay actividades programadas
+    if (isForNow) {
+      if (!selectedType) {
+        Alert.alert("Error", "Selecciona un tipo de actividad");
+        return;
+      }
+      if (selectedType === 'TURBINE_WORK' && !selectedTurbine) {
+        Alert.alert("Error", "Selecciona una turbina");
+        return;
+      }
+      
+      // Validación especial para trabajo en turbina - requiere checklist prevuelo
+      if (selectedType === 'TURBINE_WORK' && selectedTurbine && isForNow) {
+        Alert.alert(
+          "Checklist Prevuelo Requerido",
+          "Para trabajar en una turbina, primero debes completar el checklist de prevuelo. ¿Deseas ir al checklist ahora?",
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            { 
+              text: 'Ir al Checklist',
+              onPress: () => {
+                onClose(); // Cerrar este modal primero
+                // Navegación al checklist de prevuelo con el ID de la turbina
+                router.push(`/pilot/preflight-checklist?turbineId=${selectedTurbine}`);
+              }
+            }
+          ]
+        );
+        return;
+      }
+      
+      const activityData = {
+        type: selectedType,
+        turbineId: selectedType === 'TURBINE_WORK' ? selectedTurbine : undefined,
+        notes: notes,
+        isForNow: true,
+        startTime: new Date(),
+      };
+      onSubmit(activityData);
+      onClose();
+    } else {
+      // Si es "para después" pero no hay actividades programadas
+      Alert.alert("Sin Actividades", "Añade al menos una actividad a la lista o cambia a 'Para ahora'.");
+    }
   };
 
   return (
@@ -179,8 +272,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                   horizontal 
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.turbineScroll}
-                >
-                  {filteredTurbines.map(turbine => (
+                >                  {mockTurbines.map(turbine => (
                     <TouchableOpacity
                       key={turbine.id}
                       style={[
@@ -211,9 +303,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                   ))}
                 </ScrollView>
               </View>
-            )}
-
-            {/* OPCIÓN PARA AHORA O MÁS TARDE */}
+            )}            {/* OPCIÓN PARA AHORA O MÁS TARDE */}
             <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 12 }}>
               <TouchableOpacity
                 style={[styles.timeOptionButton, isForNow && styles.timeOptionButtonSelected]}
@@ -223,36 +313,120 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                 <Text style={[styles.timeOptionText, isForNow && styles.timeOptionTextSelected]}>Para ahora</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.timeOptionButton, !isForNow && styles.timeOptionButtonSelected]}
+                style={[styles.timeOptionButton, !isForNow && styles.timeOptionButtonLater]}
                 onPress={() => setIsForNow(false)}
               >
-                <Ionicons name="time-outline" size={18} color={!isForNow ? '#fff' : '#2563eb'} />
+                <Ionicons name="time-outline" size={18} color={!isForNow ? '#fff' : '#f59e0b'} />
                 <Text style={[styles.timeOptionText, !isForNow && styles.timeOptionTextSelected]}>Para más tarde</Text>
               </TouchableOpacity>
-            </View>
+            </View>            {/* CAMPO DE NOTAS - SOLO PARA MODO "PARA AHORA" */}
+            {isForNow && (
+              <View style={styles.notesSection}>
+                <Text style={styles.subtitle}>Notas (Opcional)</Text>
+                <TextInput
+                  style={styles.notesInput}
+                  multiline
+                  placeholder="Describe los detalles de la actividad..."
+                  placeholderTextColor="#94a3b8"
+                  value={notes}
+                  onChangeText={setNotes}
+                />
+              </View>
+            )}{/* BOTÓN AÑADIR A LISTA - Reposicionado y mejorado */}
+            {!isForNow && (
+              <View style={styles.addButtonContainer}>
+                <TouchableOpacity 
+                  style={[
+                    styles.addToListButton,
+                    !selectedType && {opacity: 0.7}
+                  ]}
+                  onPress={handleAddToScheduledList}
+                  disabled={!selectedType}
+                >
+                  <Ionicons name="add-circle-outline" size={20} color="#fff" />
+                  <Text style={styles.addToListButtonText}>
+                    Añadir a Lista
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}{/* LISTA DE ACTIVIDADES PROGRAMADAS */}
+            {!isForNow && scheduledActivities.length > 0 && (
+              <View style={styles.scheduledListContainer}>
+                <Text style={styles.subtitle}>Actividades Programadas ({scheduledActivities.length})</Text>
+                <ScrollView style={styles.scheduledList} showsVerticalScrollIndicator={false}>
+                  {scheduledActivities.map((activity, index) => {
+                    if (!activity || !activity.type) return null;
+                    const activityTypeInfo = activityTypes.find(act => act.type === activity.type);
+                    const turbineInfo = activity.turbineId ? mockTurbines.find(t => t.id === activity.turbineId) : undefined;
+                    
+                    return (                      <View key={activity.id} style={styles.scheduledActivityItem}>
+                        {/* Indicador de orden numérico */}
+                        <View style={styles.orderIndicator}>
+                          <Text style={styles.orderNumber}>{index + 1}</Text>
+                        </View>
+                        
+                        <View style={styles.scheduledActivityContent}>                          <View style={styles.scheduledActivityHeader}>
+                            <MaterialCommunityIcons 
+                              name={(activityTypeInfo?.icon as any) || 'calendar-clock'} 
+                              size={18} 
+                              color="#3b82f6"
+                            />
+                            <Text style={styles.scheduledActivityTitle}>
+                              {activityTypeInfo?.label || 'Actividad'}
+                              {turbineInfo && <Text style={styles.scheduledActivityAsset}> • {turbineInfo.name}</Text>}
+                            </Text>
+                          </View>
+                        </View>
+                        
+                        {/* Botones para reordenar y eliminar */}
+                        <View style={styles.activityActions}>
+                          {index > 0 && (
+                            <TouchableOpacity 
+                              style={styles.reorderButton}
+                              onPress={() => handleMoveActivityUp(index)}
+                            >
+                              <Ionicons name="chevron-up" size={18} color="#64748b" />
+                            </TouchableOpacity>
+                          )}
+                          
+                          {index < scheduledActivities.length - 1 && (
+                            <TouchableOpacity 
+                              style={styles.reorderButton}
+                              onPress={() => handleMoveActivityDown(index)}
+                            >
+                              <Ionicons name="chevron-down" size={18} color="#64748b" />
+                            </TouchableOpacity>
+                          )}
+                          
+                          <TouchableOpacity 
+                            style={styles.removeActivityButton}
+                            onPress={() => handleRemoveScheduledActivity(activity.id)}
+                            accessibilityLabel="Eliminar actividad programada"
+                          >
+                            <Ionicons name="close-circle" size={22} color="#ef4444" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
 
-            {/* CAMPO DE NOTAS */}
-            <View style={styles.notesSection}>
-              <Text style={styles.subtitle}>Notas (Opcional)</Text>
-              <TextInput
-                style={styles.notesInput}
-                multiline
-                placeholder="Describe los detalles de la actividad..."
-                placeholderTextColor="#94a3b8"
-                value={notes}
-                onChangeText={setNotes}
-              />
-            </View>            
-            
             {/* BOTÓN PARA INICIAR ACTIVIDAD */}
             <TouchableOpacity
               style={styles.actionButton}
               onPress={handleSubmit}
             >
               <Text style={styles.actionButtonText}>
-                {selectedType === 'TURBINE_WORK' && selectedTurbine 
-                  ? `Iniciar en ${mockTurbines.find(t => t.id === selectedTurbine)?.name}`
-                  : 'Iniciar Actividad'}
+                {isForNow 
+                  ? (selectedType === 'TURBINE_WORK' && selectedTurbine 
+                      ? `Iniciar en ${mockTurbines.find(t => t.id === selectedTurbine)?.name}` 
+                      : 'Iniciar Actividad')
+                  : (scheduledActivities.length > 0 
+                      ? `Guardar ${scheduledActivities.length} Actividades` 
+                      : 'Programar Actividad')
+                }
               </Text>
             </TouchableOpacity>
           </ScrollView>
@@ -289,35 +463,37 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },  scrollContentContainer: {
+  },  
+  scrollContentContainer: {
     padding: 20,
     paddingTop: 40,
     paddingBottom: 40,
-  },headerTitle: {
+  },  headerTitle: {
     fontSize: 26,
     fontWeight: '700',
     color: '#1e3a8a',
-    marginBottom: 20,
+    marginBottom: 10, // Reducido de 20 a 10
     marginTop: 5,
     textAlign: 'center',
   },
   currentTimeDisplay: {
     color: '#64748b',
     fontSize: 14,
-    marginBottom: 25,
-    marginTop: 5,
+    marginBottom: 15, // Reducido de 25 a 15
+    marginTop: 0, // Reducido de 5 a 0
     textAlign: 'center',
-  },  subtitle: {
+  },  
+  subtitle: {
     color: '#374151',
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 15,
-    marginTop: 15,
+    marginBottom: 8, // Reducido de 12 a 8
+    marginTop: 8, // Reducido de 12 a 8
   },  typeSelection: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 25,
+    marginBottom: 15, // Reducido de 20 a 15
   },
   typeCard: {
     width: '48%',
@@ -325,12 +501,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e2e8f0',
     borderRadius: 12,
-    padding: 16,
+    padding: 12, // Reducido de 16 a 12
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    minHeight: 90,
-    marginBottom: 12,
+    gap: 6, // Reducido de 8 a 6
+    minHeight: 80, // Reducido de 90 a 80
+    marginBottom: 10, // Reducido de 12 a 10
   },
   typeCardSelected: {
     backgroundColor: '#3b82f6',
@@ -344,25 +520,25 @@ const styles = StyleSheet.create({
   },
   typeLabelSelected: {
     color: '#ffffff',
-  },  turbineSelection: {
-    marginBottom: 25,
+  },    turbineSelection: {
+    marginBottom: 15, // Reducido de 20 a 15
   },
   turbineScroll: {
-    gap: 12,
+    gap: 10, // Reducido de 12 a 10
     paddingHorizontal: 2,
     paddingVertical: 4,
   },
   turbineCard: {
-    width: 120,
+    width: 110, // Reducido de 120 a 110
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
     borderRadius: 12,
-    padding: 12,
+    padding: 10, // Reducido de 12 a 10
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    minHeight: 100,
+    gap: 6, // Reducido de 8 a 6
+    minHeight: 90, // Reducido de 100 a 90
   },
   turbineCardSelected: {
     backgroundColor: '#f59e0b',
@@ -387,19 +563,142 @@ const styles = StyleSheet.create({
   turbineStatusSelected: {
     color: '#ffffff',
     opacity: 0.85,
-  },  notesSection: {
-    marginBottom: 30,
+  },    notesSection: {
+    marginBottom: 15, // Reducido de 25 a 15
   },
   notesInput: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
     borderRadius: 12,
-    padding: 16,
-    minHeight: 100,
+    padding: 12, // Reducido de 16 a 12
+    minHeight: 80, // Reducido de 100 a 80
     textAlignVertical: 'top',
     color: '#1e3a8a',
     fontSize: 14,
+  },
+  // Sección de tiempo programado
+  scheduledTimeSection: {
+    marginVertical: 10,
+  },
+  timeButtonsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  timeAdjustButton: {
+    width: 36,
+    height: 36,
+    backgroundColor: '#dbeafe',
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 5,
+  },
+  timeSelector: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#eff6ff',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+  },
+  timeSelectorText: {
+    marginLeft: 8,
+    color: '#1e3a8a',
+    fontSize: 15,
+    fontWeight: '500',
+  },  // Botón para añadir a lista
+  addButtonContainer: {
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  addToListButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#22c55e', // Verde
+    borderRadius: 50,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    marginTop: 8,
+    marginBottom: 12,
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    width: '80%', // Ancho definido para centrarlo mejor
+  },
+  addToListButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 8,
+  },// Lista de actividades programadas
+  scheduledListContainer: {
+    marginTop: 2, // Reducido de 5 a 2
+    marginBottom: 15, // Reducido de 25 a 15
+  },
+  scheduledList: {
+    backgroundColor: '#f0f9ff',
+    borderRadius: 10,
+    padding: 8, // Reducido de 10 a 8
+    maxHeight: 180, // Reducido de 200 a 180
+  },  scheduledActivityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 6,
+    shadowColor: '#94a3b8',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  scheduledActivityContent: {
+    flex: 1,
+    marginRight: 10,
+  },scheduledActivityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2, // Reducido de 4 a 2
+  },
+  scheduledActivityTitle: {
+    color: '#1e3a8a',
+    fontWeight: '600',
+    fontSize: 14,
+    marginLeft: 6, // Reducido de 8 a 6
+  },
+  scheduledActivityTime: {
+    color: '#64748b',
+    fontSize: 12,
+    marginLeft: 24, // Reducido de 26 a 24
+  },
+  scheduledActivityAsset: {
+    color: '#f59e0b',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  scheduledActivityNotes: {
+    color: '#64748b',
+    fontSize: 11,
+    fontStyle: 'italic',
+  },  activityActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reorderButton: {
+    padding: 5,
+    marginHorizontal: 2,
+  },
+  removeActivityButton: {
+    padding: 5,
   },
   actionButton: {
     backgroundColor: '#3b82f6',
@@ -413,7 +712,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 3,
-    marginTop: 10,
+    marginTop: 15,
   },
   actionButtonText: {
     color: '#ffffff',
@@ -430,10 +729,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginHorizontal: 6,
     backgroundColor: '#fff',
-  },
-  timeOptionButtonSelected: {
+  },  timeOptionButtonSelected: {
     backgroundColor: '#2563eb',
     borderColor: '#2563eb',
+  },
+  timeOptionButtonLater: {
+    backgroundColor: '#f59e0b',
+    borderColor: '#f59e0b',
   },
   timeOptionText: {
     marginLeft: 6,
@@ -442,6 +744,21 @@ const styles = StyleSheet.create({
   },
   timeOptionTextSelected: {
     color: '#fff',
+  },
+  // Indicador de orden numérico
+  orderIndicator: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#3b82f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  orderNumber: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 12,
   },
 });
 
