@@ -137,7 +137,7 @@ export default function AdminDashboard() {
   ).length;
 
   const todayActivities = mockActivities.filter(
-    (a) => a.startTime.toDateString() === new Date().toDateString()
+    (a) => a.startTime && a.startTime.toDateString() === new Date().toDateString()
   ).length;
 
   const criticalIncidents = mockIncidents.filter(
@@ -241,7 +241,7 @@ export default function AdminDashboard() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {" "}
+      
       {/* Header */}
       <View style={styles.header}>
         <View>
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
             ]}
             onPress={() => setSelectedTimeframe(period)}
           >
-            {" "}
+            
             <Text
               style={[
                 styles.timeFilterText,
@@ -285,7 +285,7 @@ export default function AdminDashboard() {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>{" "}
+      </View>
       {/* KPI Cards */}
       <View style={styles.kpiSection}>
         <Text style={styles.sectionTitle}>
@@ -325,7 +325,7 @@ export default function AdminDashboard() {
             onPress={() => router.push("/admin/dashboard")}
           />
         </View>
-      </View>{" "}
+      </View>
       {/* Quick Navigation */}
       <View style={styles.navigationSection}>
         <Text style={styles.sectionTitle}>Navegación Rápida</Text>
@@ -364,7 +364,7 @@ export default function AdminDashboard() {
             <AlertCard key={alert.id} alert={alert} />
           ))}
         </View>
-      )}{" "}
+      )}
       {/* Recent Activity Summary */}
       <View style={styles.activitySection}>
         <Text style={styles.sectionTitle}>Resumen de Hoy</Text>

@@ -1,7 +1,8 @@
+import { Ionicons } from "@expo/vector-icons";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import Constants from "expo-constants";
 import { withLayoutContext } from "expo-router";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 const { Navigator } = createMaterialTopTabNavigator();
 
@@ -23,13 +24,45 @@ export default function TabLayout() {
       <MaterialTopTabs.Screen
         name="users"
         options={{
-          title: "Usuarios",
+          tabBarLabel: ({
+            focused,
+            color,
+          }: {
+            focused: boolean;
+            color: string;
+          }) => (
+            <View style={styles.tabLabelContainer}>
+              <Ionicons
+                name="person-outline"
+                size={18}
+                color={color}
+                style={styles.tabIcon}
+              />
+              <Text style={[styles.tabBarLabelText, { color }]}>Usuarios</Text>
+            </View>
+          ),
         }}
       />
       <MaterialTopTabs.Screen
         name="drones"
         options={{
-          title: "Drones",
+          tabBarLabel: ({
+            focused,
+            color,
+          }: {
+            focused: boolean;
+            color: string;
+          }) => (
+            <View style={styles.tabLabelContainer}>
+              <Ionicons
+                name="airplane-outline"
+                size={18}
+                color={color}
+                style={styles.tabIcon}
+              />
+              <Text style={[styles.tabBarLabelText, { color }]}>Drones</Text>
+            </View>
+          ),
         }}
       />
     </MaterialTopTabs>
@@ -50,9 +83,21 @@ const styles = StyleSheet.create({
     fontSize: 15, // Increased font size
     fontWeight: "700", // Increased font weight
   },
+  tabBarLabelText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
   tabBarIndicator: {
     height: 3,
     backgroundColor: "#9C46CE",
     borderRadius: 25,
+  },
+  tabLabelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabIcon: {
+    marginRight: 6,
   },
 });

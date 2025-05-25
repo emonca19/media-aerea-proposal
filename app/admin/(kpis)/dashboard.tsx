@@ -173,7 +173,7 @@ export default function AdminKPIDashboard() {
 
   return (
     <View style={styles.container}>
-      {" "}
+      
       <Stack.Screen
         options={{
           headerShown: true,
@@ -350,7 +350,7 @@ export default function AdminKPIDashboard() {
                 <View style={styles.pilotInfo}>
                   <Text style={styles.pilotName}>Piloto {index + 1}</Text>
                   <Text style={styles.pilotStats}>
-                    {pilot.totalTurbinesInspected} turbinas •{" "}
+                    {pilot.totalTurbinesInspected} turbinas •
                     {Math.round(pilot.totalFlightMinutes / 60)}h vuelo
                   </Text>
                 </View>
@@ -446,7 +446,7 @@ export default function AdminKPIDashboard() {
                     { color: getImpactColor(bottleneck.impact) },
                   ]}
                 >
-                  Impacto{" "}
+                  Impacto
                   {bottleneck.impact === "high"
                     ? "Alto"
                     : bottleneck.impact === "medium"

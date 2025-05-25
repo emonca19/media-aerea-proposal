@@ -1,7 +1,8 @@
+import { Ionicons } from "@expo/vector-icons";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import Constants from "expo-constants";
 import { withLayoutContext } from "expo-router";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 const { Navigator } = createMaterialTopTabNavigator();
 
@@ -23,21 +24,71 @@ export default function TabLayout() {
       <MaterialTopTabs.Screen
         name="active-projects"
         options={{
-          title: "Proyectos Activos",
+          tabBarLabel: ({
+            focused,
+            color,
+          }: {
+            focused: boolean;
+            color: string;
+          }) => (
+            <View style={styles.tabLabelContainer}>
+              <Ionicons
+                name="briefcase-outline"
+                size={18}
+                color={color}
+                style={styles.tabIcon}
+              />
+              <Text style={[styles.tabBarLabelText, { color }]}>
+                Proyectos
+              </Text>
+            </View>
+          ),
           sceneStyle: { backgroundColor: "#ffffff" },
         }}
       />
       <MaterialTopTabs.Screen
         name="clients"
         options={{
-          title: "Clientes",
+          tabBarLabel: ({
+            focused,
+            color,
+          }: {
+            focused: boolean;
+            color: string;
+          }) => (
+            <View style={styles.tabLabelContainer}>
+              <Ionicons
+                name="people-outline"
+                size={18}
+                color={color}
+                style={styles.tabIcon}
+              />
+              <Text style={[styles.tabBarLabelText, { color }]}>Clientes</Text>
+            </View>
+          ),
           sceneStyle: { backgroundColor: "#ffffff" },
         }}
       />
       <MaterialTopTabs.Screen
         name="parks"
         options={{
-          title: "Parques",
+          tabBarLabel: ({
+            focused,
+            color,
+          }: {
+            focused: boolean;
+            color: string;
+          }) => (
+            <View style={styles.tabLabelContainer}>
+              <Ionicons
+                name="location-outline"
+                size={18}
+                color={color}
+                style={styles.tabIcon}
+              />
+              <Text style={[styles.tabBarLabelText, { color }]}>Parques</Text>
+            </View>
+          ),
           sceneStyle: { backgroundColor: "#ffffff" },
         }}
       />
@@ -49,7 +100,7 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: "#ffffff",
     paddingTop: Constants.statusBarHeight, // Reduced paddingTop
-        // Add these lines to remove shadow/elevation
+    // Add these lines to remove shadow/elevation
     elevation: 0, // for Android
     shadowOpacity: 0, // for iOS
     borderBottomWidth: 1, // Add this line for the bottom border width
@@ -59,10 +110,21 @@ const styles = StyleSheet.create({
     fontSize: 15, // Increased font size
     fontWeight: "700", // Increased font weight
   },
+  tabBarLabelText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
   tabBarIndicator: {
     height: 3,
     backgroundColor: "#9C46CE",
     borderRadius: 25,
-    
+  },
+  tabLabelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabIcon: {
+    marginRight: 4,
   },
 });

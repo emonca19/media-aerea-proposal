@@ -1,7 +1,8 @@
+import { Ionicons } from "@expo/vector-icons";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import Constants from "expo-constants";
 import { withLayoutContext } from "expo-router";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 const { Navigator } = createMaterialTopTabNavigator();
 
@@ -20,16 +21,51 @@ export default function TabLayout() {
         tabBarPressOpacity: 1, // Add this line to remove opacity change on iOS
       }}
     >
+      {" "}
       <MaterialTopTabs.Screen
         name="assignments"
         options={{
-          title: "Asignaciones",
+          tabBarLabel: ({
+            focused,
+            color,
+          }: {
+            focused: boolean;
+            color: string;
+          }) => (
+            <View style={styles.tabLabelContainer}>
+              <Ionicons
+                name="clipboard-outline"
+                size={18}
+                color={color}
+                style={styles.tabIcon}
+              />
+              <Text style={[styles.tabBarLabelText, { color }]}>
+                Asignaciones
+              </Text>
+            </View>
+          ),
         }}
       />
       <MaterialTopTabs.Screen
         name="pictures"
         options={{
-          title: "Fotos",
+          tabBarLabel: ({
+            focused,
+            color,
+          }: {
+            focused: boolean;
+            color: string;
+          }) => (
+            <View style={styles.tabLabelContainer}>
+              <Ionicons
+                name="camera-outline"
+                size={18}
+                color={color}
+                style={styles.tabIcon}
+              />
+              <Text style={[styles.tabBarLabelText, { color }]}>Fotos</Text>
+            </View>
+          ),
         }}
       />
     </MaterialTopTabs>
@@ -40,19 +76,31 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: "#ffffff",
     paddingTop: Constants.statusBarHeight, // Reduced paddingTop
-        // Add these lines to remove shadow/elevation
+    // Add these lines to remove shadow/elevation
     elevation: 0, // for Android
     shadowOpacity: 0, // for iOS
     borderBottomWidth: 1, // Add this line for the bottom border width
     borderBottomColor: "#E0E0E0", // Add this line for a light gray border color
   },
   tabBarLabel: {
-    fontSize: 15, // Increased font size
+    fontSize: 16, // Increased font size
     fontWeight: "700", // Increased font weight
+  },
+  tabBarLabelText: {
+    fontSize: 14,
+    fontWeight: "700",
   },
   tabBarIndicator: {
     height: 3,
     backgroundColor: "#9C46CE",
     borderRadius: 25,
+  },
+  tabLabelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabIcon: {
+    marginRight: 6,
   },
 });
