@@ -41,10 +41,6 @@ export default function AdminDashboard() {
     }).start();
   }, [progressPercentage, progressAnim]);
 
-  React.useEffect(() => {
-    // Clear mock activity on load
-  }, []);
-
   return (
     <View style={styles.container}>
       <Stack.Screen

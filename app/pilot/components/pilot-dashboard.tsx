@@ -137,7 +137,8 @@ function ProjectSummaryCard({
               <Text style={projectSummaryStyles.subtitle}>{projectClient}</Text>
               {project?.status && (
                 <View style={[projectSummaryStyles.statusBadge, { backgroundColor: getStatusColor(project.status) + '20', borderColor: getStatusColor(project.status) }]}>
-                  <View style={[projectSummaryStyles.statusDot, { backgroundColor: getStatusColor(project.status) }]} />
+                  <View style={[projectSummaryStyles.statusDot, { backgroundColor: getStatusColor(project.status) }]}>
+                  </View>
                   <Text style={[projectSummaryStyles.statusText, { color: getStatusColor(project.status) }]}>
                     {getStatusText(project.status)}
                   </Text>
@@ -445,103 +446,85 @@ const typedProjectData: Project = {
     (item: ChecklistItemData) => ({ ...item })
   ),  activities: [
     {
-      id: "act-000",
-      type: "TURBINE_WORK",
-      name: "Trabajo en Turbina T-03",
-      notes: "Mantenimiento correctivo en sistemas de control",
-      status: "EN_PROGRESO",
-      time: "Hoy - En curso",
-      description: "Reparación de sistemas de control y calibración",
-      scheduledStart: new Date(new Date().setHours(8, 0)).toISOString(),
-      scheduledEnd: new Date(new Date().setHours(10, 0)).toISOString(),
-      actualStart: new Date(new Date().setHours(8, 15)).toISOString(),
-      actualEnd: null,
-      turbineId: "turbine-03",
-    },
-    {
-      id: "act-001",
-      type: "TURBINE_WORK",
-      name: "Trabajo en Turbina T-05",
-      notes: "Inspección y mantenimiento de turbina T-05",
+      id: "mock-pending-1",
+      type: "TURBINE_INSPECTION",
+      name: "Inspección Turbina T-01",
       status: "PENDIENTE",
-      time: "Hoy, 09:00",
-      description: "Revisión completa de sistemas eléctricos y mecánicos",
-      scheduledStart: new Date(new Date().setHours(9, 0)).toISOString(),
-      scheduledEnd: new Date(new Date().setHours(11, 0)).toISOString(),
+      time: "Hoy - 09:00",
+      scheduledStart: new Date(new Date().setHours(9, 0, 0, 0)).toISOString(),
+      description: "Inspección visual y termográfica de la turbina T-01.",
+      turbineId: "turbine-001",
       actualStart: null,
       actualEnd: null,
-      turbineId: "turbine-05",
+      scheduledEnd: null,
+      notes: "Verificar estado de palas y góndola.",
     },
     {
-      id: "act-002",
-      type: "INSPECTION",
-      name: "Inspección Estructural Turbina A12",
-      notes: "Inspección detallada de componentes críticos",
+      id: "mock-pending-2",
+      type: "FLIGHT_PLANNING",
+      name: "Planificación de Vuelo Matutino",
       status: "PENDIENTE",
-      time: "Hoy, 10:30",
-      description:
-        "Inspección programada para verificar la integridad estructural",
-      scheduledStart: new Date(new Date().setHours(10, 30)).toISOString(),
-      scheduledEnd: new Date(new Date().setHours(11, 30)).toISOString(),
+      time: "Hoy - 11:00",
+      scheduledStart: new Date(new Date().setHours(11, 0, 0, 0)).toISOString(),
+      description: "Definir rutas de vuelo y verificar condiciones meteorológicas para inspecciones T-02 y T-03.",
       actualStart: null,
       actualEnd: null,
+      scheduledEnd: null,
+      notes: "Revisar NOTAMs y restricciones de espacio aéreo.",
     },
     {
-      id: "act-003",
-      type: "MAINTENANCE",
-      name: "Mantenimiento Preventivo B07",
-      notes: "Lubricación de engranajes y revisión de sensores",
+      id: "mock-pending-3",
+      type: "DOCUMENT_REVIEW",
+      name: "Revisión de Documentación Pre-Operativa",
       status: "PENDIENTE",
-      time: "Hoy, 12:00",
-      description: "Mantenimiento rutinario programado",
-      scheduledStart: new Date(new Date().setHours(12, 0)).toISOString(),
-      scheduledEnd: new Date(new Date().setHours(13, 30)).toISOString(),
+      time: "Hoy - 14:00",
+      scheduledStart: new Date(new Date().setHours(14, 0, 0, 0)).toISOString(),
+      description: "Revisar permisos de vuelo, manuales de operación de drones y protocolos de seguridad.",
       actualStart: null,
       actualEnd: null,
-    },
-    {
-      id: "act-004",
-      type: "PHOTO_CAPTURE",
-      name: "Fotografías Palas Turbina C15",
-      notes: "Captura de imágenes HD de las palas para análisis",
-      status: "PENDIENTE",
-      time: "Hoy, 15:00",
-      description: "Documentación fotográfica para evaluación",
-      scheduledStart: new Date(new Date().setHours(15, 0)).toISOString(),
-      scheduledEnd: new Date(new Date().setHours(16, 0)).toISOString(),
-      actualStart: null,
-      actualEnd: null,
-    },
-    {
-      id: "act-005",
-      type: "THERMAL_SCAN",
-      name: "Escaneo Térmico Sector Norte",
-      notes: "Análisis termográfico de componentes críticos",
-      status: "PENDIENTE",
-      time: "Hoy, 16:30",
-      description: "Detección de puntos calientes y anomalías térmicas",
-      scheduledStart: new Date(new Date().setHours(16, 30)).toISOString(),
-      scheduledEnd: new Date(new Date().setHours(17, 30)).toISOString(),
-      actualStart: null,
-      actualEnd: null,
+      scheduledEnd: null,
+      notes: "Asegurar que toda la documentación esté actualizada y firmada.",
     },
   ],
-  alerts: (projectDataFromImport.alerts || []).map((alert) => ({
-    ...alert,
-    severity: alert.severity as AlertItem["severity"],
-  })),
-  incidents: (projectDataFromImport.incidents || []).map(
-    (inc: IncidentData) => ({
-      ...inc,
-      label:
-        importedIncidentTypes.find((it) => it.id === inc.type)?.label ||
-        inc.type,
-      icon:
-        (importedIncidentTypes.find((it) => it.id === inc.type)
-          ?.icon as keyof typeof Ionicons.glyphMap) || "alert-circle-outline",
-    })
-  ),
+  incidents: [
+    {
+      id: "inc-001",
+      type: "SAFETY",
+      label: "Viento Fuerte",
+      description: "Ráfagas de viento superiores a 40 km/h.",
+      timestamp: "2024-05-23T10:15:00Z",
+      icon: "alert-circle-outline",
+      severity: "MEDIA",
+      status: "ABIERTO",
+    },
+  ],
+  alerts: [
+    {
+      id: "alert-001",
+      type: "INFO",
+      message: "Mantenimiento programado para el dron DR-002 mañana.",
+      timestamp: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), // Ayer
+      read: false,
+    },
+    {
+      id: "alert-002",
+      type: "WARNING",
+      message: "Batería baja en la estación meteorológica remota.",
+      timestamp: new Date().toISOString(), // Hoy
+      read: false,
+    },
+  ],
+  team: [
+    { id: "pilot-007", name: "James Bond", role: "Piloto Principal" },
+    { id: "tech-001", name: "Q", role: "Técnico de Drones" },
+  ],
+  equipment: [
+    { id: "drone-001", name: "DJI Matrice 300 RTK", status: "OPERATIVO" },
+    { id: "sensor-001", name: "Zenmuse H20T", status: "OPERATIVO" },
+  ],
+  // ... other project properties
 };
+
 console.log(
   "PILOT DASHBOARD DATA INIT: typedProjectData.name =",
   typedProjectData.name
@@ -1043,7 +1026,6 @@ const handleFinishActivity = useCallback(() => {
               const activityNameLower = activity.name.toLowerCase();
               
               if (activityTypeLower.includes('turbine') || activityTypeLower.includes('trabajo_turbina') || 
-                  activityTypeLower.includes('turbina') ||
                   activityNameLower.includes('turbina') || activityNameLower.includes('aerogenerador')) {
                 iconName = "nuclear-outline"; // Icono para trabajo en turbinas
               } else if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección') || 
@@ -1064,16 +1046,13 @@ const handleFinishActivity = useCallback(() => {
                         activityNameLower.includes('traslado') || activityNameLower.includes('viaje')) {
                 iconName = "car-outline";
               } else if (activityTypeLower.includes('photo') || activityTypeLower.includes('fotografía') || 
-                        activityTypeLower.includes('imagen') ||
-                        activityNameLower.includes('foto') || activityNameLower.includes('imagen') ||
-                        activityNameLower.includes('fotografía')) {
+                        activityNameLower.includes('foto') || activityNameLower.includes('imagen')) {
                 iconName = "camera-outline";
               } else if (activityTypeLower.includes('thermal') || activityTypeLower.includes('térmico') || 
                         activityNameLower.includes('térmico') || activityNameLower.includes('termográfico') ||
                         activityNameLower.includes('temperatura')) {
                 iconName = "thermometer-outline";
               } else if (activityTypeLower.includes('comida') || activityTypeLower.includes('almuerzo') || 
-                        activityTypeLower.includes('meal') ||
                         activityNameLower.includes('comida') || activityNameLower.includes('almuerzo') ||
                         activityNameLower.includes('cena') || activityNameLower.includes('desayuno')) {
                 iconName = "restaurant-outline";
@@ -1153,7 +1132,6 @@ const handleFinishActivity = useCallback(() => {
               const activityNameLower = activity.name.toLowerCase();
               
               if (activityTypeLower.includes('turbine') || activityTypeLower.includes('trabajo_turbina') || 
-                  activityTypeLower.includes('turbina') ||
                   activityNameLower.includes('turbina') || activityNameLower.includes('aerogenerador')) {
                 iconName = "nuclear-outline"; // Icono para trabajo en turbinas
               } else if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección') || 
@@ -1176,7 +1154,6 @@ const handleFinishActivity = useCallback(() => {
                         activityNameLower.includes('térmico') || activityNameLower.includes('termográfico')) {
                 iconName = "thermometer-outline";
               } else if (activityTypeLower.includes('comida') || activityTypeLower.includes('almuerzo') || 
-                        activityTypeLower.includes('meal') ||
                         activityNameLower.includes('comida') || activityNameLower.includes('almuerzo')) {
                 iconName = "restaurant-outline";
               } else if (activityTypeLower.includes('desmovilizacion') || activityTypeLower.includes('hotel') || 

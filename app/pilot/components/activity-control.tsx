@@ -149,6 +149,17 @@ export default function ActivityControl({
             }}          >
             {formatDurationMs(getElapsed())}
           </Text>
+          {activityStartTime && (
+            <Text style={{
+              fontSize: 14,
+              color: '#6b7280',
+              textAlign: 'center',
+              marginTop: -5, // Adjust as needed for spacing
+              marginBottom: 10, // Add some space before the pause info
+            }}>
+              Iniciada el: {activityStartTime}
+            </Text>
+          )}
           {/* Si está en pausa, mostrar información de pausa debajo con texto más pequeño */}
           {isPaused && pauseStart && (
             <View style={{ alignItems: 'center', marginTop: 4, marginBottom: 8 }}>
@@ -220,16 +231,6 @@ export default function ActivityControl({
               <Ionicons name="pause" size={12} color="#9ca3af" style={{ marginRight: 4 }} />
               <Text style={styles.smallPauseText}>Pausar actividad</Text>
             </TouchableOpacity>
-          )}
-          {activityStartTime && (
-            <Text style={{
-              fontSize: 14,
-              color: '#6b7280',
-              textAlign: 'center',
-              marginTop: 8,
-            }}>
-              Iniciada el: {activityStartTime}
-            </Text>
           )}
         </>
       )}
