@@ -85,8 +85,8 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({
 const styles = StyleSheet.create({  quickActionsCard: {
     backgroundColor: '#f8fafc',
     borderRadius: 16,
-    padding: 16,
-    marginTop: -7,
+    padding: 20, // Changed from 16 to 20
+    marginTop: 0,
     marginBottom: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({  quickActionsCard: {
     borderColor: '#f3f4f6',
   },  actionsContainer: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 12, // Changed from 8 to 12
     width: '100%',
   },
   gradientButtonPrimary: {

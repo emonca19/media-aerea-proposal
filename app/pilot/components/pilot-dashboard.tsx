@@ -1,6 +1,7 @@
 // app/pilot/dashboard/pilot-dashboard.tsx
 
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from "expo-linear-gradient";
 import { Href, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -20,7 +21,8 @@ import useWeather from "../../hooks/useWeather"; // Asegúrate que la ruta a hoo
 import { IncidentFormData } from "../new-incident"; // Importamos el tipo desde el nuevo componente
 import { ActivitiesDisplayList } from "./activities-display-list"; // Ajusta la ruta si es necesario
 import ActivityControl from "./activity-control"; // Importamos el nuevo componente para control de actividad
-import ActivityTimeline, { TimelineActivity } from "./activity-timeline";
+import ActivitySuggestionsCard from "./activity-suggestions-card"; // Importamos el nuevo componente de sugerencias
+import ActivityTimeline, { TimelineActivity } from "./activity-timeline"; // Importamos el componente y el tipo
 import AlertsDisplayCard from "./alerts-display-card"; // Ajusta la ruta si es necesaria
 import IncidentFormModal from "./incident-form-modal"; // Importamos el nuevo componente modal para incidentes
 import MyIndicatorsButton from "./my-indicators-button"; // Ajusta la ruta si es necesaria
@@ -118,7 +120,8 @@ function ProjectSummaryCard({
       case 'PAUSADO': return 'Pausado';
       default: return 'Estado desconocido';
     }
-  };  return (
+  };
+  return (
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
@@ -148,7 +151,7 @@ function ProjectSummaryCard({
         </View>
       </View>
     </TouchableOpacity>
-  );
+  ); // Ensure this matches the corresponding opening parenthesis
 }
 
 // Subtle Welcome Header component inspired by profile
@@ -170,7 +173,7 @@ function WelcomeHeader({
       setCurrentDateTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  });
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('es-MX', { 
@@ -235,7 +238,7 @@ const projectSummaryStyles = StyleSheet.create({
     width: "100%",
     maxWidth: 420,
     alignSelf: "center",
-    marginTop: -1,
+    marginTop: 0,
     marginBottom: 10,
     position: "relative",
   },
@@ -597,10 +600,44 @@ type DashboardSectionItem = {
     | "MY_INDICATORS_BUTTON";
 };
 
+// Define a simple NoActivitiesCard component
+function NoActivitiesCard({ message, iconName }: { message: string, iconName: keyof typeof Ionicons.glyphMap }) {
+  return (
+    <View style={{
+      backgroundColor: '#fff',
+      borderRadius: 16,
+      padding: 20,
+      marginVertical: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 120,
+      borderWidth: 1,
+      borderColor: '#f3f4f6',
+    }}>
+      <Ionicons name={iconName} size={40} color="#d1d5db" style={{ marginBottom: 12 }} />
+      <Text style={{
+        fontSize: 15,
+        color: '#6b7280',
+        textAlign: 'center',
+        maxWidth: '80%',
+        lineHeight: 22,
+      }}>{message}</Text>
+    </View>
+  );
+}
+
+// Claves para almacenar datos en AsyncStorage
+const STORAGE_KEYS = {
+  CURRENT_PROJECT: 'pilot_dashboard_current_project',
+  ALERTS: 'pilot_dashboard_alerts',
+  ACTIVITY_PAUSE_STATE: 'pilot_dashboard_activity_pause',
+};
+
 const PilotDashboard = () => {
   console.log("PilotDashboard RENDERED - V4"); // Incremented version for clarity
   const router = useRouter();
 
+  // Inicializamos con datos por defecto, pero intentaremos cargar desde almacenamiento local
   const [currentProject, setCurrentProject] =
     useState<Project>(typedProjectData);
   console.log(
@@ -625,18 +662,52 @@ const PilotDashboard = () => {
     return today.toLocaleDateString("es-ES", options);
   });
 
+  // Cargar datos almacenados al iniciar
+  useEffect(() => {
+    const loadStoredData = async () => {
+      try {
+        // Cargar proyecto actual con sus actividades
+        const storedProjectData = await AsyncStorage.getItem(STORAGE_KEYS.CURRENT_PROJECT);
+        if (storedProjectData) {
+          const parsedProjectData = JSON.parse(storedProjectData);
+          console.log('Datos cargados desde almacenamiento local:', parsedProjectData.name);
+          setCurrentProject(parsedProjectData);
+        }
+
+        // Cargar alertas
+        const storedAlerts = await AsyncStorage.getItem(STORAGE_KEYS.ALERTS);
+        if (storedAlerts) {
+          setAlerts(JSON.parse(storedAlerts));
+        }
+
+        // Cargar estado de pausa de actividades
+        const storedPauseState = await AsyncStorage.getItem(STORAGE_KEYS.ACTIVITY_PAUSE_STATE);
+        if (storedPauseState) {
+          setActivityPauseState(JSON.parse(storedPauseState));
+        }
+      } catch (error) {
+        console.error("Error al cargar datos almacenados:", error);
+      }
+    };
+
+    loadStoredData();
+  }, []); // Removed setActivityPauseState from the dependency array as it is not needed
+
   const [isAlertsSectionVisible, setIsAlertsSectionVisible] = useState(true);
   const [isNewActivityModalVisible, setIsNewActivityModalVisible] =
-    useState(false);
-  const [isNewIncidentModalVisible, setIsNewIncidentModalVisible] =
+    useState(false);  const [isNewIncidentModalVisible, setIsNewIncidentModalVisible] =
     useState(false);
   const [isProjectDetailsVisible, setIsProjectDetailsVisible] = useState(true); // Nuevo estado para la visibilidad de Mi Jornada Hoy
+  // Estado para el componente de sugerencias de actividades
+  const [showActivitySuggestions, setShowActivitySuggestions] = useState(false);
+  const [suggestedActivities, setSuggestedActivities] = useState<Activity[]>([]);
+  // Estado para pausa de actividad - MOVED HERE
+  // Removed duplicate declaration of activityPauseState
   const {
     weather,
     loading: weatherLoading,
     error: weatherError,
-  } = useWeather();
-  useEffect(() => {
+  } = useWeather();  useEffect(() => {
     setAlerts(currentProject.alerts || []);
   }, [currentProject.alerts]);
 
@@ -700,15 +771,35 @@ const PilotDashboard = () => {
     () => (ongoingActivities.length > 0 ? ongoingActivities[0] : null),
     [ongoingActivities]
   );
+    // Ocultar las sugerencias cuando cambia la actividad actual
+  useEffect(() => {
+    const activityId = currentOngoingActivityForDisplay?.id;
+    // Si el ID de la actividad actual cambia y se están mostrando sugerencias,
+    // ocultamos las sugerencias
+    if (activityId && showActivitySuggestions) {
+      setShowActivitySuggestions(false);
+    }
+  }, [currentOngoingActivityForDisplay?.id, showActivitySuggestions]);
   const handleNavigate = useCallback(
     (route: string) => router.push(route as Href),
     [router]
   );
-  
-  // Handler for navigating to preflight checklist
+    // Handler for navigating to preflight checklist
   const handleGoToPreflightChecklist = useCallback(
-    (turbineId?: string) => {
-      router.push(`/pilot/preflight-checklist?turbineId=${turbineId || 'default'}` as Href);
+    (turbineId?: string, activityIdToStart?: string) => {
+      // Guardamos el activityId en el localStorage para poder iniciarla después de completar el checklist
+      if (activityIdToStart) {
+        try {
+          // En una implementación real, utilizaríamos almacenamiento persistente
+          // Pero para este ejemplo, usaremos parámetros de URL
+          router.push(`/pilot/preflight-checklist?turbineId=${turbineId || 'default'}&activityToStart=${activityIdToStart}` as Href);
+        } catch (error) {
+          console.error("Error al guardar actividad para iniciar después:", error);
+          router.push(`/pilot/preflight-checklist?turbineId=${turbineId || 'default'}` as Href);
+        }
+      } else {
+        router.push(`/pilot/preflight-checklist?turbineId=${turbineId || 'default'}` as Href);
+      }
     },
     [router]
   );
@@ -721,38 +812,61 @@ const PilotDashboard = () => {
       ]),
     [router]
   );
+  // Función para actualizar el proyecto y almacenarlo en AsyncStorage
+  /*
+  // This function is not used, so it is commented out.
+  const updateCurrentProject = useCallback((newProject: Project) => {
+    setCurrentProject(newProject);
+    // Almacenar en AsyncStorage
+    try {
+      AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(newProject));
+    } catch (error) {
+      console.error("Error al guardar proyecto actual:", error);
+    }
+  }, []);
+  */
 
   const handleActivityAction = useCallback(
     (activityId: string, newStatusString: string) => {
       const newStatus = (newStatusString?.toUpperCase().replace(" ", "_") ||
         "PENDIENTE") as Activity["status"];
-      setCurrentProject((prev) => ({
-        ...prev,
-        activities: (prev.activities || []).map(
-          (
-            act // Asegurar que prev.activities es un array
-          ) =>
-            act.id === activityId
-              ? {
-                  ...act,
-                  status: newStatus,
-                  actualStart:
-                    newStatus === "EN_PROGRESO" && !act.actualStart
-                      ? new Date().toISOString()
-                      : act.actualStart,
-                  actualEnd:
-                    newStatus === "COMPLETADA"
-                      ? new Date().toISOString()
-                      : act.actualEnd,                  time:
-                    newStatus === "EN_PROGRESO"
-                      ? "Hoy - En curso"
-                      : newStatus === "COMPLETADA"
-                      ? "Hoy - Completada"
-                      : act.time,
-                }
-              : act
-        ),
-      }));
+      
+      setCurrentProject((prev) => {
+        const updatedProject = {
+          ...prev,
+          activities: (prev.activities || []).map(
+            (
+              act // Asegurar que prev.activities es un array
+            ) =>
+              act.id === activityId
+                ? {
+                    ...act,
+                    status: newStatus,
+                    actualStart:
+                      newStatus === "EN_PROGRESO" && !act.actualStart
+                        ? new Date().toISOString()
+                        : act.actualStart,
+                    actualEnd:
+                      newStatus === "COMPLETADA"
+                        ? new Date().toISOString()
+                        : act.actualEnd,
+                    time:
+                      newStatus === "EN_PROGRESO"
+                        ? "Hoy - En curso"
+                        : newStatus === "COMPLETADA"
+                        ? "Hoy - Completada"
+                        : act.time,
+                  }
+                : act
+          ),
+        };
+        
+        // Persistir los cambios en almacenamiento local
+        AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
+          .catch(error => console.error("Error al guardar cambio de actividad:", error));
+        
+        return updatedProject;
+      });
     },
     []
   );
@@ -776,8 +890,15 @@ const PilotDashboard = () => {
   );
 
   const handleDismissAlert = useCallback(
-    (alertId: string) =>
-      setAlerts((prev) => prev.filter((a) => a.id !== alertId)),
+    (alertId: string) => {
+      setAlerts((prev) => {
+        const updatedAlerts = prev.filter((a) => a.id !== alertId);
+        // Save to AsyncStorage
+        AsyncStorage.setItem(STORAGE_KEYS.ALERTS, JSON.stringify(updatedAlerts))
+          .catch(error => console.error("Error al guardar alertas:", error));
+        return updatedAlerts;
+      });
+    },
     []
   );
   const toggleAlertsSection = useCallback(
@@ -796,8 +917,9 @@ const PilotDashboard = () => {
     () => setIsProjectDetailsVisible((prev) => !prev),
     []
   ); // Nueva función para alternar visibilidad
+
   const handleCreateQuickActivity = useCallback(
-    (activityData: any) => {
+    (activityData: any) => { // Corrected: removed 'const handleActivityData ='
       const isForNow = activityData.isForNow;
       const now = new Date();
       const timeString = "Hoy"; // Simplified time string without specific time
@@ -835,16 +957,28 @@ const PilotDashboard = () => {
               ? {
                   ...act,
                   status: "COMPLETADA",
-                  actualEnd: now.toISOString(),                  time: `Hoy - Completada`,
+                  actualEnd: now.toISOString(),
+                  time: `Hoy - Completada`,
                 }
               : act
           );
         }
       }
-      setCurrentProject((prev) => ({
-        ...prev,
-        activities: [newActivity, ...baseActivities],
-      }));
+
+      // Actualizamos el proyecto y lo guardamos en almacenamiento local
+      setCurrentProject((prev) => {
+        const updatedProject = {
+          ...prev,
+          activities: [newActivity, ...baseActivities],
+        };
+
+        // Guardamos en almacenamiento local
+        AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
+          .catch(error => console.error("Error al guardar nueva actividad:", error));
+
+        return updatedProject;
+      });
+
       setIsNewActivityModalVisible(false);
       Alert.alert(
         "Éxito",
@@ -853,9 +987,9 @@ const PilotDashboard = () => {
         }.`
       );
     },
-    [currentProject.activities]
-  );
-
+      [currentProject?.activities] // Corrected dependency array
+    );
+  
   const handleCreateNewIncident = useCallback(
     (incidentData: IncidentFormData) => {
       const incidentTypeInfo = importedIncidentTypes.find(
@@ -871,10 +1005,18 @@ const PilotDashboard = () => {
           (incidentTypeInfo?.icon as keyof typeof Ionicons.glyphMap) ||
           "alert-circle-outline",
       };
-      setCurrentProject((prev) => ({
-        ...prev,
-        incidents: [...(prev.incidents || []), newIncident],
-      }));
+      setCurrentProject((prev) => {
+        const updatedProject = {
+          ...prev,
+          incidents: [...(prev.incidents || []), newIncident],
+        };
+        
+        // Save to AsyncStorage
+        AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
+          .catch(error => console.error("Error al guardar incidente:", error));
+          
+        return updatedProject;
+      });
       setIsNewIncidentModalVisible(false);
       Alert.alert(
         "Incidencia Registrada",
@@ -932,20 +1074,39 @@ const PilotDashboard = () => {
 
   // Add the missing handler for deleting an activity
   const handleDeleteActivity = useCallback((activityId: string) => {
-    setCurrentProject((prev) => ({
-      ...prev,
-      activities: (prev.activities || []).filter(
-        (act) => act.id !== activityId
-      ),
-    }));
+    setCurrentProject((prev) => {
+      const updatedProject = {
+        ...prev,
+        activities: (prev.activities || []).filter(
+          (act) => act.id !== activityId
+        ),
+      };
+      AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
+        .catch(error => console.error("Error al guardar eliminación de actividad:", error));
+      return updatedProject;
+    });
+
     Alert.alert(
       "Actividad eliminada",
       "La actividad ha sido eliminada correctamente."
     );
   }, []);
-
-  // Estado para pausa de actividad
+  
+// Estado para pausa de actividad
 const [activityPauseState, setActivityPauseState] = useState<{ isPaused: boolean; reason?: string; start?: string; end?: string }>({ isPaused: false });
+
+// Ensure this declaration is above any useEffect that references setActivityPauseState
+
+// Función personalizada para actualizar ActivityPauseState y almacenarlo
+const updateActivityPauseState = useCallback((newState: { isPaused: boolean; reason?: string; start?: string; end?: string }) => {
+  setActivityPauseState(newState);
+  // Almacenar en AsyncStorage
+  try {
+    AsyncStorage.setItem(STORAGE_KEYS.ACTIVITY_PAUSE_STATE, JSON.stringify(newState));
+  } catch (error) {
+    console.error("Error al guardar estado de pausa:", error);
+  }
+}, [setActivityPauseState]); // Added setActivityPauseState
 
 // Iniciar jornada (inicia una nueva actividad de "Jornada" o la actividad principal del día)
 const handleStartJornada = useCallback(() => {
@@ -956,53 +1117,108 @@ const handleStartJornada = useCallback(() => {
 // Pausar actividad actual con motivo
 const handlePauseActivity = useCallback((reason: string) => {
   if (!currentOngoingActivityForDisplay) return;
-  setActivityPauseState({ isPaused: true, reason, start: new Date().toISOString() });
-  // Opcional: podrías guardar el motivo y hora de pausa en el objeto de actividad aquí
-  setCurrentProject(prev => ({
-    ...prev,
-    activities: prev.activities.map(act =>
-      act.id === currentOngoingActivityForDisplay.id
-        ? {
-            ...act,
-            pauseHistory: [
-              ...(act.pauseHistory || []),
-              { reason, start: new Date().toISOString() }
-            ],
-            status: act.status // No cambia el status, solo marca pausa
-          }
-        : act
-    ),
-  }));
-}, [currentOngoingActivityForDisplay]);
+  
+  // Actualizar estado de pausa
+  const newPauseState = { isPaused: true, reason, start: new Date().toISOString() };
+  setActivityPauseState(newPauseState);
+  // Guardar en almacenamiento local
+  AsyncStorage.setItem(STORAGE_KEYS.ACTIVITY_PAUSE_STATE, JSON.stringify(newPauseState))
+    .catch(error => console.error("Error al guardar estado de pausa:", error));
+  
+  // Actualizar el historial de pausas en la actividad actual
+  setCurrentProject(prev => {
+    const updatedProject = {
+      ...prev,
+      activities: prev.activities.map(act =>
+        act.id === currentOngoingActivityForDisplay.id
+          ? {
+              ...act,
+              pauseHistory: [
+                ...(act.pauseHistory || []),
+                { reason, start: new Date().toISOString() }
+              ],
+              status: act.status // No cambia el status, solo marca pausa
+            }
+          : act
+      ),
+    };
+    
+    // Guardar proyecto actualizado
+    AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
+      .catch(error => console.error("Error al guardar actualización de proyecto:", error));
+    
+    return updatedProject;
+  });
+}, [currentOngoingActivityForDisplay, setActivityPauseState]); // Added setActivityPauseState
 
 // Reanudar actividad pausada
 const handleResumeActivity = useCallback(() => {
   if (!currentOngoingActivityForDisplay) return;
-  setActivityPauseState({ isPaused: false });
-  // Opcional: marca el fin de la pausa en el historial
-  setCurrentProject(prev => ({
-    ...prev,
-    activities: prev.activities.map(act =>
-      act.id === currentOngoingActivityForDisplay.id && act.pauseHistory?.length
-        ? {
-            ...act,
-            pauseHistory: act.pauseHistory.map((pause, idx, arr) =>
-              idx === arr.length - 1 && !pause.end
-                ? { ...pause, end: new Date().toISOString() }
-                : pause
-            ),
-          }
-        : act
-    ),
-  }));
-}, [currentOngoingActivityForDisplay]);
+  
+  // Actualizar estado de pausa
+  const newPauseState = { isPaused: false };
+  setActivityPauseState(newPauseState);
+  // Guardar en almacenamiento local
+  AsyncStorage.setItem(STORAGE_KEYS.ACTIVITY_PAUSE_STATE, JSON.stringify(newPauseState))
+    .catch(error => console.error("Error al guardar estado de pausa:", error));
+  
+  // Actualizar el historial de pausas en la actividad actual
+  setCurrentProject(prev => {
+    const updatedProject = {
+      ...prev,
+      activities: prev.activities.map(act =>
+        act.id === currentOngoingActivityForDisplay.id && act.pauseHistory?.length
+          ? {
+              ...act,
+              pauseHistory: act.pauseHistory.map((pause, idx, arr) =>
+                idx === arr.length - 1 && !pause.end
+                  ? { ...pause, end: new Date().toISOString() }
+                  : pause
+              ),
+            }
+          : act
+      ),
+    };
+    
+    // Guardar proyecto actualizado
+    AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
+      .catch(error => console.error("Error al guardar actualización de proyecto:", error));
+    
+    return updatedProject;
+  });
+}, [currentOngoingActivityForDisplay, setActivityPauseState]); // Added setActivityPauseState
 
 // Finalizar actividad actual
 const handleFinishActivity = useCallback(() => {
   if (!currentOngoingActivityForDisplay) return;
-  setActivityPauseState({ isPaused: false });
-  handleActivityAction(currentOngoingActivityForDisplay.id, "COMPLETADA");
-}, [currentOngoingActivityForDisplay, handleActivityAction]);
+  
+  // Completar la actividad actual primero
+  const activityId = currentOngoingActivityForDisplay.id;
+  
+  // Actualizar estado de pausa
+  const newPauseState = { isPaused: false };
+  setActivityPauseState(newPauseState);
+  // Guardar en almacenamiento local
+  AsyncStorage.setItem(STORAGE_KEYS.ACTIVITY_PAUSE_STATE, JSON.stringify(newPauseState))
+    .catch(error => console.error("Error al guardar estado de pausa:", error));
+  
+  // Llamar a handleActivityAction para marcar la actividad como COMPLETADA
+  handleActivityAction(activityId, "COMPLETADA");
+  
+  // Sugerir actividades si hay pendientes para hoy o genéricas
+  const pendingForToday = pendingTodayActivities.filter(act => act.id !== activityId);
+  const genericPending = genericPendingActivities.filter(act => act.id !== activityId);
+
+  if (pendingForToday.length > 0) {
+    setSuggestedActivities(pendingForToday.slice(0, 3)); // Sugerir hasta 3
+    setShowActivitySuggestions(true);
+  } else if (genericPending.length > 0) {
+    setSuggestedActivities(genericPending.slice(0, 3)); // Sugerir hasta 3
+    setShowActivitySuggestions(true);
+  } else {
+    setShowActivitySuggestions(false); // No hay sugerencias
+  }
+}, [currentOngoingActivityForDisplay, handleActivityAction, pendingTodayActivities, genericPendingActivities, setActivityPauseState]); // Added setActivityPauseState
   const renderDashboardSection = useCallback(
     ({ item }: { item: DashboardSectionItem }) => {
       switch (item.type) {
@@ -1046,8 +1262,8 @@ const handleFinishActivity = useCallback(() => {
               turbineId: currentOngoingActivityForDisplay.turbineId || currentOngoingActivityForDisplay.id,
             });
           }
-            // Add upcoming activities today (max 3 with better spacing)
-          const upcomingTodayActivities = pendingTodayActivities.slice(0, 3);          upcomingTodayActivities.forEach((activity, index) => {
+            // Show all upcoming activities for today (removed slice limit)
+          const upcomingTodayActivities = pendingTodayActivities;          upcomingTodayActivities.forEach((activity, index) => {
             const activityType = activityTypes.find(t => t.type === activity.type);
             const isTurbineWork = activity.type === 'TURBINE_WORK' || 
                                  activity.type?.toLowerCase().includes('turbine');            // Enhanced icon assignment with more specific fallbacks
@@ -1134,8 +1350,8 @@ const handleFinishActivity = useCallback(() => {
             });
           });
           
-          // Add future activities (max 2)
-          const futureActivities = genericPendingActivities.slice(0, 2);          futureActivities.forEach((activity, index) => {
+          // Show all future activities (removed slice limit)
+          const futureActivities = genericPendingActivities;          futureActivities.forEach((activity, index) => {
             const activityType = activityTypes.find(t => t.type === activity.type);
             const isTurbineWork = activity.type === 'TURBINE_WORK' || 
                                  activity.type?.toLowerCase().includes('turbine');
@@ -1149,7 +1365,7 @@ const handleFinishActivity = useCallback(() => {
               tomorrow.setDate(today.getDate() + 1);
               
               if (scheduledDate.toDateString() === tomorrow.toDateString()) {
-                timeDisplay = `Mañana, ${scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                timeDisplay = `Mañana, ${scheduledDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
               } else if (scheduledDate > tomorrow) {
                 timeDisplay = scheduledDate.toLocaleDateString('es-ES', { 
                   weekday: 'short', 
@@ -1158,75 +1374,33 @@ const handleFinishActivity = useCallback(() => {
                 });
               }
             }            // Enhanced future activity icon assignment
-            let iconName: any = "calendar-outline";
+            let iconName: any = "calendar-outline"; // Default for future
             if (activityType?.icon) {
               // Convertir MaterialCommunityIcons a Ionicons equivalentes para consistencia
-              if (activityType.icon === 'wind-turbine') {
-                iconName = "nuclear-outline"; // Usamos nuclear como icono para turbinas
-              } else if (activityType.icon === 'bus') {
-                iconName = "car-outline";
-              } else if (activityType.icon === 'coffee') {
-                iconName = "cafe-outline";
-              } else if (activityType.icon === 'food') {
-                iconName = "restaurant-outline";
-              } else if (activityType.icon === 'weather-cloudy') {
-                iconName = "rainy-outline";
-              } else if (activityType.icon === 'dots-horizontal') {
-                iconName = "ellipsis-horizontal-outline";
-              } else if (activityType.icon !== 'briefcase') {
-                iconName = activityType.icon;
-              }
+              if (activityType.icon === 'wind-turbine') { iconName = "nuclear-outline"; }
+              else if (activityType.icon === 'bus') { iconName = "car-outline"; }
+              else if (activityType.icon === 'coffee') { iconName = "cafe-outline"; }
+              else if (activityType.icon === 'food') { iconName = "restaurant-outline"; }
+              else if (activityType.icon === 'weather-cloudy') { iconName = "rainy-outline"; }
+              else if (activityType.icon === 'dots-horizontal') { iconName = "ellipsis-horizontal-outline"; }
+              else if (activityType.icon !== 'briefcase') { iconName = activityType.icon; }
             } else {
               const activityTypeLower = (activity.type || '').toLowerCase();
               const activityNameLower = (activity.name || '').toLowerCase();
-              
-              if (activityTypeLower.includes('turbine') || activityTypeLower.includes('trabajo_turbina') || 
-                  activityNameLower.includes('turbina') || activityNameLower.includes('aerogenerador')) {
-                iconName = "nuclear-outline"; // Icono para trabajo en turbinas
-              } else if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección') || 
-                  activityNameLower.includes('inspección') || activityNameLower.includes('revisar')) {
-                iconName = "search-outline";
-              } else if (activityTypeLower.includes('vuelo') || activityTypeLower.includes('flight') || 
-                        activityNameLower.includes('vuelo') || activityNameLower.includes('aéreo')) {
-                iconName = "airplane-outline";
-              } else if (activityTypeLower.includes('maintenance') || activityTypeLower.includes('mantenimiento') || 
-                        activityNameLower.includes('mantenimiento') || activityNameLower.includes('reparación')) {
-                iconName = "construct-outline";
-              } else if (activityTypeLower.includes('transporte') || activityTypeLower.includes('movilizacion') || 
-                        activityTypeLower.includes('traslado') || 
-                        activityNameLower.includes('transporte') || activityNameLower.includes('mover')) {
-                iconName = "car-outline";
-              } else if (activityTypeLower.includes('photo') || activityTypeLower.includes('fotografía') || 
-                        activityNameLower.includes('foto') || activityNameLower.includes('imagen')) {
-                iconName = "camera-outline";
-              } else if (activityTypeLower.includes('thermal') || activityTypeLower.includes('térmico') || 
-                        activityNameLower.includes('térmico') || activityNameLower.includes('termográfico')) {
-                iconName = "thermometer-outline";
-              } else if (activityTypeLower.includes('comida') || activityTypeLower.includes('almuerzo') || 
-                        activityNameLower.includes('comida') || activityNameLower.includes('almuerzo')) {
-                iconName = "restaurant-outline";
-              } else if (activityTypeLower.includes('desmovilizacion') || activityTypeLower.includes('hotel') || 
-                        activityNameLower.includes('hotel') || activityNameLower.includes('desmovilización')) {
-                iconName = "home-outline";
-              } else if (activityTypeLower.includes('tiempo_muerto') || activityTypeLower.includes('espera') ||
-                        activityTypeLower.includes('break') || activityTypeLower.includes('pausa') ||
-                        activityNameLower.includes('espera') || activityNameLower.includes('tiempo muerto')) {
-                iconName = "hourglass-outline";
-              } else {
-                // Alternate icons for variety
-                const alternateIcons = ["calendar-outline", "bookmark-outline", "flag-outline", "timer-outline"];
-                iconName = alternateIcons[index % alternateIcons.length];
-              }
+              // Add more specific fallbacks for future activities if needed
+              if (activityTypeLower.includes('turbine') || activityNameLower.includes('turbina')) { iconName = "nuclear-outline"; }
+              // ... (otros fallbacks si son necesarios para actividades futuras)
             }
-              timelineActivities.push({
+
+            timelineActivities.push({
               id: activity.id,
-              icon: <Ionicons name={iconName} size={28} color="#8b5cf6" />,
+              icon: <Ionicons name={iconName} size={28} color="#6b7280" />, // Neutral color for future
               title: activity.name,
               time: timeDisplay,
               duration: undefined,
-              statusColor: "#8b5cf6",
+              statusColor: "#6b7280",
               statusLabel: "Futura",
-              statusBg: "#ede9fe",
+              statusBg: "#f3f4f6",
               isTurbineWork: isTurbineWork,
               turbineId: activity.turbineId || activity.id,
             });
@@ -1235,23 +1409,48 @@ const handleFinishActivity = useCallback(() => {
           // Completed activities should only be viewable in the activity-log
           
           // If no activities, show placeholder
-          if (timelineActivities.length === 0) {
-            timelineActivities.push({
-              id: "placeholder",
-              icon: <Ionicons name="time-outline" size={26} color="#9ca3af" />,
-              title: "No hay actividades registradas",
-              time: "Inicia una nueva actividad",
-              statusColor: "#9ca3af",
-              statusLabel: "Vacío",
-              statusBg: "#f3f4f6",
-            });
-          }          return (
-            <ActivityTimeline 
-              activities={timelineActivities}
-              onViewHistory={() => handleNavigate("/pilot/activity-log")}
-              onGoToPreflightChecklist={handleGoToPreflightChecklist}
-            />
-          );
+          const renderTimelineContent = () => {
+            if (timelineActivities.length === 0) {
+              return (
+                <NoActivitiesCard // Assuming this component exists and is imported
+                  message="No hay actividades programadas o en curso por ahora."
+                  iconName="time-outline"
+                  // If NoActivitiesCard accepts a title or custom styles, they could be added here.
+                  // For now, relying on its internal styling and the outer margin.
+                />
+              );
+            }
+            return (
+              <ActivityTimeline // Assuming this component exists and is imported
+                activities={timelineActivities}
+                onItemPress={(item: TimelineActivity) => { // Assuming TimelineActivity type is imported
+                  if (item.isTurbineWork && item.turbineId) {
+                    router.push(`/pilot/turbines/${item.turbineId}` as Href); // Corrected template literal
+                  } else {
+                    console.log("Timeline item pressed:", item.id);
+                  }
+                }}
+                onActionPress={(action: string, activityId: string, turbineId?: string) => {
+                  console.log("Action pressed:", action, "for activity:", activityId);
+                  if (action === "start_preflight" && turbineId) {
+                    handleGoToPreflightChecklist(turbineId);
+                  } else if (action === "pause") {
+                    handlePauseActivity("Pausa desde timeline");
+                  } else if (action === "resume") {
+                    handleResumeActivity();
+                  } else if (action === "finish") {
+                    handleFinishActivity();
+                  } else if (action === "start_pending" && activityId) {
+                    handleStartPendingActivity(activityId);
+                  }
+                }}
+                currentOngoingActivityId={currentOngoingActivityForDisplay?.id}
+                activityPauseState={activityPauseState}
+              />
+            );
+          };
+
+          return <View style={{ marginTop: 10 }}>{renderTimelineContent()}</View>;
         }
         case "REGISTER_ACTIVITY_BUTTON":
           return (
@@ -1300,11 +1499,45 @@ const handleFinishActivity = useCallback(() => {
                   currentPauseReason={activityPauseState.reason}
                 />
               )}
+                {/* Mostrar el componente de sugerencias si está activo */}
+              {showActivitySuggestions && (                <ActivitySuggestionsCard
+                  activities={suggestedActivities}
+                  onClose={() => {
+                    // Ocultar la tarjeta de sugerencias inmediatamente
+                    setShowActivitySuggestions(false);
+                    console.log("Sugerencias cerradas por el usuario");
+                  }}
+                  onActivitySelect={(activityId, isTurbineActivity) => {
+                    // Si es actividad de turbina, ir primero al checklist
+                    if (isTurbineActivity) {
+                      const activity = suggestedActivities.find(act => act.id === activityId);
+                      if (activity) {
+                        const turbineId = activity.turbineId || activity.id;
+                        // Pasar también el ID de la actividad para poder iniciarla después
+                        handleGoToPreflightChecklist(turbineId, activityId);
+                        setShowActivitySuggestions(false);
+                      }
+                    } else {
+                      // Para actividades normales, iniciar directamente
+                      handleStartPendingActivity(activityId);
+                      setShowActivitySuggestions(false);
+                    }
+                  }}
+                  onGoToPreflightChecklist={(turbineId) => {
+                    handleGoToPreflightChecklist(turbineId);
+                    setShowActivitySuggestions(false);
+                  }}
+                />
+              )}
+              
               <QuickActionsMenuCard
                 onNavigate={handleNavigate}
                 onOpenNewActivity={handleOpenNewActivityModal}
                 onOpenNewIncident={handleOpenNewIncidentModal}
-                onSubmitActivity={handleCreateQuickActivity}
+                onSubmitActivity={(activityData: any) => {
+                  console.log("Activity submitted:", activityData);
+                  // Add your logic here for handling the activity submission
+                }}
               />
             </>
           );
@@ -1362,7 +1595,7 @@ const handleFinishActivity = useCallback(() => {
       memoizedActivityListsForDisplay,
       getStatusStyling,
       handleActivityAction,
-      handleCreateQuickActivity,
+      handleCreateQuickActivity, // Ensure this function is defined below
       isProjectDetailsVisible,
       toggleProjectDetails,
       handleDeleteActivity,
@@ -1403,8 +1636,7 @@ const handleFinishActivity = useCallback(() => {
         isVisible={isNewActivityModalVisible}
         onClose={() => setIsNewActivityModalVisible(false)}
         onSubmit={handleCreateQuickActivity}
-      />
-      <IncidentFormModal
+      />      <IncidentFormModal
         isVisible={isNewIncidentModalVisible}
         onClose={() => setIsNewIncidentModalVisible(false)}
         onSubmit={handleCreateNewIncident}
@@ -1415,7 +1647,7 @@ const handleFinishActivity = useCallback(() => {
             status: act.status,
           })
         )}
-      />
+      />      {/* Las sugerencias ahora se muestran directamente en el componente QUICK_ACTIONS_MENU_CARD */}
     </View>
   );
 };

@@ -21,9 +21,21 @@ interface ActivityTimelineProps {
   activities: TimelineActivity[];
   onViewHistory?: () => void;
   onGoToPreflightChecklist?: (turbineId?: string) => void;
+  onItemPress?: (item: TimelineActivity) => void;
+  onActionPress?: (action: string, activityId: string, turbineId?: string) => void;
+  currentOngoingActivityId?: string;
+  activityPauseState?: { isPaused: boolean; reason?: string; start?: string; end?: string };
 }
 
-const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities, onViewHistory, onGoToPreflightChecklist }) => {  return (
+const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ 
+  activities, 
+  onViewHistory, 
+  onGoToPreflightChecklist, 
+  onItemPress,
+  onActionPress,
+  currentOngoingActivityId,
+  activityPauseState
+}) => {  return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>Línea de tiempo</Text>
@@ -33,30 +45,55 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities, onViewH
         {activities.map((activity, idx) => (
           <View key={activity.id} style={styles.timelineRow}>
             {/* Línea vertical y círculo del icono */}            <View style={styles.timelineLineContainer}>
-              <View style={styles.timelineIconWrapper}>                <View style={[
-                  styles.timelineIconCircle, 
-                  { 
-                    backgroundColor: '#fff', 
-                    borderColor: activity.isPaused ? '#dc2626' : activity.statusBg 
-                  }
-                ]}> 
+              <View style={styles.timelineIconWrapper}>                <View 
+                  style={[
+                    styles.timelineIconCircle, 
+                    { 
+                      backgroundColor: '#fff', 
+                      borderColor: activity.isPaused ? '#dc2626' : activity.statusBg 
+                    }
+                  ]}> 
                   {/* Aseguramos que siempre haya un icono, y que sea rojo si está pausada */}
-                  {activity.icon ? activity.icon : 
-                    <Ionicons name="briefcase-outline" size={28} color={activity.isPaused ? "#dc2626" : "#3b82f6"} />}
+                  <TouchableOpacity
+                    onPress={() => onItemPress && onItemPress(activity)}
+                    activeOpacity={0.7}
+                  >
+                    {activity.icon ? activity.icon : 
+                      <Ionicons name="briefcase-outline" size={28} color={activity.isPaused ? "#dc2626" : "#3b82f6"} />}
+                  </TouchableOpacity>
                 </View>
                 {idx !== activities.length - 1 && <View style={styles.timelineLine} />}
               </View>
             </View>
             {/* Contenido */}
             <View style={styles.timelineContent}>
-              <Text style={styles.activityTitle}>{activity.title}</Text>
-              <View style={styles.timeRow}>
-                <Ionicons name="time-outline" size={15} color="#9ca3af" style={{ marginRight: 4 }} />
-                <Text style={styles.activityTime}>{activity.time}</Text>
-                {activity.duration && (
-                  <Text style={styles.activityDuration}> · {activity.duration}</Text>
+              <TouchableOpacity
+                onPress={() => onItemPress && onItemPress(activity)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.activityTitle}>{activity.title}</Text>
+                <View style={styles.timeRow}>
+                  <Ionicons name="time-outline" size={15} color="#9ca3af" style={{ marginRight: 4 }} />
+                  <Text style={styles.activityTime}>{activity.time}</Text>
+                  {activity.duration && (
+                    <Text style={styles.activityDuration}> · {activity.duration}</Text>
+                  )}
+                </View>                {/* Action buttons for activities - Simplificado a solo mostrar el botón Iniciar */}
+                {onActionPress && (
+                  <View style={styles.actionButtonsRow}>
+                    {/* Solo mostrar el botón "Iniciar" para actividades pendientes */}
+                    {activity.statusLabel === "Próxima" && (
+                      <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={() => onActionPress("start_pending", activity.id)}
+                      >
+                        <Ionicons name="play" size={14} color="#3b82f6" />
+                        <Text style={styles.actionButtonText}>Iniciar</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 )}
-              </View>
+              </TouchableOpacity>
             </View>            {/* Estado o duración */}            <View style={styles.statusContainer}>
               <View style={[
                 styles.statusBadge, 
@@ -69,7 +106,6 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities, onViewH
                   {activity.statusLabel}
                 </Text>
               </View>
-                {/* Se elimina el botón de checklist para turbinas */}
             </View>
           </View>        ))}
       </View>
@@ -241,6 +277,33 @@ const styles = StyleSheet.create({  card: {
     color: '#6b7280',
     fontWeight: '500',
     marginHorizontal: 8,
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 8,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    color: '#374151',
+    fontWeight: '500',
+    marginLeft: 4,
   },
 });
 

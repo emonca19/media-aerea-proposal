@@ -154,8 +154,8 @@ export default function ActivityControl({
               fontSize: 14,
               color: '#6b7280',
               textAlign: 'center',
-              marginTop: -5, // Adjust as needed for spacing
-              marginBottom: 10, // Add some space before the pause info
+              marginTop: 2, // Adjust as needed for spacing
+              marginBottom: 5, // Add some space before the pause info
             }}>
               Iniciada el: {activityStartTime}
             </Text>
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 12, // Changed from 20 to 12
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

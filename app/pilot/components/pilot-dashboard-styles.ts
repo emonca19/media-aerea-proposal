@@ -5,8 +5,8 @@ export const styles = StyleSheet.create({
   card_container: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    padding: 20, // Increased from 16
+    marginBottom: 20, // Increased from 16
     // Removed shadow and elevation for flat design
   },
   card_title_large: {
@@ -160,7 +160,7 @@ export const styles = StyleSheet.create({
 
   // Activity Section Styles (from ActivitiesDisplayList)
   activitySection_container: {
-    marginBottom: 16,
+    marginBottom: 20, // Increased from 16
   },
   activitySection_title: {
     fontSize: 18,
@@ -300,8 +300,8 @@ form_switchContainer: {
     fontWeight: '600', // Match activity-log actionButtonText
   },
   projectBrief_container: {
-    marginBottom: 16,
-    paddingHorizontal: 8, // Alineación con el padding general de la tarjeta
+    marginBottom: 20, // Increased from 16
+    paddingHorizontal: 10, // Increased from 8 (proportional increase)
   },
   projectBrief_name: {
     fontSize: 18,
@@ -351,9 +351,9 @@ form_switchContainer: {
   },
   // HeaderInfoCard Styles
   headerCard_container: {
-    padding: 20,
+    padding: 24, // Increased from 20 (proportional increase)
     borderRadius: 15,
-    marginBottom: 20,
+    marginBottom: 20, // Increased from 16
     // Removed shadow and elevation for flat design
   },
   headerCard_topRow: {
@@ -421,8 +421,8 @@ form_switchContainer: {
   },  quickAction_button: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    margin: 5,
+    padding: 16, // Increased from 12 (proportional increase)
+    margin: 8, // Increased from 5 (proportional increase)
     borderRadius: 8,
     backgroundColor: '#ffffff',
     borderWidth: 1,
@@ -433,7 +433,7 @@ form_switchContainer: {
   },
   quickAction_button_main: { // Applied to the main, full-width button
     flexBasis: '94%', // Almost full width to allow for margins
-    paddingVertical: 15, // Make it slightly taller
+    paddingVertical: 20, // Increased from 15 (proportional increase)
   },
   quickAction_iconContainer: {
     width: 32, // Adjusted size for side-by-side layout

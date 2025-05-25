@@ -16,14 +16,13 @@ import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
-import Animated,
-  {
-    runOnJS,
-    useAnimatedGestureHandler,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming, // Removed withSpring
-  } from 'react-native-reanimated';
+import Animated, {
+  runOnJS,
+  useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming, // Removed withSpring
+} from 'react-native-reanimated';
 
 // Reutilizamos los datos de mockTurbines de ActivityLogScreen para consistencia
 export const mockTurbines = [
@@ -520,7 +519,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingRight: 10,
     paddingTop: 10,
-    marginBottom: 5,
+    marginBottom: 0,
   },
   closeButton: {
     padding: 10,
@@ -681,19 +680,19 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   addToListButton: {
-    backgroundColor: '#f97316', // Changed from green to orange
-    borderRadius: 25,
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    marginTop: 8,
-    marginBottom: 12,
-    shadowColor: '#f97316', // Changed shadow color to match
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
-    width: '85%',
-    minHeight: 56,
+    backgroundColor: '#10b981', // Changed from orange to green
+    borderRadius: 12,          // Changed from 25 to 12
+    paddingVertical: 12,       // Changed from 14
+    paddingHorizontal: 24,     // Changed from 28
+    marginTop: 0,              // Was 8
+    marginBottom: 0,           // Was 12
+    shadowColor: '#059669',    // Changed shadow to darker green
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 4,
+    // width: '85%', // REMOVED
+    // minHeight: 56, // REMOVED
   },
   addButtonContent: {
     flexDirection: 'row',
@@ -701,14 +700,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addButtonIconContainer: {
-    // Removed distinct background for icon, icon will be white on orange
-    marginRight: 10, // Adjusted spacing
+    marginRight: 8, // Adjusted from 10
   },
   addToListButtonText: {
     color: '#ffffff',
-    fontWeight: '600', // Slightly less bold
+    fontWeight: '600',
     fontSize: 16,
-    letterSpacing: 0.2, // Reduced letter spacing
+    // letterSpacing: 0.2, // REMOVED
   },  scheduledListContainer: {
     marginTop: 2, // Reducido de 5 a 2
     marginBottom: 15, // Reducido de 25 a 15
