@@ -11,6 +11,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+  PanGestureHandlerGestureEvent,
+} from 'react-native-gesture-handler';
+import Animated,
+  {
+    runOnJS,
+    useAnimatedGestureHandler,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming, // Removed withSpring
+  } from 'react-native-reanimated';
 
 // Reutilizamos los datos de mockTurbines de ActivityLogScreen para consistencia
 export const mockTurbines = [
@@ -48,6 +61,103 @@ interface QuickRegisterActivityFormProps {
   onSubmit: (activityData: any) => void;
 }
 
+// Componente para elementos arrastrables
+interface DraggableActivityItemProps {
+  activity: ScheduledActivity;
+  index: number;
+  onRemove: (id: string) => void;
+  onMove: (fromIndex: number, toIndex: number) => void;
+  totalItems: number;
+}
+
+const DraggableActivityItem: React.FC<DraggableActivityItemProps> = ({
+  activity,
+  index,
+  onRemove,
+  onMove,
+  totalItems,
+}) => {
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
+
+  const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent>({
+    onStart: () => {
+      scale.value = withTiming(1.03, { duration: 150 }); // Softer scale
+      opacity.value = withTiming(0.95, { duration: 150 }); // Softer opacity
+    },
+    onActive: (event) => {
+      translateY.value = event.translationY;
+    },
+    onEnd: (event) => {
+      const ITEM_HEIGHT = 80; // Estimación de la altura del item
+      const currentPosition = index * ITEM_HEIGHT + event.translationY;
+      let newIndex = Math.round(currentPosition / ITEM_HEIGHT);
+
+      // Asegurar que el nuevo índice esté dentro de los límites
+      newIndex = Math.max(0, Math.min(newIndex, totalItems - 1));
+      
+      if (index !== newIndex) {
+        runOnJS(onMove)(index, newIndex);
+      }
+      
+      translateY.value = withTiming(0, { duration: 150 }); // Changed to withTiming
+      scale.value = withTiming(1, { duration: 150 }); // Changed to withTiming
+      opacity.value = withTiming(1, { duration: 150 }); // Changed to withTiming
+    },
+  });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+    opacity: opacity.value,
+  }));
+
+  const activityTypeInfo = activityTypes.find(act => act.type === activity.type);
+  const turbineInfo = activity.turbineId ? mockTurbines.find(t => t.id === activity.turbineId) : undefined;
+
+  return (
+    <PanGestureHandler onGestureEvent={gestureHandler}>
+      <Animated.View style={[styles.scheduledActivityItem, animatedStyle]}>
+        {/* Indicador de orden numérico */}
+        <View style={styles.orderIndicator}>
+          <Text style={styles.orderNumber}>{index + 1}</Text>
+        </View>
+        
+        {/* Icono de drag handle */}
+        <View style={styles.dragHandle}>
+          <MaterialCommunityIcons name="drag-vertical" size={20} color="#94a3b8" />
+        </View>
+        
+        <View style={styles.scheduledActivityContent}>
+          <View style={styles.scheduledActivityHeader}>
+            <MaterialCommunityIcons 
+              name={(activityTypeInfo?.icon as any) || 'calendar-clock'} 
+              size={18} 
+              color="#3b82f6"
+            />
+            <Text style={styles.scheduledActivityTitle}>
+              {activityTypeInfo?.label || 'Actividad'}
+              {turbineInfo && <Text style={styles.scheduledActivityAsset}> • {turbineInfo.name}</Text>}
+            </Text>
+          </View>
+        </View>
+        
+        {/* Botón para eliminar */}
+        <TouchableOpacity 
+          style={styles.removeActivityButton}
+          onPress={() => onRemove(activity.id)}
+          accessibilityLabel="Eliminar actividad programada"
+        >
+          <Ionicons name="close-circle" size={22} color="#ef4444" />
+        </TouchableOpacity>
+      </Animated.View>
+    </PanGestureHandler>
+  );
+};
+
 const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({ 
   isVisible, 
   onClose, 
@@ -56,8 +166,8 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
   const router = useRouter();
   const [selectedType, setSelectedType] = useState<ActivityType | null>(null);
   const [selectedTurbine, setSelectedTurbine] = useState<string>('');
-  const [notes, setNotes] = useState('');
-  const [currentTime, setCurrentTime] = useState(new Date());  const [isForNow, setIsForNow] = useState(true);
+  const [notes, setNotes] = useState('');  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isForNow, setIsForNow] = useState(true);
   // Estados para manejar actividades programadas
   const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([]);
   
@@ -108,30 +218,18 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
     // Reset form fields
     setSelectedType(null);
     setSelectedTurbine('');
-  };
-  // Función para eliminar una actividad de la lista programada
+  };  // Función para eliminar una actividad de la lista programada
   const handleRemoveScheduledActivity = (id: string) => {
     setScheduledActivities(scheduledActivities.filter(activity => activity.id !== id));
   };
   
-  // Funciones para reordenar actividades
-  const handleMoveActivityUp = (index: number) => {
-    if (index <= 0) return; // No se puede mover más arriba si ya es el primero
+  // Función para reordenar actividades con drag-and-drop
+  const moveActivity = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
     
     const newActivities = [...scheduledActivities];
-    const temp = newActivities[index];
-    newActivities[index] = newActivities[index - 1];
-    newActivities[index - 1] = temp;
-    setScheduledActivities(newActivities);
-  };
-  
-  const handleMoveActivityDown = (index: number) => {
-    if (index >= scheduledActivities.length - 1) return; // No se puede mover más abajo si ya es el último
-    
-    const newActivities = [...scheduledActivities];
-    const temp = newActivities[index];
-    newActivities[index] = newActivities[index + 1];
-    newActivities[index + 1] = temp;
+    const [movedItem] = newActivities.splice(fromIndex, 1);
+    newActivities.splice(toIndex, 0, movedItem);
     setScheduledActivities(newActivities);
   };
     // Esta validación se realiza directamente en handleSubmit
@@ -332,7 +430,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                   onChangeText={setNotes}
                 />
               </View>
-            )}{/* BOTÓN AÑADIR A LISTA - Reposicionado y mejorado */}
+            )}            {/* BOTÓN AÑADIR A LISTA - Rediseñado */}
             {!isForNow && (
               <View style={styles.addButtonContainer}>
                 <TouchableOpacity 
@@ -343,73 +441,39 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                   onPress={handleAddToScheduledList}
                   disabled={!selectedType}
                 >
-                  <Ionicons name="add-circle-outline" size={20} color="#fff" />
-                  <Text style={styles.addToListButtonText}>
-                    Añadir a Lista
-                  </Text>
+                  <View style={styles.addButtonContent}>
+                    <View style={styles.addButtonIconContainer}>
+                      <Ionicons name="add" size={24} color="#fff" />
+                    </View>
+                    <Text style={styles.addToListButtonText}>
+                      Añadir a Lista
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </View>
-            )}{/* LISTA DE ACTIVIDADES PROGRAMADAS */}
+            )}            {/* LISTA DE ACTIVIDADES PROGRAMADAS */}
             {!isForNow && scheduledActivities.length > 0 && (
               <View style={styles.scheduledListContainer}>
                 <Text style={styles.subtitle}>Actividades Programadas ({scheduledActivities.length})</Text>
-                <ScrollView style={styles.scheduledList} showsVerticalScrollIndicator={false}>
-                  {scheduledActivities.map((activity, index) => {
-                    if (!activity || !activity.type) return null;
-                    const activityTypeInfo = activityTypes.find(act => act.type === activity.type);
-                    const turbineInfo = activity.turbineId ? mockTurbines.find(t => t.id === activity.turbineId) : undefined;
-                    
-                    return (                      <View key={activity.id} style={styles.scheduledActivityItem}>
-                        {/* Indicador de orden numérico */}
-                        <View style={styles.orderIndicator}>
-                          <Text style={styles.orderNumber}>{index + 1}</Text>
-                        </View>
-                        
-                        <View style={styles.scheduledActivityContent}>                          <View style={styles.scheduledActivityHeader}>
-                            <MaterialCommunityIcons 
-                              name={(activityTypeInfo?.icon as any) || 'calendar-clock'} 
-                              size={18} 
-                              color="#3b82f6"
-                            />
-                            <Text style={styles.scheduledActivityTitle}>
-                              {activityTypeInfo?.label || 'Actividad'}
-                              {turbineInfo && <Text style={styles.scheduledActivityAsset}> • {turbineInfo.name}</Text>}
-                            </Text>
-                          </View>
-                        </View>
-                        
-                        {/* Botones para reordenar y eliminar */}
-                        <View style={styles.activityActions}>
-                          {index > 0 && (
-                            <TouchableOpacity 
-                              style={styles.reorderButton}
-                              onPress={() => handleMoveActivityUp(index)}
-                            >
-                              <Ionicons name="chevron-up" size={18} color="#64748b" />
-                            </TouchableOpacity>
-                          )}
-                          
-                          {index < scheduledActivities.length - 1 && (
-                            <TouchableOpacity 
-                              style={styles.reorderButton}
-                              onPress={() => handleMoveActivityDown(index)}
-                            >
-                              <Ionicons name="chevron-down" size={18} color="#64748b" />
-                            </TouchableOpacity>
-                          )}
-                          
-                          <TouchableOpacity 
-                            style={styles.removeActivityButton}
-                            onPress={() => handleRemoveScheduledActivity(activity.id)}
-                            accessibilityLabel="Eliminar actividad programada"
-                          >
-                            <Ionicons name="close-circle" size={22} color="#ef4444" />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    );
-                  })}
-                </ScrollView>
+                <Text style={styles.dragInstructions}>Arrastra los elementos para reordenar</Text>
+                <GestureHandlerRootView style={styles.scheduledList}>
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    {scheduledActivities.map((activity, index) => {
+                      if (!activity || !activity.type) return null;
+                      
+                      return (
+                        <DraggableActivityItem
+                          key={activity.id}
+                          activity={activity}
+                          index={index}
+                          onRemove={handleRemoveScheduledActivity}
+                          onMove={moveActivity}
+                          totalItems={scheduledActivities.length}
+                        />
+                      );
+                    })}
+                  </ScrollView>
+                </GestureHandlerRootView>
               </View>
             )}
 
@@ -611,43 +675,55 @@ const styles = StyleSheet.create({
     color: '#1e3a8a',
     fontSize: 15,
     fontWeight: '500',
-  },  // Botón para añadir a lista
+  },  // Botón para añadir a lista - Rediseñado
   addButtonContainer: {
     alignItems: 'center',
     marginVertical: 16,
   },
   addToListButton: {
+    backgroundColor: '#f97316', // Changed from green to orange
+    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    marginTop: 8,
+    marginBottom: 12,
+    shadowColor: '#f97316', // Changed shadow color to match
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+    width: '85%',
+    minHeight: 56,
+  },
+  addButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#22c55e', // Verde
-    borderRadius: 50,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    marginTop: 8,
-    marginBottom: 12,
-    shadowColor: '#22c55e',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-    width: '80%', // Ancho definido para centrarlo mejor
+  },
+  addButtonIconContainer: {
+    // Removed distinct background for icon, icon will be white on orange
+    marginRight: 10, // Adjusted spacing
   },
   addToListButtonText: {
     color: '#ffffff',
-    fontWeight: '600',
+    fontWeight: '600', // Slightly less bold
     fontSize: 16,
-    marginLeft: 8,
-  },// Lista de actividades programadas
-  scheduledListContainer: {
+    letterSpacing: 0.2, // Reduced letter spacing
+  },  scheduledListContainer: {
     marginTop: 2, // Reducido de 5 a 2
     marginBottom: 15, // Reducido de 25 a 15
+  },
+  dragInstructions: {
+    color: '#64748b',
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 8,
+    fontStyle: 'italic',
   },
   scheduledList: {
     backgroundColor: '#f0f9ff',
     borderRadius: 10,
     padding: 8, // Reducido de 10 a 8
-    maxHeight: 180, // Reducido de 200 a 180
   },  scheduledActivityItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -660,6 +736,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 1,
+    minHeight: 70,
+  },
+  dragHandle: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginRight: 8,
   },
   scheduledActivityContent: {
     flex: 1,
@@ -684,18 +766,10 @@ const styles = StyleSheet.create({
     color: '#f59e0b',
     fontSize: 12,
     fontWeight: '500',
-  },
-  scheduledActivityNotes: {
+  },  scheduledActivityNotes: {
     color: '#64748b',
     fontSize: 11,
     fontStyle: 'italic',
-  },  activityActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  reorderButton: {
-    padding: 5,
-    marginHorizontal: 2,
   },
   removeActivityButton: {
     padding: 5,
