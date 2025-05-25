@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { mockParks, mockTurbines } from "../../../src/mocks/data";
+import { mockWindParks, mockTurbines } from "../../../src/mocks/index";
 
 export default function TurbineDetailsScreen() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function TurbineDetailsScreen() {
 
   // Get the park information
   const park = turbine
-    ? mockParks.find((p) => p.id === turbine.windParkId)
+    ? mockWindParks.find((p) => p.id === turbine.windParkId)
     : null;
 
   if (!turbine) {
@@ -100,23 +100,6 @@ export default function TurbineDetailsScreen() {
             <Text style={styles.info}>
               Coordenadas: {park?.location?.latitude || "N/A"},{" "}
               {park?.location?.longitude || "N/A"}
-            </Text>
-          </View>
-          <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>Especificaciones</Text>
-            <Text style={styles.info}>
-              Modelo: {turbine.specifications?.model || "No especificado"}
-            </Text>
-            <Text style={styles.info}>
-              Altura: {turbine.specifications?.height || "No especificado"} m
-            </Text>
-            <Text style={styles.info}>
-              Longitud de pala:{" "}
-              {turbine.specifications?.bladeLength || "No especificado"} m
-            </Text>
-            <Text style={styles.info}>
-              Capacidad: {turbine.specifications?.capacity || "No especificado"}{" "}
-              MW
             </Text>
           </View>
         </ScrollView>

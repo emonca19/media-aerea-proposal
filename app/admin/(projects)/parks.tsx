@@ -13,7 +13,7 @@ import {
 import { Card, StatusBadge } from "../../../src/components/common";
 import { SearchBar } from "../../../src/components/SearchBar";
 import { StatCard } from "../../../src/components/StatCard";
-import { mockParks, mockTurbines } from "../../../src/mocks/data";
+import { mockWindParks, mockTurbines } from "../../../src/mocks/index";
 
 export default function ParksScreen() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function ParksScreen() {
     ? mockTurbines.filter((t) => t.windParkId === selectedPark)
     : [];
 
-  const filteredParks = mockParks.filter(
+  const filteredParks = mockWindParks.filter(
     (park) =>
       park.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       park.location.address.toLowerCase().includes(searchQuery.toLowerCase())

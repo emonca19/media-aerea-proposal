@@ -10,8 +10,7 @@ import {
   View,
 } from "react-native";
 import { Card } from "../../src/components/common";
-import { mockClients } from "../../src/mocks/clients";
-import { mockProjects, mockTurbines } from "../../src/mocks/data";
+import { mockClients, mockProjects, mockTurbines } from "../../src/mocks/index";
 
 export default function AdminDashboard() {
   const router = useRouter();

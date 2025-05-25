@@ -1,12 +1,10 @@
 import { BaseEntity, TurbineStatus } from "./common";
 import { PhotoSubmission } from "./photos";
-import { Project } from "./projects";
-import { WindPark } from "./windParks";
 
 export interface Turbine extends BaseEntity {
   name: string;
-  windPark: WindPark;
-  project: Project;
+  windParkId: string; // Reference by ID instead of full object
+  projectId: string; // Reference by ID instead of full object
   status: TurbineStatus;
   position?: {
     x: number;
@@ -18,7 +16,7 @@ export interface Turbine extends BaseEntity {
 }
 
 export interface TurbineInspectionHistory {
-  turbine: Turbine;
+  turbineId: string; // Reference by ID instead of full object
   inspections: {
     date: Date;
     pilotId: string;

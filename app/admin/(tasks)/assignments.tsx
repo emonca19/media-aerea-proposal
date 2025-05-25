@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { mockDrones, mockProjects, mockUsers } from "../../../src/mocks/data"; // Mock data for mockProjects, drones, and pilots
+import { mockDrones, mockProjects, mockUsers } from "../../../src/mocks/index"; // Mock data for mockProjects, drones, and pilots
 
 interface Assignment {
   id: string;

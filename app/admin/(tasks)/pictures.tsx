@@ -13,8 +13,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { mockPhotoSubmissions } from "../../../src/mocks/photos";
-import { PhotoReview, PhotoSubmission } from "../../../src/types/photos";
+import { mockPhotoSubmissions } from "../../../src/mocks/index";
+import { PhotoSubmissionStatus } from "../../../src/types/common";
+import {
+  PhotoSubmission,
+  PhotoSubmissionReview,
+} from "../../../src/types/photos";
 
 export default function PicturesReviewScreen() {
   const [submissions, setSubmissions] =
@@ -30,10 +34,20 @@ export default function PicturesReviewScreen() {
     "ALL" | "PENDING_REVIEW" | "APPROVED" | "REJECTED"
   >("PENDING_REVIEW");
 
+  // Helper function to get submission status
+  const getSubmissionStatus = (
+    submission: PhotoSubmission
+  ): PhotoSubmissionStatus => {
+    if (!submission.photoSubmissionReview) {
+      return "PENDING_REVIEW";
+    }
+    return submission.photoSubmissionReview.status;
+  };
+
   // Filter submissions based on status
   const filteredSubmissions = submissions.filter((submission) => {
     if (filterStatus === "ALL") return true;
-    return submission.status === filterStatus;
+    return getSubmissionStatus(submission) === filterStatus;
   });
 
   const openDriveLink = (url: string) => {
@@ -41,26 +55,25 @@ export default function PicturesReviewScreen() {
       Alert.alert("Error", "No se pudo abrir el enlace de Drive");
     });
   };
-
   const handleReviewSubmission = (submission: PhotoSubmission) => {
     setSelectedSubmission(submission);
-    setCompletenessScore(submission.completeness || 100);
-    setLegibilityScore(submission.legibility || 100);
+    setCompletenessScore(submission.photoSubmissionReview?.completeness || 100);
+    setLegibilityScore(submission.photoSubmissionReview?.legibility || 100);
     setReviewModalVisible(true);
   };
 
   const handleApproveSubmission = () => {
     if (!selectedSubmission) return;
-    const review: PhotoReview = {
-      submissionId: selectedSubmission.id,
-      action: "APPROVE",
+
+    const review: PhotoSubmissionReview = {
+      status: "APPROVED",
       completeness: completenessScore,
       legibility: legibilityScore,
       reviewedBy: "Admin Usuario",
-      reviewDate: new Date(),
+      reviewedAt: new Date(),
     };
 
-    updateSubmissionStatus(review);
+    updateSubmissionStatus(selectedSubmission.id, review);
     setReviewModalVisible(false);
 
     Alert.alert(
@@ -80,17 +93,17 @@ export default function PicturesReviewScreen() {
       Alert.alert("Error", "Debe proporcionar un motivo de rechazo");
       return;
     }
-    const review: PhotoReview = {
-      submissionId: selectedSubmission.id,
-      action: "REJECT",
+
+    const review: PhotoSubmissionReview = {
+      status: "REJECTED",
       completeness: completenessScore,
       legibility: legibilityScore,
       rejectionReason: rejectionReason.trim(),
       reviewedBy: "Admin Usuario",
-      reviewDate: new Date(),
+      reviewedAt: new Date(),
     };
 
-    updateSubmissionStatus(review);
+    updateSubmissionStatus(selectedSubmission.id, review);
     setRejectionModalVisible(false);
     setRejectionReason("");
 
@@ -101,26 +114,23 @@ export default function PicturesReviewScreen() {
     );
   };
 
-  const updateSubmissionStatus = (review: PhotoReview) => {
+  const updateSubmissionStatus = (
+    submissionId: string,
+    review: PhotoSubmissionReview
+  ) => {
     setSubmissions((prevSubmissions) =>
       prevSubmissions.map((submission) =>
-        submission.id === review.submissionId
+        submission.id === submissionId
           ? {
               ...submission,
-              status: review.action === "APPROVE" ? "APPROVED" : "REJECTED",
-              completeness: review.completeness,
-              legibility: review.legibility,
-              rejectionReason: review.rejectionReason,
-              reviewedBy: review.reviewedBy,
-              reviewedAt: new Date(),
-              notificationSent: true,
+              photoSubmissionReview: review,
+              updatedAt: new Date(),
             }
           : submission
       )
     );
   };
-
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: PhotoSubmissionStatus) => {
     switch (status) {
       case "PENDING_REVIEW":
         return "#f59e0b";
@@ -133,7 +143,7 @@ export default function PicturesReviewScreen() {
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: PhotoSubmissionStatus) => {
     switch (status) {
       case "PENDING_REVIEW":
         return "Pendiente";
@@ -151,159 +161,171 @@ export default function PicturesReviewScreen() {
     if (score >= 85) return "#f59e0b"; // orange
     return "#ef4444"; // red
   };
+  const renderSubmissionItem = ({ item }: { item: PhotoSubmission }) => {
+    const status = getSubmissionStatus(item);
+    const review = item.photoSubmissionReview;
 
-  const renderSubmissionItem = ({ item }: { item: PhotoSubmission }) => (
-    <View style={styles.submissionCard}>
-      <View style={styles.cardHeader}>
-        <View style={styles.pilotInfo}>
-          <Text style={styles.pilotName}>{item.pilotName}</Text>
-          <Text style={styles.projectName}>{item.projectName}</Text>
-        </View>
-        <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: getStatusColor(item.status) },
-          ]}
-        >
-          <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
-        </View>
-      </View>
-
-      <View style={styles.submissionDetails}>
-        <View style={styles.detailRow}>
-          <Ionicons name="calendar-outline" size={16} color="#6b7280" />
-          <Text style={styles.detailText}>
-            {new Date(item.submissionDate).toLocaleDateString("es-ES", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </Text>
-        </View>
-        <Text> </Text>
-        <View style={styles.detailRow}>
-          <MaterialCommunityIcons
-            name="wind-turbine"
-            size={16}
-            color="#6b7280"
-          />
-          <Text style={styles.detailText}>
-            {item.turbinesInspected.length} turbinas inspeccionadas
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Ionicons name="camera-outline" size={16} color="#6b7280" />
-          <Text style={styles.detailText}>
-            {item.actualPhotos}/{item.expectedPhotos} fotos
-          </Text>
-        </View>
-      </View>
-
-      {/* Indicadores de completitud y legibilidad */}
-      <View style={styles.qualityIndicators}>
-        <View style={styles.indicator}>
-          <Text style={styles.indicatorLabel}>Completitud</Text>
-          <View style={styles.scoreContainer}>
-            <View
-              style={[
-                styles.scoreBar,
-                {
-                  backgroundColor: getCompletenessColor(item.completeness || 0),
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.scoreProgress,
-                  { width: `${item.completeness || 0}%` },
-                ]}
-              />
-            </View>
-            <Text
-              style={[
-                styles.scoreText,
-                { color: getCompletenessColor(item.completeness || 0) },
-              ]}
-            >
-              {item.completeness || 0}%
-            </Text>
+    return (
+      <View style={styles.submissionCard}>
+        <View style={styles.cardHeader}>
+          <View style={styles.pilotInfo}>
+            <Text style={styles.pilotName}>{item.pilotName}</Text>
+            <Text style={styles.projectName}>{item.projectName}</Text>
           </View>
-        </View>
-
-        <View style={styles.indicator}>
-          <Text style={styles.indicatorLabel}>Legibilidad</Text>
-          <View style={styles.scoreContainer}>
-            <View
-              style={[
-                styles.scoreBar,
-                { backgroundColor: getCompletenessColor(item.legibility || 0) },
-              ]}
-            >
-              <View
-                style={[
-                  styles.scoreProgress,
-                  { width: `${item.legibility || 0}%` },
-                ]}
-              />
-            </View>
-            <Text
-              style={[
-                styles.scoreText,
-                { color: getCompletenessColor(item.legibility || 0) },
-              ]}
-            >
-              {item.legibility || 0}%
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Razón de rechazo si existe */}
-      {item.rejectionReason && (
-        <View style={styles.rejectionContainer}>
-          <Text style={styles.rejectionLabel}>Motivo de rechazo:</Text>
-          <Text style={styles.rejectionText}>{item.rejectionReason}</Text>
-        </View>
-      )}
-
-      {/* Información de revisión */}
-      {item.reviewedBy && (
-        <View style={styles.reviewInfo}>
-          <Text style={styles.reviewText}>
-            Revisado por {item.reviewedBy} el{" "}
-            {new Date(item.reviewedAt!).toLocaleDateString("es-ES")}
-          </Text>
-        </View>
-      )}
-
-      {/* Botones de acción */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={styles.driveButton}
-          onPress={() => openDriveLink(item.driveLink)}
-        >
-          <MaterialCommunityIcons
-            name="google-drive"
-            size={18}
-            color="#4285f4"
-          />
-          <Text style={styles.driveButtonText}>Ver en Drive</Text>
-        </TouchableOpacity>
-
-        {item.status === "PENDING_REVIEW" && (
-          <TouchableOpacity
-            style={styles.reviewButton}
-            onPress={() => handleReviewSubmission(item)}
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: getStatusColor(status) },
+            ]}
           >
-            <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
-            <Text style={styles.reviewButtonText}>Revisar</Text>
-          </TouchableOpacity>
+            <Text style={styles.statusText}>{getStatusText(status)}</Text>
+          </View>
+        </View>
+
+        <View style={styles.submissionDetails}>
+          <View style={styles.detailRow}>
+            <Ionicons name="calendar-outline" size={16} color="#6b7280" />
+            <Text style={styles.detailText}>
+              {new Date(item.submissionDate).toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </Text>
+          </View>
+          <Text> </Text>
+          <View style={styles.detailRow}>
+            <MaterialCommunityIcons
+              name="wind-turbine"
+              size={16}
+              color="#6b7280"
+            />
+            <Text style={styles.detailText}>
+              {item.turbinesInspected.length} turbinas inspeccionadas
+            </Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Ionicons name="link-outline" size={16} color="#6b7280" />
+            <Text style={styles.detailText}>Link de Drive disponible</Text>
+          </View>
+        </View>
+
+        {/* Indicadores de completitud y legibilidad */}
+        {review && (
+          <View style={styles.qualityIndicators}>
+            <View style={styles.indicator}>
+              <Text style={styles.indicatorLabel}>Completitud</Text>
+              <View style={styles.scoreContainer}>
+                <View
+                  style={[
+                    styles.scoreBar,
+                    {
+                      backgroundColor: getCompletenessColor(
+                        review.completeness
+                      ),
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.scoreProgress,
+                      { width: `${review.completeness}%` },
+                    ]}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.scoreText,
+                    { color: getCompletenessColor(review.completeness) },
+                  ]}
+                >
+                  {review.completeness}%
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.indicator}>
+              <Text style={styles.indicatorLabel}>Legibilidad</Text>
+              <View style={styles.scoreContainer}>
+                <View
+                  style={[
+                    styles.scoreBar,
+                    {
+                      backgroundColor: getCompletenessColor(review.legibility),
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.scoreProgress,
+                      { width: `${review.legibility}%` },
+                    ]}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.scoreText,
+                    { color: getCompletenessColor(review.legibility) },
+                  ]}
+                >
+                  {review.legibility}%
+                </Text>
+              </View>
+            </View>
+          </View>
         )}
+
+        {/* Razón de rechazo si existe */}
+        {review?.rejectionReason && (
+          <View style={styles.rejectionContainer}>
+            <Text style={styles.rejectionLabel}>Motivo de rechazo:</Text>
+            <Text style={styles.rejectionText}>{review.rejectionReason}</Text>
+          </View>
+        )}
+
+        {/* Información de revisión */}
+        {review && (
+          <View style={styles.reviewInfo}>
+            <Text style={styles.reviewText}>
+              Revisado por {review.reviewedBy} el{" "}
+              {new Date(review.reviewedAt).toLocaleDateString("es-ES")}
+            </Text>
+          </View>
+        )}
+
+        {/* Botones de acción */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={styles.driveButton}
+            onPress={() => openDriveLink(item.driveLink)}
+          >
+            <MaterialCommunityIcons
+              name="google-drive"
+              size={18}
+              color="#4285f4"
+            />
+            <Text style={styles.driveButtonText}>Ver en Drive</Text>
+          </TouchableOpacity>
+
+          {status === "PENDING_REVIEW" && (
+            <TouchableOpacity
+              style={styles.reviewButton}
+              onPress={() => handleReviewSubmission(item)}
+            >
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={18}
+                color="#fff"
+              />
+              <Text style={styles.reviewButtonText}>Revisar</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -395,14 +417,13 @@ export default function PicturesReviewScreen() {
                       {new Date(
                         selectedSubmission.submissionDate
                       ).toLocaleDateString("es-ES")}
-                    </Text>
+                    </Text>{" "}
                     <Text style={styles.infoText}>
                       Turbinas:{" "}
                       {selectedSubmission.turbinesInspected.join(", ")}
                     </Text>
                     <Text style={styles.infoText}>
-                      Fotos: {selectedSubmission.actualPhotos}/
-                      {selectedSubmission.expectedPhotos}
+                      Link de Drive disponible
                     </Text>
                   </View>
 

@@ -12,85 +12,32 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-// Define the Drone type
-type DroneStatus =
-  | "Operativo"
-  | "En Mantenimiento"
-  | "Fuera de Servicio"
-  | "De Baja";
-
-interface Drone {
-  id: string; // Internal unique ID
-  identifier: string; // User-defined or system-generated ID shown in UI
-  model: string;
-  brand: string;
-  status: DroneStatus;
-  serialNumber?: string;
-  purchaseDate?: string; // Consider using Date type if date manipulation is needed
-  registrationDate: string; // Date of registration in the system
-  notes?: string;
-}
-
-// Initial mock data
-const INITIAL_DRONES: Drone[] = [
-  {
-    id: "1",
-    identifier: "DRN001",
-    model: "Mavic 3 Pro",
-    brand: "DJI",
-    status: "Operativo",
-    registrationDate: new Date(2023, 0, 15).toISOString(),
-    serialNumber: "DJI12345ABC",
-    purchaseDate: new Date(2023, 0, 1).toISOString(),
-    notes: "Cámara principal con filtro ND",
-  },
-  {
-    id: "2",
-    identifier: "DRN002",
-    model: "Autel Evo II",
-    brand: "Autel Robotics",
-    status: "En Mantenimiento",
-    registrationDate: new Date(2023, 2, 10).toISOString(),
-    serialNumber: "AUT67890XYZ",
-    purchaseDate: new Date(2023, 1, 20).toISOString(),
-    notes: "Revisión de hélices programada.",
-  },
-  {
-    id: "3",
-    identifier: "DRN003",
-    model: "Inspire 2",
-    brand: "DJI",
-    status: "Fuera de Servicio",
-    registrationDate: new Date(2022, 5, 5).toISOString(),
-    serialNumber: "DJI54321QWE",
-    purchaseDate: new Date(2022, 4, 1).toISOString(),
-    notes: "Batería defectuosa, pendiente de reemplazo.",
-  },
-];
+import { mockDrones } from "../../../src/mocks/drones";
+import { Drone, DroneStatus } from "../../../src/types";
 
 const DronesScreen = () => {
-  const [drones, setDrones] = useState<Drone[]>(INITIAL_DRONES);
+  const [drones, setDrones] = useState<Drone[]>(mockDrones);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingDrone, setEditingDrone] = useState<Drone | null>(null);
   const [isNewDrone, setIsNewDrone] = useState(false);
 
   // Form state for adding/editing a drone
-  const [identifier, setIdentifier] = useState("");
+  const [name, setName] = useState("");
   const [model, setModel] = useState("");
-  const [brand, setBrand] = useState("");
+  const [manufacturer, setManufacturer] = useState("");
   const [serialNumber, setSerialNumber] = useState("");
-  const [purchaseDate, setPurchaseDate] = useState("");
-  const [currentStatus, setCurrentStatus] = useState<DroneStatus>("Operativo"); // Renamed from 'status' to avoid conflict
+  const [acquisitionDate, setAcquisitionDate] = useState("");
+  const [currentStatus, setCurrentStatus] = useState<DroneStatus>("AVAILABLE");
+  const [assignedTo, setAssignedTo] = useState("");
   const [notes, setNotes] = useState("");
-
   const resetForm = () => {
-    setIdentifier("");
+    setName("");
     setModel("");
-    setBrand("");
+    setManufacturer("");
     setSerialNumber("");
-    setPurchaseDate("");
-    setCurrentStatus("Operativo");
+    setAcquisitionDate("");
+    setCurrentStatus("AVAILABLE");
+    setAssignedTo("");
     setNotes("");
     setEditingDrone(null);
     setIsNewDrone(false);
@@ -101,39 +48,42 @@ const DronesScreen = () => {
     setIsNewDrone(true);
     setModalVisible(true);
   };
-
   const handleEditDrone = (drone: Drone) => {
     resetForm();
     setIsNewDrone(false);
     setEditingDrone(drone);
-    setIdentifier(drone.identifier);
+    setName(drone.name);
     setModel(drone.model);
-    setBrand(drone.brand);
-    setSerialNumber(drone.serialNumber || "");
-    setPurchaseDate(drone.purchaseDate || "");
+    setManufacturer(drone.manufacturer);
+    setSerialNumber(drone.serialNumber);
+    setAcquisitionDate(drone.acquisitionDate.toISOString().split("T")[0]);
     setCurrentStatus(drone.status);
+    setAssignedTo(drone.assignedTo || "");
     setNotes(drone.notes || "");
     setModalVisible(true);
   };
-
   const handleSaveDrone = () => {
-    if (!identifier.trim() || !model.trim() || !brand.trim()) {
-      Alert.alert("Error", "Identificador, Modelo y Marca son obligatorios.");
+    if (!name.trim() || !model.trim() || !manufacturer.trim()) {
+      Alert.alert("Error", "Name, Model and Manufacturer are required.");
       return;
     }
 
     if (isNewDrone || !editingDrone) {
       // Adding new drone
       const newDroneData: Drone = {
-        id: String(Date.now() + Math.random()), // More robust unique ID
-        identifier: identifier.trim(),
+        id: String(Date.now() + Math.random()),
+        name: name.trim(),
         model: model.trim(),
-        brand: brand.trim(),
+        manufacturer: manufacturer.trim(),
         serialNumber: serialNumber.trim(),
-        purchaseDate: purchaseDate.trim(),
+        acquisitionDate: acquisitionDate
+          ? new Date(acquisitionDate)
+          : new Date(),
         status: currentStatus,
-        notes: notes.trim(),
-        registrationDate: new Date().toISOString(),
+        assignedTo: assignedTo.trim() || undefined,
+        notes: notes.trim() || undefined,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       setDrones((prevDrones) => [...prevDrones, newDroneData]);
     } else {
@@ -143,13 +93,17 @@ const DronesScreen = () => {
           d.id === editingDrone.id
             ? {
                 ...d,
-                identifier: identifier.trim(),
+                name: name.trim(),
                 model: model.trim(),
-                brand: brand.trim(),
+                manufacturer: manufacturer.trim(),
                 serialNumber: serialNumber.trim(),
-                purchaseDate: purchaseDate.trim(),
+                acquisitionDate: acquisitionDate
+                  ? new Date(acquisitionDate)
+                  : d.acquisitionDate,
                 status: currentStatus,
-                notes: notes.trim(),
+                assignedTo: assignedTo.trim() || undefined,
+                notes: notes.trim() || undefined,
+                updatedAt: new Date(),
               }
             : d
         )
@@ -158,108 +112,72 @@ const DronesScreen = () => {
     setModalVisible(false);
     resetForm();
   };
-
   const handleUpdateStatus = (droneId: string, newStatus: DroneStatus) => {
     setDrones((prevDrones) =>
       prevDrones.map((d) =>
-        d.id === droneId ? { ...d, status: newStatus } : d
+        d.id === droneId
+          ? { ...d, status: newStatus, updatedAt: new Date() }
+          : d
       )
     );
   };
-
-  const confirmDecommissionDrone = (droneId: string) => {
-    Alert.alert(
-      "Confirmar Baja",
-      "¿Está seguro de que desea dar de baja este drone? Esta acción cambiará su estado a 'De Baja' y se moverá al listado histórico.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Dar de Baja",
-          onPress: () => handleUpdateStatus(droneId, "De Baja"),
-          style: "destructive",
-        },
-      ]
-    );
-  };
-
   const renderDroneItem = ({ item }: { item: Drone }) => (
     <View style={styles.itemContainer}>
       <View style={styles.itemTextContainer}>
         <Text style={styles.itemTitle}>
-          {item.brand} {item.model}
+          {item.manufacturer} {item.model}
         </Text>
-        <Text>ID: {item.identifier}</Text>
+        <Text>Name: {item.name}</Text>
         <Text>S/N: {item.serialNumber || "N/A"}</Text>
-        <Text>Estado: {item.status}</Text>
-        {item.status === "De Baja" && (
-          <Text style={styles.deBajaText}>(Registro Histórico)</Text>
-        )}
+        <Text>Status: {item.status}</Text>
+        {item.assignedTo && <Text>Assigned to: {item.assignedTo}</Text>}
       </View>
       <View style={styles.itemActionsContainer}>
         <TouchableOpacity
           onPress={() => handleEditDrone(item)}
           style={[styles.actionButton, styles.editButton]}
         >
-          <Text style={styles.actionButtonText}>Ver/Editar</Text>
+          <Text style={styles.actionButtonText}>View/Edit</Text>
         </TouchableOpacity>
-        {item.status !== "De Baja" && (
-          <>
-            <TouchableOpacity
-              onPress={() =>
-                Alert.prompt(
-                  "Actualizar Estado",
-                  `Drone: ${item.identifier}\nEstado actual: ${item.status}.\nNuevo estado (Operativo, En Mantenimiento, Fuera de Servicio):`,
-                  (newStatusInput) => {
-                    const validStatuses: DroneStatus[] = [
-                      "Operativo",
-                      "En Mantenimiento",
-                      "Fuera de Servicio",
-                    ];
-                    if (
-                      newStatusInput &&
-                      validStatuses.includes(newStatusInput as DroneStatus)
-                    ) {
-                      handleUpdateStatus(
-                        item.id,
-                        newStatusInput as DroneStatus
-                      );
-                    } else if (newStatusInput) {
-                      Alert.alert(
-                        "Estado Inválido",
-                        `Por favor ingrese uno de: ${validStatuses.join(", ")}.`
-                      );
-                    }
-                  },
-                  "plain-text",
-                  item.status
-                )
-              }
-              style={[styles.actionButton, styles.statusButton]}
-            >
-              <Text style={styles.actionButtonText}>Estado</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => confirmDecommissionDrone(item.id)}
-              style={[styles.actionButton, styles.decommissionButton]}
-            >
-              <Text style={styles.actionButtonText}>Dar Baja</Text>
-            </TouchableOpacity>
-          </>
-        )}
+        <TouchableOpacity
+          onPress={() =>
+            Alert.prompt(
+              "Update Status",
+              `Drone: ${item.name}\nCurrent status: ${item.status}.\nNew status (AVAILABLE, IN_USE):`,
+              (newStatusInput) => {
+                const validStatuses: DroneStatus[] = ["AVAILABLE", "IN_USE"];
+                if (
+                  newStatusInput &&
+                  validStatuses.includes(newStatusInput as DroneStatus)
+                ) {
+                  handleUpdateStatus(item.id, newStatusInput as DroneStatus);
+                } else if (newStatusInput) {
+                  Alert.alert(
+                    "Invalid Status",
+                    `Please enter one of: ${validStatuses.join(", ")}.`
+                  );
+                }
+              },
+              "plain-text",
+              item.status
+            )
+          }
+          style={[styles.actionButton, styles.statusButton]}
+        >
+          <Text style={styles.actionButtonText}>Status</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
-
-  const activeDrones = drones.filter((d) => d.status !== "De Baja");
-  const decommissionedDrones = drones.filter((d) => d.status === "De Baja");
+  const activeDrones = drones.filter((d) => d.status === "AVAILABLE");
+  const inUseDrones = drones.filter((d) => d.status === "IN_USE");
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: "Drones" }} />
-      <Button title="Registrar Nuevo Drone" onPress={handleAddDrone} />
-
+      <Button title="Register New Drone" onPress={handleAddDrone} />
       <Text style={styles.listHeader}>
-        Drones Activos ({activeDrones.length})
+        Available Drones ({activeDrones.length})
       </Text>
       {activeDrones.length > 0 ? (
         <FlatList
@@ -269,23 +187,22 @@ const DronesScreen = () => {
           style={styles.list}
         />
       ) : (
-        <Text style={styles.emptyListText}>No hay drones activos.</Text>
+        <Text style={styles.emptyListText}>No available drones.</Text>
       )}
-
       <Text style={styles.listHeader}>
-        Drones Históricos ({decommissionedDrones.length})
+        Drones In Use ({inUseDrones.length})
       </Text>
-      {decommissionedDrones.length > 0 ? (
+      {inUseDrones.length > 0 ? (
         <FlatList
-          data={decommissionedDrones}
+          data={inUseDrones}
           renderItem={renderDroneItem}
           keyExtractor={(item) => item.id}
           style={styles.list}
         />
       ) : (
-        <Text style={styles.emptyListText}>No hay drones históricos.</Text>
+        <Text style={styles.emptyListText}>No drones currently in use.</Text>
       )}
-
+      <Text> </Text>
       <Modal
         animationType="slide"
         transparent={true}
@@ -299,81 +216,73 @@ const DronesScreen = () => {
           <View style={styles.modalView}>
             <ScrollView style={{ width: "100%" }}>
               <Text style={styles.modalTitle}>
-                {isNewDrone ? "Registrar Nuevo Drone" : "Detalles del Drone"}
+                {isNewDrone ? "Register New Drone" : "Drone Details"}
               </Text>
 
-              <Text style={styles.label}>Identificador*</Text>
+              <Text style={styles.label}>Name*</Text>
               <TextInput
-                placeholder="Ej. DRN00X"
-                value={identifier}
-                onChangeText={setIdentifier}
+                placeholder="e.g. DJI Mavic 3 - Unit 001"
+                value={name}
+                onChangeText={setName}
                 style={styles.input}
-                editable={isNewDrone || editingDrone?.status !== "De Baja"}
               />
 
-              <Text style={styles.label}>Marca*</Text>
+              <Text style={styles.label}>Manufacturer*</Text>
               <TextInput
-                placeholder="Ej. DJI"
-                value={brand}
-                onChangeText={setBrand}
+                placeholder="e.g. DJI"
+                value={manufacturer}
+                onChangeText={setManufacturer}
                 style={styles.input}
-                editable={editingDrone?.status !== "De Baja"}
               />
 
-              <Text style={styles.label}>Modelo*</Text>
+              <Text style={styles.label}>Model*</Text>
               <TextInput
-                placeholder="Ej. Mavic 3 Pro"
+                placeholder="e.g. Mavic 3 Pro"
                 value={model}
                 onChangeText={setModel}
                 style={styles.input}
-                editable={editingDrone?.status !== "De Baja"}
               />
 
-              <Text style={styles.label}>Número de Serie</Text>
+              <Text style={styles.label}>Serial Number</Text>
               <TextInput
-                placeholder="Ej. DJI12345ABC"
+                placeholder="e.g. DJI12345ABC"
                 value={serialNumber}
                 onChangeText={setSerialNumber}
                 style={styles.input}
-                editable={editingDrone?.status !== "De Baja"}
               />
 
-              <Text style={styles.label}>Fecha de Compra</Text>
+              <Text style={styles.label}>Acquisition Date</Text>
               <TextInput
                 placeholder="YYYY-MM-DD"
-                value={purchaseDate}
-                onChangeText={setPurchaseDate}
+                value={acquisitionDate}
+                onChangeText={setAcquisitionDate}
                 style={styles.input}
-                editable={editingDrone?.status !== "De Baja"}
               />
 
-              <Text style={styles.label}>Estado*</Text>
+              <Text style={styles.label}>Assigned To</Text>
+              <TextInput
+                placeholder="Pilot ID (optional)"
+                value={assignedTo}
+                onChangeText={setAssignedTo}
+                style={styles.input}
+              />
+
+              <Text style={styles.label}>Status*</Text>
               <View style={styles.statusSelector}>
-                {(
-                  [
-                    "Operativo",
-                    "En Mantenimiento",
-                    "Fuera de Servicio",
-                  ] as DroneStatus[]
-                ).map((s) => (
+                {(["AVAILABLE", "IN_USE"] as DroneStatus[]).map((s) => (
                   <TouchableOpacity
                     key={s}
                     style={[
                       styles.statusOption,
                       currentStatus === s && styles.statusOptionSelected,
-                      editingDrone?.status === "De Baja" &&
-                        styles.statusOptionDisabled,
                     ]}
                     onPress={() => setCurrentStatus(s)}
-                    disabled={editingDrone?.status === "De Baja"}
                   >
                     <Text
                       style={[
                         currentStatus === s
                           ? styles.statusOptionTextSelected
                           : styles.statusOptionText,
-                        editingDrone?.status === "De Baja" &&
-                          styles.statusOptionTextDisabled,
                       ]}
                     >
                       {s}
@@ -381,34 +290,27 @@ const DronesScreen = () => {
                   </TouchableOpacity>
                 ))}
               </View>
-              {editingDrone?.status === "De Baja" && (
-                <Text style={styles.deBajaTextModal}>
-                  Este drone está &apos;De Baja&apos;. Su información es de solo
-                  lectura y su estado no puede ser modificado.
-                </Text>
-              )}
 
-              <Text style={styles.label}>Notas</Text>
+              <Text style={styles.label}>Notes</Text>
               <TextInput
-                placeholder="Información adicional"
+                placeholder="Additional information"
                 value={notes}
                 onChangeText={setNotes}
                 multiline
                 numberOfLines={3}
                 style={[styles.input, styles.textArea]}
-                editable={editingDrone?.status !== "De Baja"}
               />
 
               {!isNewDrone && editingDrone && (
                 <View style={styles.infoBox}>
                   <Text style={styles.infoText}>
-                    ID Interno: {editingDrone.id}
+                    Internal ID: {editingDrone.id}
                   </Text>
                   <Text style={styles.infoText}>
-                    Fecha de Registro:{" "}
-                    {new Date(
-                      editingDrone.registrationDate
-                    ).toLocaleDateString()}
+                    Created: {editingDrone.createdAt.toLocaleDateString()}
+                  </Text>
+                  <Text style={styles.infoText}>
+                    Last Updated: {editingDrone.updatedAt.toLocaleDateString()}
                   </Text>
                 </View>
               )}
@@ -421,18 +323,16 @@ const DronesScreen = () => {
                     resetForm();
                   }}
                 >
-                  <Text style={styles.modalButtonText}>Cancelar</Text>
+                  <Text style={styles.modalButtonText}>Cancel</Text>
                 </TouchableOpacity>
-                {editingDrone?.status !== "De Baja" && (
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.saveButton]}
-                    onPress={handleSaveDrone}
-                  >
-                    <Text style={styles.modalButtonText}>
-                      {isNewDrone ? "Registrar Drone" : "Guardar Cambios"}
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={handleSaveDrone}
+                >
+                  <Text style={styles.modalButtonText}>
+                    {isNewDrone ? "Register Drone" : "Save Changes"}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </ScrollView>
           </View>
@@ -506,28 +406,10 @@ const styles = StyleSheet.create({
   statusButton: {
     backgroundColor: "#f39c12",
   },
-  decommissionButton: {
-    backgroundColor: "#e74c3c",
-  },
   actionButtonText: {
     color: "#fff",
     fontSize: 13,
     fontWeight: "500",
-  },
-  deBajaText: {
-    color: "#c0392b",
-    fontStyle: "italic",
-    fontSize: 12,
-    marginTop: 3,
-  },
-  deBajaTextModal: {
-    color: "#c0392b",
-    fontStyle: "italic",
-    textAlign: "center",
-    marginVertical: 10,
-    padding: 8,
-    backgroundColor: "#fadedb",
-    borderRadius: 5,
   },
   // Modal Styles
   centeredView: {
@@ -608,13 +490,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 12, // Adjusted font size
     fontWeight: "500",
-  },
-  statusOptionDisabled: {
-    backgroundColor: "#ecf0f1",
-    borderColor: "#bdc3c7",
-  },
-  statusOptionTextDisabled: {
-    color: "#7f8c8d",
   },
   modalActions: {
     flexDirection: "row",

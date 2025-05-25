@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { Card, StatusBadge } from "../../../src/components/common";
-import { mockParks, mockProjects } from "../../../src/mocks/data";
+import { mockWindParks, mockProjects } from "../../../src/mocks/index";
 
 export default function ProjectsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,7 +19,7 @@ export default function ProjectsScreen() {
   );
 
   const getProjectParks = (projectId: string) =>
-    mockParks.filter((park) => park.projectId === projectId);
+    mockWindParks.filter((park) => park.projectId === projectId);
 
   return (
     <View style={styles.container}>

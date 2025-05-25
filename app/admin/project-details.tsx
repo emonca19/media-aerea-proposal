@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { mockProjects } from '../../src/mocks/data';
+import { mockProjects } from '../../src/mocks/index';
 
 export default function ProjectDetailsScreen() {
   const router = useRouter();
