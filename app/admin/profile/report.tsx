@@ -497,145 +497,142 @@ export default function ReportsScreen() {
         }}
       />
 
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <Animated.View entering={FadeInUp.delay(100)} style={styles.header}>
+          <Text style={styles.title}>Generar Reportes</Text>
+          <Text style={styles.subtitle}>
+            Selecciona el tipo de reporte que deseas generar
+          </Text>
+        </Animated.View>
+        {/* Quick Stats */}
+        <Animated.View entering={FadeInUp.delay(200)} style={styles.quickStats}>
+          <StatCard
+            title="Reportes Generados Hoy"
+            value="12"
+            icon="analytics"
+            color="#3b82f6"
+          />
+          <StatCard
+            title="Datos Disponibles"
+            value={`${mockTurbines.length}`}
+            icon="settings"
+            color="#10b981"
+          />
+        </Animated.View>
+        {/* Report Templates */}
+        <Animated.View
+          entering={FadeInDown.delay(300)}
+          style={styles.templatesSection}
         >
-          {/* Header */}
-          <Animated.View entering={FadeInUp.delay(100)} style={styles.header}>
-            <Text style={styles.title}>Generar Reportes</Text>
-            <Text style={styles.subtitle}>
-              Selecciona el tipo de reporte que deseas generar
-            </Text>
-          </Animated.View>
-          {/* Quick Stats */}
-          <Animated.View
-            entering={FadeInUp.delay(200)}
-            style={styles.quickStats}
-          >
-            <StatCard
-              title="Reportes Generados Hoy"
-              value="12"
-              icon="analytics"
-              color="#3b82f6"
-            />
-            <StatCard
-              title="Datos Disponibles"
-              value={`${mockTurbines.length}`}
-              icon="settings"
-              color="#10b981"
-            />
-          </Animated.View>
-          {/* Report Templates */}
-          <Animated.View
-            entering={FadeInDown.delay(300)}
-            style={styles.templatesSection}
-          >
-            <Text style={styles.sectionTitle}>Plantillas de Reportes</Text>
+          <Text style={styles.sectionTitle}>Plantillas de Reportes</Text>
 
-            <View style={styles.templateGrid}>
-              {reportTemplates.map((template, index) => (
-                <Animated.View
-                  key={template.id}
-                  entering={FadeInDown.delay(400 + index * 100)}
-                  style={styles.templateCard}
+          <View style={styles.templateGrid}>
+            {reportTemplates.map((template, index) => (
+              <Animated.View
+                key={template.id}
+                entering={FadeInDown.delay(400 + index * 100)}
+                style={styles.templateCard}
+              >
+                <TouchableOpacity
+                  style={styles.templateContent}
+                  onPress={() => handleTemplateSelect(template)}
                 >
-                  <TouchableOpacity
-                    style={styles.templateContent}
-                    onPress={() => handleTemplateSelect(template)}
+                  <LinearGradient
+                    colors={[template.color, `${template.color}CC`]}
+                    style={styles.templateIcon}
                   >
-                    <LinearGradient
-                      colors={[template.color, `${template.color}CC`]}
-                      style={styles.templateIcon}
-                    >
-                      <Ionicons
-                        name={template.icon as any}
-                        size={28}
-                        color="white"
-                      />
-                    </LinearGradient>
+                    <Ionicons
+                      name={template.icon as any}
+                      size={28}
+                      color="white"
+                    />
+                  </LinearGradient>
 
-                    <View style={styles.templateInfo}>
-                      <Text style={styles.templateName}>{template.name}</Text>
-                      <Text style={styles.templateDescription}>
-                        {template.description}
-                      </Text>
-                      <Text style={styles.templateType}>
-                        Tipo: {template.type}
-                      </Text>
-                    </View>
-
-                    <View style={styles.templateAction}>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={20}
-                        color="#64748b"
-                      />
-                    </View>
-                  </TouchableOpacity>
-                </Animated.View>
-              ))}
-            </View>
-          </Animated.View>
-          {/* Recent Reports */}
-          <Animated.View
-            entering={FadeInDown.delay(800)}
-            style={styles.recentSection}
-          >
-            <Text style={styles.sectionTitle}>Reportes Recientes</Text>
-            <View style={styles.recentReports}>
-              {mockReports.slice(0, 3).map((report, index) => (
-                <View key={report.id} style={styles.recentReportCard}>
-                  <View style={styles.recentReportHeader}>
-                    <View style={styles.recentReportIcon}>
-                      <Ionicons
-                        name={
-                          report.type === "PROJECT"
-                            ? "folder"
-                            : report.type === "PILOT"
-                            ? "person"
-                            : report.type === "CLIENT"
-                            ? "business"
-                            : "analytics"
-                        }
-                        size={16}
-                        color="#3b82f6"
-                      />
-                    </View>
-                    <View style={styles.recentReportInfo}>
-                      <Text style={styles.recentReportName}>{report.name}</Text>
-                      <Text style={styles.recentReportDate}>
-                        {report.generatedAt.toLocaleDateString("es-ES")}
-                      </Text>
-                    </View>
-                    <TouchableOpacity style={styles.downloadButton}>
-                      <Ionicons
-                        name="download-outline"
-                        size={18}
-                        color="#3b82f6"
-                      />
-                    </TouchableOpacity>
+                  <View style={styles.templateInfo}>
+                    <Text style={styles.templateName}>{template.name}</Text>
+                    <Text style={styles.templateDescription}>
+                      {template.description}
+                    </Text>
+                    <Text style={styles.templateType}>
+                      Tipo: {template.type}
+                    </Text>
                   </View>
 
-                  <View style={styles.recentReportStats}>
-                    <View style={styles.recentReportStat}>
-                      <Text style={styles.recentReportStatValue}>
-                        {report.format}
-                      </Text>
-                      <Text style={styles.recentReportStatLabel}>Formato</Text>
-                    </View>
-                    <View style={styles.recentReportStat}>
-                      <Text style={styles.recentReportStatValue}>
-                        {report.type}
-                      </Text>
-                      <Text style={styles.recentReportStatLabel}>Tipo</Text>
-                    </View>
+                  <View style={styles.templateAction}>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color="#64748b"
+                    />
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
+            ))}
+          </View>
+        </Animated.View>
+        {/* Recent Reports */}
+        <Animated.View
+          entering={FadeInDown.delay(800)}
+          style={styles.recentSection}
+        >
+          <Text style={styles.sectionTitle}>Reportes Recientes</Text>
+          <View style={styles.recentReports}>
+            {mockReports.slice(0, 3).map((report, index) => (
+              <View key={report.id} style={styles.recentReportCard}>
+                <View style={styles.recentReportHeader}>
+                  <View style={styles.recentReportIcon}>
+                    <Ionicons
+                      name={
+                        report.type === "PROJECT"
+                          ? "folder"
+                          : report.type === "PILOT"
+                          ? "person"
+                          : report.type === "CLIENT"
+                          ? "business"
+                          : "analytics"
+                      }
+                      size={16}
+                      color="#3b82f6"
+                    />
+                  </View>
+                  <View style={styles.recentReportInfo}>
+                    <Text style={styles.recentReportName}>{report.name}</Text>
+                    <Text style={styles.recentReportDate}>
+                      {report.generatedAt.toLocaleDateString("es-ES")}
+                    </Text>
+                  </View>
+                  <TouchableOpacity style={styles.downloadButton}>
+                    <Ionicons
+                      name="download-outline"
+                      size={18}
+                      color="#3b82f6"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.recentReportStats}>
+                  <View style={styles.recentReportStat}>
+                    <Text style={styles.recentReportStatValue}>
+                      {report.format}
+                    </Text>
+                    <Text style={styles.recentReportStatLabel}>Formato</Text>
+                  </View>
+                  <View style={styles.recentReportStat}>
+                    <Text style={styles.recentReportStatValue}>
+                      {report.type}
+                    </Text>
+                    <Text style={styles.recentReportStatLabel}>Tipo</Text>
                   </View>
                 </View>
-              ))}
-            </View>
-          </Animated.View>
-        </ScrollView>
+              </View>
+            ))}
+          </View>
+        </Animated.View>
+      </ScrollView>
       <FilterModal />
     </>
   );
@@ -651,7 +648,8 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 30,
+    paddingTop: 60,
+    marginTop: 20,
   },
   title: {
     fontSize: 28,

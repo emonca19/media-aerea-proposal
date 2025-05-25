@@ -96,7 +96,6 @@ export default function AdminProfile() {
         {/* Resumen Operativo */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Resumen Operativo</Text>
-
           <View style={styles.operationalCard}>
             <View style={styles.operationalHeader}>
               <Ionicons name="analytics" size={24} color="#ffffff" />
@@ -122,8 +121,7 @@ export default function AdminProfile() {
                 <Text style={styles.operationalLabel}>Eficiencia Media</Text>
               </View>
             </View>
-          </View>
-
+          </View>{" "}
           <TouchableOpacity
             style={styles.kpiAccessButton}
             onPress={() => router.push("/admin/profile/kpisdashboard")}
@@ -131,6 +129,57 @@ export default function AdminProfile() {
             <Ionicons name="stats-chart" size={20} color="#ffffff" />
             <Text style={styles.kpiAccessText}>Ver Indicadores Completos</Text>
           </TouchableOpacity>
+        </View>
+        {/* Acciones Rápidas */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Acciones Rápidas</Text>
+
+          <View style={styles.quickActionsGrid}>
+            <TouchableOpacity
+              style={styles.quickActionItem}
+              onPress={() => router.push("/admin/profile/report")}
+            >
+              <View
+                style={[styles.quickActionIcon, { backgroundColor: "#dbeafe" }]}
+              >
+                <Ionicons name="document-text" size={24} color="#3b82f6" />
+              </View>
+              <Text style={styles.quickActionLabel}>Generar Reporte</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickActionItem}
+              onPress={() => router.push("/admin/dashboard")}
+            >
+              <View
+                style={[styles.quickActionIcon, { backgroundColor: "#dcfce7" }]}
+              >
+                <Ionicons name="analytics" size={24} color="#22c55e" />
+              </View>
+              <Text style={styles.quickActionLabel}>Dashboard General</Text>
+            </TouchableOpacity>{" "}
+            <TouchableOpacity
+              style={styles.quickActionItem}
+              onPress={() => router.push("/admin/(projects)/active-projects")}
+            >
+              <View
+                style={[styles.quickActionIcon, { backgroundColor: "#fef3c7" }]}
+              >
+                <Ionicons name="briefcase" size={24} color="#f59e0b" />
+              </View>
+              <Text style={styles.quickActionLabel}>Gestionar Proyectos</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickActionItem}
+              onPress={() => router.push("/admin/(tasks)/assignments")}
+            >
+              <View
+                style={[styles.quickActionIcon, { backgroundColor: "#fce7f3" }]}
+              >
+                <Ionicons name="checkmark-circle" size={24} color="#ec4899" />
+              </View>
+              <Text style={styles.quickActionLabel}>Revisar Tareas</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         {/* Configuración */}
         <View style={styles.card}>
