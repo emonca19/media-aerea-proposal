@@ -1,4 +1,4 @@
-import { mockUsers } from '../mocks/users';
+import { mockUsers } from '../mocks/index';
 import { User } from '../types';
 
 export const auth = {

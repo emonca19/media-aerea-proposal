@@ -18,7 +18,7 @@ import { PhotoSubmissionStatus } from "../../../src/types/common";
 import {
   PhotoSubmission,
   PhotoSubmissionReview,
-} from "../../../src/types/photos";
+} from "../../../src/types/pictures";
 
 export default function PicturesReviewScreen() {
   const [submissions, setSubmissions] =
@@ -417,7 +417,7 @@ export default function PicturesReviewScreen() {
                       {new Date(
                         selectedSubmission.submissionDate
                       ).toLocaleDateString("es-ES")}
-                    </Text>{" "}
+                    </Text>
                     <Text style={styles.infoText}>
                       Turbinas:{" "}
                       {selectedSubmission.turbinesInspected.join(", ")}

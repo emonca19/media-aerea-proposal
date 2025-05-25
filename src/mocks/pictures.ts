@@ -1,5 +1,5 @@
 import { PhotoSubmissionStatus } from "../types/common";
-import { PhotoSubmission, PhotoSubmissionReview } from "../types/photos";
+import { PhotoSubmission, PhotoSubmissionReview } from "../types/pictures";
 
 export const mockPhotoSubmissionReviews: PhotoSubmissionReview[] = [
   {
@@ -35,7 +35,7 @@ export const mockPhotoSubmissions: PhotoSubmission[] = [
     projectId: "proj_001",
     projectName: "WindFarm Alpha Inspection Q2 2025",
     submissionDate: new Date("2025-05-23T09:00:00Z"),
-    driveLink: "https://drive.google.com/drive/folders/1A2B3C4D5E6F7G8H9I0J",
+    driveLink: "https://drive.google.com/",
     turbinesInspected: ["turbine_001", "turbine_002", "turbine_003"],
     photoSubmissionReview: mockPhotoSubmissionReviews[0],
     createdAt: new Date("2025-05-23T09:00:00Z"),
@@ -48,7 +48,7 @@ export const mockPhotoSubmissions: PhotoSubmission[] = [
     projectId: "proj_002",
     projectName: "Coastal Wind Inspection Phase 1",
     submissionDate: new Date("2025-05-22T13:30:00Z"),
-    driveLink: "https://drive.google.com/drive/folders/2B3C4D5E6F7G8H9I0J1K",
+    driveLink: "https://drive.google.com/",
     turbinesInspected: [
       "turbine_004",
       "turbine_005",
@@ -66,7 +66,7 @@ export const mockPhotoSubmissions: PhotoSubmission[] = [
     projectId: "proj_001",
     projectName: "WindFarm Alpha Inspection Q2 2025",
     submissionDate: new Date("2025-05-21T16:00:00Z"),
-    driveLink: "https://drive.google.com/drive/folders/3C4D5E6F7G8H9I0J1K2L",
+    driveLink: "https://drive.google.com/",
     turbinesInspected: ["turbine_008", "turbine_009"],
     photoSubmissionReview: mockPhotoSubmissionReviews[2],
     createdAt: new Date("2025-05-21T16:00:00Z"),
@@ -79,7 +79,7 @@ export const mockPhotoSubmissions: PhotoSubmission[] = [
     projectId: "proj_003",
     projectName: "Mountain Ridge Emergency Inspection",
     submissionDate: new Date("2025-05-24T08:15:00Z"),
-    driveLink: "https://drive.google.com/drive/folders/4D5E6F7G8H9I0J1K2L3M",
+    driveLink: "https://drive.google.com/",
     turbinesInspected: ["turbine_010", "turbine_011"],
     // No review yet - still pending
     createdAt: new Date("2025-05-24T08:15:00Z"),
@@ -92,7 +92,7 @@ export const mockPhotoSubmissions: PhotoSubmission[] = [
     projectId: "proj_001",
     projectName: "WindFarm Alpha Inspection Q2 2025",
     submissionDate: new Date("2025-05-24T14:30:00Z"),
-    driveLink: "https://drive.google.com/drive/folders/5E6F7G8H9I0J1K2L3M4N",
+    driveLink: "https://drive.google.com/",
     turbinesInspected: ["turbine_012"],
     // No review yet - still pending
     createdAt: new Date("2025-05-24T14:30:00Z"),

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { SafeAreaView, View } from 'react-native';
 
@@ -7,11 +8,7 @@ type NotificationTabIconProps = {
   color: string;
   size: number;
   focused: boolean;
-
-
 };
-
-
 
 
 function NotificationTabIcon({ color, size, focused }: NotificationTabIconProps) {
@@ -58,6 +55,7 @@ function NotificationTabIcon({ color, size, focused }: NotificationTabIconProps)
 export default function PilotLayout() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar style="dark" backgroundColor="#000000" />
       <View style={{ flex: 1, paddingTop: 0 }}>
         <Tabs
           screenOptions={{

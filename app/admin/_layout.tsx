@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
-import { StatusBar } from "expo-status-bar"; // Added import
 import {
   AccessibilityRole,
   AccessibilityState,
@@ -110,7 +109,6 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
 export default function AdminLayout() {
   return (
     <>
-      <StatusBar style="dark" backgroundColor="#ffffff" />
       <Tabs
         screenOptions={{
           headerShown: false,

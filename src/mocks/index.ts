@@ -3,7 +3,7 @@ export * from "./assignments";
 export * from "./clients";
 export * from "./drones";
 export * from "./incidents";
-export * from "./photos";
+export * from "./pictures";
 export * from "./pilots";
 export * from "./projects";
 export * from "./reports";

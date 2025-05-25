@@ -128,6 +128,55 @@ export default function AdminDashboard() {
             <Text style={styles.statLabel}>Proyectos Totales</Text>
           </TouchableOpacity>
         </View>
+        <View style={styles.row}>
+          <TouchableOpacity
+            style={[
+              styles.statCard,
+              styles.statCardShadow,
+              {
+                backgroundColor: "#fff",
+                borderColor: "#e2e8f0",
+                borderWidth: 1,
+              },
+            ]}
+            onPress={() => router.push("/admin/clients")}
+            activeOpacity={0.85}
+          >
+            <View style={styles.iconCircle}>
+              <MaterialCommunityIcons
+                name="office-building"
+                size={28}
+                color="#3949ab"
+              />
+            </View>
+            <Text style={styles.statValue}>{totalClients}</Text>
+            <Text style={styles.statLabel}>Clientes Activos</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.statCard,
+              styles.statCardShadow,
+              {
+                backgroundColor: "#fff",
+                borderColor: "#e2e8f0",
+                borderWidth: 1,
+              },
+            ]}
+            onPress={() => router.push("/admin/clients")}
+            activeOpacity={0.85}
+          >
+            <View style={styles.iconCircle}>
+              <MaterialCommunityIcons
+                name="folder-multiple"
+                size={28}
+                color="#5c6bc0"
+              />
+            </View>
+            <Text style={styles.statValue}>{totalProjects}</Text>
+            <Text style={styles.statLabel}>Proyectos Totales</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Estadísticas de Turbinas */}
         <Card title="Estado de Turbinas">

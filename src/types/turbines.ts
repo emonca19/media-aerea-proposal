@@ -1,5 +1,5 @@
 import { BaseEntity, TurbineStatus } from "./common";
-import { PhotoSubmission } from "./photos";
+import { PhotoSubmission } from "./pictures";
 
 export interface Turbine extends BaseEntity {
   name: string;
