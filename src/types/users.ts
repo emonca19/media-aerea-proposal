@@ -1,4 +1,5 @@
 import { BaseEntity, UserRole } from "./common";
+import { PilotUser } from "./pilots";
 
 export interface User extends BaseEntity {
   email: string;
@@ -9,11 +10,20 @@ export interface User extends BaseEntity {
   profileImage?: string;
 }
 
-export interface UserStats {
-  userId: string;
-  averageTimePerTurbine: number; // in minutes
-  photoDeliveryTime: number; // average time between work completion and photo upload (hours)
-  dailyCompletionRate: number; // percentage (0-100)
-  totalTurbinesInspected: number;
-  totalProjectsCompleted: number;
+export interface AdminUser extends User {
+  role: "ADMIN";
+  systemPermissions: SystemPermission[];
 }
+
+export interface SuperAdminUser extends User {
+  role: "SUPER_ADMIN";
+  systemPermissions: SystemPermission[];
+}
+
+export type SystemPermission =
+  | "USER_MANAGEMENT"
+  | "ROLE_ASSIGNMENT"
+  | "ACCOUNT_DEACTIVATION"
+  | "AUDIT_LOGS";
+
+export type AnyUser = PilotUser | AdminUser | SuperAdminUser;

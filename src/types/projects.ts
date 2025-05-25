@@ -4,7 +4,6 @@ export interface Project extends BaseEntity {
   name: string;
   description: string;
   clientId: string;
-  contractId: string;
   windParkId: string;
   startDate: Date;
   endDate: Date;
@@ -21,6 +20,7 @@ export interface ProjectProgress {
   turbinesNotStarted: number;
   turbinesInspected: number;
   turbinesPhotosUploaded: number;
-  turbinesApproved: number;
+  turbinesPhotosRejected: number;
+  turbinesPhotosApproved: number;
   completionPercentage: number;
 }

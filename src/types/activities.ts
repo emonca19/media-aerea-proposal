@@ -4,7 +4,7 @@ export interface Activity extends BaseEntity {
   type: ActivityType;
   startTime: Date;
   endTime?: Date;
-  duration?: number; // calculated in minutes
+  durationSeconds?: number; // Calculated from startTime and endTime
   projectId: string;
   turbineId?: string;
   pilotId: string;

@@ -251,7 +251,7 @@ export default function LoginScreen() {
                     styles.input,
                     showEmailError && !validateEmail(email) && { borderColor: '#ff6b6b' }
                   ]}
-                  placeholder="nombre@empresa.com"
+                  placeholder="nombre@mediaaerea.com"
                   placeholderTextColor="rgba(255,255,255,0.5)"
                   value={email}
                   onChangeText={(text) => {
@@ -277,7 +277,7 @@ export default function LoginScreen() {
                 <Text style={styles.inputLabel}>Contraseña</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Tu contraseña segura"
+                  placeholder="********"
                   placeholderTextColor="rgba(255,255,255,0.5)"
                   value={password}
                   onChangeText={setPassword}
@@ -286,12 +286,7 @@ export default function LoginScreen() {
                 />
               </View>
 
-              <TouchableOpacity 
-                style={styles.forgotPassword}
-                onPress={() => Alert.alert('Recuperar contraseña', 'Esta función estará disponible pronto.')}
-              >
-                <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
-              </TouchableOpacity>
+              
 
               <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
                 <TouchableOpacity 
@@ -314,12 +309,6 @@ export default function LoginScreen() {
                 <Text style={styles.errorText}>{error}</Text>
               ) : null}
 
-              <View style={styles.signupContainer}>
-                <Text style={styles.signupText}>¿No tienes una cuenta?</Text>
-                <TouchableOpacity>
-                  <Text style={styles.signupLink}>Regístrate</Text>
-                </TouchableOpacity>
-              </View>
             </Animated.View>
           </Animated.View>
         </LinearGradient>
@@ -393,10 +382,11 @@ const styles = StyleSheet.create({
     marginBottom: theme.dark.dimensions.spacing.lg,
   },
   inputLabel: {
-    color: 'rgb(162,179,201)',
+    color: '#ffffff',
     marginBottom: theme.dark.dimensions.spacing.xs,
     fontSize: theme.dark.dimensions.fontSize.sm,
     fontWeight: '600',
+    marginStart: 5,
   },
   input: {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -408,6 +398,7 @@ const styles = StyleSheet.create({
     paddingVertical: theme.dark.dimensions.spacing.sm,
     fontSize: theme.dark.dimensions.fontSize.md,
     height: 48,
+    marginTop: 7,
   },
   forgotPassword: {
     marginTop:-12,
@@ -420,11 +411,11 @@ const styles = StyleSheet.create({
     
   },
   loginButton: {
+    marginTop: 16,
     backgroundColor: 'rgb(151,68,195)',
     borderRadius: theme.dark.dimensions.borderRadius.medium,
     paddingVertical: theme.dark.dimensions.spacing.md,
     marginBottom: theme.dark.dimensions.spacing.md,
-    height: 48,
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -459,8 +450,9 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   errorText: {
-    color: '#ff6b6b',
+    color: '#fff48d',
     fontSize: theme.dark.dimensions.fontSize.sm,
     marginTop: theme.dark.dimensions.spacing.xs,
+    marginStart: 5,
   }
 });

@@ -1,0 +1,102 @@
+import { WindPark } from "../types/windParks";
+
+export const mockWindParks: WindPark[] = [
+  {
+    id: "park_001",
+    name: "WindFarm Alpha",
+    location: {
+      latitude: 41.2033,
+      longitude: -77.1945,
+      address: "WindFarm Alpha Site, Pennsylvania, USA",
+    },
+    clientId: "client_001",
+    projectId: "proj_001",
+    mapImage: "https://example.com/maps/windfarm_alpha.jpg",
+    turbines: [], // Would be populated with actual turbine references
+    notes: "Primary wind farm with 24 turbines, operational since 2023",
+    createdAt: new Date("2023-01-15T10:00:00Z"),
+    updatedAt: new Date("2025-05-20T08:00:00Z"),
+  },
+  {
+    id: "park_002",
+    name: "Coastal Wind Farm Beta",
+    location: {
+      latitude: 39.7392,
+      longitude: -74.4231,
+      address: "Coastal Wind Farm Beta, New Jersey, USA",
+    },
+    clientId: "client_003",
+    projectId: "proj_002",
+    mapImage: "https://example.com/maps/coastal_beta.jpg",
+    turbines: [],
+    notes:
+      "Coastal installation with marine environment considerations, 18 turbines",
+    createdAt: new Date("2024-02-10T09:00:00Z"),
+    updatedAt: new Date("2025-04-15T08:00:00Z"),
+  },
+  {
+    id: "park_003",
+    name: "Mountain Ridge Wind Farm",
+    location: {
+      latitude: 44.2619,
+      longitude: -72.5806,
+      address: "Mountain Ridge Wind Farm, Vermont, USA",
+    },
+    clientId: "client_002",
+    projectId: "proj_003",
+    mapImage: "https://example.com/maps/mountain_ridge.jpg",
+    turbines: [],
+    notes:
+      "High altitude installation requiring special equipment, 12 turbines",
+    createdAt: new Date("2023-09-05T11:00:00Z"),
+    updatedAt: new Date("2025-05-22T08:00:00Z"),
+  },
+  {
+    id: "park_004",
+    name: "Desert Wind Farm Gamma",
+    location: {
+      latitude: 32.2217,
+      longitude: -110.9265,
+      address: "Desert Wind Farm Gamma, Arizona, USA",
+    },
+    clientId: "client_001",
+    projectId: "proj_004",
+    mapImage: "https://example.com/maps/desert_gamma.jpg",
+    turbines: [],
+    notes: "Desert installation completed in Q1 2025, 30 turbines",
+    createdAt: new Date("2024-08-20T14:30:00Z"),
+    updatedAt: new Date("2025-04-12T16:30:00Z"),
+  },
+  {
+    id: "park_005",
+    name: "Offshore Platform Delta",
+    location: {
+      latitude: 40.4173,
+      longitude: -73.9776,
+      address: "Offshore Platform Delta, 15 miles east of Long Island, NY, USA",
+    },
+    clientId: "client_003",
+    projectId: "proj_005",
+    mapImage: "https://example.com/maps/offshore_delta.jpg",
+    turbines: [],
+    notes: "Offshore platform in development, awaiting environmental permits",
+    createdAt: new Date("2024-12-01T10:00:00Z"),
+    updatedAt: new Date("2025-05-15T10:30:00Z"),
+  },
+  {
+    id: "park_006",
+    name: "Prairie Wind Expansion",
+    location: {
+      latitude: 41.5868,
+      longitude: -93.625,
+      address: "Prairie Wind Expansion, Iowa, USA",
+    },
+    clientId: "client_004",
+    projectId: "proj_006",
+    mapImage: "https://example.com/maps/prairie_expansion.jpg",
+    turbines: [],
+    notes: "Future expansion site for Mountain Power Systems, planning phase",
+    createdAt: new Date("2025-03-15T12:00:00Z"),
+    updatedAt: new Date("2025-05-01T14:00:00Z"),
+  },
+];

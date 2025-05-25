@@ -181,7 +181,8 @@ export default function PicturesReviewScreen() {
               minute: "2-digit",
             })}
           </Text>
-        </View>{" "}
+        </View>
+        <Text> </Text>
         <View style={styles.detailRow}>
           <MaterialCommunityIcons
             name="wind-turbine"

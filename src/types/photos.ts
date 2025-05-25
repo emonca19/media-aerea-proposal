@@ -7,32 +7,15 @@ export interface PhotoSubmission extends BaseEntity {
   projectName: string;
   submissionDate: Date;
   driveLink: string;
-  status: PhotoSubmissionStatus;
   turbinesInspected: string[]; // Turbine IDs
-  expectedPhotos: number;
-  actualPhotos: number;
-  completeness?: number; // 0-100 percentage
-  legibility?: number; // 0-100 percentage
-  rejectionReason?: string;
-  reviewedBy?: string;
-  reviewedAt?: Date;
-  notificationSent: boolean;
+  photoSubmissionReview?: PhotoSubmissionReview; // When the object is null, it means the submission is still pending review
 }
 
-export interface PhotoReview {
-  submissionId: string;
-  action: "APPROVE" | "REJECT";
-  completeness: number; // 0-100
-  legibility: number; // 0-100
-  rejectionReason?: string;
+export interface PhotoSubmissionReview {
+  status: PhotoSubmissionStatus;
+  completeness: number; // 0-100 percentage
+  legibility: number; // 0-100 percentage
   reviewedBy: string;
-  reviewDate: Date;
-}
-
-export interface PhotoCategory {
-  id: string;
-  name: string;
-  description: string;
-  required: boolean;
-  expectedCount: number; // per turbine
+  reviewedAt: Date;
+  rejectionReason?: string; // Only present when status is REJECTED
 }

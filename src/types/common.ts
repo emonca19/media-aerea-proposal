@@ -1,27 +1,24 @@
 // Common types used across the system
 export type UserRole = "PILOT" | "ADMIN" | "SUPER_ADMIN";
 
-export type ProjectStatus = "ACTIVE" | "PAUSED" | "FINISHED" | "COMPLETED";
+export type ProjectStatus = "ACTIVE" | "PAUSED" | "COMPLETED";
 
 export type TurbineStatus =
   | "NOT_STARTED"
   | "INSPECTED"
   | "PHOTOS_UPLOADED"
+  | "PHOTOS_REJECTED"
   | "APPROVED";
 
-export type DroneStatus =
-  | "OPERATIONAL"
-  | "MAINTENANCE"
-  | "OUT_OF_SERVICE"
-  | "ASSIGNED";
+export type DroneStatus = "AVAILABLE" | "IN_USE";
 
 export type ActivityType =
   | "MOBILIZATION"
+  | "AWAITING_PERMISSION"
   | "TURBINE_WORK"
-  | "BREAK"
-  | "WEATHER_DELAY"
-  | "DEMOBILIZATION"
   | "TRAVEL"
+  | "LUNCH"
+  | "DEMOBILIZATION"
   | "OTHER";
 
 export type PhotoSubmissionStatus = "PENDING_REVIEW" | "APPROVED" | "REJECTED";

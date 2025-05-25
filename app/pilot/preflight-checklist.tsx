@@ -15,7 +15,7 @@ import {
     View,
 } from 'react-native';
 import { Card } from '../../src/components/common';
-import { mockTurbines } from '../../src/mocks/data';
+import { mockTurbines } from '../../src/mocks/index';
 
 // Define the type for icon names from MaterialCommunityIcons
 type MaterialCommunityIconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];

@@ -1,9 +1,12 @@
 import { BaseEntity, TurbineStatus } from "./common";
+import { PhotoSubmission } from "./photos";
+import { Project } from "./projects";
+import { WindPark } from "./windParks";
 
 export interface Turbine extends BaseEntity {
   name: string;
-  windParkId: string;
-  projectId: string;
+  windPark: WindPark;
+  project: Project;
   status: TurbineStatus;
   position?: {
     x: number;
@@ -11,23 +14,16 @@ export interface Turbine extends BaseEntity {
   }; // Position on park map
   lastInspection?: Date;
   nextInspection?: Date;
-  specifications?: {
-    model: string;
-    height: number;
-    bladeLength: number;
-    capacity: number; // MW
-  };
   notes?: string;
 }
 
 export interface TurbineInspectionHistory {
-  turbineId: string;
+  turbine: Turbine;
   inspections: {
     date: Date;
     pilotId: string;
     pilotName: string;
-    photoSubmissionId?: string;
-    status: "COMPLETED" | "PENDING_PHOTOS" | "APPROVED";
+    photoSubmission?: PhotoSubmission;
     notes?: string;
   }[];
 }

@@ -1,4 +1,5 @@
 import { BaseEntity, Location } from "./common";
+import { Turbine } from "./turbines";
 
 export interface WindPark extends BaseEntity {
   name: string;
@@ -6,6 +7,6 @@ export interface WindPark extends BaseEntity {
   clientId: string;
   projectId: string;
   mapImage?: string; // URL to park layout image
-  turbineCount: number;
+  turbines: Turbine[];
   notes?: string;
 }
