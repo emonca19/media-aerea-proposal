@@ -5,14 +5,14 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { CloseCircle, TickCircle } from 'iconsax-react-native';
 import React, { useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Card } from '../../src/components/common';
 import { mockTurbines } from '../../src/mocks/index';
@@ -116,20 +116,10 @@ export default function PreflightChecklistScreen() {
         : [...prevExpandedCategories, category]
     );
   };
-
   const handleSubmitPreflight = () => {
     const uncheckedItems = preflightChecklist.filter(item => !item.checked);
-    const allPhotosTaken = photoTakenCategories.length === CATEGORIES.length;
-
-    if (!allPhotosTaken) {
-      Alert.alert(
-        'Fotos Faltantes',
-        'Por favor, toma una foto para cada categoría antes de continuar.',
-        [{ text: 'Entendido' }]
-      );
-      return;
-    }
-
+    
+    // Ya no requerimos que todas las fotos estén tomadas
     if (uncheckedItems.length > 0) {
       Alert.alert(
         'Lista Incompleta',
@@ -143,9 +133,10 @@ export default function PreflightChecklistScreen() {
       submitChecklist();
     }
   };
+  
   const submitChecklist = () => {
     const successMessage = turbine ? 
-      `¡Checklist completado para ${turbine.name}! Ahora puedes iniciar el trabajo en la turbina.` : 
+      `¡Checklist completado para ${turbine.name}! La actividad se iniciará automáticamente.` : 
       '¡Todo listo para el vuelo!';
       
     Alert.alert(
@@ -156,9 +147,8 @@ export default function PreflightChecklistScreen() {
           text: 'Continuar', 
           onPress: () => {
             if (turbine) {
-              // Si hay una turbina específica, ir al activity log con un mensaje
-              router.push('/pilot/activity-log');
-              // Opcional: Aquí podrías pasar parámetros para pre-seleccionar la turbina
+              // Create and start turbine work activity automatically
+              createAndStartTurbineActivity();
             } else {
               router.push('/pilot/dashboard');
             }
@@ -171,6 +161,42 @@ export default function PreflightChecklistScreen() {
         }
       ]
     );
+  };
+
+  const createAndStartTurbineActivity = () => {
+    // Get current activities from AsyncStorage or context
+    // For now, we'll simulate creating the activity and navigate to activity log
+    // In a real implementation, this would integrate with the activity management system
+    
+    const now = new Date();
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      type: 'TURBINE_WORK',
+      name: `Trabajo en ${turbine?.name || 'Turbina'}`,
+      notes: `Trabajo iniciado después de completar checklist de preflight para ${turbine?.name}`,
+      status: 'EN_PROGRESO',
+      time: 'Hoy - En curso',
+      actualStart: now.toISOString(),
+      scheduledStart: null,
+      description: `Trabajo iniciado después de completar checklist de preflight para ${turbine?.name}`,
+      scheduledEnd: null,
+      actualEnd: null,
+      turbineId: turbine?.id
+    };
+
+    // In a real implementation, you would:
+    // 1. Save this activity to your data store (AsyncStorage, Context, API)
+    // 2. Update the current project activities
+    // 3. Handle any existing ongoing activities
+    
+    // For now, navigate to activity log where the user can see their activities
+    router.push({
+      pathname: '/pilot/activity-log',
+      params: { 
+        newActivity: JSON.stringify(newActivity),
+        message: `Actividad "${newActivity.name}" iniciada automáticamente después del checklist`
+      }
+    });
   };
 
   const getCompletionPercentage = (category?: Category) => {
@@ -188,7 +214,7 @@ export default function PreflightChecklistScreen() {
         options={{
           title: turbine ? `Inspección - ${turbine.name}` : 'Checklist Prevuelo',
           headerStyle: { backgroundColor: '#ffffff' },
-          headerTintColor: '#1e40af',
+          headerTintColor: '#4338ca',
           headerShadowVisible: false,
         }}
       />
@@ -205,6 +231,11 @@ export default function PreflightChecklistScreen() {
                 <View style={[styles.progressBar, { width: `${getCompletionPercentage()}%` }]} />
               </View>
               <Text style={styles.progressText}>{getCompletionPercentage()}% completado</Text>
+              {photoTakenCategories.length > 0 && photoTakenCategories.length < CATEGORIES.length && (
+                <Text style={styles.photoHint}>
+                  Has tomado {photoTakenCategories.length} de {CATEGORIES.length} fotos (opcional)
+                </Text>
+              )}
             </View>
 
             {CATEGORIES.map(category => (
@@ -213,29 +244,36 @@ export default function PreflightChecklistScreen() {
                   style={styles.categoryHeader}
                   onPress={() => toggleCategory(category)}
                 >
-                  <View style={styles.categoryTitleContainer}>
+                  <View style={styles.categoryTitleContainer}>                    
                     <MaterialCommunityIcons 
                       name={categoryIcons[category]} 
-                      size={24} 
-                      color="#1e40af" 
+                      size={26} 
+                      color="#4f46e5" 
                     />
                     <Text style={styles.categoryTitle}>{category}</Text>
-                  </View>
-                    <TouchableOpacity onPress={() => handleOpenCamera(category)} style={{ marginRight: 8, padding: 4 /* Added padding for touchability */ }}>
-                      <MaterialCommunityIcons 
-                        name="camera" 
-                        size={28 /* Increased size */} 
-                        color={photoTakenCategories.includes(category) ? "#10b981" : "#6b7280"} /* Changed color for default state */
-                      />
-                    </TouchableOpacity>
+                  </View>                      <TouchableOpacity 
+                    onPress={() => handleOpenCamera(category)} 
+                    style={{ 
+                      marginRight: 8, 
+                      padding: 6,
+                      backgroundColor: photoTakenCategories.includes(category) ? '#eef2ff' : 'transparent',
+                      borderRadius: 20
+                    }}
+                  >
+                    <MaterialCommunityIcons 
+                      name="camera" 
+                      size={24} 
+                      color={photoTakenCategories.includes(category) ? "#4f46e5" : "#6b7280"}
+                    />
+                  </TouchableOpacity>
                   <View style={styles.categoryStatus}>
                     <Text style={styles.categoryPercentage}>
                       {getCompletionPercentage(category)}%
-                    </Text>
+                    </Text>                    
                     <MaterialCommunityIcons 
                       name={expandedCategory.includes(category) ? 'chevron-up' : 'chevron-down'} 
-                      size={24} 
-                      color="#6b7280" 
+                      size={22} 
+                      color="#4f46e5" 
                     />
                   </View>
                 </TouchableOpacity>
@@ -246,11 +284,11 @@ export default function PreflightChecklistScreen() {
                       .filter(item => item.category === category)
                       .map(item => (
                         <View key={item.id} style={styles.checklistItem}>
-                          <View style={styles.itemContent}>
+                          <View style={styles.itemContent}>                            
                             {item.checked ? (
-                              <TickCircle size={24} color="#10b981" variant="Bold" />
+                              <TickCircle size={22} color="#4f46e5" variant="Bold" />
                             ) : (
-                              <CloseCircle size={24} color="#ef4444" variant="Bold" />
+                              <CloseCircle size={22} color="#ef4444" variant="Bold" />
                             )}
                             <Text style={[
                               styles.itemText,
@@ -258,12 +296,12 @@ export default function PreflightChecklistScreen() {
                             ]}>
                               {item.item}
                             </Text>
-                          </View>
+                          </View>                          
                           <Switch
                             value={item.checked}
                             onValueChange={() => handleToggleItem(item.id)}
-                            trackColor={{ false: '#d1d5db', true: '#a7f3d0' }}
-                            thumbColor={item.checked ? '#10b981' : '#f3f4f6'}
+                            trackColor={{ false: '#d1d5db', true: '#c7d2fe' }}
+                            thumbColor={item.checked ? '#4f46e5' : '#f3f4f6'}
                           />
                         </View>
                       ))}
@@ -282,27 +320,25 @@ export default function PreflightChecklistScreen() {
                 value={generalNotes}
                 onChangeText={setGeneralNotes}
               />
-            </Card>
-
-            <TouchableOpacity
+            </Card>            <TouchableOpacity
               style={[
                 styles.submitButton,
-                (getCompletionPercentage() < 100 || photoTakenCategories.length < CATEGORIES.length) && styles.submitButtonDisabled
+                getCompletionPercentage() < 100 && styles.submitButtonDisabled
               ]}
               onPress={handleSubmitPreflight}
-              disabled={getCompletionPercentage() < 100 || photoTakenCategories.length < CATEGORIES.length}
+              disabled={getCompletionPercentage() < 100}
             >
               <Text style={styles.submitButtonText}>
-                {getCompletionPercentage() === 100 && photoTakenCategories.length === CATEGORIES.length ? 
+                {getCompletionPercentage() === 100 ? 
                   'Confirmar y Comenzar Vuelo' : 
-                  (getCompletionPercentage() < 100 ? 'Completar todos los checks' : 'Tomar todas las fotos')}
+                  'Completar todos los checks'}
               </Text>
             </TouchableOpacity>
           </>
         ) : (
           <View style={styles.turbineContainer}>
             <View style={styles.turbineHeader}>
-              <MaterialCommunityIcons name="wind-turbine" size={32} color="#1e40af" />
+              <MaterialCommunityIcons name="wind-turbine" size={32} color="#4338ca" />
               <Text style={styles.turbineTitle}>Checklist de Turbina {turbine.name}</Text>
             </View>
             <Text style={styles.turbineSubtitle}>
@@ -312,25 +348,25 @@ export default function PreflightChecklistScreen() {
             <Card style={styles.turbineCard}>
               <View style={styles.checklistItem}>
                 <View style={styles.itemContent}>
-                  <TickCircle size={24} color="#10b981" variant="Bold" />
+                  <TickCircle size={22} color="#4f46e5" variant="Bold" />
                   <Text style={styles.itemTextChecked}>Verificación estructural</Text>
                 </View>
               </View>
               <View style={styles.checklistItem}>
                 <View style={styles.itemContent}>
-                  <TickCircle size={24} color="#10b981" variant="Bold" />
+                  <TickCircle size={22} color="#4f46e5" variant="Bold" />
                   <Text style={styles.itemTextChecked}>Aspas</Text>
                 </View>
               </View>
               <View style={styles.checklistItem}>
                 <View style={styles.itemContent}>
-                  <CloseCircle size={24} color="#ef4444" variant="Bold" />
+                  <CloseCircle size={22} color="#ef4444" variant="Bold" />
                   <Text style={styles.itemText}>Sistema eléctrico</Text>
                 </View>
                 <Switch
                   value={false}
                   onValueChange={() => {}}
-                  trackColor={{ false: '#d1d5db', true: '#a7f3d0' }}
+                  trackColor={{ false: '#d1d5db', true: '#c7d2fe' }}
                   thumbColor="#f3f4f6"
                 />
               </View>
@@ -352,70 +388,78 @@ export default function PreflightChecklistScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#f5f7ff', // Fondo más coherente con el dashboard
   },
   content: {
-    padding: 12,
-  },  header: {
-    marginBottom: 20, // Reduced from 24
-    padding: 16,
+    padding: 20, // Más padding para dar más espacio y consistencia
+  },
+  header: {
+    marginBottom: 5, 
+    padding: 22,
     backgroundColor: '#ffffff',
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: '#4338ca',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#e5edff',
   },
   headerTitle: {
-    fontSize: 24, // Increased from 22
+    fontSize: 24, // Tamaño coherente con el dashboard
     fontWeight: '700',
-    color: '#1e40af',
-    marginBottom: 4,
-    letterSpacing: -0.5, // Added for modern look
+    color: '#4338ca', // Color principal del sistema
+    marginBottom: 6,
+    letterSpacing: 0.2,
   },
   headerSubtitle: {
-    fontSize: 15, // Increased from 14
-    color: '#64748b', // Slightly darker
-    marginBottom: 20, // Increased from 16
-    lineHeight: 20,
+    fontSize: 15,
+    color: '#64748b',
+    marginBottom: 20,
+    lineHeight: 22,
+    letterSpacing: 0.1,
   },
   progressContainer: {
-    height: 8, // Increased from 6
-    backgroundColor: '#f1f5f9', // Lighter background
-    borderRadius: 4,
+    height: 8, // Altura consistente con el dashboard
+    backgroundColor: '#e0e7ff', // Fondo azul claro
+    borderRadius: 4, // Bordes ligeramente redondeados
     overflow: 'hidden',
     marginBottom: 8,
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#1e40af',
     borderRadius: 4,
+    backgroundColor: '#4f46e5', // Color principal violeta/azul
   },
   progressText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e40af',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#4f46e5', // Combinando con el color de la barra
     textAlign: 'right',
-    marginTop: 4, // Added spacing
-  },categoryCard: {
-    marginBottom: 12, // Reduced from 16
-    borderRadius: 16, // Increased from 12
+    marginTop: 6,
+  },
+  categoryCard: {
+    marginBottom: 5, // Más espacio entre categorías
+    borderRadius: 16, // Redondeado consistente
     overflow: 'hidden',
     backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowColor: '#4f46e5', // Sombra coordinada con color principal
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
     elevation: 2,
+    borderWidth: 1, // Añadimos borde
+    borderColor: '#e5edff', // Borde sutil azul claro
   },
   categoryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 8,
+    padding: 14, // Más padding para dar espacio
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#e5edff',
+    backgroundColor: '#fafbff', // Fondo ligeramente distinto
   },
   categoryTitleContainer: {
     flexDirection: 'row',
@@ -423,108 +467,135 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   categoryTitle: {
-    fontSize: 17, // Slightly reduced from 18
-    fontWeight: '600',
-    color: '#1e40af',
-    marginLeft: 10, // Reduced from 12
+    fontSize: 17, 
+    fontWeight: '700',
+    color: '#4338ca', // Color más intenso similar al dashboard
+    marginLeft: 12,
+    letterSpacing: 0.2, // Espaciado de letras consistente
   },
   categoryStatus: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    backgroundColor: '#f8fafc',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: '#eef2ff', // Fondo más consistente con el tema violeta
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: 20,
-    minWidth: 88, // Added to stabilize width
+    minWidth: 85,
+    borderWidth: 1,
+    borderColor: '#c7d2fe', // Borde más coherente con el tema 
   },
   categoryPercentage: {
-    fontSize: 15, // Reduced from 16
-    fontWeight: '600',
-    color: '#1e40af',
-    marginRight: 6, // Reduced from 8
-  },checklistItems: {
-    paddingHorizontal: 12,
-    paddingBottom: 12,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#4f46e5', // Usando nuestro color azul/violeta principal
+    marginRight: 6,
+  },
+  checklistItems: {
+    paddingHorizontal: 16, // Más espacio en los laterales
+    paddingBottom: 16,
+    paddingTop: 0,
   },
   checklistItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 5, // Reduced from 12
-    paddingHorizontal: 0,
-    marginVertical: 2, // Added small vertical spacing
-    borderRadius: 8,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    paddingVertical: 12, // Más espacio vertical
+    paddingHorizontal: 10, // Padding horizontal consistente
+    marginVertical: 5, // Separación consistente entre items
+    borderRadius: 10, // Redondeado coherente con otros elementos
+    backgroundColor: '#ffffff',
+    shadowColor: '#a5b4fc', // Sombra violeta muy sutil
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#f5f7ff', // Borde muy sutil
   },
   itemContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 8, // Reduced from 12
+    marginRight: 12, // Más separación
   },
   itemText: {
-    fontSize: 15, // Slightly reduced from 16
-    color: '#374151',
-    marginLeft: 8, // Reduced from 12
+    fontSize: 16, // Ligeramente más grande
+    color: '#1f2937', // Color más oscuro para mejor legibilidad
+    marginLeft: 10, 
     flexShrink: 1,
-    fontWeight: '500',
+    fontWeight: '600', // Más negrita
   },
   itemTextChecked: {
-    fontSize: 15,
-    color: '#6b7280',
-    marginLeft: 8,
+    fontSize: 16,
+    color: '#94a3b8', // Gris más claro para items marcados
+    marginLeft: 10,
     flexShrink: 1,
     textDecorationLine: 'line-through',
-    fontWeight: '400',
+    fontWeight: '500',
+    fontStyle: 'italic', // Añadir estilo itálico para marcar aún más
   },
   notesCard: {
-    marginBottom: 24,
+    marginBottom: 0, // Espaciado consistente
     marginHorizontal: 0,
-    padding: 0,
+    padding: 20, // Padding más generoso
+    backgroundColor: '#ffffff',
+    borderRadius: 16, // Radio consistente con dashboard
+    shadowColor: '#4f46e5',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e5edff', // Borde sutil que coincide con las tarjetas del dashboard
   },
   notesTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#1e40af',
-    marginBottom: 12,
-    paddingHorizontal: 6,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#4338ca', // Consistente con otros títulos
+    marginBottom: 16,
+    letterSpacing: 0.3,
   },
   notesInput: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
+    backgroundColor: '#f9faff', // Fondo sutilmente coloreado, más consistente con el dashboard
+    borderWidth: 1, // Borde consistente
+    borderColor: '#e0e7ff', // Color del borde coherente con el tema
+    borderRadius: 10,
     padding: 16,
-    minHeight: 100,
+    minHeight: 120, // Área más grande
     textAlignVertical: 'top',
-    color: '#374151',
-    fontSize: 14,
+    color: '#1f2937', // Texto más oscuro para mejor lectura
+    fontSize: 15,
+    shadowColor: '#e0e7ff', // Sombra interior sutil
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    elevation: 1,
   },
   submitButton: {
-    backgroundColor: '#1e40af',
+    backgroundColor: '#4f46e5', // Color coordinado con el nuevo esquema
     padding: 18,
-    borderRadius: 12,
+    borderRadius: 12, // Redondeado similar al dashboard
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1e40af',
+    shadowColor: '#4338ca',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 4,
     marginBottom: 32,
+    marginTop: 12,
   },
   submitButtonDisabled: {
-    backgroundColor: '#9ca3af',
-    opacity: 0.7,
+    backgroundColor: '#a5b4fc', // Color más clarito
+    opacity: 0.6,
     shadowColor: 'transparent',
   },
   submitButtonText: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 0.5, // Pequeño espaciado para mejor legibilidad
   },
   turbineContainer: {
     flex: 1,
@@ -532,24 +603,50 @@ const styles = StyleSheet.create({
   turbineHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    padding: 16,
+    marginBottom: 18,
+    padding: 20,
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 16,
+    shadowColor: '#4f46e5',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#e5edff',
   },
   turbineTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#1e40af',
-    marginLeft: 12,
+    fontWeight: '700',
+    color: '#4338ca',
+    marginLeft: 16,
+    letterSpacing: 0.2,
   },
   turbineSubtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 24,
+    fontSize: 15,
+    color: '#64748b',
+    marginBottom: 28,
     paddingHorizontal: 16,
+    lineHeight: 22,
+    letterSpacing: 0.2,
   },
   turbineCard: {
-    marginBottom: 24,
+    marginBottom: 28,
+    borderRadius: 16,
+    shadowColor: '#4f46e5',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e5edff',
+    backgroundColor: '#ffffff',
+    padding: 18,
+  },
+  photoHint: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginTop: 4,
+    textAlign: 'center',
   },
 });

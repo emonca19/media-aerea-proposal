@@ -2,18 +2,19 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
 import {
-  Animated,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { Card } from "../../src/components/common";
 import { mockClients, mockProjects, mockTurbines } from "../../src/mocks/index";
 
 export default function AdminDashboard() {
   const router = useRouter();
+
   // Calcular estadísticas
   const totalProjects = mockProjects.length;
   const totalTurbines = mockTurbines.length;
@@ -39,6 +40,10 @@ export default function AdminDashboard() {
       useNativeDriver: false,
     }).start();
   }, [progressPercentage, progressAnim]);
+
+  React.useEffect(() => {
+    // Clear mock activity on load
+  }, []);
 
   return (
     <View style={styles.container}>

@@ -20,7 +20,7 @@ import useWeather from "../../hooks/useWeather"; // Asegúrate que la ruta a hoo
 import { IncidentFormData } from "../new-incident"; // Importamos el tipo desde el nuevo componente
 import { ActivitiesDisplayList } from "./activities-display-list"; // Ajusta la ruta si es necesario
 import ActivityControl from "./activity-control"; // Importamos el nuevo componente para control de actividad
-import ActivityTimeline, { TimelineActivity } from "./activity-timeline"; // Asegúrate que la ruta sea correcta
+import ActivityTimeline, { TimelineActivity } from "./activity-timeline";
 import AlertsDisplayCard from "./alerts-display-card"; // Ajusta la ruta si es necesaria
 import IncidentFormModal from "./incident-form-modal"; // Importamos el nuevo componente modal para incidentes
 import MyIndicatorsButton from "./my-indicators-button"; // Ajusta la ruta si es necesaria
@@ -36,7 +36,56 @@ import {
   IncidentData,
   pilot,
   initialCurrentProject as projectDataFromImport
-} from "./pilot-dashboard-data"; // Importamos el nuevo componente con sus datos
+} from "./pilot-dashboard-data"; // Asegúrate que la ruta sea correcta
+
+// Función auxiliar para asignar iconos a las actividades
+const getActivityIcon = (activityType: any, activity: any, isPaused = false) => {
+  let iconName = "briefcase-outline"; // Default icon
+  
+  if (activityType?.icon) {
+    // Convertir MaterialCommunityIcons a Ionicons equivalentes
+    if (activityType.icon === 'wind-turbine') {
+      iconName = "nuclear-outline"; // Icono para turbinas
+    } else if (activityType.icon === 'bus') {
+      iconName = "car-outline";
+    } else if (activityType.icon === 'coffee') {
+      iconName = "cafe-outline";
+    } else if (activityType.icon === 'food') {
+      iconName = "restaurant-outline";
+    } else if (activityType.icon === 'weather-cloudy') {
+      iconName = "rainy-outline";
+    } else if (activityType.icon === 'dots-horizontal') {
+      iconName = "ellipsis-horizontal-outline";
+    } else {
+      iconName = activityType.icon;
+    }
+  } else if (activity) {
+    // Determinar icono basado en el tipo y nombre de actividad
+    const activityTypeLower = (activity.type || '').toLowerCase();
+    const activityNameLower = (activity.name || '').toLowerCase();
+    
+    if (activityTypeLower.includes('turbine') || activityTypeLower.includes('trabajo_turbina') || 
+        activityNameLower.includes('turbina') || activityNameLower.includes('aerogenerador')) {
+      iconName = "nuclear-outline";
+    } else if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección')) {
+      iconName = "search-outline";
+    } else if (activityTypeLower.includes('vuelo') || activityTypeLower.includes('flight')) {
+      iconName = "airplane-outline";
+    } else if (activityTypeLower.includes('maintenance') || activityTypeLower.includes('mantenimiento')) {
+      iconName = "construct-outline";
+    } else if (activityTypeLower.includes('transporte') || activityTypeLower.includes('movilizacion')) {
+      iconName = "car-outline";
+    } else if (activityTypeLower.includes('photo') || activityTypeLower.includes('fotografía')) {
+      iconName = "camera-outline";
+    } else if (activityTypeLower.includes('thermal') || activityTypeLower.includes('térmico')) {
+      iconName = "thermometer-outline";
+    } else if (activityTypeLower.includes('comida') || activityTypeLower.includes('almuerzo')) {
+      iconName = "restaurant-outline";
+    }
+  }
+  
+  return <Ionicons name={iconName as any} size={28} color={isPaused ? "#dc2626" : "#3b82f6"} />;
+}; // Importamos el nuevo componente con sus datos
 
 // Enhanced ProjectSummaryCard component with more information and visual improvements
 function ProjectSummaryCard({
@@ -342,6 +391,7 @@ interface Activity {
   actualStart?: string | null;
   actualEnd?: string | null;
   pauseHistory?: Pause[]; // <-- Añadido para historial de pausas
+  turbineId?: string; // <-- Added for turbine work activities
 }
 interface AlertItem {
   id: string;
@@ -393,10 +443,37 @@ const typedProjectData: Project = {
   drone: projectDataFromImport.drone || "Drone No Especificado",
   checklist: (projectDataFromImport.checklist || []).map(
     (item: ChecklistItemData) => ({ ...item })
-  ),
-  activities: [
+  ),  activities: [
+    {
+      id: "act-000",
+      type: "TURBINE_WORK",
+      name: "Trabajo en Turbina T-03",
+      notes: "Mantenimiento correctivo en sistemas de control",
+      status: "EN_PROGRESO",
+      time: "Hoy - En curso",
+      description: "Reparación de sistemas de control y calibración",
+      scheduledStart: new Date(new Date().setHours(8, 0)).toISOString(),
+      scheduledEnd: new Date(new Date().setHours(10, 0)).toISOString(),
+      actualStart: new Date(new Date().setHours(8, 15)).toISOString(),
+      actualEnd: null,
+      turbineId: "turbine-03",
+    },
     {
       id: "act-001",
+      type: "TURBINE_WORK",
+      name: "Trabajo en Turbina T-05",
+      notes: "Inspección y mantenimiento de turbina T-05",
+      status: "PENDIENTE",
+      time: "Hoy, 09:00",
+      description: "Revisión completa de sistemas eléctricos y mecánicos",
+      scheduledStart: new Date(new Date().setHours(9, 0)).toISOString(),
+      scheduledEnd: new Date(new Date().setHours(11, 0)).toISOString(),
+      actualStart: null,
+      actualEnd: null,
+      turbineId: "turbine-05",
+    },
+    {
+      id: "act-002",
       type: "INSPECTION",
       name: "Inspección Estructural Turbina A12",
       notes: "Inspección detallada de componentes críticos",
@@ -410,7 +487,7 @@ const typedProjectData: Project = {
       actualEnd: null,
     },
     {
-      id: "act-002",
+      id: "act-003",
       type: "MAINTENANCE",
       name: "Mantenimiento Preventivo B07",
       notes: "Lubricación de engranajes y revisión de sensores",
@@ -423,7 +500,7 @@ const typedProjectData: Project = {
       actualEnd: null,
     },
     {
-      id: "act-003",
+      id: "act-004",
       type: "PHOTO_CAPTURE",
       name: "Fotografías Palas Turbina C15",
       notes: "Captura de imágenes HD de las palas para análisis",
@@ -436,7 +513,7 @@ const typedProjectData: Project = {
       actualEnd: null,
     },
     {
-      id: "act-004",
+      id: "act-005",
       type: "THERMAL_SCAN",
       name: "Escaneo Térmico Sector Norte",
       notes: "Análisis termográfico de componentes críticos",
@@ -591,11 +668,19 @@ const PilotDashboard = () => {
     () => (ongoingActivities.length > 0 ? ongoingActivities[0] : null),
     [ongoingActivities]
   );
-
   const handleNavigate = useCallback(
     (route: string) => router.push(route as Href),
     [router]
   );
+  
+  // Handler for navigating to preflight checklist
+  const handleGoToPreflightChecklist = useCallback(
+    (turbineId?: string) => {
+      router.push(`/pilot/preflight-checklist?turbineId=${turbineId || 'default'}` as Href);
+    },
+    [router]
+  );
+  
   const handleLogout = useCallback(
     () =>
       Alert.alert("Cerrar Sesión", "¿Estás seguro?", [
@@ -911,63 +996,103 @@ const handleFinishActivity = useCallback(() => {
           );        case "ACTIVITY_TIMELINE": {
           // Create dynamic timeline based on actual activity data with improved spacing
           const timelineActivities: TimelineActivity[] = [];
-          
-          // Add current ongoing activity if any
+            // Add current ongoing activity if any
           if (currentOngoingActivityForDisplay) {
             const activityType = activityTypes.find(t => t.type === currentOngoingActivityForDisplay.type);
-            timelineActivities.push({
-              id: currentOngoingActivityForDisplay.id,
-              icon: activityType?.icon ? 
-                <Ionicons name={activityType.icon as any} size={28} color="#3b82f6" /> :
-                <Ionicons name="briefcase-outline" size={28} color="#3b82f6" />,
+            const isTurbineWork = currentOngoingActivityForDisplay.type === 'TURBINE_WORK' || 
+                                 currentOngoingActivityForDisplay.type?.toLowerCase().includes('turbine');
+              timelineActivities.push({
+              id: currentOngoingActivityForDisplay.id,              icon: getActivityIcon(activityType, currentOngoingActivityForDisplay, activityPauseState.isPaused),
               title: currentOngoingActivityForDisplay.name,
               time: currentOngoingActivityForDisplay.time || "En curso",
               duration: undefined,
-              statusColor: "#3b82f6",
+              statusColor: activityPauseState.isPaused ? "#dc2626" : "#3b82f6",
               statusLabel: activityPauseState.isPaused ? "Pausada" : "En curso",
-              statusBg: activityPauseState.isPaused ? "#fef3c7" : "#dbeafe",
+              statusBg: activityPauseState.isPaused ? "#fee2e2" : "#dbeafe",
+              isPaused: activityPauseState.isPaused,
+              isTurbineWork: isTurbineWork,
+              turbineId: currentOngoingActivityForDisplay.turbineId || currentOngoingActivityForDisplay.id,
             });
           }
             // Add upcoming activities today (max 3 with better spacing)
-          const upcomingTodayActivities = pendingTodayActivities.slice(0, 3);
-          upcomingTodayActivities.forEach((activity, index) => {
+          const upcomingTodayActivities = pendingTodayActivities.slice(0, 3);          upcomingTodayActivities.forEach((activity, index) => {
             const activityType = activityTypes.find(t => t.type === activity.type);
-            
-            // Enhanced icon assignment with more specific fallbacks
-            let iconName: any = "time-outline";
-            if (activityType?.icon && activityType.icon !== 'briefcase') {
-              iconName = activityType.icon;
+            const isTurbineWork = activity.type === 'TURBINE_WORK' || 
+                                 activity.type?.toLowerCase().includes('turbine');            // Enhanced icon assignment with more specific fallbacks
+            let iconName: any = "briefcase-outline"; // Default fallback
+            if (activityType?.icon) {
+              // Convertir MaterialCommunityIcons a Ionicons equivalentes para consistencia
+              if (activityType.icon === 'wind-turbine') {
+                iconName = "nuclear-outline"; // Usamos nuclear como icono para turbinas
+              } else if (activityType.icon === 'bus') {
+                iconName = "car-outline";
+              } else if (activityType.icon === 'coffee') {
+                iconName = "cafe-outline";
+              } else if (activityType.icon === 'food') {
+                iconName = "restaurant-outline";
+              } else if (activityType.icon === 'weather-cloudy') {
+                iconName = "rainy-outline";
+              } else if (activityType.icon === 'dots-horizontal') {
+                iconName = "ellipsis-horizontal-outline";
+              } else if (activityType.icon !== 'briefcase') {
+                iconName = activityType.icon;
+              }
             } else {
               // Enhanced fallback icons based on activity type patterns
               const activityTypeLower = activity.type.toLowerCase();
               const activityNameLower = activity.name.toLowerCase();
               
-              if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección') || 
-                  activityNameLower.includes('inspección') || activityNameLower.includes('revisar')) {
+              if (activityTypeLower.includes('turbine') || activityTypeLower.includes('trabajo_turbina') || 
+                  activityTypeLower.includes('turbina') ||
+                  activityNameLower.includes('turbina') || activityNameLower.includes('aerogenerador')) {
+                iconName = "nuclear-outline"; // Icono para trabajo en turbinas
+              } else if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección') || 
+                  activityNameLower.includes('inspección') || activityNameLower.includes('revisar') ||
+                  activityNameLower.includes('inspeccionar')) {
                 iconName = "search-outline";
               } else if (activityTypeLower.includes('vuelo') || activityTypeLower.includes('flight') || 
-                        activityNameLower.includes('vuelo') || activityNameLower.includes('aéreo')) {
+                        activityNameLower.includes('vuelo') || activityNameLower.includes('aéreo') ||
+                        activityNameLower.includes('dron') || activityNameLower.includes('drone')) {
                 iconName = "airplane-outline";
               } else if (activityTypeLower.includes('maintenance') || activityTypeLower.includes('mantenimiento') || 
-                        activityNameLower.includes('mantenimiento') || activityNameLower.includes('reparación')) {
+                        activityNameLower.includes('mantenimiento') || activityNameLower.includes('reparación') ||
+                        activityNameLower.includes('arreglo') || activityNameLower.includes('fix')) {
                 iconName = "construct-outline";
               } else if (activityTypeLower.includes('transporte') || activityTypeLower.includes('movilizacion') || 
-                        activityNameLower.includes('transporte') || activityNameLower.includes('mover')) {
+                        activityTypeLower.includes('traslado') || 
+                        activityNameLower.includes('transporte') || activityNameLower.includes('mover') ||
+                        activityNameLower.includes('traslado') || activityNameLower.includes('viaje')) {
                 iconName = "car-outline";
               } else if (activityTypeLower.includes('photo') || activityTypeLower.includes('fotografía') || 
-                        activityNameLower.includes('foto') || activityNameLower.includes('imagen')) {
+                        activityTypeLower.includes('imagen') ||
+                        activityNameLower.includes('foto') || activityNameLower.includes('imagen') ||
+                        activityNameLower.includes('fotografía')) {
                 iconName = "camera-outline";
               } else if (activityTypeLower.includes('thermal') || activityTypeLower.includes('térmico') || 
-                        activityNameLower.includes('térmico') || activityNameLower.includes('termográfico')) {
+                        activityNameLower.includes('térmico') || activityNameLower.includes('termográfico') ||
+                        activityNameLower.includes('temperatura')) {
                 iconName = "thermometer-outline";
+              } else if (activityTypeLower.includes('comida') || activityTypeLower.includes('almuerzo') || 
+                        activityTypeLower.includes('meal') ||
+                        activityNameLower.includes('comida') || activityNameLower.includes('almuerzo') ||
+                        activityNameLower.includes('cena') || activityNameLower.includes('desayuno')) {
+                iconName = "restaurant-outline";
+              } else if (activityTypeLower.includes('desmovilizacion') || activityTypeLower.includes('hotel') || 
+                        activityNameLower.includes('hotel') || activityNameLower.includes('desmovilización') ||
+                        activityNameLower.includes('hospedaje') || activityNameLower.includes('alojamiento')) {
+                iconName = "home-outline";
+              } else if (activityTypeLower.includes('tiempo_muerto') || activityTypeLower.includes('espera') || 
+                        activityTypeLower.includes('break') || activityTypeLower.includes('pausa') ||
+                        activityNameLower.includes('espera') || activityNameLower.includes('tiempo muerto') ||
+                        activityNameLower.includes('descanso') || activityNameLower.includes('pausa')) {
+                iconName = "hourglass-outline";
               } else {
                 // Assign different icons based on index for variety
-                const fallbackIcons = ["clipboard-outline", "document-text-outline", "layers-outline"];
+                const fallbackIcons = ["clipboard-outline", "document-text-outline", "layers-outline", "folder-outline"];
                 iconName = fallbackIcons[index % fallbackIcons.length];
               }
             }
-            
-            timelineActivities.push({
+              timelineActivities.push({
               id: activity.id,
               icon: <Ionicons name={iconName} size={28} color="#f59e0b" />,
               title: activity.name,
@@ -976,13 +1101,16 @@ const handleFinishActivity = useCallback(() => {
               statusColor: "#f59e0b",
               statusLabel: "Próxima",
               statusBg: "#fef3c7",
+              isTurbineWork: isTurbineWork,
+              turbineId: activity.turbineId || activity.id,
             });
           });
           
           // Add future activities (max 2)
-          const futureActivities = genericPendingActivities.slice(0, 2);
-          futureActivities.forEach((activity, index) => {
+          const futureActivities = genericPendingActivities.slice(0, 2);          futureActivities.forEach((activity, index) => {
             const activityType = activityTypes.find(t => t.type === activity.type);
+            const isTurbineWork = activity.type === 'TURBINE_WORK' || 
+                                 activity.type?.toLowerCase().includes('turbine');
             
             // Parse scheduled start to show better time info
             let timeDisplay = "Programada";
@@ -1001,30 +1129,70 @@ const handleFinishActivity = useCallback(() => {
                   day: 'numeric'
                 });
               }
-            }
-            
-            // Enhanced future activity icon assignment
+            }            // Enhanced future activity icon assignment
             let iconName: any = "calendar-outline";
-            if (activityType?.icon && activityType.icon !== 'briefcase') {
-              iconName = activityType.icon;
+            if (activityType?.icon) {
+              // Convertir MaterialCommunityIcons a Ionicons equivalentes para consistencia
+              if (activityType.icon === 'wind-turbine') {
+                iconName = "nuclear-outline"; // Usamos nuclear como icono para turbinas
+              } else if (activityType.icon === 'bus') {
+                iconName = "car-outline";
+              } else if (activityType.icon === 'coffee') {
+                iconName = "cafe-outline";
+              } else if (activityType.icon === 'food') {
+                iconName = "restaurant-outline";
+              } else if (activityType.icon === 'weather-cloudy') {
+                iconName = "rainy-outline";
+              } else if (activityType.icon === 'dots-horizontal') {
+                iconName = "ellipsis-horizontal-outline";
+              } else if (activityType.icon !== 'briefcase') {
+                iconName = activityType.icon;
+              }
             } else {
               const activityTypeLower = activity.type.toLowerCase();
               const activityNameLower = activity.name.toLowerCase();
               
-              if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección') || 
-                  activityNameLower.includes('inspección')) {
+              if (activityTypeLower.includes('turbine') || activityTypeLower.includes('trabajo_turbina') || 
+                  activityTypeLower.includes('turbina') ||
+                  activityNameLower.includes('turbina') || activityNameLower.includes('aerogenerador')) {
+                iconName = "nuclear-outline"; // Icono para trabajo en turbinas
+              } else if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección') || 
+                  activityNameLower.includes('inspección') || activityNameLower.includes('revisar')) {
                 iconName = "search-outline";
+              } else if (activityTypeLower.includes('vuelo') || activityTypeLower.includes('flight') || 
+                        activityNameLower.includes('vuelo') || activityNameLower.includes('aéreo')) {
+                iconName = "airplane-outline";
               } else if (activityTypeLower.includes('maintenance') || activityTypeLower.includes('mantenimiento') || 
-                        activityNameLower.includes('mantenimiento')) {
-                iconName = "settings-outline";
+                        activityNameLower.includes('mantenimiento') || activityNameLower.includes('reparación')) {
+                iconName = "construct-outline";
+              } else if (activityTypeLower.includes('transporte') || activityTypeLower.includes('movilizacion') || 
+                        activityTypeLower.includes('traslado') || 
+                        activityNameLower.includes('transporte') || activityNameLower.includes('mover')) {
+                iconName = "car-outline";
+              } else if (activityTypeLower.includes('photo') || activityTypeLower.includes('fotografía') || 
+                        activityNameLower.includes('foto') || activityNameLower.includes('imagen')) {
+                iconName = "camera-outline";
+              } else if (activityTypeLower.includes('thermal') || activityTypeLower.includes('térmico') || 
+                        activityNameLower.includes('térmico') || activityNameLower.includes('termográfico')) {
+                iconName = "thermometer-outline";
+              } else if (activityTypeLower.includes('comida') || activityTypeLower.includes('almuerzo') || 
+                        activityTypeLower.includes('meal') ||
+                        activityNameLower.includes('comida') || activityNameLower.includes('almuerzo')) {
+                iconName = "restaurant-outline";
+              } else if (activityTypeLower.includes('desmovilizacion') || activityTypeLower.includes('hotel') || 
+                        activityNameLower.includes('hotel') || activityNameLower.includes('desmovilización')) {
+                iconName = "home-outline";
+              } else if (activityTypeLower.includes('tiempo_muerto') || activityTypeLower.includes('espera') ||
+                        activityTypeLower.includes('break') || activityTypeLower.includes('pausa') ||
+                        activityNameLower.includes('espera') || activityNameLower.includes('tiempo muerto')) {
+                iconName = "hourglass-outline";
               } else {
                 // Alternate icons for variety
                 const alternateIcons = ["calendar-outline", "bookmark-outline", "flag-outline", "timer-outline"];
                 iconName = alternateIcons[index % alternateIcons.length];
               }
             }
-            
-            timelineActivities.push({
+              timelineActivities.push({
               id: activity.id,
               icon: <Ionicons name={iconName} size={28} color="#8b5cf6" />,
               title: activity.name,
@@ -1033,6 +1201,8 @@ const handleFinishActivity = useCallback(() => {
               statusColor: "#8b5cf6",
               statusLabel: "Futura",
               statusBg: "#ede9fe",
+              isTurbineWork: isTurbineWork,
+              turbineId: activity.turbineId || activity.id,
             });
           });
             // Add recently completed activities (max 2, only if we have space) - REMOVED per user request
@@ -1053,6 +1223,7 @@ const handleFinishActivity = useCallback(() => {
             <ActivityTimeline 
               activities={timelineActivities}
               onViewHistory={() => handleNavigate("/pilot/activity-log")}
+              onGoToPreflightChecklist={handleGoToPreflightChecklist}
             />
           );
         }

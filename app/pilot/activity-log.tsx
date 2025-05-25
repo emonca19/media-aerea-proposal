@@ -1,15 +1,15 @@
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 
@@ -111,6 +111,7 @@ const activityTypes = [
 
 export default function ActivityLogScreen() {
   const router = useRouter();
+  const { newActivity, message } = useLocalSearchParams();
   const [selectedType, setSelectedType] = useState<ActivityType | null>(null);
   const [selectedTurbine, setSelectedTurbine] = useState('');
   const [notes, setNotes] = useState('');
@@ -121,6 +122,21 @@ export default function ActivityLogScreen() {
   const assignedDrone = mockDrones[0];
   const todayActivities = mockActivities;
   const filteredTurbines = mockTurbines.filter(t => t.status !== 'COMPLETED');
+
+  // Handle new activity from preflight checklist
+  useEffect(() => {
+    if (newActivity && message) {
+      // Show success message for automatically started activity
+      Alert.alert(
+        'Actividad Iniciada',
+        typeof message === 'string' ? message : 'Actividad iniciada exitosamente',
+        [{ text: 'OK' }]
+      );
+      
+      // Switch to activities tab to show the current activities
+      setActiveTab('activities');
+    }
+  }, [newActivity, message]);
 
   // Actualizar la hora actual cada minuto
   useEffect(() => {
@@ -443,9 +459,8 @@ export default function ActivityLogScreen() {
                         </View>
                       </View>
                     );
-                  }
-                  const activityType = activityTypes.find(t => t.type === activity.type);
-                  const turbine = activity.turbineId ? mockTurbines.find(t => t.id === activity.turbineId) : null;                  const completed = !!activity.endTime;
+                  }                  const activityType = activityTypes.find(t => t.type === activity.type);
+                  const turbine = activity.turbineId ? mockTurbines.find(t => t.id === activity.turbineId) : null;
                   const mainColor = '#2563eb'; // Always blue for consistency
                   // Subactividades (pausas)
                   const subActivities = activity.subActivities || [];

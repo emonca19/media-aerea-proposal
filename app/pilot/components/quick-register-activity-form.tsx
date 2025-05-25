@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
@@ -43,6 +44,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
   onClose, 
   onSubmit 
 }) => {
+  const router = useRouter();
   const [selectedType, setSelectedType] = useState<ActivityType | null>(null);
   const [selectedTurbine, setSelectedTurbine] = useState<string>('');
   const [notes, setNotes] = useState('');
@@ -75,8 +77,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
   const formatTime = (date: Date | null) => {
     if (!date) return '--:--';
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-  const handleSubmit = () => {
+  };  const handleSubmit = () => {
     if (!selectedType) {
       Alert.alert("Error", "Selecciona un tipo de actividad");
       return;
@@ -85,6 +86,27 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
       Alert.alert("Error", "Selecciona una turbina");
       return;
     }
+    
+    // Validación especial para trabajo en turbina - requiere checklist prevuelo
+    if (selectedType === 'TURBINE_WORK' && selectedTurbine && isForNow) {
+      Alert.alert(
+        "Checklist Prevuelo Requerido",
+        "Para trabajar en una turbina, primero debes completar el checklist de prevuelo. ¿Deseas ir al checklist ahora?",
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { 
+            text: 'Ir al Checklist',
+            onPress: () => {
+              onClose(); // Cerrar este modal primero
+              // Navegación al checklist de prevuelo con el ID de la turbina
+              router.push(`/pilot/preflight-checklist?turbineId=${selectedTurbine}`);
+            }
+          }
+        ]
+      );
+      return;
+    }
+    
     const activityData = {
       type: selectedType,
       turbineId: selectedType === 'TURBINE_WORK' ? selectedTurbine : undefined,

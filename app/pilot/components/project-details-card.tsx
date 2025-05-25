@@ -59,11 +59,19 @@ const ActivityItem = React.memo(({
   onStart?: () => void,
   onDelete?: () => void
 }) => {
+  // Formatea la fecha y hora de inicio si existe actualStart
+  let startDateTime = '';
+  if ((activity as any).actualStart) {
+    const start = new Date((activity as any).actualStart);
+    startDateTime = `Inicio: ${start.toLocaleDateString('es-MX')} ${start.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false })}`;
+  }
   return (
     <View style={cardStyles.activityItem}>
       <View style={cardStyles.activityContent}>
         <Text style={cardStyles.activityName}>{activity.name}</Text>
-        {activity.time && (
+        {startDateTime ? (
+          <Text style={cardStyles.activityTime}>{startDateTime}</Text>
+        ) : activity.time && (
           <Text style={cardStyles.activityTime}>{activity.time}</Text>
         )}
       </View>

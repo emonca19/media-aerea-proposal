@@ -8,7 +8,7 @@ import {
 export const mockUsers: User[] = [
   {
     id: "user_001",
-    email: "john.smith@mediaarea.com",
+    email: "piloto@example.com",
     name: "John Smith",
     role: "PILOT",
     active: true,

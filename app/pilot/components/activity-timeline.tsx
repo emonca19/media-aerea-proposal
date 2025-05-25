@@ -12,14 +12,18 @@ export interface TimelineActivity {
   statusColor: string;
   statusLabel: string;
   statusBg: string;
+  isPaused?: boolean;
+  isTurbineWork?: boolean;
+  turbineId?: string;
 }
 
 interface ActivityTimelineProps {
   activities: TimelineActivity[];
   onViewHistory?: () => void;
+  onGoToPreflightChecklist?: (turbineId?: string) => void;
 }
 
-const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities, onViewHistory }) => {  return (
+const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities, onViewHistory, onGoToPreflightChecklist }) => {  return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>Línea de tiempo</Text>
@@ -28,11 +32,17 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities, onViewH
       <View style={styles.timelineContainer}>
         {activities.map((activity, idx) => (
           <View key={activity.id} style={styles.timelineRow}>
-            {/* Línea vertical y círculo del icono */}
-            <View style={styles.timelineLineContainer}>
-              <View style={styles.timelineIconWrapper}>
-                <View style={[styles.timelineIconCircle, { backgroundColor: '#fff', borderColor: activity.statusBg }]}> 
-                  {activity.icon}
+            {/* Línea vertical y círculo del icono */}            <View style={styles.timelineLineContainer}>
+              <View style={styles.timelineIconWrapper}>                <View style={[
+                  styles.timelineIconCircle, 
+                  { 
+                    backgroundColor: '#fff', 
+                    borderColor: activity.isPaused ? '#dc2626' : activity.statusBg 
+                  }
+                ]}> 
+                  {/* Aseguramos que siempre haya un icono, y que sea rojo si está pausada */}
+                  {activity.icon ? activity.icon : 
+                    <Ionicons name="briefcase-outline" size={28} color={activity.isPaused ? "#dc2626" : "#3b82f6"} />}
                 </View>
                 {idx !== activities.length - 1 && <View style={styles.timelineLine} />}
               </View>
@@ -47,10 +57,19 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities, onViewH
                   <Text style={styles.activityDuration}> · {activity.duration}</Text>
                 )}
               </View>
-            </View>
-            {/* Estado o duración */}
-            <View style={[styles.statusBadge, { backgroundColor: activity.statusBg }]}> 
-              <Text style={[styles.statusText, { color: activity.statusColor }]}>{activity.statusLabel}</Text>
+            </View>            {/* Estado o duración */}            <View style={styles.statusContainer}>
+              <View style={[
+                styles.statusBadge, 
+                { backgroundColor: activity.isPaused ? '#fee2e2' : activity.statusBg }
+              ]}> 
+                <Text style={[
+                  styles.statusText, 
+                  { color: activity.isPaused ? '#dc2626' : activity.statusColor }
+                ]}>
+                  {activity.statusLabel}
+                </Text>
+              </View>
+                {/* Se elimina el botón de checklist para turbinas */}
             </View>
           </View>        ))}
       </View>
@@ -162,8 +181,7 @@ const styles = StyleSheet.create({  card: {
     fontSize: 12,
     color: '#9ca3af',
     marginLeft: 4,
-  },
-  statusBadge: {
+  },  statusBadge: {
     minWidth: 60,
     alignSelf: 'flex-start',
     paddingHorizontal: 12,
@@ -173,11 +191,38 @@ const styles = StyleSheet.create({  card: {
     marginTop: 2,
     justifyContent: 'center',
     alignItems: 'center',
-  },  statusText: {
+  },
+  statusContainer: {
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  statusText: {
     fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },  preflightButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e0f2fe',
+    borderWidth: 1,
+    borderColor: '#7dd3fc',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginLeft: 8,
+    gap: 6,
+    shadowColor: '#0ea5e9',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  preflightButtonText: {
+    fontSize: 11,
+    color: '#0369a1',
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   historyButton: {
     flexDirection: 'row',
