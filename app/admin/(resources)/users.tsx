@@ -11,58 +11,32 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { mockUsers } from "../../../src/mocks/users";
+import { UserRole } from "../../../src/types/common";
+import { User } from "../../../src/types/users";
 
-// Define User and Role types
-type Role = "Pilot" | "Administrator" | "Superadministrator";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-  isActive: boolean;
-}
-
-// Mock initial users
-const initialUsers: User[] = [
-  {
-    id: "1",
-    name: "Juan Perez",
-    email: "juan.perez@example.com",
-    role: "Pilot",
-    isActive: true,
-  },
-  {
-    id: "2",
-    name: "Ana Garcia",
-    email: "ana.garcia@example.com",
-    role: "Administrator",
-    isActive: true,
-  },
-  {
-    id: "3",
-    name: "Luis Torres",
-    email: "luis.torres@example.com",
-    role: "Pilot",
-    isActive: false,
-  },
-  {
-    id: "4",
-    name: "Laura Nuñez",
-    email: "laura.nunez@example.com",
-    role: "Superadministrator",
-    isActive: true,
-  },
-];
+// Helper function to convert UserRole to display text
+const getRoleDisplayText = (role: UserRole): string => {
+  switch (role) {
+    case "PILOT":
+      return "Piloto";
+    case "ADMIN":
+      return "Administrador";
+    case "SUPER_ADMIN":
+      return "Superadministrador";
+    default:
+      return role;
+  }
+};
 
 const UsersScreen = () => {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>(mockUsers);
   const [modalVisible, setModalVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentUser, setCurrentUser] = useState<Partial<User> | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [selectedRole, setSelectedRole] = useState<Role>("Pilot");
+  const [selectedRole, setSelectedRole] = useState<UserRole>("PILOT");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState<Partial<User>>({});
@@ -71,11 +45,13 @@ const UsersScreen = () => {
     const matchesSearchQuery =
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase());
+      getRoleDisplayText(user.role)
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
     const matchesFilter = Object.entries(activeFilter).every(([key, value]) => {
-      if (key === "isActive") {
-        return user.isActive === value;
+      if (key === "active") {
+        return user.active === value;
       }
       if (key === "role") {
         return user.role === value;
@@ -91,7 +67,7 @@ const UsersScreen = () => {
     setCurrentUser({});
     setName("");
     setEmail("");
-    setSelectedRole("Pilot");
+    setSelectedRole("PILOT");
     setModalVisible(true);
   };
 
@@ -115,9 +91,7 @@ const UsersScreen = () => {
           onPress: () =>
             setUsers(
               users.map((user) =>
-                user.id === userId
-                  ? { ...user, isActive: !user.isActive }
-                  : user
+                user.id === userId ? { ...user, active: !user.active } : user
               )
             ),
           style: "destructive",
@@ -125,7 +99,6 @@ const UsersScreen = () => {
       ]
     );
   };
-
   const handleSaveUser = () => {
     if (!name.trim() || !email.trim()) {
       Alert.alert("Error", "Nombre y correo electrónico son obligatorios.");
@@ -141,31 +114,38 @@ const UsersScreen = () => {
       setUsers(
         users.map((user) =>
           user.id === currentUser.id
-            ? { ...user, name, email, role: selectedRole }
+            ? {
+                ...user,
+                name,
+                email,
+                role: selectedRole,
+                updatedAt: new Date(),
+              }
             : user
         )
       );
     } else {
       const newUser: User = {
-        id: (Math.random() * 1000000).toString(),
+        id: `user_${Date.now()}`, // Better ID generation
         name,
         email,
         role: selectedRole,
-        isActive: true,
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       setUsers([...users, newUser]);
     }
     setModalVisible(false);
     setName("");
     setEmail("");
-    setSelectedRole("Pilot");
+    setSelectedRole("PILOT");
   };
-
   const renderRoleSelector = (
-    currentRole: Role | undefined, // Allow undefined for initial filter state
-    onSelectRole: (role: Role) => void
+    currentRole: UserRole | undefined, // Allow undefined for initial filter state
+    onSelectRole: (role: UserRole) => void
   ) => {
-    const roles: Role[] = ["Pilot", "Administrator", "Superadministrator"];
+    const roles: UserRole[] = ["PILOT", "ADMIN", "SUPER_ADMIN"];
     return (
       <View style={styles.roleContainer}>
         <Text style={styles.modalLabel}>Rol:</Text>
@@ -184,27 +164,31 @@ const UsersScreen = () => {
                 currentRole === role && styles.roleButtonTextSelected,
               ]}
             >
-              {role}
+              {getRoleDisplayText(role)}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
     );
   };
-
   const renderUserItem = ({ item }: { item: User }) => (
     <View style={styles.userItem}>
       <View style={styles.userInfo}>
         <Text style={styles.userName}>
-          {item.name} ({item.role})
+          {item.name} ({getRoleDisplayText(item.role)})
         </Text>
         <Text style={styles.userEmail}>{item.email}</Text>
+        {item.lastLogin && (
+          <Text style={styles.userLastLogin}>
+            Último acceso: {item.lastLogin.toLocaleDateString("es-ES")}
+          </Text>
+        )}
         <Text
           style={
-            item.isActive ? styles.userStatusActive : styles.userStatusInactive
+            item.active ? styles.userStatusActive : styles.userStatusInactive
           }
         >
-          {item.isActive ? "Activo" : "Inactivo"}
+          {item.active ? "Activo" : "Inactivo"}
         </Text>
       </View>
       <View style={styles.userActions}>
@@ -219,9 +203,9 @@ const UsersScreen = () => {
           style={styles.actionButton}
         >
           <Ionicons
-            name={item.isActive ? "eye-off" : "eye"}
+            name={item.active ? "eye-off" : "eye"}
             size={24}
-            color={item.isActive ? "#FF3B30" : "#34C759"}
+            color={item.active ? "#FF3B30" : "#34C759"}
           />
         </TouchableOpacity>
       </View>
@@ -341,8 +325,7 @@ const UsersScreen = () => {
             style={styles.filterModalContainer}
             onStartShouldSetResponder={() => true} // Prevents modal closing when pressing inside
           >
-            <Text style={styles.modalTitle}>Filtrar Usuarios</Text>
-
+            <Text style={styles.modalTitle}>Filtrar Usuarios</Text>{" "}
             <Text style={styles.modalLabel}>Estado:</Text>
             <View style={styles.filterOptionContainer}>
               {[
@@ -354,13 +337,13 @@ const UsersScreen = () => {
                   key={item.label}
                   style={[
                     styles.filterOptionButton,
-                    activeFilter.isActive === item.value &&
+                    activeFilter.active === item.value &&
                       styles.filterOptionButtonSelected,
                   ]}
                   onPress={() =>
                     setActiveFilter((prev) => ({
                       ...prev,
-                      isActive: item.value,
+                      active: item.value,
                     }))
                   }
                   activeOpacity={0.7}
@@ -368,7 +351,7 @@ const UsersScreen = () => {
                   <Text
                     style={[
                       styles.filterOptionText,
-                      activeFilter.isActive === item.value &&
+                      activeFilter.active === item.value &&
                         styles.filterOptionTextSelected,
                     ]}
                   >
@@ -377,8 +360,7 @@ const UsersScreen = () => {
                 </TouchableOpacity>
               ))}
             </View>
-
-            {renderRoleSelector(activeFilter.role as Role, (role) =>
+            {renderRoleSelector(activeFilter.role as UserRole, (role) =>
               setActiveFilter((prev) => ({ ...prev, role: role }))
             )}
             {/* Button to clear role filter */}
@@ -391,7 +373,6 @@ const UsersScreen = () => {
             >
               <Text style={styles.clearRoleButtonText}>Limpiar Rol</Text>
             </TouchableOpacity>
-
             <View style={styles.modalButtonsContainer}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonClear]}
@@ -475,6 +456,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6c757d", // Medium gray
     marginTop: 3,
+  },
+  userLastLogin: {
+    fontSize: 12,
+    color: "#6c757d", // Medium gray
+    marginTop: 2,
+    fontStyle: "italic",
   },
   userStatusActive: {
     fontSize: 13,
