@@ -200,13 +200,13 @@ export default function AdminLayout() {
         />
 
         <Tabs.Screen
-          name="(kpis)"
+          name="profile"
           options={{
-            title: "KPIs",
+            title: "Perfil",
             sceneStyle: { backgroundColor: "#ffffff" },
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons
-                name={focused ? "stats-chart" : "stats-chart-outline"}
+                name={focused ? "person" : "person-outline"}
                 size={size}
                 color={color}
               />
@@ -214,11 +214,14 @@ export default function AdminLayout() {
           }}
         />
 
+        
+
         {/* Screens to hide from tab bar */}
         <Tabs.Screen name="[turbineId]" options={{ href: null }} />
         <Tabs.Screen name="project-details" options={{ href: null }} />
         <Tabs.Screen name="reports" options={{ href: null }} />
         <Tabs.Screen name="turbine" options={{ href: null }} />
+        <Tabs.Screen name="(kpis)" options={{ href: null }} />
       </Tabs>
     </>
   );
