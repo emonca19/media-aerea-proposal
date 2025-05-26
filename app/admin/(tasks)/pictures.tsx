@@ -28,8 +28,24 @@ export default function PicturesReviewScreen() {
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
   const [rejectionModalVisible, setRejectionModalVisible] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
-  const [completenessScore, setCompletenessScore] = useState(100);
-  const [legibilityScore, setLegibilityScore] = useState(100);
+
+  // New evaluation metrics state
+  const [bladeRectitude, setBladeRectitude] = useState<
+    "aceptable" | "posibles_problemas" | "errores_procesamiento"
+  >("aceptable");
+  const [captureDistance, setCaptureDistance] = useState<
+    "aceptable" | "posibles_conflictos"
+  >("aceptable");
+  const [exposure, setExposure] = useState<
+    "buena" | "muy_oscura" | "muy_brillante"
+  >("buena");
+  const [focus, setFocus] = useState<"bueno" | "regular" | "deficiente">(
+    "bueno"
+  );
+  const [bladePosition, setBladePosition] = useState<
+    "correcta" | "parcialmente_correcta" | "incorrecta"
+  >("correcta");
+
   const [filterStatus, setFilterStatus] = useState<
     "ALL" | "PENDING_REVIEW" | "APPROVED" | "REJECTED"
   >("PENDING_REVIEW");
@@ -57,18 +73,33 @@ export default function PicturesReviewScreen() {
   };
   const handleReviewSubmission = (submission: PhotoSubmission) => {
     setSelectedSubmission(submission);
-    setCompletenessScore(submission.photoSubmissionReview?.completeness || 100);
-    setLegibilityScore(submission.photoSubmissionReview?.legibility || 100);
+    const review = submission.photoSubmissionReview;
+    if (review) {
+      setBladeRectitude(review.bladeRectitude);
+      setCaptureDistance(review.captureDistance);
+      setExposure(review.exposure);
+      setFocus(review.focus);
+      setBladePosition(review.bladePosition);
+    } else {
+      // Set default values for new review
+      setBladeRectitude("aceptable");
+      setCaptureDistance("aceptable");
+      setExposure("buena");
+      setFocus("bueno");
+      setBladePosition("correcta");
+    }
     setReviewModalVisible(true);
   };
-
   const handleApproveSubmission = () => {
     if (!selectedSubmission) return;
 
     const review: PhotoSubmissionReview = {
       status: "APPROVED",
-      completeness: completenessScore,
-      legibility: legibilityScore,
+      bladeRectitude,
+      captureDistance,
+      exposure,
+      focus,
+      bladePosition,
       reviewedBy: "Admin Usuario",
       reviewedAt: new Date(),
     };
@@ -87,7 +118,6 @@ export default function PicturesReviewScreen() {
     setReviewModalVisible(false);
     setRejectionModalVisible(true);
   };
-
   const confirmRejection = () => {
     if (!selectedSubmission || !rejectionReason.trim()) {
       Alert.alert("Error", "Debe proporcionar un motivo de rechazo");
@@ -96,8 +126,11 @@ export default function PicturesReviewScreen() {
 
     const review: PhotoSubmissionReview = {
       status: "REJECTED",
-      completeness: completenessScore,
-      legibility: legibilityScore,
+      bladeRectitude,
+      captureDistance,
+      exposure,
+      focus,
+      bladePosition,
       rejectionReason: rejectionReason.trim(),
       reviewedBy: "Admin Usuario",
       reviewedAt: new Date(),
@@ -156,10 +189,60 @@ export default function PicturesReviewScreen() {
     }
   };
 
-  const getCompletenessColor = (score: number) => {
-    if (score >= 95) return "#10b981"; // green
-    if (score >= 85) return "#f59e0b"; // orange
-    return "#ef4444"; // red
+  // Helper functions for new metrics
+  const getMetricColor = (metric: string, value: string) => {
+    if (metric === "bladeRectitude") {
+      if (value === "aceptable") return "#10b981"; // green
+      if (value === "posibles_problemas") return "#f59e0b"; // orange
+      return "#ef4444"; // red
+    }
+    if (metric === "captureDistance") {
+      if (value === "aceptable") return "#10b981"; // green
+      return "#f59e0b"; // orange
+    }
+    if (metric === "exposure") {
+      if (value === "buena") return "#10b981"; // green
+      return "#f59e0b"; // orange
+    }
+    if (metric === "focus") {
+      if (value === "bueno") return "#10b981"; // green
+      if (value === "regular") return "#f59e0b"; // orange
+      return "#ef4444"; // red
+    }
+    if (metric === "bladePosition") {
+      if (value === "correcta") return "#10b981"; // green
+      if (value === "parcialmente_correcta") return "#f59e0b"; // orange
+      return "#ef4444"; // red
+    }
+    return "#6b7280";
+  };
+
+  const getMetricLabel = (metric: string, value: string) => {
+    if (metric === "bladeRectitude") {
+      if (value === "aceptable") return "Aceptable";
+      if (value === "posibles_problemas") return "Posibles problemas";
+      return "Errores de procesamiento";
+    }
+    if (metric === "captureDistance") {
+      if (value === "aceptable") return "Aceptable";
+      return "Posibles conflictos";
+    }
+    if (metric === "exposure") {
+      if (value === "buena") return "Buena";
+      if (value === "muy_oscura") return "Muy oscura";
+      return "Muy brillante";
+    }
+    if (metric === "focus") {
+      if (value === "bueno") return "Bueno";
+      if (value === "regular") return "Regular";
+      return "Deficiente";
+    }
+    if (metric === "bladePosition") {
+      if (value === "correcta") return "Correcta";
+      if (value === "parcialmente_correcta") return "Parcialmente correcta";
+      return "Incorrecta";
+    }
+    return value;
   };
   const renderSubmissionItem = ({ item }: { item: PhotoSubmission }) => {
     const status = getSubmissionStatus(item);
@@ -181,7 +264,6 @@ export default function PicturesReviewScreen() {
             <Text style={styles.statusText}>{getStatusText(status)}</Text>
           </View>
         </View>
-
         <View style={styles.submissionDetails}>
           <View style={styles.detailRow}>
             <Ionicons name="calendar-outline" size={16} color="#6b7280" />
@@ -210,73 +292,125 @@ export default function PicturesReviewScreen() {
             <Ionicons name="link-outline" size={16} color="#6b7280" />
             <Text style={styles.detailText}>Link de Drive disponible</Text>
           </View>
-        </View>
-
-        {/* Indicadores de completitud y legibilidad */}
+        </View>{" "}
+        {/* Indicadores de las nuevas métricas */}
         {review && (
           <View style={styles.qualityIndicators}>
             <View style={styles.indicator}>
-              <Text style={styles.indicatorLabel}>Completitud</Text>
-              <View style={styles.scoreContainer}>
+              <Text style={styles.indicatorLabel}>Rectitud de la pala</Text>
+              <View style={styles.metricContainer}>
                 <View
                   style={[
-                    styles.scoreBar,
+                    styles.metricBadge,
                     {
-                      backgroundColor: getCompletenessColor(
-                        review.completeness
+                      backgroundColor: getMetricColor(
+                        "bladeRectitude",
+                        review.bladeRectitude
                       ),
                     },
                   ]}
                 >
-                  <View
-                    style={[
-                      styles.scoreProgress,
-                      { width: `${review.completeness}%` },
-                    ]}
-                  />
+                  <Text style={styles.metricText}>
+                    {getMetricLabel("bladeRectitude", review.bladeRectitude)}
+                  </Text>
                 </View>
-                <Text
-                  style={[
-                    styles.scoreText,
-                    { color: getCompletenessColor(review.completeness) },
-                  ]}
-                >
-                  {review.completeness}%
-                </Text>
               </View>
             </View>
 
             <View style={styles.indicator}>
-              <Text style={styles.indicatorLabel}>Legibilidad</Text>
-              <View style={styles.scoreContainer}>
+              <Text style={styles.indicatorLabel}>Distancia de captura</Text>
+              <View style={styles.metricContainer}>
                 <View
                   style={[
-                    styles.scoreBar,
+                    styles.metricBadge,
                     {
-                      backgroundColor: getCompletenessColor(review.legibility),
+                      backgroundColor: getMetricColor(
+                        "captureDistance",
+                        review.captureDistance
+                      ),
                     },
                   ]}
                 >
-                  <View
-                    style={[
-                      styles.scoreProgress,
-                      { width: `${review.legibility}%` },
-                    ]}
-                  />
+                  <Text style={styles.metricText}>
+                    {getMetricLabel("captureDistance", review.captureDistance)}
+                  </Text>
                 </View>
-                <Text
-                  style={[
-                    styles.scoreText,
-                    { color: getCompletenessColor(review.legibility) },
-                  ]}
-                >
-                  {review.legibility}%
-                </Text>
               </View>
             </View>
           </View>
         )}
+        {/* Segunda fila de métricas */}
+        {review && (
+          <View style={styles.qualityIndicators}>
+            <View style={styles.indicator}>
+              <Text style={styles.indicatorLabel}>Exposición</Text>
+              <View style={styles.metricContainer}>
+                <View
+                  style={[
+                    styles.metricBadge,
+                    {
+                      backgroundColor: getMetricColor(
+                        "exposure",
+                        review.exposure
+                      ),
+                    },
+                  ]}
+                >
+                  <Text style={styles.metricText}>
+                    {getMetricLabel("exposure", review.exposure)}
+                  </Text>
+                </View>
+              </View>
+            </View>
 
+            <View style={styles.indicator}>
+              <Text style={styles.indicatorLabel}>Enfoque</Text>
+              <View style={styles.metricContainer}>
+                <View
+                  style={[
+                    styles.metricBadge,
+                    {
+                      backgroundColor: getMetricColor("focus", review.focus),
+                    },
+                  ]}
+                >
+                  <Text style={styles.metricText}>
+                    {getMetricLabel("focus", review.focus)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+        {/* Tercera fila para posición de la pala */}
+        {review && (
+          <View
+            style={[styles.qualityIndicators, { justifyContent: "flex-start" }]}
+          >
+            <View style={[styles.indicator, { flex: 0.5 }]}>
+              <Text style={styles.indicatorLabel}>
+                Posición alrededor de la pala
+              </Text>
+              <View style={styles.metricContainer}>
+                <View
+                  style={[
+                    styles.metricBadge,
+                    {
+                      backgroundColor: getMetricColor(
+                        "bladePosition",
+                        review.bladePosition
+                      ),
+                    },
+                  ]}
+                >
+                  <Text style={styles.metricText}>
+                    {getMetricLabel("bladePosition", review.bladePosition)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
         {/* Razón de rechazo si existe */}
         {review?.rejectionReason && (
           <View style={styles.rejectionContainer}>
@@ -284,7 +418,6 @@ export default function PicturesReviewScreen() {
             <Text style={styles.rejectionText}>{review.rejectionReason}</Text>
           </View>
         )}
-
         {/* Información de revisión */}
         {review && (
           <View style={styles.reviewInfo}>
@@ -294,7 +427,6 @@ export default function PicturesReviewScreen() {
             </Text>
           </View>
         )}
-
         {/* Botones de acción */}
         <View style={styles.actionButtons}>
           <TouchableOpacity
@@ -334,7 +466,6 @@ export default function PicturesReviewScreen() {
           title: "Fotos",
         }}
       />
-
       {/* Filtros de estado */}
       <View style={styles.filterContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -364,7 +495,6 @@ export default function PicturesReviewScreen() {
           ))}
         </ScrollView>
       </View>
-
       {/* Lista de entregas */}
       <FlatList
         data={filteredSubmissions}
@@ -378,13 +508,13 @@ export default function PicturesReviewScreen() {
             <Text style={styles.emptyText}>No hay entregas para mostrar</Text>
           </View>
         }
-      />
-
+      />{" "}
       {/* Modal de revisión */}
       <Modal
         visible={reviewModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
+        transparent={true}
         onRequestClose={() => setReviewModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
@@ -425,88 +555,153 @@ export default function PicturesReviewScreen() {
                     <Text style={styles.infoText}>
                       Link de Drive disponible
                     </Text>
-                  </View>
-
-                  {/* Evaluación de completitud */}
+                  </View>{" "}
+                  {/* Evaluación de Rectitud de la pala */}
                   <View style={styles.evaluationSection}>
                     <Text style={styles.evaluationTitle}>
-                      Evaluación de Completitud
+                      Rectitud de la pala
                     </Text>
-                    <View style={styles.sliderContainer}>
-                      <Text style={styles.sliderLabel}>
-                        Completitud: {completenessScore}%
-                      </Text>
-                      <View style={styles.sliderTrack}>
+                    <View style={styles.metricOptionsContainer}>
+                      {[
+                        "aceptable",
+                        "posibles_problemas",
+                        "errores_procesamiento",
+                      ].map((option) => (
                         <TouchableOpacity
+                          key={option}
                           style={[
-                            styles.sliderThumb,
-                            { left: `${(completenessScore / 100) * 85}%` },
+                            styles.metricOption,
+                            bladeRectitude === option &&
+                              styles.metricOptionSelected,
                           ]}
-                          // Note: In a real implementation, you'd use a proper slider component
-                        />
-                      </View>
-                      <View style={styles.sliderButtons}>
-                        <TouchableOpacity
-                          style={styles.scoreButton}
-                          onPress={() =>
-                            setCompletenessScore(
-                              Math.max(0, completenessScore - 5)
-                            )
-                          }
+                          onPress={() => setBladeRectitude(option as any)}
                         >
-                          <Text style={styles.scoreButtonText}>-5</Text>
+                          <Text
+                            style={[
+                              styles.metricOptionText,
+                              bladeRectitude === option &&
+                                styles.metricOptionTextSelected,
+                            ]}
+                          >
+                            {getMetricLabel("bladeRectitude", option)}
+                          </Text>
                         </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.scoreButton}
-                          onPress={() =>
-                            setCompletenessScore(
-                              Math.min(100, completenessScore + 5)
-                            )
-                          }
-                        >
-                          <Text style={styles.scoreButtonText}>+5</Text>
-                        </TouchableOpacity>
-                      </View>
+                      ))}
                     </View>
                   </View>
-
-                  {/* Evaluación de legibilidad */}
+                  {/* Evaluación de Distancia de captura */}
                   <View style={styles.evaluationSection}>
                     <Text style={styles.evaluationTitle}>
-                      Evaluación de Legibilidad
+                      Distancia de captura de foto
                     </Text>
-                    <View style={styles.sliderContainer}>
-                      <Text style={styles.sliderLabel}>
-                        Legibilidad: {legibilityScore}%
-                      </Text>
-                      <View style={styles.sliderTrack}>
+                    <View style={styles.metricOptionsContainer}>
+                      {["aceptable", "posibles_conflictos"].map((option) => (
                         <TouchableOpacity
+                          key={option}
                           style={[
-                            styles.sliderThumb,
-                            { left: `${(legibilityScore / 100) * 85}%` },
+                            styles.metricOption,
+                            captureDistance === option &&
+                              styles.metricOptionSelected,
                           ]}
-                        />
-                      </View>
-                      <View style={styles.sliderButtons}>
-                        <TouchableOpacity
-                          style={styles.scoreButton}
-                          onPress={() =>
-                            setLegibilityScore(Math.max(0, legibilityScore - 5))
-                          }
+                          onPress={() => setCaptureDistance(option as any)}
                         >
-                          <Text style={styles.scoreButtonText}>-5</Text>
+                          <Text
+                            style={[
+                              styles.metricOptionText,
+                              captureDistance === option &&
+                                styles.metricOptionTextSelected,
+                            ]}
+                          >
+                            {getMetricLabel("captureDistance", option)}
+                          </Text>
                         </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                  {/* Evaluación de Exposición */}
+                  <View style={styles.evaluationSection}>
+                    <Text style={styles.evaluationTitle}>Exposición</Text>
+                    <View style={styles.metricOptionsContainer}>
+                      {["buena", "muy_oscura", "muy_brillante"].map(
+                        (option) => (
+                          <TouchableOpacity
+                            key={option}
+                            style={[
+                              styles.metricOption,
+                              exposure === option &&
+                                styles.metricOptionSelected,
+                            ]}
+                            onPress={() => setExposure(option as any)}
+                          >
+                            <Text
+                              style={[
+                                styles.metricOptionText,
+                                exposure === option &&
+                                  styles.metricOptionTextSelected,
+                              ]}
+                            >
+                              {getMetricLabel("exposure", option)}
+                            </Text>
+                          </TouchableOpacity>
+                        )
+                      )}
+                    </View>
+                  </View>
+                  {/* Evaluación de Enfoque */}
+                  <View style={styles.evaluationSection}>
+                    <Text style={styles.evaluationTitle}>Enfoque</Text>
+                    <View style={styles.metricOptionsContainer}>
+                      {["bueno", "regular", "deficiente"].map((option) => (
                         <TouchableOpacity
-                          style={styles.scoreButton}
-                          onPress={() =>
-                            setLegibilityScore(
-                              Math.min(100, legibilityScore + 5)
-                            )
-                          }
+                          key={option}
+                          style={[
+                            styles.metricOption,
+                            focus === option && styles.metricOptionSelected,
+                          ]}
+                          onPress={() => setFocus(option as any)}
                         >
-                          <Text style={styles.scoreButtonText}>+5</Text>
+                          <Text
+                            style={[
+                              styles.metricOptionText,
+                              focus === option &&
+                                styles.metricOptionTextSelected,
+                            ]}
+                          >
+                            {getMetricLabel("focus", option)}
+                          </Text>
                         </TouchableOpacity>
-                      </View>
+                      ))}
+                    </View>
+                  </View>
+                  {/* Evaluación de Posición alrededor de la pala */}
+                  <View style={styles.evaluationSection}>
+                    <Text style={styles.evaluationTitle}>
+                      Posición alrededor de la pala
+                    </Text>
+                    <View style={styles.metricOptionsContainer}>
+                      {["correcta", "parcialmente_correcta", "incorrecta"].map(
+                        (option) => (
+                          <TouchableOpacity
+                            key={option}
+                            style={[
+                              styles.metricOption,
+                              bladePosition === option &&
+                                styles.metricOptionSelected,
+                            ]}
+                            onPress={() => setBladePosition(option as any)}
+                          >
+                            <Text
+                              style={[
+                                styles.metricOptionText,
+                                bladePosition === option &&
+                                  styles.metricOptionTextSelected,
+                              ]}
+                            >
+                              {getMetricLabel("bladePosition", option)}
+                            </Text>
+                          </TouchableOpacity>
+                        )
+                      )}
                     </View>
                   </View>
                 </>
@@ -532,13 +727,13 @@ export default function PicturesReviewScreen() {
             </View>
           </View>
         </View>
-      </Modal>
-
+      </Modal>{" "}
       {/* Modal de rechazo con motivo */}
       <Modal
         visible={rejectionModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
+        transparent={true}
         onRequestClose={() => setRejectionModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
@@ -723,6 +918,52 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     minWidth: 35,
   },
+  metricContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+  },
+  metricBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    flex: 1,
+    alignItems: "center",
+  },
+  metricText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#fff",
+    textAlign: "center",
+  },
+  metricOptionsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  metricOption: {
+    backgroundColor: "#f3f4f6",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    flex: 1,
+    minWidth: "30%",
+  },
+  metricOptionSelected: {
+    backgroundColor: "#9C46CE",
+    borderColor: "#9C46CE",
+  },
+  metricOptionText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#4b5563",
+    textAlign: "center",
+  },
+  metricOptionTextSelected: {
+    color: "#fff",
+  },
   rejectionContainer: {
     backgroundColor: "#fef2f2",
     borderRadius: 8,
@@ -801,8 +1042,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#9ca3af",
     marginTop: 16,
-  },
-  // Modal styles
+  }, // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -812,7 +1052,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: "90%",
+    maxHeight: "95%",
+    minHeight: "85%",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   modalHeader: {
     flexDirection: "row",
@@ -832,7 +1081,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     padding: 20,
-    maxHeight: 400,
+    flex: 1,
   },
   submissionInfo: {
     backgroundColor: "#f8fafc",

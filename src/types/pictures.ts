@@ -13,8 +13,11 @@ export interface PhotoSubmission extends BaseEntity {
 
 export interface PhotoSubmissionReview {
   status: PhotoSubmissionStatus;
-  completeness: number; // 0-100 percentage
-  legibility: number; // 0-100 percentage
+  bladeRectitude: 'aceptable' | 'posibles_problemas' | 'errores_procesamiento';
+  captureDistance: 'aceptable' | 'posibles_conflictos';
+  exposure: 'buena' | 'muy_oscura' | 'muy_brillante';
+  focus: 'bueno' | 'regular' | 'deficiente';
+  bladePosition: 'correcta' | 'parcialmente_correcta' | 'incorrecta';
   reviewedBy: string;
   reviewedAt: Date;
   rejectionReason?: string; // Only present when status is REJECTED
