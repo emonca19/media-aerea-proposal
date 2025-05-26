@@ -14,15 +14,32 @@ import {
 import Animated, {
   FadeInDown,
   FadeInUp,
-  SlideInRight
+  SlideInUp // Cambiado desde SlideInRight para las barras
 } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 
+// Define some common colors for better consistency
+const COLORS = {
+  primary: '#1E3A8A', // Deep Blue
+  primaryLight: '#3B82F6', // Lighter Blue
+  secondary: '#10b981', // Green
+  secondaryDark: '#059669', // Darker Green
+  accentYellow: '#f59e0b',
+  accentRed: '#ef4444',
+  background: '#f0f4f8', // Light grayish-blue background
+  cardBackground: '#ffffff',
+  textPrimary: '#111827', // Darker text for titles
+  textSecondary: '#374151', // Medium text
+  textMuted: '#6b7280',   // Lighter text
+  textLight: '#ffffff',
+  lightGray: '#e5e7eb',
+  separator: '#f3f4f6',
+};
+
 export default function PilotStatistics() {
   const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '12m'>('7d');
 
-  // Datos mockeados para motivar al piloto
   const pilotStats = {
     overall: {
       totalFlights: 248,
@@ -47,11 +64,10 @@ export default function PilotStatistics() {
       resolved: 2,
       pending: 0,
       lastIncident: '15 días atrás',
-      safetyStreak: 45 // días sin incidentes
+      safetyStreak: 45
     }
   };
 
-  // Datos para gráficos por período
   const chartData = {
     '7d': {
       efficiency: [85, 88, 92, 96, 94, 97, 98],
@@ -66,11 +82,10 @@ export default function PilotStatistics() {
     '12m': {
       efficiency: [78, 82, 85, 88, 90, 92, 94, 95, 96, 97, 96, 98],
       flights: [45, 52, 58, 62, 68, 75, 72, 78, 82, 85, 88, 92],
-      labels: ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
+      labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'] // Labels más descriptivos
     }
   };
 
-  // Datos de turbinas inspeccionadas
   const turbineStats = [
     { id: 'T001', name: 'Turbina A-01', inspections: 8, status: 'excellent', efficiency: 98 },
     { id: 'T002', name: 'Turbina A-02', inspections: 6, status: 'good', efficiency: 94 },
@@ -79,22 +94,21 @@ export default function PilotStatistics() {
     { id: 'T005', name: 'Turbina D-15', inspections: 9, status: 'excellent', efficiency: 96 }
   ];
 
-  // Logros y badges
   const achievements = [
-    { id: 1, name: 'Piloto del Mes', icon: 'trophy', color: '#f59e0b', earned: true },
-    { id: 2, name: 'Sin Incidentes 45 días', icon: 'shield-checkmark', color: '#10b981', earned: true },
-    { id: 3, name: 'Eficiencia +95%', icon: 'speedometer', color: '#3b82f6', earned: true },
-    { id: 4, name: '100 Vuelos', icon: 'airplane', color: '#8b5cf6', earned: true },
-    { id: 5, name: 'Mentor', icon: 'school', color: '#ef4444', earned: false },
-    { id: 6, name: '1000 Fotos', icon: 'camera', color: '#06b6d4', earned: true }
+    { id: 1, name: 'Piloto del Mes', icon: 'trophy-outline', color: COLORS.accentYellow, earned: true },
+    { id: 2, name: 'Racha Segura', icon: 'shield-checkmark-outline', color: COLORS.secondary, earned: true },
+    { id: 3, name: 'Max. Eficiencia', icon: 'speedometer-outline', color: COLORS.primaryLight, earned: true },
+    { id: 4, name: '100 Vuelos', icon: 'airplane-outline', color: '#8b5cf6', earned: true },
+    { id: 5, name: 'Mentor Experto', icon: 'school-outline', color: COLORS.accentRed, earned: false },
+    { id: 6, name: '1000 Fotos OK', icon: 'camera-outline', color: '#06b6d4', earned: true }
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'excellent': return '#10b981';
-      case 'good': return '#3b82f6';
-      case 'average': return '#f59e0b';
-      default: return '#6b7280';
+      case 'excellent': return COLORS.secondary;
+      case 'good': return COLORS.primaryLight;
+      case 'average': return COLORS.accentYellow;
+      default: return COLORS.textMuted;
     }
   };
 
@@ -107,32 +121,44 @@ export default function PilotStatistics() {
     }
   };
 
-  const maxValue = Math.max(...chartData[selectedPeriod].efficiency);
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'excellent': return 'checkmark-circle-outline';
+      case 'good': return 'thumbs-up-outline';
+      case 'average': return 'alert-circle-outline';
+      default: return 'help-circle-outline';
+    }
+  };
+
+  const currentChartData = chartData[selectedPeriod];
+  const maxValue = Math.max(...currentChartData.efficiency, 0);
 
   return (
     <View style={styles.container}>
-      <Stack.Screen 
+      <Stack.Screen
         options={{
           headerShown: true,
-          title: "Estadísticas",
-          headerStyle: { backgroundColor: '#1E3A8A' },
-          headerTintColor: '#ffffff',
-          headerTitleStyle: { fontWeight: '600' }
-        }} 
+          title: "Estadísticas de Piloto",
+          headerStyle: { backgroundColor: COLORS.primary },
+          headerTintColor: COLORS.textLight,
+          headerTitleStyle: { fontWeight: 'bold', fontSize: 18 },
+          headerShadowVisible: false,
+        }}
       />
-      <StatusBar backgroundColor="#1E3A8A" barStyle="light-content" />
-      
+      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
+
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header con resumen general */}
-        <Animated.View entering={FadeInUp.delay(100)} style={styles.headerCard}>
+        <Animated.View entering={FadeInUp.delay(100)} style={styles.headerCardWrapper}>
           <LinearGradient
-            colors={['#1E3A8A', '#3B82F6']}
+            colors={[COLORS.primary, COLORS.primaryLight]}
             style={styles.gradientCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
             <View style={styles.headerContent}>
               <View style={styles.rankBadge}>
-                <Ionicons name="trophy" size={16} color="#f59e0b" />
-                <Text style={styles.rankText}>#{pilotStats.overall.rank} de {pilotStats.overall.totalPilots}</Text>
+                <Ionicons name="ribbon-outline" size={18} color={COLORS.accentYellow} />
+                <Text style={styles.rankText}>Top #{pilotStats.overall.rank} / {pilotStats.overall.totalPilots}</Text>
               </View>
               <Text style={styles.efficiencyBig}>{pilotStats.overall.efficiency}%</Text>
               <Text style={styles.efficiencyLabel}>Eficiencia General</Text>
@@ -141,10 +167,12 @@ export default function PilotStatistics() {
                   <Text style={styles.headerStatValue}>{pilotStats.overall.totalFlights}</Text>
                   <Text style={styles.headerStatLabel}>Vuelos</Text>
                 </View>
+                <View style={styles.headerStatSeparator} />
                 <View style={styles.headerStat}>
                   <Text style={styles.headerStatValue}>{pilotStats.overall.flightHours}</Text>
                   <Text style={styles.headerStatLabel}>Horas</Text>
                 </View>
+                <View style={styles.headerStatSeparator} />
                 <View style={styles.headerStat}>
                   <Text style={styles.headerStatValue}>{pilotStats.incidents.safetyStreak}</Text>
                   <Text style={styles.headerStatLabel}>Días Seguros</Text>
@@ -154,9 +182,8 @@ export default function PilotStatistics() {
           </LinearGradient>
         </Animated.View>
 
-        {/* Selector de período */}
-        <Animated.View entering={FadeInDown.delay(200)} style={styles.periodSelector}>
-          <Text style={styles.sectionTitle}>Rendimiento</Text>
+        <Animated.View entering={FadeInDown.delay(200)} style={styles.periodSelectorContainer}>
+          <Text style={styles.sectionTitle}>Rendimiento Periódico</Text>
           <View style={styles.periodButtons}>
             {(['7d', '30d', '12m'] as const).map((period) => (
               <TouchableOpacity
@@ -171,131 +198,124 @@ export default function PilotStatistics() {
                   styles.periodButtonText,
                   selectedPeriod === period && styles.periodButtonTextActive
                 ]}>
-                  {period === '7d' ? '7 días' : period === '30d' ? '30 días' : '12 meses'}
+                  {period === '7d' ? '7 Días' : period === '30d' ? '30 Días' : '12 Meses'}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
         </Animated.View>
 
-        {/* Gráfico de eficiencia */}
-        <Animated.View entering={FadeInDown.delay(300)} style={styles.chartCard}>
-          <Text style={styles.chartTitle}>Eficiencia por {selectedPeriod === '7d' ? 'Día' : selectedPeriod === '30d' ? 'Semana' : 'Mes'}</Text>
+        <Animated.View entering={FadeInDown.delay(300)} style={styles.card}>
+          <Text style={styles.cardTitle}>Eficiencia ({selectedPeriod === '7d' ? 'Diaria' : selectedPeriod === '30d' ? 'Semanal' : 'Mensual'})</Text>
           <View style={styles.chart}>
-            {chartData[selectedPeriod].efficiency.map((value, index) => {
-              const height = (value / maxValue) * 100;
-              const isHighest = value === maxValue;
-              
+            {currentChartData.efficiency.map((value, index) => {
+              const barHeightPercent = maxValue > 0 ? (value / maxValue) * 100 : 0;
+              const isHighest = value === maxValue && maxValue > 0;
+              // Ajustar posición y color del valor para mejor legibilidad
+              const valueIsVeryLow = barHeightPercent < 15; // Umbral para barras muy cortas
+
               return (
-                <Animated.View 
-                  key={index} 
-                  style={styles.chartColumn}
-                  entering={SlideInRight.delay(400 + index * 50)}
-                >
+                <View key={index} style={styles.chartColumn}>
                   <View style={styles.chartBarContainer}>
-                    <View style={[
-                      styles.chartBar,
-                      { height: `${height}%` },
-                      isHighest && styles.chartBarHighest
-                    ]}>
-                      <LinearGradient
-                        colors={isHighest ? ['#10b981', '#059669'] : ['#e0e7ff', '#c7d2fe']}
-                        style={styles.chartBarGradient}
-                      />
-                    </View>
-                    <Text style={[styles.chartValue, isHighest && styles.chartValueHighest]}>
+                    <Text style={[
+                        styles.chartValue,
+                        isHighest && styles.chartValueHighest,
+                        // Si es muy bajo y no es el más alto, moverlo más arriba y oscurecerlo
+                        valueIsVeryLow && !isHighest && styles.chartValueLow
+                      ]}>
                       {value}%
                     </Text>
+                    <Animated.View
+                      entering={SlideInUp.delay(450 + index * 70).duration(400)} // Animación mejorada
+                      style={[
+                        styles.chartBar,
+                        { height: `${barHeightPercent}%` },
+                        isHighest && styles.chartBarHighest,
+                      ]}
+                    >
+                      <LinearGradient
+                        colors={isHighest ? [COLORS.secondary, COLORS.secondaryDark] : ['#d1d5db', '#9ca3af']} // Barras por defecto un poco más oscuras
+                        style={styles.chartBarGradient}
+                      />
+                    </Animated.View>
                   </View>
-                  <Text style={styles.chartLabel}>{chartData[selectedPeriod].labels[index]}</Text>
-                </Animated.View>
+                  <Text style={styles.chartLabel}>{currentChartData.labels[index]}</Text>
+                </View>
               );
             })}
           </View>
         </Animated.View>
 
-        {/* Métricas de rendimiento */}
-        <Animated.View entering={FadeInDown.delay(500)} style={styles.metricsGrid}>
-          <View style={styles.metricCard}>
-            <View style={[styles.metricIcon, { backgroundColor: '#dbeafe' }]}>
-              <Ionicons name="time" size={24} color="#3b82f6" />
-            </View>
-            <Text style={styles.metricValue}>{pilotStats.performance.avgTimePerTurbine}</Text>
-            <Text style={styles.metricLabel}>Tiempo promedio por turbina</Text>
-          </View>
-
-          <View style={styles.metricCard}>
-            <View style={[styles.metricIcon, { backgroundColor: '#d1fae5' }]}>
-              <Ionicons name="checkmark-circle" size={24} color="#10b981" />
-            </View>
-            <Text style={styles.metricValue}>{pilotStats.performance.completionRate}%</Text>
-            <Text style={styles.metricLabel}>Tasa de finalización</Text>
-          </View>
-
-          <View style={styles.metricCard}>
-            <View style={[styles.metricIcon, { backgroundColor: '#fef3c7' }]}>
-              <Ionicons name="star" size={24} color="#f59e0b" />
-            </View>
-            <Text style={styles.metricValue}>{pilotStats.performance.qualityScore}</Text>
-            <Text style={styles.metricLabel}>Puntuación de calidad</Text>
-          </View>
-
-          <View style={styles.metricCard}>
-            <View style={[styles.metricIcon, { backgroundColor: '#fecaca' }]}>
-              <Ionicons name="shield-checkmark" size={24} color="#ef4444" />
-            </View>
-            <Text style={styles.metricValue}>{pilotStats.performance.safetyScore}</Text>
-            <Text style={styles.metricLabel}>Puntuación de seguridad</Text>
+        <Animated.View entering={FadeInDown.delay(500)} style={styles.metricsGridContainer}>
+           <Text style={styles.sectionTitle}>Métricas Clave</Text>
+          <View style={styles.metricsGrid}>
+            {[
+              { icon: "time-outline", value: pilotStats.performance.avgTimePerTurbine, label: "Prom. Turbina", color: COLORS.primaryLight, bgColor: '#dbeafe' },
+              { icon: "checkmark-done-outline", value: `${pilotStats.performance.completionRate}%`, label: "Finalización", color: COLORS.secondary, bgColor: '#d1fae5' },
+              { icon: "star-outline", value: String(pilotStats.performance.qualityScore), label: "Calidad Fotos", color: COLORS.accentYellow, bgColor: '#fef3c7' },
+              { icon: "shield-checkmark-outline", value: String(pilotStats.performance.safetyScore), label: "Seguridad", color: COLORS.accentRed, bgColor: '#fecaca' },
+            ].map((metric, index) => (
+                <Animated.View
+                  key={index}
+                  style={styles.metricCard}
+                  entering={FadeInDown.delay(600 + index * 100)}
+                >
+                    <View style={[styles.metricIconContainer, { backgroundColor: metric.bgColor }]}>
+                    <Ionicons name={metric.icon as any} size={28} color={metric.color} />
+                    </View>
+                    <Text style={styles.metricValue}>{metric.value}</Text>
+                    <Text style={styles.metricLabel} numberOfLines={2}>{metric.label}</Text>
+                </Animated.View>
+            ))}
           </View>
         </Animated.View>
 
-        {/* Estado de incidencias */}
-        <Animated.View entering={FadeInDown.delay(600)} style={styles.incidentsCard}>
+        <Animated.View entering={FadeInDown.delay(700)} style={[styles.card, { marginTop: 0}]}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Estado de Seguridad</Text>
             <View style={styles.safetyBadge}>
-              <Ionicons name="shield-checkmark" size={16} color="#10b981" />
-              <Text style={styles.safetyBadgeText}>Excelente</Text>
+              <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.secondaryDark} />
+              <Text style={styles.safetyBadgeText}>Impecable</Text>
             </View>
           </View>
-          
+
           <View style={styles.incidentsGrid}>
             <View style={styles.incidentMetric}>
               <Text style={styles.incidentValue}>{pilotStats.incidents.total}</Text>
-              <Text style={styles.incidentLabel}>Incidencias totales</Text>
+              <Text style={styles.incidentLabel}>Total Incidencias</Text>
             </View>
             <View style={styles.incidentMetric}>
-              <Text style={[styles.incidentValue, { color: '#10b981' }]}>{pilotStats.incidents.resolved}</Text>
+              <Text style={[styles.incidentValue, { color: COLORS.secondary }]}>{pilotStats.incidents.resolved}</Text>
               <Text style={styles.incidentLabel}>Resueltas</Text>
             </View>
             <View style={styles.incidentMetric}>
-              <Text style={[styles.incidentValue, { color: '#ef4444' }]}>{pilotStats.incidents.pending}</Text>
+              <Text style={[styles.incidentValue, { color: COLORS.accentRed }]}>{pilotStats.incidents.pending}</Text>
               <Text style={styles.incidentLabel}>Pendientes</Text>
             </View>
           </View>
 
           <View style={styles.safetyStreak}>
             <LinearGradient
-              colors={['#10b981', '#059669']}
+              colors={[COLORS.secondary, COLORS.secondaryDark]}
               style={styles.streakBadge}
+              start={{x:0, y:0}} end={{x:1, y:0}}
             >
-              <Ionicons name="flame" size={20} color="#ffffff" />
-              <Text style={styles.streakText}>{pilotStats.incidents.safetyStreak} días sin incidencias</Text>
+              <Ionicons name="flame-outline" size={22} color={COLORS.textLight} />
+              <Text style={styles.streakText}>{pilotStats.incidents.safetyStreak} días sin incidentes</Text>
             </LinearGradient>
           </View>
         </Animated.View>
 
-        {/* Turbinas inspeccionadas */}
-        <Animated.View entering={FadeInDown.delay(700)} style={styles.turbinesCard}>
-          <Text style={styles.cardTitle}>Turbinas Inspeccionadas</Text>
-          {turbineStats.map((turbine, index) => (
-            <Animated.View 
-              key={turbine.id} 
-              style={styles.turbineItem}
-              entering={FadeInDown.delay(800 + index * 100)}
+        <Animated.View entering={FadeInDown.delay(800)} style={styles.card}>
+          <Text style={styles.cardTitle}>Turbinas Destacadas</Text>
+          {turbineStats.slice(0,3).map((turbine, index) => (
+            <Animated.View
+              key={turbine.id}
+              style={[styles.turbineItem, index === turbineStats.slice(0,3).length - 1 && styles.lastTurbineItem]}
+              entering={FadeInDown.delay(900 + index * 100)}
             >
               <View style={styles.turbineInfo}>
-                <View style={[styles.turbineStatus, { backgroundColor: getStatusColor(turbine.status) }]} />
+                 <Ionicons name={getStatusIcon(turbine.status) as any} size={24} color={getStatusColor(turbine.status)} style={styles.turbineStatusIcon} />
                 <View style={styles.turbineDetails}>
                   <Text style={styles.turbineName}>{turbine.name}</Text>
                   <Text style={styles.turbineInspections}>{turbine.inspections} inspecciones</Text>
@@ -309,40 +329,45 @@ export default function PilotStatistics() {
               </View>
             </Animated.View>
           ))}
+           {turbineStats.length > 3 && (
+            <TouchableOpacity style={styles.seeAllButton}>
+              <Text style={styles.seeAllButtonText}>Ver Todas las Turbinas</Text>
+              <Ionicons name="chevron-forward-outline" size={16} color={COLORS.primaryLight} />
+            </TouchableOpacity>
+          )}
         </Animated.View>
 
-        {/* Logros y badges */}
-        <Animated.View entering={FadeInDown.delay(900)} style={styles.achievementsCard}>
-          <Text style={styles.cardTitle}>Logros y Reconocimientos</Text>
+        <Animated.View entering={FadeInDown.delay(1000)} style={styles.card}>
+          <Text style={styles.cardTitle}>Logros Obtenidos</Text>
           <View style={styles.achievementsGrid}>
             {achievements.map((achievement, index) => (
-              <Animated.View 
-                key={achievement.id} 
+              <Animated.View
+                key={achievement.id}
                 style={[
                   styles.achievementItem,
                   !achievement.earned && styles.achievementLocked
                 ]}
-                entering={SlideInRight.delay(1000 + index * 100)}
+                entering={FadeInUp.delay(1100 + index * 100)} // Changed to FadeInUp for variety
               >
                 <View style={[
-                  styles.achievementIcon,
-                  { backgroundColor: achievement.earned ? achievement.color : '#f3f4f6' }
+                  styles.achievementIconContainer,
+                  { backgroundColor: achievement.earned ? achievement.color : COLORS.lightGray }
                 ]}>
-                  <Ionicons 
-                    name={achievement.icon as any} 
-                    size={20} 
-                    color={achievement.earned ? '#ffffff' : '#9ca3af'} 
+                  <Ionicons
+                    name={achievement.icon as any}
+                    size={24}
+                    color={achievement.earned ? COLORS.textLight : COLORS.textMuted}
                   />
                 </View>
                 <Text style={[
                   styles.achievementName,
                   !achievement.earned && styles.achievementNameLocked
-                ]}>
+                ]} numberOfLines={2} ellipsizeMode="tail">
                   {achievement.name}
                 </Text>
                 {achievement.earned && (
                   <View style={styles.earnedBadge}>
-                    <Ionicons name="checkmark" size={12} color="#10b981" />
+                    <Ionicons name="checkmark-outline" size={12} color={COLORS.secondaryDark} />
                   </View>
                 )}
               </Animated.View>
@@ -359,18 +384,55 @@ export default function PilotStatistics() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.background,
   },
   scrollView: {
     flex: 1,
   },
-  headerCard: {
-    margin: 16,
+  card: {
+    backgroundColor: COLORS.cardBackground,
+    marginHorizontal: 16,
+    marginBottom: 20,
     borderRadius: 16,
-    overflow: 'hidden',
+    padding: 20,
+    shadowColor: COLORS.textSecondary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginBottom: 16,
+    paddingHorizontal: 4, // Small padding if it's directly in a container with margin
+  },
+  headerCardWrapper: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 20,
+    borderRadius: 20,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 8,
   },
   gradientCard: {
     padding: 24,
+    borderRadius: 20,
   },
   headerContent: {
     alignItems: 'center',
@@ -378,383 +440,370 @@ const styles = StyleSheet.create({
   rankBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 20,
     marginBottom: 16,
   },
   rankText: {
-    color: '#ffffff',
+    color: COLORS.textLight,
     fontSize: 14,
     fontWeight: '600',
-    marginLeft: 6,
+    marginLeft: 8,
   },
   efficiencyBig: {
-    fontSize: 48,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontSize: 52,
+    fontWeight: 'bold',
+    color: COLORS.textLight,
     marginBottom: 4,
   },
   efficiencyLabel: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.85)',
     marginBottom: 24,
+    fontWeight: '500',
   },
   headerStats: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    alignItems: 'center',
     width: '100%',
   },
   headerStat: {
     alignItems: 'center',
+    flex: 1,
+  },
+  headerStatSeparator: {
+    width: 1,
+    height: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   headerStatValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.textLight,
     marginBottom: 4,
   },
   headerStatLabel: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(255, 255, 255, 0.75)',
+    textTransform: 'uppercase',
+    fontWeight: '500',
   },
-  periodSelector: {
+  periodSelectorContainer: {
     marginHorizontal: 16,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 12,
+    marginBottom: 20,
   },
   periodButtons: {
     flexDirection: 'row',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: COLORS.lightGray,
     borderRadius: 12,
-    padding: 4,
+    padding: 6,
   },
   periodButton: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
   },
   periodButtonActive: {
-    backgroundColor: '#ffffff',
-    shadowColor: '#000',
+    backgroundColor: COLORS.cardBackground,
+    shadowColor: COLORS.textSecondary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   periodButtonText: {
     fontSize: 14,
-    color: '#64748b',
-    fontWeight: '500',
+    color: COLORS.textMuted,
+    fontWeight: '600',
   },
   periodButtonTextActive: {
-    color: '#1e293b',
-    fontWeight: '600',
-  },
-  chartCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  chartTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 20,
+    color: COLORS.primary,
+    fontWeight: 'bold',
   },
   chart: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    height: 120,
-    paddingHorizontal: 8,
+    height: 150, // Aumentada la altura para más espacio
+    paddingHorizontal: 0,
+    marginTop: 25, // Más espacio para los valores de arriba
   },
   chartColumn: {
     alignItems: 'center',
     flex: 1,
+    marginHorizontal: 2,
   },
   chartBarContainer: {
-    height: 80,
-    width: 24,
-    justifyContent: 'flex-end',
-    marginBottom: 8,
-    position: 'relative',
+    height: '100%', // Usa toda la altura disponible en chartColumn (después de la etiqueta)
+    width: '80%',
+    maxWidth: 28,
+    justifyContent: 'flex-end', // Las barras crecen desde abajo
+    position: 'relative', // Para posicionar el valor absoluto a la barra
+    // marginBottom: 8, // Ya no es necesario si chartColumn se encarga del espaciado con la etiqueta
   },
   chartBar: {
     width: '100%',
-    borderRadius: 12,
+    borderTopLeftRadius: 6, // Redondeo más sutil
+    borderTopRightRadius: 6,
     overflow: 'hidden',
-    minHeight: 4,
+    minHeight: 4, // Barra mínima visible
   },
   chartBarGradient: {
     flex: 1,
-    borderRadius: 12,
   },
   chartBarHighest: {
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: COLORS.secondary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 5,
+    elevation: 6,
   },
   chartValue: {
     position: 'absolute',
-    top: -20,
+    top: -22, // Posición inicial del valor encima de la barra
     alignSelf: 'center',
-    fontSize: 10,
-    color: '#6b7280',
+    fontSize: 11,
+    color: COLORS.textMuted,
     fontWeight: '600',
+    backgroundColor: COLORS.cardBackground, // Para evitar solapamiento con gradiente de barra
+    paddingHorizontal: 2, // Pequeño padding si el fondo es visible
+    borderRadius: 2,
   },
   chartValueHighest: {
-    color: '#10b981',
-    fontWeight: '700',
+    color: COLORS.secondaryDark,
+    fontWeight: 'bold',
+  },
+  chartValueLow: { // Estilo para valores en barras muy cortas
+    top: -25, // Un poco más arriba
+    color: COLORS.textSecondary, // Un poco más oscuro para contraste
   },
   chartLabel: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: COLORS.textMuted,
     fontWeight: '500',
+    marginTop: 8, // Espacio entre barra y etiqueta
+    textAlign: 'center',
+  },
+  metricsGridContainer: {
+    marginHorizontal: 16, // Contenedor principal con márgenes de pantalla
+    marginBottom: 20,
   },
   metricsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    gap: 12,
+    justifyContent: 'space-between', // Para el espacio entre las tarjetas
+    // No necesita marginHorizontal si el padre (metricsGridContainer) ya lo tiene
   },
   metricCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
-    width: (width - 44) / 2,
-    shadowColor: '#000',
+    // Calcula el ancho para dos columnas con un espacio de 12px entre ellas
+    // (AnchoTotalPantalla - MargenesDelContenedor(16*2) - EspacioEntreTarjetas) / NumeroColumnas
+    width: (width - (16 * 2) - 12) / 2,
+    marginBottom: 12,
+    shadowColor: COLORS.textSecondary,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 3,
+    minHeight: 150, // Para asegurar alturas consistentes
   },
-  metricIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  metricIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
   },
   metricValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1f2937',
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
     marginBottom: 4,
   },
   metricLabel: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 13,
+    color: COLORS.textMuted,
     textAlign: 'center',
-    lineHeight: 16,
-  },
-  incidentsCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
+    lineHeight: 18,
   },
   safetyBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#d1fae5',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 12,
   },
   safetyBadgeText: {
-    fontSize: 12,
-    color: '#065f46',
-    fontWeight: '600',
-    marginLeft: 4,
+    fontSize: 13,
+    color: COLORS.secondaryDark,
+    fontWeight: 'bold',
+    marginLeft: 6,
   },
   incidentsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 20,
+    marginBottom: 24,
+    paddingTop: 8,
   },
   incidentMetric: {
     alignItems: 'center',
   },
   incidentValue: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#1f2937',
-    marginBottom: 4,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginBottom: 6,
   },
   incidentLabel: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 13,
+    color: COLORS.textMuted,
     textAlign: 'center',
+    fontWeight: '500',
   },
   safetyStreak: {
     alignItems: 'center',
+    marginTop: 8,
   },
   streakBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 16,
   },
   streakText: {
-    color: '#ffffff',
-    fontSize: 14,
+    color: COLORS.textLight,
+    fontSize: 15,
     fontWeight: '600',
-    marginLeft: 8,
-  },
-  turbinesCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    marginLeft: 10,
   },
   turbineItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: COLORS.separator,
+  },
+  lastTurbineItem: {
+    borderBottomWidth: 0,
   },
   turbineInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    paddingRight: 8, // Espacio para que no se pegue a los metrics
   },
-  turbineStatus: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  turbineStatusIcon: {
     marginRight: 12,
   },
   turbineDetails: {
     flex: 1,
   },
   turbineName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 2,
+    color: COLORS.textPrimary,
+    marginBottom: 3,
   },
   turbineInspections: {
     fontSize: 12,
-    color: '#6b7280',
+    color: COLORS.textMuted,
   },
   turbineMetrics: {
     alignItems: 'flex-end',
   },
   turbineEfficiency: {
     fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 2,
+    fontWeight: 'bold',
+    marginBottom: 3,
   },
   turbineStatusText: {
-    fontSize: 11,
-    color: '#6b7280',
+    fontSize: 12,
+    color: COLORS.textMuted,
     fontWeight: '500',
   },
-  achievementsCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+  seeAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginTop: 8,
+  },
+  seeAllButtonText: {
+    color: COLORS.primaryLight,
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 4,
   },
   achievementsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    // Calcula el gap para que 3 items quepan con padding de tarjeta y márgenes de pantalla
+    // El ancho de cada item se encarga del espaciado principal.
+    // justifyContent: 'space-between', // Puede ayudar si los anchos son flexibles
+    gap: 12, // Usar gap para el espaciado es más moderno
+    marginTop: 8,
   },
   achievementItem: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: COLORS.background,
     borderRadius: 12,
     padding: 12,
     alignItems: 'center',
-    width: (width - 76) / 3,
+    // Ancho para 3 columnas: (AnchoPantalla - MargenesLateralesPantalla(16*2) - PaddingTarjeta(20*2) - GapsTotales(12*2)) / 3
+    width: (width - (16 * 2) - (20 * 2) - (12 * 2)) / 3,
+    minHeight: 110, // Aumentado para más espacio vertical
+    justifyContent: 'center',
     position: 'relative',
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
   },
   achievementLocked: {
-    opacity: 0.5,
+    opacity: 0.6,
   },
-  achievementIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  achievementIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   achievementName: {
-    fontSize: 10,
-    color: '#374151',
+    fontSize: 11,
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    fontWeight: '500',
-    lineHeight: 12,
+    fontWeight: '600',
+    lineHeight: 14,
+    minHeight: 28, // Para 2 líneas
   },
   achievementNameLocked: {
-    color: '#9ca3af',
+    color: COLORS.textMuted,
   },
   earnedBadge: {
     position: 'absolute',
-    top: 4,
-    right: 4,
+    top: 6,
+    right: 6,
     backgroundColor: '#d1fae5',
-    borderRadius: 8,
-    width: 16,
-    height: 16,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.secondary,
   },
   bottomSpacing: {
-    height: 32,
+    height: 40,
   },
 });

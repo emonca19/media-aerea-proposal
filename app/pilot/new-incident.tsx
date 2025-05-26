@@ -133,23 +133,7 @@ export default function NewIncidentScreen({ onSubmit, activities = [] }: NewInci
           ))}
         </View>
 
-        {/* Opción de urgencia */}
-        <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 12 }}>
-          <TouchableOpacity
-            style={[styles.timeOptionButton, isUrgent && styles.urgentOptionButtonSelected]}
-            onPress={() => setIsUrgent(true)}
-          >
-            <Ionicons name="warning" size={18} color={isUrgent ? '#fff' : '#ef4444'} />
-            <Text style={[styles.timeOptionText, isUrgent && styles.timeOptionTextSelected]}>Urgente</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.timeOptionButton, !isUrgent && styles.timeOptionButtonSelected]}
-            onPress={() => setIsUrgent(false)}
-          >
-            <Ionicons name="information-circle" size={18} color={!isUrgent ? '#fff' : '#3b82f6'} />
-            <Text style={[styles.timeOptionText, !isUrgent && styles.timeOptionTextSelected]}>Informativo</Text>
-          </TouchableOpacity>
-        </View>
+     
 
         {/* Selector de actividad asociada */}
         {relevantActivities.length > 0 && (

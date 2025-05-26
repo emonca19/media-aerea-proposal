@@ -1413,7 +1413,7 @@ useEffect(() => {
           return (
             <ProjectSummaryCard
               project={currentProject}
-              onPress={() => router.push("/pilot/project-details")}
+              onPress={() => router.push("/pilot/activity-log?initialTab=project")}
             />
           );        case "ACTIVITY_TIMELINE": {
           // Create dynamic timeline based on actual activity data with improved spacing

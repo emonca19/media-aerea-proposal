@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Ejemplo de datos de actividades para la línea de tiempo
 export interface TimelineActivity {
@@ -35,7 +36,9 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
   onActionPress,
   currentOngoingActivityId,
   activityPauseState
-}) => {  return (
+}) => {  
+  const router = useRouter();
+  return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>Línea de tiempo</Text>
@@ -118,7 +121,16 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
 
         {/* History button - always visible inside timeline container */}
         {onViewHistory && (
-          <TouchableOpacity style={styles.historyButton} onPress={onViewHistory}>
+          <TouchableOpacity 
+            style={styles.historyButton} 
+            onPress={() => {
+              if (Platform.OS === 'web') {
+                window.location.href = '/pilot/activity-log?initialTab=activities';
+              } else {
+                router.push('/pilot/activity-log?initialTab=activities');
+              }
+            }}
+          >
             <Ionicons name="time-outline" size={18} color="#6b7280" />
             <Text style={styles.historyButtonText}>Ver historial completo</Text>
             <Ionicons name="chevron-forward-outline" size={16} color="#6b7280" />

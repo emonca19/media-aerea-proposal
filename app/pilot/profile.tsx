@@ -133,49 +133,7 @@ export default function PilotProfile() {
           </View>
         </View>
 
-        {/* Certificaciones */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Certificaciones</Text>
-          
-          <View style={styles.certificationItem}>
-            <View style={styles.certificationIcon}>
-              <Ionicons name="ribbon" size={20} color="#059669" />
-            </View>
-            <View style={styles.certificationInfo}>
-              <Text style={styles.certificationName}>Licencia de Piloto UAS A2</Text>
-              <Text style={styles.certificationDate}>Válida hasta: Diciembre 2025</Text>
-            </View>
-            <View style={styles.certificationStatus}>
-              <Text style={styles.statusActive}>Activa</Text>
-            </View>
-          </View>
-
-          <View style={styles.certificationItem}>
-            <View style={styles.certificationIcon}>
-              <Ionicons name="ribbon" size={20} color="#059669" />
-            </View>
-            <View style={styles.certificationInfo}>
-              <Text style={styles.certificationName}>Certificación de Inspección Industrial</Text>
-              <Text style={styles.certificationDate}>Válida hasta: Junio 2026</Text>
-            </View>
-            <View style={styles.certificationStatus}>
-              <Text style={styles.statusActive}>Activa</Text>
-            </View>
-          </View>
-
-          <View style={styles.certificationItem}>
-            <View style={styles.certificationIcon}>
-              <Ionicons name="ribbon" size={20} color="#f59e0b" />
-            </View>
-            <View style={styles.certificationInfo}>
-              <Text style={styles.certificationName}>Curso de Seguridad en Altura</Text>
-              <Text style={styles.certificationDate}>Válida hasta: Marzo 2025</Text>
-            </View>
-            <View style={styles.certificationStatus}>
-              <Text style={styles.statusExpiring}>Por vencer</Text>
-            </View>
-          </View>
-        </View>        {/* Configuración */}
+       
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Configuración</Text>
           

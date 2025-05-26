@@ -322,7 +322,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
           >
             <View style={styles.closeButtonContainer}>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Ionicons name="close-circle" size={36} color="#64748b" />
+                <Ionicons name="close" size={36} color="#64748b" />
               </TouchableOpacity>
             </View>
             
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   closeButton: {
-    padding: 10,
+    padding: 12, // Increased padding for consistency
   },
   scrollView: {
     flex: 1,

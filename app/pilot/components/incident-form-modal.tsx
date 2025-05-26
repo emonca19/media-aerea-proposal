@@ -47,8 +47,8 @@ const IncidentFormModal: React.FC<IncidentFormModalProps> = ({
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#64748b" />
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} accessibilityLabel="Cerrar modal de incidente" accessibilityRole="button">
+              <Ionicons name="close" size={36} color="#64748b" />
             </TouchableOpacity>
           </View>
           
@@ -75,10 +75,11 @@ const styles = StyleSheet.create({
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    padding: 16,
+    padding: 24, // Increased padding to move button lower
+    // No shadow for consistency with new activity modal
   },
   closeButton: {
-    padding: 8,
+    padding: 12, // Increased for easier tap
   },
 });
 
