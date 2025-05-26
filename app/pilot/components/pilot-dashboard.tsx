@@ -170,14 +170,26 @@ function WelcomeHeader({
   weather: any;
   weatherLoading: boolean;
 }) {
+  const router = useRouter();
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
-
+  const [hasNotifications, setHasNotifications] = useState(
+    typeof window !== 'undefined' && !!window.__hasNotifications
+  );
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDateTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (typeof window !== 'undefined') {
+        setHasNotifications(!!window.__hasNotifications);
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('es-MX', { 
@@ -210,16 +222,25 @@ function WelcomeHeader({
           <View style={welcomeStyles.avatarContainer}>
             <Image source={pilot.avatar} style={welcomeStyles.avatar} />
             <View style={welcomeStyles.statusIndicator} />
-          </View>
-          <View style={welcomeStyles.userInfo}>
+          </View>          <View style={welcomeStyles.userInfo}>
             <Text style={welcomeStyles.name}>{pilotName}</Text>
             <Text style={welcomeStyles.role}>Piloto de Drones</Text>
-          </View>
-        </View>
-          <View style={welcomeStyles.rightSection}>
-          <View style={welcomeStyles.dateTimeSection}>
             <Text style={welcomeStyles.dateText}>{formatDate(currentDateTime)}</Text>
-          </View>          {!weatherLoading && weather && (
+          </View>        </View>
+          <View style={welcomeStyles.rightSection}>
+          <TouchableOpacity 
+            style={welcomeStyles.notificationButton}
+            onPress={() => router.push('/pilot/notifications')}
+          >
+            <Ionicons 
+              name="notifications-outline" 
+              size={20} 
+              color="#6b7280" 
+            />
+            {hasNotifications && (
+              <View style={welcomeStyles.notificationBadge} />
+            )}
+          </TouchableOpacity>{!weatherLoading && weather && (
             <View style={welcomeStyles.weatherSection}>
               <Ionicons 
                 name={getWeatherIcon(weather.condition)} 
@@ -1923,13 +1944,12 @@ const welcomeStyles = StyleSheet.create({  container: {
   },  dateTimeSection: {
     alignItems: 'flex-end',
     maxWidth: 120,
-  },
-  dateText: {
-    fontSize: 12,
-    color: '#374151',
-    fontWeight: '600',
+  },  dateText: {
+    fontSize: 11,
+    color: '#6b7280',
+    fontWeight: '500',
     textTransform: 'capitalize',
-    textAlign: 'right',
+    marginTop: 4,
     lineHeight: 14,
   },
   timeText: {
@@ -1950,12 +1970,35 @@ const welcomeStyles = StyleSheet.create({  container: {
     borderWidth: 1,
     borderColor: '#e2e8f0',
     maxWidth: 80,
-  },
-  weatherText: {
+  },  weatherText: {
     fontSize: 12,
     color: '#6b7280',
     fontWeight: '600',
     marginLeft: 4,
+  },
+  notificationButton: {
+    position: 'relative',
+    backgroundColor: '#f8fafc',
+    padding: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ef4444',
+    borderWidth: 1,
+    borderColor: '#fff',
+    zIndex: 10,
   },
 });
 
