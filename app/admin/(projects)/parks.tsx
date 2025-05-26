@@ -52,7 +52,6 @@ export default function ParksScreen() {
       },
       {
         text: "Ver Fotos",
-        onPress: () => router.push(`/admin/photos?turbineId=${turbineId}`),
       },
       {
         text: "Iniciar Inspección",

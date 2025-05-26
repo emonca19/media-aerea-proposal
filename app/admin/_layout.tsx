@@ -140,7 +140,7 @@ export default function AdminLayout() {
         />
 
         <Tabs.Screen
-          name="dashboard"
+          name="(dashboard)"
           options={{
             title: "Inicio",
             sceneStyle: { backgroundColor: "#ffffff" },
@@ -200,7 +200,7 @@ export default function AdminLayout() {
         />
 
         <Tabs.Screen
-          name="profile"
+          name="(profile)"
           options={{
             title: "Perfil",
             sceneStyle: { backgroundColor: "#ffffff" },
@@ -220,7 +220,6 @@ export default function AdminLayout() {
         <Tabs.Screen name="project-details" options={{ href: null }} />
         <Tabs.Screen name="reports" options={{ href: null }} />
         <Tabs.Screen name="turbine" options={{ href: null }} />
-        <Tabs.Screen name="(kpis)" options={{ href: null }} />
       </Tabs>
     </>
   );

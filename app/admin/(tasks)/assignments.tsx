@@ -26,7 +26,6 @@ import {
 } from "../../../src/mocks";
 import { ProjectAssignment } from "../../../src/types/assignments";
 import { Project } from "../../../src/types/projects";
-import { typography } from "@/src/styles";
 
 export default function AssignmentsScreen() {
   const params = useLocalSearchParams();
@@ -195,7 +194,6 @@ export default function AssignmentsScreen() {
   const renderTurbinesSection = () => (
     <View style={styles.section}>
       <View style={styles.sectionTitleContainer}>
-        
         <MaterialCommunityIcons
           name="wind-turbine"
           size={24}
@@ -405,7 +403,7 @@ export default function AssignmentsScreen() {
                   <Text style={styles.dateButtonText}>
                     {estimatedStartDate
                       ? estimatedStartDate.toLocaleDateString()
-                      : "Seleccionar fecha"}
+                      : "Inicio"}
                   </Text>
                   <Ionicons name="calendar" size={20} color="#9C46CE" />
                 </TouchableOpacity>
@@ -420,7 +418,7 @@ export default function AssignmentsScreen() {
                   <Text style={styles.dateButtonText}>
                     {estimatedEndDate
                       ? estimatedEndDate.toLocaleDateString()
-                      : "Seleccionar fecha"}
+                      : "Fin"}
                   </Text>
                   <Ionicons name="calendar" size={20} color="#9C46CE" />
                 </TouchableOpacity>
@@ -471,7 +469,7 @@ export default function AssignmentsScreen() {
                       type="date"
                       style={{
                         padding: 12,
-                        ...typography.body,
+                        fontSize: 16,
                         border: `1px solid #d1d5db`,
                         borderRadius: 8,
                         marginBottom: 16,
@@ -522,7 +520,7 @@ export default function AssignmentsScreen() {
                       type="date"
                       style={{
                         padding: 12,
-                        ...typography.body,
+                        fontSize: 16,
                         border: `1px solid #d1d5db`,
                         borderRadius: 8,
                         marginBottom: 16,
@@ -782,7 +780,6 @@ export default function AssignmentsScreen() {
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.modalContent}>
-            
             {availableTurbines.length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyStateText}>
@@ -926,7 +923,6 @@ export default function AssignmentsScreen() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -937,15 +933,17 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 15,
+    paddingHorizontal: 12,
   },
   section: {
+    paddingHorizontal: 6,
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
   },
   sectionTitle: {
-    ...typography.heading3,
+    fontSize: 20,
+    fontWeight: "700",
     color: "#1f2937",
     marginLeft: 8,
   },
@@ -958,7 +956,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   subsectionTitle: {
-    ...typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
     marginLeft: 8,
   },
   subsectionTitleContainer: {
@@ -967,8 +967,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   disabledSectionText: {
-    ...typography.body,
+    fontSize: 14,
     color: "#9ca3af",
+    fontStyle: "italic",
     textAlign: "center",
     paddingVertical: 20,
   },
@@ -984,16 +985,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   projectName: {
-    ...typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: "600",
     color: "#1f2937",
     marginBottom: 4,
   },
   projectDescription: {
-    ...typography.caption,
+    fontSize: 14,
     color: "#6b7280",
   },
   placeholderText: {
-    ...typography.body,
+    fontSize: 16,
     color: "#9ca3af",
   },
   availabilityCard: {
@@ -1004,7 +1006,7 @@ const styles = StyleSheet.create({
     borderColor: "#e5e7eb",
   },
   selectedCard: {
-    borderColor: "#9C46CE",
+    borderColor: "#3b82f6",
     backgroundColor: "#f8fafc",
   },
   cardHeader: {
@@ -1017,7 +1019,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardTitle: {
-    ...typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: "600",
     color: "#1f2937",
     marginBottom: 6,
   },
@@ -1037,18 +1040,23 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   statusText: {
-    ...typography.caption,
+    fontSize: 12,
+    fontWeight: "500",
     color: "#16a34a",
   },
   selectionIndicator: {
     marginLeft: 12,
   },
   availabilityText: {
-    ...typography.caption,
+    fontSize: 14,
+    color: "#6b7280",
     marginBottom: 8,
+    fontWeight: "500",
   },
   availabilityWindow: {
-    ...typography.caption,
+    fontSize: 13,
+    color: "#374151",
+    fontWeight: "400",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -1065,14 +1073,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inputLabel: {
-    ...typography.bodyMedium,
+    fontSize: 14,
+    fontWeight: "600",
     color: "#374151",
     marginBottom: 8,
   },
   input: {
     borderRadius: 8,
     padding: 12,
-    ...typography.body,
+    fontSize: 16,
     color: "#1f2937",
     borderWidth: 1,
     borderColor: "#d1d5db",
@@ -1086,8 +1095,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   durationText: {
-    ...typography.bodyMedium,
+    fontSize: 16,
+    color: "#1f2937",
     marginLeft: 8,
+    fontWeight: "600",
   },
   dateButton: {
     borderRadius: 8,
@@ -1099,7 +1110,8 @@ const styles = StyleSheet.create({
     borderColor: "#d1d5db",
   },
   dateButtonText: {
-    ...typography.bodyMedium,
+    fontSize: 16,
+    color: "#374151",
   },
   notesContainer: {
     marginBottom: 16,
@@ -1129,7 +1141,8 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: "white",
-    ...typography.button,
+    fontSize: 16,
+    fontWeight: "600",
     marginLeft: 8,
   },
   modalContainer: {
@@ -1148,7 +1161,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   modalTitle: {
-    ...typography.heading3,
+    fontSize: 20,
+    fontWeight: "700",
     color: "#1f2937",
   },
   modalCloseButton: {
@@ -1166,16 +1180,17 @@ const styles = StyleSheet.create({
     borderColor: "#e5e7eb",
   },
   selectedProjectCard: {
-    borderColor: "#9C46CE",
+    borderColor: "#3b82f6",
     backgroundColor: "#f8fafc",
   },
   projectCardName: {
-    ...typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: "600",
     color: "#1f2937",
     marginBottom: 6,
   },
   projectCardDescription: {
-    ...typography.caption,
+    fontSize: 14,
     color: "#6b7280",
     marginBottom: 12,
     lineHeight: 20,
@@ -1186,8 +1201,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   projectCardDetail: {
-    ...typography.caption,
+    fontSize: 14,
     color: "#374151",
+    fontWeight: "500",
   },
   projectStatusBadge: {
     paddingHorizontal: 12,
@@ -1195,7 +1211,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   projectStatusText: {
-    ...typography.caption,
+    fontSize: 12,
+    fontWeight: "600",
     color: "white",
   },
   datePickerModal: {
@@ -1217,7 +1234,9 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   datePickerTitle: {
-    ...typography.heading3,
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1f2937",
     marginBottom: 16,
     textAlign: "center",
   },
@@ -1229,7 +1248,8 @@ const styles = StyleSheet.create({
   },
   datePickerCloseText: {
     color: "white",
-    ...typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: "600",
   },
   finalSection: {
     paddingHorizontal: 16,
@@ -1257,21 +1277,26 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   resourceSelectedCount: {
-    ...typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: "600",
     color: "#1f2937",
     marginBottom: 4,
   },
   resourceSelectedNames: {
-    ...typography.caption,
+    fontSize: 14,
+    color: "#6b7280",
+    lineHeight: 18,
   },
   resourceSelectedSingle: {
-    ...typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: "600",
     color: "#1f2937",
   },
   resourceBadge: {
     backgroundColor: "#9C46CE",
     color: "white",
-    ...typography.caption,
+    fontSize: 12,
+    fontWeight: "600",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -1285,9 +1310,10 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyStateText: {
-    ...typography.bodyMedium,
+    fontSize: 16,
     color: "#9ca3af",
     textAlign: "center",
+    fontStyle: "italic",
   },
   modalFooter: {
     paddingHorizontal: 20,
@@ -1316,7 +1342,8 @@ const styles = StyleSheet.create({
   },
   confirmSelectionButtonText: {
     color: "#ffffff",
-    ...typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: "600",
     marginLeft: 8,
   },
   confirmSelectionButtonTextDisabled: {

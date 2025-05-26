@@ -21,7 +21,6 @@ export default function TabLayout() {
         tabBarPressOpacity: 1, // Add this line to remove opacity change on iOS
       }}
     >
-      {" "}
       <MaterialTopTabs.Screen
         name="assignments"
         options={{

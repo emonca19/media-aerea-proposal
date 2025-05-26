@@ -2,23 +2,23 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
-  Dimensions,
-  FlatList,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    FlatList,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { theme } from "../../../src/constants/theme";
 import {
-  mockActivities,
-  mockDrones,
-  mockIncidents,
-  mockProjects,
-  mockTurbines,
+    mockActivities,
+    mockDrones,
+    mockIncidents,
+    mockProjects,
+    mockTurbines,
 } from "../../../src/mocks";
 
 // Use light theme for web/mobile consistency
@@ -400,7 +400,7 @@ export default function AdminDashboard() {
             <Text style={styles.headerTitle}>Panel de Administración</Text>
             <TouchableOpacity 
               style={styles.notificationButton}
-              onPress={() => router.push("/admin/dashboard/notifications")}
+              onPress={() => router.push("/admin/notifications")}
             >
               <Ionicons
                 name="notifications-outline"
@@ -526,7 +526,7 @@ export default function AdminDashboard() {
       <View style={styles.notificationsSection}>
         <View style={styles.notificationsHeader}>
           <Text style={styles.sectionTitle}>Notificaciones Recientes</Text>
-          <TouchableOpacity onPress={() => router.push("/admin/dashboard/notifications")}>
+          <TouchableOpacity onPress={() => router.push("/admin/notifications")}>
             <Text style={styles.viewAllText}>Ver Todas</Text>
           </TouchableOpacity>
         </View>

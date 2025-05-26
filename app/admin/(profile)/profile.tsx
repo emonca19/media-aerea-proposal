@@ -7,7 +7,6 @@ import {
   Alert,
   Image,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -38,8 +37,6 @@ export default function AdminProfile() {
   const handleEditProfile = () => {};
   return (
     <View style={styles.screenContainer}>
-      <StatusBar backgroundColor="#1E3A8A" barStyle="light-content" />
-
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -54,7 +51,7 @@ export default function AdminProfile() {
                 style={styles.avatar}
               />
               <View style={styles.statusIndicator} />
-            </View>{" "}
+            </View>
             <View style={styles.profileInfo}>
               <Text style={styles.name}>{admin.name}</Text>
               <View style={styles.permissionsBadge}>
@@ -80,7 +77,7 @@ export default function AdminProfile() {
               <Text style={styles.infoLabel}>Email</Text>
             </View>
             <Text style={styles.infoValue}>{admin.email}</Text>
-          </View>{" "}
+          </View>
           <View style={styles.infoRow}>
             <View style={styles.infoItem}>
               <Ionicons name="business" size={20} color="#6b7280" />
@@ -94,8 +91,8 @@ export default function AdminProfile() {
               <Text style={styles.infoLabel}>Cuenta creada</Text>
             </View>
             <Text style={styles.infoValue}>Mayo 2023</Text>
-          </View>{" "}
-        </View>{" "}
+          </View>
+        </View>
         {/* Resumen Operativo */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Resumen Operativo</Text>
@@ -124,13 +121,16 @@ export default function AdminProfile() {
                 <Text style={styles.operationalLabel}>Eficiencia Media</Text>
               </View>
             </View>
-          </View>{" "}
+          </View>
           <TouchableOpacity
             style={styles.kpiAccessButton}
-            onPress={() => router.push("/admin/profile/kpisdashboard")}
+            onPress={() => router.push("/admin/kpisdashboard")}
           >
             <Ionicons name="stats-chart" size={20} color="#ffffff" />
-            <Text style={styles.kpiAccessText}>Ver Indicadores Completos</Text>          </TouchableOpacity>
+            <Text style={styles.kpiAccessText}>
+              Ver Indicadores Completos
+            </Text>
+          </TouchableOpacity>
         </View>
         {/* Configuración */}
         <View style={styles.card}>
@@ -188,7 +188,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 50, // Add top padding to account for removed header
   },
   header: {
     backgroundColor: "#ffffff",
@@ -298,7 +297,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6b7280",
     marginLeft: 12,
-  },  infoValue: {
+  },
+  infoValue: {
     fontSize: 14,
     color: "#1f2937",
     fontWeight: "500",

@@ -186,7 +186,7 @@ export default function ClientsScreen() {
                 </View>
                 <View style={styles.projectInfoContainer}>
                   <Text style={styles.projectDate}>
-                    {new Date(project.startDate).toLocaleDateString()} -{" "}
+                    {new Date(project.startDate).toLocaleDateString()} - 
                     {new Date(project.endDate).toLocaleDateString()}
                   </Text>
                 </View>

@@ -620,8 +620,8 @@ const styles = StyleSheet.create({
     borderColor: "#d1d5db",
   },
   filterButtonActive: {
-    backgroundColor: "#3b82f6",
-    borderColor: "#3b82f6",
+    backgroundColor: "#9C46CE",
+    borderColor: "#9C46CE",
   },
   filterButtonText: {
     fontSize: 14,
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
   reviewButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#9C46CE",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -883,7 +883,7 @@ const styles = StyleSheet.create({
     top: -6,
     width: 18,
     height: 18,
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#9C46CE",
     borderRadius: 9,
     borderWidth: 2,
     borderColor: "#fff",
