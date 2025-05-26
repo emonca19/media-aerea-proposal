@@ -22,7 +22,7 @@ export default function TabLayout() {
       }}
     >
       <MaterialTopTabs.Screen
-        name="active-projects"
+        name="projects"
         options={{
           tabBarLabel: ({
             focused,

@@ -384,7 +384,7 @@ export default function PicturesReviewScreen() {
       <Modal
         visible={reviewModalVisible}
         animationType="slide"
-        transparent={true}
+        presentationStyle="pageSheet"
         onRequestClose={() => setReviewModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
@@ -538,7 +538,7 @@ export default function PicturesReviewScreen() {
       <Modal
         visible={rejectionModalVisible}
         animationType="slide"
-        transparent={true}
+        presentationStyle="pageSheet"
         onRequestClose={() => setRejectionModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
