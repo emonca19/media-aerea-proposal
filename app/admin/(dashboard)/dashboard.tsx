@@ -5,8 +5,6 @@ import React, { useState } from "react";
 import {
   Alert,
   Dimensions,
-  FlatList,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,15 +16,21 @@ import {
   mockActivities,
   mockDrones,
   mockIncidents,
-  mockProjects,
-  mockTurbines,
+  mockProjects
 } from "../../../src/mocks";
 
 // Use light theme for web/mobile consistency
 const currentTheme = theme.light;
 
 // Notification types and interfaces
-type NotificationType = 'warning' | 'critical' | 'info' | 'project_update' | 'incident_alert' | 'system_message' | 'user_activity';
+type NotificationType =
+  | "warning"
+  | "critical"
+  | "info"
+  | "project_update"
+  | "incident_alert"
+  | "system_message"
+  | "user_activity";
 
 interface BaseNotificationItemData {
   id: string;
@@ -38,97 +42,134 @@ interface BaseNotificationItemData {
 }
 
 interface ProjectNotificationItemData extends BaseNotificationItemData {
-  type: 'project_update';
+  type: "project_update";
   projectId: string;
   projectName: string;
   taskSummary?: string;
 }
 
 interface IncidentNotificationItemData extends BaseNotificationItemData {
-  type: 'incident_alert';
+  type: "incident_alert";
   incidentId: string;
-  severity: 'alta' | 'media' | 'baja';
-  status: 'abierta' | 'en_investigacion' | 'resuelta';
+  severity: "alta" | "media" | "baja";
+  status: "abierta" | "en_investigacion" | "resuelta";
 }
 
 interface UserActivityNotificationItemData extends BaseNotificationItemData {
-  type: 'user_activity';
+  type: "user_activity";
   userId: string;
   userName: string;
-  activityType: 'login' | 'task_completed' | 'incident_reported' | 'offline';
+  activityType: "login" | "task_completed" | "incident_reported" | "offline";
 }
 
-type NotificationItemData = BaseNotificationItemData | ProjectNotificationItemData | IncidentNotificationItemData | UserActivityNotificationItemData;
+type NotificationItemData =
+  | BaseNotificationItemData
+  | ProjectNotificationItemData
+  | IncidentNotificationItemData
+  | UserActivityNotificationItemData;
 
 // Mock notifications data
 const mockAdminNotificationsData: NotificationItemData[] = [
   {
-    id: '1',
-    type: 'incident_alert',
-    title: 'Incidencia Crítica: Falla de Equipo',
-    message: 'Drone SN-M300-78451 reporta falla en sensor de altitud. Operaciones suspendidas.',
-    time: 'Hace 5 mins',
-    incidentId: 'INC-012',
-    severity: 'alta',
-    status: 'abierta',
+    id: "1",
+    type: "incident_alert",
+    title: "Incidencia Crítica: Falla de Equipo",
+    message:
+      "Drone SN-M300-78451 reporta falla en sensor de altitud. Operaciones suspendidas.",
+    time: "Hace 5 mins",
+    incidentId: "INC-012",
+    severity: "alta",
+    status: "abierta",
     read: false,
   },
   {
-    id: '2',
-    type: 'user_activity',
-    title: 'Piloto Desconectado',
-    message: 'Juan Carlos Méndez se desconectó durante operación activa en Parque Los Vientos.',
-    time: 'Hace 12 mins',
-    userId: 'user_001',
-    userName: 'Juan Carlos Méndez',
-    activityType: 'offline',
+    id: "2",
+    type: "user_activity",
+    title: "Piloto Desconectado",
+    message:
+      "Juan Carlos Méndez se desconectó durante operación activa en Parque Los Vientos.",
+    time: "Hace 12 mins",
+    userId: "user_001",
+    userName: "Juan Carlos Méndez",
+    activityType: "offline",
     read: false,
   },
   {
-    id: '3',
-    type: 'project_update',
-    title: 'Proyecto Completado',
-    message: 'Inspección completa del Parque Eólico Sierra Verde finalizada exitosamente.',
-    time: 'Hace 25 mins',
-    projectId: 'PROJ-003',
-    projectName: 'Parque Eólico Sierra Verde',
-    taskSummary: 'Inspección visual y termográfica completada - 45 turbinas',
+    id: "3",
+    type: "project_update",
+    title: "Proyecto Completado",
+    message:
+      "Inspección completa del Parque Eólico Sierra Verde finalizada exitosamente.",
+    time: "Hace 25 mins",
+    projectId: "PROJ-003",
+    projectName: "Parque Eólico Sierra Verde",
+    taskSummary: "Inspección visual y termográfica completada - 45 turbinas",
     read: false,
   },
   {
-    id: '4',
-    type: 'system_message',
-    title: 'Actualización del Sistema',
-    message: 'Nueva versión del firmware de drones disponible. Se recomienda actualizar.',
-    time: 'Hace 45 mins',
+    id: "4",
+    type: "system_message",
+    title: "Actualización del Sistema",
+    message:
+      "Nueva versión del firmware de drones disponible. Se recomienda actualizar.",
+    time: "Hace 45 mins",
     read: false,
   },
   {
-    id: '5',
-    type: 'warning',
-    title: 'Alerta Meteorológica',
-    message: 'Vientos fuertes pronosticados para mañana. Revisar programación de vuelos.',
-    time: 'Hace 1 hora',
+    id: "5",
+    type: "warning",
+    title: "Alerta Meteorológica",
+    message:
+      "Vientos fuertes pronosticados para mañana. Revisar programación de vuelos.",
+    time: "Hace 1 hora",
     read: false,
   },
 ];
 
 const getNotificationTypeDetails = (type: NotificationType) => {
   switch (type) {
-    case 'incident_alert':
-      return { iconName: 'shield-outline' as const, iconColor: '#C2410C', backgroundColor: '#FFEDD5' };
-    case 'warning':
-      return { iconName: 'warning-outline' as const, iconColor: '#A16207', backgroundColor: '#FEF9C3' };
-    case 'critical':
-      return { iconName: 'alert-circle-outline' as const, iconColor: '#B91C1C', backgroundColor: '#FEE2E2' };
-    case 'project_update':
-      return { iconName: 'briefcase-outline' as const, iconColor: '#047857', backgroundColor: '#D1FAE5' };
-    case 'user_activity':
-      return { iconName: 'people-outline' as const, iconColor: '#7C3AED', backgroundColor: '#EDE9FE' };
-    case 'system_message':
-      return { iconName: 'settings-outline' as const, iconColor: '#5B21B6', backgroundColor: '#EDE9FE' };
+    case "incident_alert":
+      return {
+        iconName: "shield-outline" as const,
+        iconColor: "#C2410C",
+        backgroundColor: "#FFEDD5",
+      };
+    case "warning":
+      return {
+        iconName: "warning-outline" as const,
+        iconColor: "#A16207",
+        backgroundColor: "#FEF9C3",
+      };
+    case "critical":
+      return {
+        iconName: "alert-circle-outline" as const,
+        iconColor: "#B91C1C",
+        backgroundColor: "#FEE2E2",
+      };
+    case "project_update":
+      return {
+        iconName: "briefcase-outline" as const,
+        iconColor: "#047857",
+        backgroundColor: "#D1FAE5",
+      };
+    case "user_activity":
+      return {
+        iconName: "people-outline" as const,
+        iconColor: "#7C3AED",
+        backgroundColor: "#EDE9FE",
+      };
+    case "system_message":
+      return {
+        iconName: "settings-outline" as const,
+        iconColor: "#5B21B6",
+        backgroundColor: "#EDE9FE",
+      };
     default:
-      return { iconName: 'information-circle-outline' as const, iconColor: '#1E40AF', backgroundColor: '#DBEAFE' };
+      return {
+        iconName: "information-circle-outline" as const,
+        iconColor: "#1E40AF",
+        backgroundColor: "#DBEAFE",
+      };
   }
 };
 
@@ -140,7 +181,8 @@ interface OverviewCardProps {
   icon: keyof typeof MaterialIcons.glyphMap;
   gradientColors: [string, string] | [string, string, string];
   onPress?: () => void;
-  isLarge?: boolean;  details?: {
+  isLarge?: boolean;
+  details?: {
     completionRate?: string;
     onTimeRate?: string;
     efficiency?: string;
@@ -161,7 +203,9 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
     style={[styles.overviewCard, isLarge && styles.overviewCardLarge]}
     onPress={onPress}
     activeOpacity={0.9}
-  >    <LinearGradient
+  >
+    {" "}
+    <LinearGradient
       colors={gradientColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -172,28 +216,65 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
           <View style={styles.overviewIconContainer}>
             <MaterialIcons name={icon} size={isLarge ? 28 : 24} color="white" />
           </View>
-          <MaterialIcons name="chevron-right" size={20} color="rgba(255,255,255,0.7)" />
+          <MaterialIcons
+            name="chevron-right"
+            size={20}
+            color="rgba(255,255,255,0.7)"
+          />
         </View>
         <View style={styles.overviewMainContent}>
           <View style={styles.overviewInfo}>
-            <Text style={[styles.overviewValue, isLarge && styles.overviewValueLarge]}>{value}</Text>
-            <Text style={[styles.overviewTitle, isLarge && styles.overviewTitleLarge]}>{title}</Text>
+            <Text
+              style={[
+                styles.overviewValue,
+                isLarge && styles.overviewValueLarge,
+              ]}
+            >
+              {value}
+            </Text>
+            <Text
+              style={[
+                styles.overviewTitle,
+                isLarge && styles.overviewTitleLarge,
+              ]}
+            >
+              {title}
+            </Text>
             {subtitle && (
               <Text style={styles.overviewSubtitle}>{subtitle}</Text>
             )}
-          </View>          {isLarge && details && (
+          </View>{" "}
+          {isLarge && details && (
             <View style={styles.overviewDetails}>
               <View style={styles.detailItem}>
-                <MaterialIcons name="check-circle" size={16} color="rgba(255,255,255,0.9)" />
-                <Text style={styles.detailText}>Completados: {details.completionRate}</Text>
+                <MaterialIcons
+                  name="check-circle"
+                  size={16}
+                  color="rgba(255,255,255,0.9)"
+                />
+                <Text style={styles.detailText}>
+                  Completados: {details.completionRate}
+                </Text>
               </View>
               <View style={styles.detailItem}>
-                <MaterialIcons name="schedule" size={16} color="rgba(255,255,255,0.9)" />
-                <Text style={styles.detailText}>A tiempo: {details.onTimeRate}</Text>
+                <MaterialIcons
+                  name="schedule"
+                  size={16}
+                  color="rgba(255,255,255,0.9)"
+                />
+                <Text style={styles.detailText}>
+                  A tiempo: {details.onTimeRate}
+                </Text>
               </View>
               <View style={styles.detailItem}>
-                <MaterialIcons name="trending-up" size={16} color="rgba(255,255,255,0.9)" />
-                <Text style={styles.detailText}>Eficiencia: {details.efficiency}</Text>
+                <MaterialIcons
+                  name="trending-up"
+                  size={16}
+                  color="rgba(255,255,255,0.9)"
+                />
+                <Text style={styles.detailText}>
+                  Eficiencia: {details.efficiency}
+                </Text>
               </View>
             </View>
           )}
@@ -304,42 +385,66 @@ const AlertCard: React.FC<{ alert: AlertItem }> = ({ alert }) => {
 };
 
 // Notification item component
-const NotificationCard: React.FC<{ notification: NotificationItemData }> = ({ notification }) => {
-  const { iconName, iconColor, backgroundColor } = getNotificationTypeDetails(notification.type);
-  
+const NotificationCard: React.FC<{ notification: NotificationItemData }> = ({
+  notification,
+}) => {
+  const { iconName, iconColor, backgroundColor } = getNotificationTypeDetails(
+    notification.type
+  );
+
   const handleNotificationPress = () => {
     // Handle notification press - mark as read, navigate, etc.
-    console.log('Notification pressed:', notification.id);
+    console.log("Notification pressed:", notification.id);
   };
 
   const handleMarkAsRead = () => {
     // Mark single notification as read
-    console.log('Mark as read:', notification.id);
+    console.log("Mark as read:", notification.id);
   };
 
   const handleDeleteNotification = () => {
     Alert.alert(
-      'Eliminar Notificación',
-      '¿Estás seguro de que quieres eliminar esta notificación?',
+      "Eliminar Notificación",
+      "¿Estás seguro de que quieres eliminar esta notificación?",
       [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', style: 'destructive', onPress: () => {
-          console.log('Delete notification:', notification.id);
-        }},
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => {
+            console.log("Delete notification:", notification.id);
+          },
+        },
       ]
     );
   };
 
   return (
-    <TouchableOpacity style={styles.notificationCard} onPress={handleNotificationPress} activeOpacity={0.8}>
+    <TouchableOpacity
+      style={styles.notificationCard}
+      onPress={handleNotificationPress}
+      activeOpacity={0.8}
+    >
       <View style={[styles.notificationIcon, { backgroundColor }]}>
         <Ionicons name={iconName} size={20} color={iconColor} />
-      </View>      <View style={styles.notificationContent}>
-        <Text style={styles.notificationTitle} numberOfLines={1}>{notification.title}</Text>
-        <Text style={styles.notificationMessage} numberOfLines={2}>{notification.message}</Text>
+      </View>{" "}
+      <View style={styles.notificationContent}>
+        <Text style={styles.notificationTitle} numberOfLines={1}>
+          {notification.title}
+        </Text>
+        <Text style={styles.notificationMessage} numberOfLines={2}>
+          {notification.message}
+        </Text>
       </View>
-      <TouchableOpacity onPress={handleDeleteNotification} style={styles.notificationAction}>
-        <Ionicons name="close-outline" size={20} color={currentTheme.textSecondary} />
+      <TouchableOpacity
+        onPress={handleDeleteNotification}
+        style={styles.notificationAction}
+      >
+        <Ionicons
+          name="close-outline"
+          size={20}
+          color={currentTheme.textSecondary}
+        />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -371,29 +476,44 @@ export default function AdminDashboard() {
 
   // Find next deadline
   const nextProject = mockProjects
-    .filter(p => p.status === "ACTIVE")
+    .filter((p) => p.status === "ACTIVE")
     .sort((a, b) => a.endDate.getTime() - b.endDate.getTime())[0];
-  const nextDeadline = nextProject ? 
-    new Date(nextProject.endDate).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }) : 
-    "N/A";
+  const nextDeadline = nextProject
+    ? new Date(nextProject.endDate).toLocaleDateString("es-ES", {
+        month: "short",
+        day: "numeric",
+      })
+    : "N/A";  // Calculate today's activities from mock data
+  const today = new Date();
+  const todayActivities = mockActivities.filter((activity) => {
+    if (!activity.startTime) return false;
+    const activityDate = new Date(activity.startTime);
+    return (
+      activityDate.toDateString() === today.toDateString() &&
+      activity.status === "COMPLETED"
+    );
+  }).length;
 
-  const todayActivities = mockActivities.filter(
-    (a) => a.startTime && a.startTime.toDateString() === new Date().toDateString()
-  ).length;
-
-  const criticalIncidents = mockIncidents.filter(
-    (i) => i.type === "EQUIPMENT"
-  ).length;
-
+  // Calculate operational drones
   const operationalDrones = mockDrones.filter(
-    (d) => d.status === "AVAILABLE"
+    (drone) => drone.status === "AVAILABLE" || drone.status === "IN_USE"
   ).length;
 
-  const inspectedTurbines = mockTurbines.filter(
-    (t) =>
-      t.lastInspection &&
-      new Date(t.lastInspection).toDateString() === new Date().toDateString()
+  // Calculate critical incidents (equipment and accident types)
+  const criticalIncidents = mockIncidents.filter(
+    (incident) => incident.type === "EQUIPMENT" || incident.type === "ACCIDENT"
   ).length;
+
+  // Calculate today's inspected turbines based on completed turbine work activities
+  const inspectedTurbines = mockActivities.filter((activity) => {
+    if (!activity.startTime) return false;
+    const activityDate = new Date(activity.startTime);
+    return (
+      activityDate.toDateString() === today.toDateString() &&
+      activity.type === "TURBINE_WORK" &&
+      activity.status === "COMPLETED"
+    );
+  }).length;
 
   // Generate alerts based on data analysis
   const generateAlerts = (): AlertItem[] => {
@@ -454,39 +574,41 @@ export default function AdminDashboard() {
       title: "Proyectos",
       subtitle: `${activeProjects} activos`,
       icon: "assignment" as keyof typeof MaterialIcons.glyphMap,
-      route: "/admin/project-details",
+      route: "/admin/(projects)/projects",
       color: currentTheme.primary,
     },
     {
       title: "KPIs y Reportes",
       subtitle: "Métricas de rendimiento",
       icon: "analytics" as keyof typeof MaterialIcons.glyphMap,
-      route: "/admin/reports",
+      route: "/admin/(profile)/kpisdashboard",
       color: currentTheme.accent,
     },
     {
       title: "Recursos",
       subtitle: `${operationalDrones} drones disponibles`,
       icon: "people" as keyof typeof MaterialIcons.glyphMap,
-      route: "/admin/dashboard",
+      route: "/admin/(resources)/drones",
       color: currentTheme.primary,
     },
     {
       title: "Tareas y Horarios",
       subtitle: `${todayActivities} hoy`,
       icon: "schedule" as keyof typeof MaterialIcons.glyphMap,
-      route: "/admin/dashboard",
+      route: "/admin/(tasks)/assignments",
       color: currentTheme.success,
     },
   ];
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header */}
+      {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>          <View style={styles.headerTop}>
+        <View style={styles.headerContent}>
+          {" "}
+          <View style={styles.headerTop}>
             <Text style={styles.headerTitle}>Panel de Administración</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.notificationButton}
               onPress={() => router.push("/admin/notifications")}
             >
@@ -502,13 +624,16 @@ export default function AdminDashboard() {
             ¡Bienvenido de vuelta! Aquí tienes tu resumen de operaciones
           </Text>
         </View>
-      </View>      {/* Overview Section */}
-      <View style={styles.overviewSection}>        <OverviewCard
+      </View>{" "}
+      {/* Overview Section */}
+      <View style={styles.overviewSection}>
+        {" "}
+        <OverviewCard
           title="Proyectos Activos"
           value={activeProjects}
           subtitle={`Ver mas`}
           icon="assignment"
-          gradientColors={['#3b82f6', '#1e40af']}
+          gradientColors={["#3b82f6", "#1e40af"]}
           isLarge={true}
           onPress={() => router.push("/admin/(projects)/projects")}
         />
@@ -518,7 +643,7 @@ export default function AdminDashboard() {
             value="2"
             subtitle="Pendientes"
             icon="photo-camera"
-            gradientColors={['#1f2937', '#111827']}
+            gradientColors={["#1f2937", "#111827"]}
             onPress={() => router.push("/admin/(tasks)/pictures")}
           />
           <OverviewCard
@@ -526,14 +651,13 @@ export default function AdminDashboard() {
             value="88%"
             subtitle="Esta semana"
             icon="trending-up"
-            gradientColors={['#10b981', '#059669']}
+            gradientColors={["#10b981", "#059669"]}
             onPress={() => router.push("/admin/(profile)/kpisdashboard")}
           />
         </View>
       </View>
-
       {/* Time Filter */}
-      <View style={styles.timeFilter}>
+      {/* <View style={styles.timeFilter}>
         {(["today", "week", "month"] as const).map((period) => (
           <TouchableOpacity
             key={period}
@@ -557,10 +681,9 @@ export default function AdminDashboard() {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
-      
+      </View> */}
       {/* KPI Cards */}
-      <View style={styles.kpiSection}>
+      {/* <View style={styles.kpiSection}>
         <Text style={styles.sectionTitle}>
           Indicadores Clave de Rendimiento
         </Text>
@@ -598,7 +721,7 @@ export default function AdminDashboard() {
             onPress={() => router.push("/admin/dashboard")}
           />
         </View>
-      </View>
+      </View> */}
       {/* Quick Navigation */}
       <View style={styles.navigationSection}>
         <Text style={styles.sectionTitle}>Navegación Rápida</Text>
@@ -624,8 +747,10 @@ export default function AdminDashboard() {
           ))}
         </View>
       </View>
+
+
       {/* Alerts & Notifications */}
-      {alerts.length > 0 && (
+      {/* {alerts.length > 0 && (
         <View style={styles.alertsSection}>
           <View style={styles.alertsHeader}>
             <Text style={styles.sectionTitle}>Alertas y Notificaciones</Text>
@@ -638,9 +763,10 @@ export default function AdminDashboard() {
           ))}
         </View>
       )}
-      
+       */}
+
       {/* Notifications Section */}
-      <View style={styles.notificationsSection}>
+      {/* <View style={styles.notificationsSection}>
         <View style={styles.notificationsHeader}>
           <Text style={styles.sectionTitle}>Notificaciones Recientes</Text>
           <TouchableOpacity onPress={() => router.push("/admin/notifications")}>
@@ -661,40 +787,85 @@ export default function AdminDashboard() {
             <Text style={styles.emptyNotificationsText}>No hay notificaciones</Text>
           </View>
         )}
-      </View>
+      </View> */}
 
-      {/* Recent Activity Summary */}
+        {/* Recent Activity Summary */}
       <View style={styles.activitySection}>
         <Text style={styles.sectionTitle}>Resumen de Hoy</Text>
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryRow}>
-            <MaterialIcons
-              name="flight-takeoff"
-              size={20}
-              color={currentTheme.primary}
-            />
-            <Text style={styles.summaryText}>
-              {todayActivities} vuelos completados hoy
+        <View style={styles.summaryGrid}>
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryCardHeader}>
+              <View style={[styles.summaryIconContainer, { backgroundColor: '#3b82f620' }]}>
+                <MaterialIcons
+                  name="flight-takeoff"
+                  size={24}
+                  color={currentTheme.primary}
+                />
+              </View>
+              <View style={styles.summaryCardContent}>
+                <Text style={styles.summaryValue}>{todayActivities}</Text>
+                <Text style={styles.summaryLabel}>Vuelos Completados</Text>
+              </View>
+            </View>
+            <Text style={styles.summaryDescription}>
+              Actividades de inspección finalizadas hoy
             </Text>
           </View>
-          <View style={styles.summaryRow}>
-            <MaterialIcons
-              name="report-problem"
-              size={20}
-              color={currentTheme.warning}
-            />
-            <Text style={styles.summaryText}>
-              {criticalIncidents} incidentes requieren atención
+
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryCardHeader}>
+              <View style={[styles.summaryIconContainer, { backgroundColor: '#10b98120' }]}>
+                <MaterialIcons
+                  name="done-all"
+                  size={24}
+                  color={currentTheme.success}
+                />
+              </View>
+              <View style={styles.summaryCardContent}>
+                <Text style={styles.summaryValue}>{operationalDrones}</Text>
+                <Text style={styles.summaryLabel}>Drones Operativos</Text>
+              </View>
+            </View>
+            <Text style={styles.summaryDescription}>
+              Equipos disponibles para operaciones
             </Text>
           </View>
-          <View style={styles.summaryRow}>
-            <MaterialIcons
-              name="schedule"
-              size={20}
-              color={currentTheme.success}
-            />
-            <Text style={styles.summaryText}>
-              Todas las inspecciones programadas en curso
+
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryCardHeader}>
+              <View style={[styles.summaryIconContainer, { backgroundColor: '#f59e0b20' }]}>
+                <MaterialIcons
+                  name="report-problem"
+                  size={24}
+                  color={currentTheme.warning}
+                />
+              </View>
+              <View style={styles.summaryCardContent}>
+                <Text style={styles.summaryValue}>{criticalIncidents}</Text>
+                <Text style={styles.summaryLabel}>Incidentes Críticos</Text>
+              </View>
+            </View>
+            <Text style={styles.summaryDescription}>
+              Requieren atención inmediata
+            </Text>
+          </View>
+
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryCardHeader}>
+              <View style={[styles.summaryIconContainer, { backgroundColor: '#8b5cf620' }]}>
+                <MaterialIcons
+                  name="schedule"
+                  size={24}
+                  color="#8b5cf6"
+                />
+              </View>
+              <View style={styles.summaryCardContent}>
+                <Text style={styles.summaryValue}>{inspectedTurbines}</Text>
+                <Text style={styles.summaryLabel}>Turbinas Inspeccionadas</Text>
+              </View>
+            </View>
+            <Text style={styles.summaryDescription}>
+              Inspecciones programadas completadas
             </Text>
           </View>
         </View>
@@ -708,18 +879,27 @@ export default function AdminDashboard() {
 const { width } = Dimensions.get("window");
 const isTablet = width > 768;
 
-const styles = StyleSheet.create({  container: {
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
     backgroundColor: currentTheme.background,
     marginHorizontal: currentTheme.dimensions.spacing.sm,
-  },  header: {
-    paddingHorizontal: currentTheme.dimensions.spacing.lg,
-    paddingTop: Platform.OS === "ios" ? 60 : currentTheme.dimensions.spacing.lg,
+    marginTop: currentTheme.dimensions.spacing.lg,
+  },
+  header: {
+    paddingHorizontal: currentTheme.dimensions.spacing.md,
+    paddingTop: currentTheme.dimensions.spacing.sm,
     paddingBottom: currentTheme.dimensions.spacing.md,
-    marginHorizontal: currentTheme.dimensions.spacing.sm,
+    marginHorizontal: currentTheme.dimensions.spacing.md,
+    marginTop: currentTheme.dimensions.spacing.lg,
     backgroundColor: currentTheme.card,
     borderRadius: currentTheme.dimensions.borderRadius.medium,
     marginBottom: currentTheme.dimensions.spacing.md,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   headerContent: {
     flex: 1,
@@ -739,14 +919,15 @@ const styles = StyleSheet.create({  container: {
   headerSubtitle: {
     fontSize: currentTheme.dimensions.fontSize.sm,
     color: currentTheme.textSecondary,
-  },  notificationButton: {
+  },
+  notificationButton: {
     padding: 8,
     position: "relative",
   },
   notificationBadge: {
     position: "absolute",
     top: 8,
-    right:8,
+    right: 8,
     width: 8,
     height: 8,
     borderRadius: 4,
@@ -905,10 +1086,14 @@ const styles = StyleSheet.create({  container: {
   alertTime: {
     fontSize: currentTheme.dimensions.fontSize.xs,
     color: currentTheme.textSecondary,
-  },
-  activitySection: {
+  },  activitySection: {
     marginBottom: currentTheme.dimensions.spacing.lg,
     paddingHorizontal: currentTheme.dimensions.spacing.md,
+  },
+  summaryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: currentTheme.dimensions.spacing.sm,
   },
   summaryCard: {
     backgroundColor: currentTheme.card,
@@ -916,17 +1101,45 @@ const styles = StyleSheet.create({  container: {
     padding: currentTheme.dimensions.spacing.md,
     borderWidth: 1,
     borderColor: currentTheme.border,
+    width: isTablet ? "48%" : "100%",
+    marginBottom: currentTheme.dimensions.spacing.sm,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  summaryRow: {
+  summaryCardHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: currentTheme.dimensions.spacing.sm,
   },
-  summaryText: {
-    fontSize: currentTheme.dimensions.fontSize.sm,
-    color: currentTheme.text,
-    marginLeft: currentTheme.dimensions.spacing.sm,
+  summaryIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: currentTheme.dimensions.spacing.md,
+  },
+  summaryCardContent: {
     flex: 1,
+  },
+  summaryValue: {
+    fontSize: currentTheme.dimensions.fontSize.xl,
+    fontWeight: "bold",
+    color: currentTheme.text,
+    marginBottom: 2,
+  },
+  summaryLabel: {
+    fontSize: currentTheme.dimensions.fontSize.sm,
+    fontWeight: "600",
+    color: currentTheme.text,
+  },
+  summaryDescription: {
+    fontSize: currentTheme.dimensions.fontSize.xs,
+    color: currentTheme.textSecondary,
+    lineHeight: 16,
   },
   footer: {
     height: 80,
@@ -957,7 +1170,8 @@ const styles = StyleSheet.create({  container: {
     fontWeight: "600",
     color: currentTheme.text,
     marginBottom: 2,
-  },  notificationMessage: {
+  },
+  notificationMessage: {
     fontSize: currentTheme.dimensions.fontSize.xs,
     color: currentTheme.textSecondary,
     marginBottom: 4,
@@ -985,10 +1199,12 @@ const styles = StyleSheet.create({  container: {
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: currentTheme.dimensions.spacing.md,
-  },  overviewSection: {
+  },
+  overviewSection: {
     marginBottom: currentTheme.dimensions.spacing.lg,
     paddingHorizontal: currentTheme.dimensions.spacing.md,
-  },  overviewCard: {
+  },
+  overviewCard: {
     marginBottom: currentTheme.dimensions.spacing.sm,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -999,16 +1215,19 @@ const styles = StyleSheet.create({  container: {
   },
   overviewCardLarge: {
     marginBottom: currentTheme.dimensions.spacing.md,
-  },  overviewBottomRow: {
+  },
+  overviewBottomRow: {
     flexDirection: "row",
     gap: currentTheme.dimensions.spacing.sm,
     width: "100%",
-  },  overviewGradient: {
+  },
+  overviewGradient: {
     borderRadius: currentTheme.dimensions.borderRadius.medium,
     padding: currentTheme.dimensions.spacing.lg,
     minHeight: 140,
     flex: 1,
-  },overviewGradientLarge: {
+  },
+  overviewGradientLarge: {
     padding: currentTheme.dimensions.spacing.lg,
     minHeight: 120, // Larger minimum height for the large card
   },
@@ -1020,9 +1239,11 @@ const styles = StyleSheet.create({  container: {
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: currentTheme.dimensions.spacing.md,
-  },  overviewInfo: {
+  },
+  overviewInfo: {
     flex: 1,
-  },  overviewIconContainer: {
+  },
+  overviewIconContainer: {
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -1055,7 +1276,8 @@ const styles = StyleSheet.create({  container: {
     fontSize: currentTheme.dimensions.fontSize.md,
     fontWeight: "600",
     color: "white",
-  },  overviewSubtitle: {
+  },
+  overviewSubtitle: {
     fontSize: currentTheme.dimensions.fontSize.xs,
     color: "rgba(255,255,255,0.8)",
   },

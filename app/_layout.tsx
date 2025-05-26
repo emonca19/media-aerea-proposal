@@ -7,6 +7,7 @@ import {
 } from "@expo-google-fonts/inter";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
 // Keep the splash screen visible while we fetch resources
@@ -29,9 +30,9 @@ export default function RootLayout() {
   if (!fontsLoaded) {
     return null;
   }
-
   return (
     <>
+      <StatusBar style="dark" backgroundColor="#FFFFFF" />
       <Stack>
         <Stack.Screen
           name="index"
