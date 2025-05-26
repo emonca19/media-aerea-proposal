@@ -217,6 +217,7 @@ export default function AdminLayout() {
         
 
         {/* Screens to hide from tab bar */}
+        <Tabs.Screen name="notifications" options={{ href: null }} />
         <Tabs.Screen name="[turbineId]" options={{ href: null }} />
         <Tabs.Screen name="project-details" options={{ href: null }} />
         <Tabs.Screen name="reports" options={{ href: null }} />

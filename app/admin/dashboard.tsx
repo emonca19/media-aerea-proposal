@@ -2,7 +2,9 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   Dimensions,
+  FlatList,
   Platform,
   ScrollView,
   StyleSheet,
@@ -21,6 +23,113 @@ import {
 
 // Use light theme for web/mobile consistency
 const currentTheme = theme.light;
+
+// Notification types and interfaces
+type NotificationType = 'warning' | 'critical' | 'info' | 'project_update' | 'incident_alert' | 'system_message' | 'user_activity';
+
+interface BaseNotificationItemData {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  type: NotificationType;
+  read?: boolean;
+}
+
+interface ProjectNotificationItemData extends BaseNotificationItemData {
+  type: 'project_update';
+  projectId: string;
+  projectName: string;
+  taskSummary?: string;
+}
+
+interface IncidentNotificationItemData extends BaseNotificationItemData {
+  type: 'incident_alert';
+  incidentId: string;
+  severity: 'alta' | 'media' | 'baja';
+  status: 'abierta' | 'en_investigacion' | 'resuelta';
+}
+
+interface UserActivityNotificationItemData extends BaseNotificationItemData {
+  type: 'user_activity';
+  userId: string;
+  userName: string;
+  activityType: 'login' | 'task_completed' | 'incident_reported' | 'offline';
+}
+
+type NotificationItemData = BaseNotificationItemData | ProjectNotificationItemData | IncidentNotificationItemData | UserActivityNotificationItemData;
+
+// Mock notifications data
+const mockAdminNotificationsData: NotificationItemData[] = [
+  {
+    id: '1',
+    type: 'incident_alert',
+    title: 'Incidencia Crítica: Falla de Equipo',
+    message: 'Drone SN-M300-78451 reporta falla en sensor de altitud. Operaciones suspendidas.',
+    time: 'Hace 5 mins',
+    incidentId: 'INC-012',
+    severity: 'alta',
+    status: 'abierta',
+    read: false,
+  },
+  {
+    id: '2',
+    type: 'user_activity',
+    title: 'Piloto Desconectado',
+    message: 'Juan Carlos Méndez se desconectó durante operación activa en Parque Los Vientos.',
+    time: 'Hace 12 mins',
+    userId: 'user_001',
+    userName: 'Juan Carlos Méndez',
+    activityType: 'offline',
+    read: false,
+  },
+  {
+    id: '3',
+    type: 'project_update',
+    title: 'Proyecto Completado',
+    message: 'Inspección completa del Parque Eólico Sierra Verde finalizada exitosamente.',
+    time: 'Hace 25 mins',
+    projectId: 'PROJ-003',
+    projectName: 'Parque Eólico Sierra Verde',
+    taskSummary: 'Inspección visual y termográfica completada - 45 turbinas',
+    read: false,
+  },
+  {
+    id: '4',
+    type: 'system_message',
+    title: 'Actualización del Sistema',
+    message: 'Nueva versión del firmware de drones disponible. Se recomienda actualizar.',
+    time: 'Hace 45 mins',
+    read: false,
+  },
+  {
+    id: '5',
+    type: 'warning',
+    title: 'Alerta Meteorológica',
+    message: 'Vientos fuertes pronosticados para mañana. Revisar programación de vuelos.',
+    time: 'Hace 1 hora',
+    read: false,
+  },
+];
+
+const getNotificationTypeDetails = (type: NotificationType) => {
+  switch (type) {
+    case 'incident_alert':
+      return { iconName: 'shield-outline' as const, iconColor: '#C2410C', backgroundColor: '#FFEDD5' };
+    case 'warning':
+      return { iconName: 'warning-outline' as const, iconColor: '#A16207', backgroundColor: '#FEF9C3' };
+    case 'critical':
+      return { iconName: 'alert-circle-outline' as const, iconColor: '#B91C1C', backgroundColor: '#FEE2E2' };
+    case 'project_update':
+      return { iconName: 'briefcase-outline' as const, iconColor: '#047857', backgroundColor: '#D1FAE5' };
+    case 'user_activity':
+      return { iconName: 'people-outline' as const, iconColor: '#7C3AED', backgroundColor: '#EDE9FE' };
+    case 'system_message':
+      return { iconName: 'settings-outline' as const, iconColor: '#5B21B6', backgroundColor: '#EDE9FE' };
+    default:
+      return { iconName: 'information-circle-outline' as const, iconColor: '#1E40AF', backgroundColor: '#DBEAFE' };
+  }
+};
 
 interface KPICardProps {
   title: string;
@@ -118,6 +227,50 @@ const AlertCard: React.FC<{ alert: AlertItem }> = ({ alert }) => {
           />
         )}
       </View>
+    </TouchableOpacity>
+  );
+};
+
+// Notification item component
+const NotificationCard: React.FC<{ notification: NotificationItemData }> = ({ notification }) => {
+  const { iconName, iconColor, backgroundColor } = getNotificationTypeDetails(notification.type);
+  
+  const handleNotificationPress = () => {
+    // Handle notification press - mark as read, navigate, etc.
+    console.log('Notification pressed:', notification.id);
+  };
+
+  const handleMarkAsRead = () => {
+    // Mark single notification as read
+    console.log('Mark as read:', notification.id);
+  };
+
+  const handleDeleteNotification = () => {
+    Alert.alert(
+      'Eliminar Notificación',
+      '¿Estás seguro de que quieres eliminar esta notificación?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar', style: 'destructive', onPress: () => {
+          console.log('Delete notification:', notification.id);
+        }},
+      ]
+    );
+  };
+
+  return (
+    <TouchableOpacity style={styles.notificationCard} onPress={handleNotificationPress} activeOpacity={0.8}>
+      <View style={[styles.notificationIcon, { backgroundColor }]}>
+        <Ionicons name={iconName} size={20} color={iconColor} />
+      </View>
+      <View style={styles.notificationContent}>
+        <Text style={styles.notificationTitle} numberOfLines={1}>{notification.title}</Text>
+        <Text style={styles.notificationMessage} numberOfLines={2}>{notification.message}</Text>
+        <Text style={styles.notificationTime}>{notification.time}</Text>
+      </View>
+      <TouchableOpacity onPress={handleDeleteNotification} style={styles.notificationAction}>
+        <Ionicons name="close-outline" size={20} color={currentTheme.textSecondary} />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 };
@@ -241,23 +394,26 @@ export default function AdminDashboard() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      
-      {/* Header */}
+        {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Panel de Administración</Text>
+        <View style={styles.headerContent}>          <View style={styles.headerTop}>
+            <Text style={styles.headerTitle}>Panel de Administración</Text>
+            <TouchableOpacity 
+              style={styles.notificationButton}
+              onPress={() => router.push("/admin/notifications")}
+            >
+              <Ionicons
+                name="notifications-outline"
+                size={24}
+                color={currentTheme.text}
+              />
+              {alerts.length > 0 && <View style={styles.notificationBadge} />}
+            </TouchableOpacity>
+          </View>
           <Text style={styles.headerSubtitle}>
             ¡Bienvenido de vuelta! Aquí tienes tu resumen de operaciones
           </Text>
         </View>
-        <TouchableOpacity style={styles.notificationButton}>
-          <Ionicons
-            name="notifications-outline"
-            size={24}
-            color={currentTheme.text}
-          />
-          {alerts.length > 0 && <View style={styles.notificationBadge} />}
-        </TouchableOpacity>
       </View>
       {/* Time Filter */}
       <View style={styles.timeFilter}>
@@ -365,6 +521,31 @@ export default function AdminDashboard() {
           ))}
         </View>
       )}
+      
+      {/* Notifications Section */}
+      <View style={styles.notificationsSection}>
+        <View style={styles.notificationsHeader}>
+          <Text style={styles.sectionTitle}>Notificaciones Recientes</Text>
+          <TouchableOpacity onPress={() => router.push("/admin/notifications")}>
+            <Text style={styles.viewAllText}>Ver Todas</Text>
+          </TouchableOpacity>
+        </View>
+        {mockAdminNotificationsData.length > 0 ? (
+          <FlatList
+            data={mockAdminNotificationsData.slice(0, 4)}
+            renderItem={({ item }) => <NotificationCard notification={item} />}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+          />
+        ) : (
+          <View style={styles.emptyNotifications}>
+            <Ionicons name="notifications-off-outline" size={32} color={currentTheme.textSecondary} />
+            <Text style={styles.emptyNotificationsText}>No hay notificaciones</Text>
+          </View>
+        )}
+      </View>
+
       {/* Recent Activity Summary */}
       <View style={styles.activitySection}>
         <Text style={styles.sectionTitle}>Resumen de Hoy</Text>
@@ -414,33 +595,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: currentTheme.background,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  },  header: {
     paddingHorizontal: currentTheme.dimensions.spacing.md,
     paddingTop: Platform.OS === "ios" ? 60 : currentTheme.dimensions.spacing.lg,
     paddingBottom: currentTheme.dimensions.spacing.md,
+  },
+  headerContent: {
+    flex: 1,
+  },
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
   },
   headerTitle: {
     fontSize: currentTheme.dimensions.fontSize.xl,
     fontWeight: "bold",
     color: currentTheme.text,
-    marginBottom: 4,
+    flex: 1,
   },
   headerSubtitle: {
     fontSize: currentTheme.dimensions.fontSize.sm,
     color: currentTheme.textSecondary,
-  },
-  notificationButton: {
+  },  notificationButton: {
     padding: 8,
     position: "relative",
   },
   notificationBadge: {
     position: "absolute",
-    top: 6,
-    right: 6,
+    top: 8,
+    right:8,
     width: 8,
     height: 8,
     borderRadius: 4,
@@ -624,5 +809,65 @@ const styles = StyleSheet.create({
   },
   footer: {
     height: 80,
+  },
+  notificationCard: {
+    backgroundColor: currentTheme.card,
+    borderRadius: currentTheme.dimensions.borderRadius.medium,
+    padding: currentTheme.dimensions.spacing.md,
+    marginBottom: currentTheme.dimensions.spacing.sm,
+    borderWidth: 1,
+    borderColor: currentTheme.border,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  notificationIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: currentTheme.dimensions.spacing.sm,
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationTitle: {
+    fontSize: currentTheme.dimensions.fontSize.sm,
+    fontWeight: "600",
+    color: currentTheme.text,
+    marginBottom: 2,
+  },
+  notificationMessage: {
+    fontSize: currentTheme.dimensions.fontSize.xs,
+    color: currentTheme.textSecondary,
+    marginBottom: 4,
+  },
+  notificationTime: {
+    fontSize: currentTheme.dimensions.fontSize.xs,
+    color: currentTheme.textSecondary,
+  },
+  notificationAction: {
+    padding: 8,
+  },
+  emptyNotifications: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: currentTheme.dimensions.spacing.md,
+  },
+  emptyNotificationsText: {
+    fontSize: currentTheme.dimensions.fontSize.sm,
+    color: currentTheme.textSecondary,
+    marginTop: 8,
+  },
+  notificationsSection: {
+    marginBottom: currentTheme.dimensions.spacing.lg,
+    paddingHorizontal: currentTheme.dimensions.spacing.md,
+  },
+  notificationsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: currentTheme.dimensions.spacing.md,
   },
 });
