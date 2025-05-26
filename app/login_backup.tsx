@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
+  Animated,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -14,18 +15,10 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-  withSpring,
-  withRepeat,
-  Easing,
-  interpolate,
-} from 'react-native-reanimated';
 import { theme } from "../src/constants/theme";
 import { useTheme } from "../src/hooks/useTheme";
 import { auth } from "../src/services/auth";
+import { AnimationOptimizer } from "../src/utils/animationOptimizer";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -35,59 +28,62 @@ export default function LoginScreen() {
   const [showEmailError, setShowEmailError] = useState(false);
   const currentTheme = useTheme();
 
-  // Reanimated shared values for 120Hz support
-  const fadeOpacity = useSharedValue(0);
-  const scaleValue = useSharedValue(0.95);
-  const logoRotation = useSharedValue(0);
-  const buttonScale = useSharedValue(1);
-  const keyboardTranslateY = useSharedValue(0);
+  // Animaciones
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const scaleAnim = useState(new Animated.Value(0.95))[0];
+  const logoRotate = useState(new Animated.Value(0))[0];
+  const buttonScale = useState(new Animated.Value(1))[0];
+  const keyboardTranslateY = useState(new Animated.Value(0))[0];
 
   const validateEmail = useCallback((text: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(text);
   }, []);
-  // Entry animations optimized for 120Hz
-  useEffect(() => {
-    fadeOpacity.value = withTiming(1, { 
-      duration: currentTheme.animation.duration.slow,
-      easing: Easing.out(Easing.cubic)
-    });
-    
-    scaleValue.value = withTiming(1, {
-      duration: currentTheme.animation.duration.normal,
-      easing: Easing.out(Easing.cubic)
-    });
-
-    // Start infinite rotation immediately for 120Hz smoothness
-    logoRotation.value = withRepeat(
-      withTiming(360, {
-        duration: 3000, // 3 seconds for full rotation - optimal for 120Hz
-        easing: Easing.linear,
+  React.useEffect(() => {
+    // Animación de entrada mejorada optimizada para 120Hz
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: currentTheme.animation.duration.slow,
+        useNativeDriver: true,
       }),
-      -1, // infinite repeat
-      false
-    );
-  }, [currentTheme.animation.duration, fadeOpacity, scaleValue, logoRotation]);
-  // Keyboard handling for Android with Reanimated
-  useEffect(() => {
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: currentTheme.animation.duration.normal,
+        useNativeDriver: true,
+      }),
+      Animated.sequence([
+        Animated.delay(300), // Reduced delay for faster response
+        Animated.spring(logoRotate, {
+          toValue: 1,
+          friction: 12, // Increased friction for smoother animation
+          tension: 60, // Increased tension for more responsive animation
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  }, [fadeAnim, scaleAnim, logoRotate, currentTheme.animation.duration]); // Keyboard handling for Android
+  React.useEffect(() => {
     if (Platform.OS === "android") {
       const keyboardDidShowListener = Keyboard.addListener(
         "keyboardDidShow",
         (event) => {
-          keyboardTranslateY.value = withTiming(-event.endCoordinates.height * 0.3, {
-            duration: 200,
-            easing: Easing.out(Easing.cubic)
-          });
+          Animated.timing(keyboardTranslateY, {
+            toValue: -event.endCoordinates.height * 0.3,
+            duration: 200, // Reduced duration for 120Hz responsiveness
+            useNativeDriver: true,
+          }).start();
         }
       );
 
       const keyboardDidHideListener = Keyboard.addListener(
         "keyboardDidHide",
         () => {
-          keyboardTranslateY.value = withTiming(0, {
-            duration: 200,
-            easing: Easing.out(Easing.cubic)
-          });
+          Animated.timing(keyboardTranslateY, {
+            toValue: 0,
+            duration: 200, // Reduced duration for 120Hz responsiveness
+            useNativeDriver: true,
+          }).start();
         }
       );
 
@@ -98,28 +94,28 @@ export default function LoginScreen() {
     }
   }, [keyboardTranslateY]);
   const handlePressIn = useCallback(() => {
-    buttonScale.value = withSpring(currentTheme.animation.scale.pressed, {
-      damping: 15,
-      stiffness: 150,
-    });
+    Animated.spring(buttonScale, {
+      toValue: currentTheme.animation.scale.pressed,
+      ...AnimationOptimizer.getOptimalSpringConfig(),
+    }).start();
   }, [buttonScale, currentTheme.animation.scale]);
 
   const handlePressOut = useCallback(() => {
-    buttonScale.value = withSpring(currentTheme.animation.scale.normal, {
-      damping: 15,
-      stiffness: 150,
-    });
+    Animated.spring(buttonScale, {
+      toValue: currentTheme.animation.scale.normal,
+      ...AnimationOptimizer.getOptimalSpringConfig(),
+    }).start();
   }, [buttonScale, currentTheme.animation.scale]);
 
   const router = useRouter();
 
   const handleLogin = async () => {
     try {
-      Keyboard.dismiss();
+      Keyboard.dismiss(); // Ocultar el teclado al iniciar el login
       setError("");
       setIsLoading(true);
 
-      // Validation
+      // Validación mejorada
       if (!email) {
         throw new Error("Por favor ingresa tu correo electrónico");
       }
@@ -133,15 +129,24 @@ export default function LoginScreen() {
         throw new Error("La contraseña debe tener al menos 6 caracteres");
       }
 
-      // Login attempt
+      // Intento de login con animación
       const { user } = await auth.login(email, password);
 
-      // Success animation
-      fadeOpacity.value = withTiming(0, {
-        duration: currentTheme.animation.duration.fast,
-      });
-
-      setTimeout(() => {
+      // Animación de éxito
+      Animated.sequence([
+        Animated.spring(logoRotate, {
+          toValue: 4,
+          friction: 3,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: currentTheme.animation.duration.fast,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // Redirigir según rol
         switch (user.role) {
           case "PILOT":
             router.replace("/pilot/dashboard");
@@ -153,14 +158,19 @@ export default function LoginScreen() {
           default:
             throw new Error("Rol no válido");
         }
-      }, currentTheme.animation.duration.fast);
-
+      });
     } catch (error: any) {
-      // Error animation with Reanimated
-      buttonScale.value = withSpring(0.9, { damping: 15, stiffness: 150 });
-      setTimeout(() => {
-        buttonScale.value = withSpring(1, { damping: 15, stiffness: 150 });
-      }, 100);
+      // Animación de error
+      Animated.sequence([
+        Animated.spring(buttonScale, {
+          toValue: 0.9,
+          useNativeDriver: true,
+        }),
+        Animated.spring(buttonScale, {
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+      ]).start();
 
       setError(error.message || "Error al iniciar sesión");
       Alert.alert("Error", error.message || "Error al iniciar sesión");
@@ -168,43 +178,15 @@ export default function LoginScreen() {
       setIsLoading(false);
     }
   };
+  useEffect(() => {
+    // Create a looping rotation animation optimized for 120Hz
+    AnimationOptimizer.createLoopAnimation(
+      logoRotate,
+      AnimationOptimizer.getOptimalRotationDuration()
+    ).start();
+  }, [logoRotate]);
 
-  // Animated styles using Reanimated for 120Hz
-  const mainContentStyle = useAnimatedStyle(() => {
-    return {
-      opacity: fadeOpacity.value,
-      transform: [
-        { scale: scaleValue.value },
-        {
-          translateY: Platform.OS === "android" ? keyboardTranslateY.value : 0,
-        },
-      ],
-    };
-  });
-
-  const spinStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotate: `${logoRotation.value}deg` }],
-    };
-  });
-
-  const formStyle = useAnimatedStyle(() => {
-    return {
-      opacity: fadeOpacity.value,
-      transform: [
-        {
-          translateY: interpolate(fadeOpacity.value, [0, 1], [50, 0]),
-        },
-      ],
-    };
-  });
-
-  const buttonStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: buttonScale.value }],
-    };
-  });
-
+  const spin = AnimationOptimizer.createSmoothRotationInterpolation(logoRotate);
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -219,16 +201,29 @@ export default function LoginScreen() {
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
         >
-          <Animated.View style={[styles.mainContent, mainContentStyle]}>
+          {" "}
+          <Animated.View
+            style={[
+              styles.mainContent,
+              {
+                opacity: fadeAnim,
+                transform: [
+                  { scale: scaleAnim },
+                  {
+                    translateY:
+                      Platform.OS === "android" ? keyboardTranslateY : 0,
+                  },
+                ],
+              },
+            ]}
+          >
             <View style={styles.logoContainer}>
               <Animated.View
-                style={[
-                  {
-                    alignItems: "center",
-                    justifyContent: "center",
-                  },
-                  spinStyle,
-                ]}
+                style={{
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transform: [{ rotate: spin }],
+                }}
               >
                 <Image
                   source={require("../assets/images/spin.png")}
@@ -244,7 +239,22 @@ export default function LoginScreen() {
               />
             </View>
 
-            <Animated.View style={[styles.formContainer, formStyle]}>
+            <Animated.View
+              style={[
+                styles.formContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [
+                    {
+                      translateY: fadeAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Correo electrónico</Text>
                 <TextInput
@@ -259,6 +269,7 @@ export default function LoginScreen() {
                   onChangeText={(text) => {
                     setEmail(text);
                     if (showEmailError) {
+                      // Solo validamos si ya se mostró un error previamente
                       setShowEmailError(true);
                     }
                   }}
@@ -287,7 +298,7 @@ export default function LoginScreen() {
                 />
               </View>
 
-              <Animated.View style={buttonStyle}>
+              <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
                 <TouchableOpacity
                   onPressIn={handlePressIn}
                   onPressOut={handlePressOut}
@@ -323,7 +334,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: theme.dark.dimensions.spacing.xl,
-    minHeight: "100%",
+    minHeight: "100%", // Ensure full height coverage
   },
   mainContent: {
     width: "100%",
@@ -337,13 +348,31 @@ const styles = StyleSheet.create({
   spinImage: {
     width: 110,
     height: 110,
-    marginBottom: 0,
+    marginBottom: 0, // Espaciado mínimo
+  },
+  mediaLogoContainer: {
+    alignItems: "center",
+    marginBottom: 0, // Reduced spacing
   },
   mediaLogo: {
     width: 250,
     height: 250,
-    marginTop: -90,
-    marginBottom: -50,
+    marginTop: -90, // Espaciado mínimo
+    marginBottom: -50, // Espaciado mínimo
+  },
+  welcomeText: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 0,
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  subtitleText: {
+    fontSize: theme.dark.dimensions.fontSize.md,
+    color: "rgb(162,179,201)",
+    marginBottom: 0,
   },
   formContainer: {
     width: "100%",
@@ -379,6 +408,15 @@ const styles = StyleSheet.create({
     height: 48,
     marginTop: 7,
   },
+  forgotPassword: {
+    marginTop: -12,
+    alignSelf: "flex-start",
+    marginBottom: theme.dark.dimensions.spacing.xl,
+  },
+  forgotPasswordText: {
+    color: "rgb(162,179,201)",
+    fontSize: theme.dark.dimensions.fontSize.sm,
+  },
   loginButton: {
     marginTop: 16,
     backgroundColor: "rgb(151,68,195)",
@@ -400,6 +438,23 @@ const styles = StyleSheet.create({
     fontSize: theme.dark.dimensions.fontSize.md,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  signupContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: theme.dark.dimensions.spacing.lg,
+  },
+  signupText: {
+    color: "rgb(162,179,201)",
+    marginTop: -25,
+    fontSize: theme.dark.dimensions.fontSize.sm,
+  },
+  signupLink: {
+    color: "rgb(194, 213, 238)",
+    fontSize: theme.dark.dimensions.fontSize.sm,
+    fontWeight: "bold",
+    marginTop: -25,
+    marginLeft: 4,
   },
   errorText: {
     color: "#fff48d",

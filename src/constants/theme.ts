@@ -37,8 +37,6 @@ const baseTheme = {
   }
 } as const;
 
-const animation = baseTheme.animation;
-
 const darkColors = {
   primary: '#3b82f6', // Azul más vibrante
   secondary: '#8b5cf6', // Púrpura más vibrante

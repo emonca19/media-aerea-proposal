@@ -53,9 +53,12 @@ export const mockPilotAvailability: PilotAvailability[] = [
   {
     pilotId: "pilot_001",
     pilotName: "Juan Carlos Méndez",
-    available: false,
-    currentProject: "proj_001",
+    available: true,
     availability: [
+      {
+        startDate: new Date("2025-05-25"),
+        endDate: new Date("2025-06-15"),
+      },
       {
         startDate: new Date("2025-06-16"),
         endDate: new Date("2025-07-31"),
@@ -80,9 +83,12 @@ export const mockPilotAvailability: PilotAvailability[] = [
   {
     pilotId: "pilot_003",
     pilotName: "Miguel Rodríguez",
-    available: false,
-    currentProject: "proj_001",
+    available: true,
     availability: [
+      {
+        startDate: new Date("2025-05-25"),
+        endDate: new Date("2025-06-15"),
+      },
       {
         startDate: new Date("2025-06-16"),
         endDate: new Date("2025-09-30"),
@@ -92,9 +98,12 @@ export const mockPilotAvailability: PilotAvailability[] = [
   {
     pilotId: "pilot_004",
     pilotName: "Carmen Elena Vásquez",
-    available: false,
-    currentProject: "proj_003",
+    available: true,
     availability: [
+      {
+        startDate: new Date("2025-05-26"),
+        endDate: new Date("2025-06-30"),
+      },
       {
         startDate: new Date("2025-07-11"),
         endDate: new Date("2025-12-31"),
@@ -107,10 +116,8 @@ export const mockDroneAvailability: DroneAvailability[] = [
   {
     droneId: "drone_001",
     droneName: "DJI Mavic 3 - Unidad 001",
-    available: false,
-    currentProject: "proj_001",
+    available: true,
     status: "OPERATIONAL",
-    assignedTo: "pilot_001",
   },
   {
     droneId: "drone_002",
@@ -121,23 +128,25 @@ export const mockDroneAvailability: DroneAvailability[] = [
   {
     droneId: "drone_003",
     droneName: "DJI Mavic 3 - Unidad 003",
-    available: false,
-    currentProject: "proj_001",
+    available: true,
     status: "OPERATIONAL",
-    assignedTo: "pilot_003",
   },
   {
     droneId: "drone_004",
     droneName: "DJI Air 2S - Unidad 001",
-    available: false,
-    currentProject: "proj_003",
+    available: true,
     status: "OPERATIONAL",
-    assignedTo: "pilot_004",
   },
   {
     droneId: "drone_005",
     droneName: "DJI Mini 3 Pro - Unidad 001",
     available: false,
     status: "MAINTENANCE",
+  },
+  {
+    droneId: "drone_006",
+    droneName: "DJI Phantom 4 Pro - Unidad 001",
+    available: true,
+    status: "OPERATIONAL",
   },
 ];
