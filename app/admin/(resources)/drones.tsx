@@ -1,9 +1,8 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
-  Button,
-  FlatList,
   Modal,
   ScrollView,
   StyleSheet,
@@ -13,7 +12,8 @@ import {
   View,
 } from "react-native";
 import { mockDrones } from "../../../src/mocks/drones";
-import { Drone, DroneStatus } from "../../../src/types";
+import { Drone } from "../../../src/types";
+import { DroneStatus } from "../../../src/types/common";
 
 // Helper function to translate drone status to Spanish
 const getStatusDisplayText = (status: DroneStatus): string => {
@@ -42,6 +42,25 @@ const DronesScreen = () => {
   const [currentStatus, setCurrentStatus] = useState<DroneStatus>("AVAILABLE");
   const [assignedTo, setAssignedTo] = useState("");
   const [notes, setNotes] = useState("");
+
+  // Status update modal state
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
+  const [selectedDroneForStatusUpdate, setSelectedDroneForStatusUpdate] =
+    useState<Drone | null>(null);
+
+  // Section expand/collapse state
+  const [expandedSections, setExpandedSections] = useState({
+    available: true,
+    inUse: true,
+  });
+
+  const toggleSection = (section: "available" | "inUse") => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
   const resetForm = () => {
     setName("");
     setModel("");
@@ -60,6 +79,7 @@ const DronesScreen = () => {
     setIsNewDrone(true);
     setModalVisible(true);
   };
+
   const handleEditDrone = (drone: Drone) => {
     resetForm();
     setIsNewDrone(false);
@@ -74,6 +94,7 @@ const DronesScreen = () => {
     setNotes(drone.notes || "");
     setModalVisible(true);
   };
+
   const handleSaveDrone = () => {
     if (!name.trim() || !model.trim() || !manufacturer.trim()) {
       Alert.alert("Error", "Nombre, Modelo y Fabricante son requeridos.");
@@ -124,6 +145,7 @@ const DronesScreen = () => {
     setModalVisible(false);
     resetForm();
   };
+
   const handleUpdateStatus = (droneId: string, newStatus: DroneStatus) => {
     setDrones((prevDrones) =>
       prevDrones.map((d) =>
@@ -132,94 +154,186 @@ const DronesScreen = () => {
           : d
       )
     );
+    setStatusModalVisible(false);
+    setSelectedDroneForStatusUpdate(null);
   };
+
+  const handleOpenStatusModal = (drone: Drone) => {
+    setSelectedDroneForStatusUpdate(drone);
+    setStatusModalVisible(true);
+  };
+
   const renderDroneItem = ({ item }: { item: Drone }) => (
-    <View style={styles.itemContainer}>
-      <View style={styles.itemTextContainer}>
-        <Text style={styles.itemTitle}>
-          {item.manufacturer} {item.model}
-        </Text>
-        <Text>Nombre: {item.name}</Text>
-        <Text>N/S: {item.serialNumber || "N/A"}</Text>
-        <Text>Estado: {getStatusDisplayText(item.status)}</Text>
-        {item.assignedTo && <Text>Asignado a: {item.assignedTo}</Text>}
+    <View style={styles.droneCard}>
+      <View style={styles.droneHeader}>
+        <View style={styles.droneInfo}>
+          <Text style={styles.droneTitle}>
+            {item.manufacturer} {item.model}
+          </Text>
+          <Text style={styles.droneSubtitle}>{item.name}</Text>
+        </View>
+        <View
+          style={[
+            styles.statusBadge,
+            item.status === "AVAILABLE"
+              ? styles.availableBadge
+              : styles.inUseBadge,
+          ]}
+        >
+          <Text
+            style={[
+              styles.statusBadgeText,
+              item.status === "AVAILABLE"
+                ? styles.availableText
+                : styles.inUseText,
+            ]}
+          >
+            {getStatusDisplayText(item.status)}
+          </Text>
+        </View>
       </View>
-      <View style={styles.itemActionsContainer}>
+
+      <View style={styles.droneDetails}>
+        <View style={styles.detailRow}>
+          <Ionicons name="barcode-outline" size={16} color="#666" />
+          <Text style={styles.detailText}>
+            N/S: {item.serialNumber || "N/A"}
+          </Text>
+        </View>
+        {item.assignedTo && (
+          <View style={styles.detailRow}>
+            <Ionicons name="person-outline" size={16} color="#666" />
+            <Text style={styles.detailText}>Asignado a: {item.assignedTo}</Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.droneActions}>
         <TouchableOpacity
           onPress={() => handleEditDrone(item)}
-          style={[styles.actionButton, styles.editButton]}
+          style={[styles.actionBtn, styles.editBtn]}
         >
-          <Text style={styles.actionButtonText}>Ver/Editar</Text>
+          <Ionicons name="create-outline" size={16} color="#fff" />
+          <Text style={styles.actionBtnText}>Editar</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() =>
-            Alert.prompt(
-              "Actualizar Estado",
-              `Dron: ${item.name}\nEstado actual: ${getStatusDisplayText(
-                item.status
-              )}.\nNuevo estado (AVAILABLE, IN_USE):`,
-              (newStatusInput) => {
-                const validStatuses: DroneStatus[] = ["AVAILABLE", "IN_USE"];
-                if (
-                  newStatusInput &&
-                  validStatuses.includes(newStatusInput as DroneStatus)
-                ) {
-                  handleUpdateStatus(item.id, newStatusInput as DroneStatus);
-                } else if (newStatusInput) {
-                  Alert.alert(
-                    "Estado Inválido",
-                    `Por favor ingresa uno de: ${validStatuses.join(", ")}.`
-                  );
-                }
-              },
-              "plain-text",
-              getStatusDisplayText(item.status)
-            )
-          }
-          style={[styles.actionButton, styles.statusButton]}
+          onPress={() => handleOpenStatusModal(item)}
+          style={[styles.actionBtn, styles.statusBtn]}
         >
-          <Text style={styles.actionButtonText}>Estado</Text>
+          <Ionicons name="swap-horizontal-outline" size={16} color="#fff" />
+          <Text style={styles.actionBtnText}>Estado</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
-  const activeDrones = drones.filter((d) => d.status === "AVAILABLE");
+
+  const availableDrones = drones.filter((d) => d.status === "AVAILABLE");
   const inUseDrones = drones.filter((d) => d.status === "IN_USE");
 
   return (
     <View style={styles.container}>
-      
       <Stack.Screen options={{ title: "Drones" }} />
-      <Button title="Registrar Nuevo Dron" onPress={handleAddDrone} />
-      <Text style={styles.listHeader}>
-        Drones Disponibles ({activeDrones.length})
-      </Text>
-      {activeDrones.length > 0 ? (
-        <FlatList
-          data={activeDrones}
-          renderItem={renderDroneItem}
-          keyExtractor={(item) => item.id}
-          style={styles.list}
-        />
-      ) : (
-        <Text style={styles.emptyListText}>No hay drones disponibles.</Text>
-      )}
-      <Text style={styles.listHeader}>
-        Drones En Uso ({inUseDrones.length})
-      </Text>
-      {inUseDrones.length > 0 ? (
-        <FlatList
-          data={inUseDrones}
-          renderItem={renderDroneItem}
-          keyExtractor={(item) => item.id}
-          style={styles.list}
-        />
-      ) : (
-        <Text style={styles.emptyListText}>
-          No hay drones actualmente en uso.
-        </Text>
-      )}
-      <Text> </Text>
+
+      {/* Centered Add Button */}
+      <View style={styles.addButtonContainer}>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddDrone}>
+          <Ionicons name="add" size={20} color="#fff" />
+          <Text style={styles.addButtonText}>Nuevo Dron</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Available Drones Section */}
+        <View style={styles.sectionContainer}>
+          <TouchableOpacity
+            style={styles.sectionHeader}
+            onPress={() => toggleSection("available")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.sectionHeaderLeft}>
+              <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+              <Text style={styles.sectionTitle}>Disponibles</Text>
+            </View>
+            <View style={styles.sectionHeaderRight}>
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>{availableDrones.length}</Text>
+              </View>
+              <Ionicons
+                name={
+                  expandedSections.available ? "chevron-up" : "chevron-down"
+                }
+                size={20}
+                color="#64748B"
+                style={styles.chevronIcon}
+              />
+            </View>
+          </TouchableOpacity>
+
+          {expandedSections.available && (
+            <>
+              {availableDrones.length > 0 ? (
+                <View style={styles.cardsContainer}>
+                  {availableDrones.map((drone) =>
+                    renderDroneItem({ item: drone })
+                  )}
+                </View>
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="airplane-outline" size={48} color="#9CA3AF" />
+                  <Text style={styles.emptyText}>
+                    No hay drones disponibles
+                  </Text>
+                </View>
+              )}
+            </>
+          )}
+        </View>
+
+        {/* In Use Drones Section */}
+        <View style={styles.sectionContainer}>
+          <TouchableOpacity
+            style={styles.sectionHeader}
+            onPress={() => toggleSection("inUse")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.sectionHeaderLeft}>
+              <Ionicons name="play-circle" size={24} color="#F59E0B" />
+              <Text style={styles.sectionTitle}>En Uso</Text>
+            </View>
+            <View style={styles.sectionHeaderRight}>
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>{inUseDrones.length}</Text>
+              </View>
+              <Ionicons
+                name={expandedSections.inUse ? "chevron-up" : "chevron-down"}
+                size={20}
+                color="#64748B"
+                style={styles.chevronIcon}
+              />
+            </View>
+          </TouchableOpacity>
+
+          {expandedSections.inUse && (
+            <>
+              {inUseDrones.length > 0 ? (
+                <View style={styles.cardsContainer}>
+                  {inUseDrones.map((drone) => renderDroneItem({ item: drone }))}
+                </View>
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="airplane-outline" size={48} color="#9CA3AF" />
+                  <Text style={styles.emptyText}>No hay drones en uso</Text>
+                </View>
+              )}
+            </>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Add/Edit Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -232,10 +346,10 @@ const DronesScreen = () => {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <ScrollView style={{ width: "100%" }}>
-              
               <Text style={styles.modalTitle}>
                 {isNewDrone ? "Registrar Nuevo Dron" : "Detalles del Dron"}
               </Text>
+
               <Text style={styles.label}>Nombre*</Text>
               <TextInput
                 placeholder="e.g. DJI Mavic 3 - Unit 001"
@@ -243,6 +357,7 @@ const DronesScreen = () => {
                 onChangeText={setName}
                 style={styles.input}
               />
+
               <Text style={styles.label}>Fabricante*</Text>
               <TextInput
                 placeholder="e.g. DJI"
@@ -250,6 +365,7 @@ const DronesScreen = () => {
                 onChangeText={setManufacturer}
                 style={styles.input}
               />
+
               <Text style={styles.label}>Modelo*</Text>
               <TextInput
                 placeholder="e.g. Mavic 3 Pro"
@@ -257,6 +373,7 @@ const DronesScreen = () => {
                 onChangeText={setModel}
                 style={styles.input}
               />
+
               <Text style={styles.label}>Número de Serie</Text>
               <TextInput
                 placeholder="e.g. DJI12345ABC"
@@ -264,6 +381,7 @@ const DronesScreen = () => {
                 onChangeText={setSerialNumber}
                 style={styles.input}
               />
+
               <Text style={styles.label}>Fecha de Adquisición</Text>
               <TextInput
                 placeholder="AAAA-MM-DD"
@@ -271,6 +389,7 @@ const DronesScreen = () => {
                 onChangeText={setAcquisitionDate}
                 style={styles.input}
               />
+
               <Text style={styles.label}>Asignado A</Text>
               <TextInput
                 placeholder="ID del Piloto (opcional)"
@@ -278,6 +397,7 @@ const DronesScreen = () => {
                 onChangeText={setAssignedTo}
                 style={styles.input}
               />
+
               <Text style={styles.label}>Estado*</Text>
               <View style={styles.statusSelector}>
                 {(["AVAILABLE", "IN_USE"] as DroneStatus[]).map((s) => (
@@ -301,6 +421,7 @@ const DronesScreen = () => {
                   </TouchableOpacity>
                 ))}
               </View>
+
               <Text style={styles.label}>Notas</Text>
               <TextInput
                 placeholder="Información adicional"
@@ -310,6 +431,7 @@ const DronesScreen = () => {
                 numberOfLines={3}
                 style={[styles.input, styles.textArea]}
               />
+
               {!isNewDrone && editingDrone && (
                 <View style={styles.infoBox}>
                   <Text style={styles.infoText}>
@@ -319,11 +441,12 @@ const DronesScreen = () => {
                     Creado: {editingDrone.createdAt.toLocaleDateString()}
                   </Text>
                   <Text style={styles.infoText}>
-                    Última Actualización:
+                    Última Actualización:{" "}
                     {editingDrone.updatedAt.toLocaleDateString()}
                   </Text>
                 </View>
               )}
+
               <View style={styles.modalActions}>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.cancelButton]}
@@ -332,7 +455,6 @@ const DronesScreen = () => {
                     resetForm();
                   }}
                 >
-                  
                   <Text style={styles.modalButtonText}>Cancelar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -348,6 +470,116 @@ const DronesScreen = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Status Update Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={statusModalVisible}
+        onRequestClose={() => {
+          setStatusModalVisible(false);
+          setSelectedDroneForStatusUpdate(null);
+        }}
+      >
+        <View style={styles.statusModalCenteredView}>
+          <View style={styles.statusModalView}>
+            {selectedDroneForStatusUpdate && (
+              <>
+                <Text style={styles.statusModalTitle}>Actualizar Estado</Text>
+                <Text style={styles.statusModalSubtitle}>
+                  {selectedDroneForStatusUpdate.manufacturer}{" "}
+                  {selectedDroneForStatusUpdate.model}
+                </Text>
+                <Text style={styles.statusModalDroneName}>
+                  {selectedDroneForStatusUpdate.name}
+                </Text>
+
+                <Text style={styles.statusModalCurrentLabel}>
+                  Estado actual:
+                </Text>
+                <View
+                  style={[
+                    styles.currentStatusBadge,
+                    selectedDroneForStatusUpdate.status === "AVAILABLE"
+                      ? styles.availableBadge
+                      : styles.inUseBadge,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.currentStatusText,
+                      selectedDroneForStatusUpdate.status === "AVAILABLE"
+                        ? styles.availableText
+                        : styles.inUseText,
+                    ]}
+                  >
+                    {getStatusDisplayText(selectedDroneForStatusUpdate.status)}
+                  </Text>
+                </View>
+
+                <Text style={styles.statusModalSelectLabel}>
+                  Seleccionar nuevo estado:
+                </Text>
+                <View style={styles.statusOptionsContainer}>
+                  {(["AVAILABLE", "IN_USE"] as DroneStatus[]).map((status) => (
+                    <TouchableOpacity
+                      key={status}
+                      style={[
+                        styles.statusOptionButton,
+                        status === "AVAILABLE"
+                          ? styles.availableOptionButton
+                          : styles.inUseOptionButton,
+                        selectedDroneForStatusUpdate.status === status &&
+                          styles.disabledStatusOption,
+                      ]}
+                      onPress={() =>
+                        handleUpdateStatus(
+                          selectedDroneForStatusUpdate.id,
+                          status
+                        )
+                      }
+                      disabled={selectedDroneForStatusUpdate.status === status}
+                    >
+                      <Ionicons
+                        name={
+                          status === "AVAILABLE"
+                            ? "checkmark-circle"
+                            : "play-circle"
+                        }
+                        size={20}
+                        color={
+                          selectedDroneForStatusUpdate.status === status
+                            ? "#9CA3AF"
+                            : "#fff"
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.statusOptionButtonText,
+                          selectedDroneForStatusUpdate.status === status &&
+                            styles.disabledStatusOptionText,
+                        ]}
+                      >
+                        {getStatusDisplayText(status)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <TouchableOpacity
+                  style={styles.statusModalCancelButton}
+                  onPress={() => {
+                    setStatusModalVisible(false);
+                    setSelectedDroneForStatusUpdate(null);
+                  }}
+                >
+                  <Text style={styles.statusModalCancelText}>Cancelar</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -355,70 +587,215 @@ const DronesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F8FAFC",
   },
-  listHeader: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 15,
-    marginBottom: 8,
-    color: "#333",
+  addButtonContainer: {
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: "transparent",
   },
-  list: {
-    // maxHeight: '40%', // Limit height if needed
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#9C46CE",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    shadowColor: "#9C46CE",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  emptyListText: {
-    textAlign: "center",
-    color: "#777",
-    marginVertical: 10,
-    fontStyle: "italic",
+  addButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 6,
   },
-  itemContainer: {
-    backgroundColor: "#fff",
-    padding: 16,
-    marginVertical: 8,
-    marginHorizontal: 2,
-    borderRadius: 10,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+  scrollContainer: {
+    flex: 1,
+    padding: 20,
+  },
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 8,
   },
-  itemTextContainer: {
-    flex: 1,
-    marginRight: 10,
-  },
-  itemTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#2c3e50",
-  },
-  itemActionsContainer: {
-    flexDirection: "column",
-    alignItems: "flex-end",
-  },
-  actionButton: {
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    marginVertical: 3, // Adjusted margin
-    minWidth: 80,
+  sectionHeaderLeft: {
+    flexDirection: "row",
     alignItems: "center",
   },
-  editButton: {
-    backgroundColor: "#3498db",
+  sectionHeaderRight: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  statusButton: {
-    backgroundColor: "#f39c12",
+  chevronIcon: {
+    marginLeft: 8,
+    opacity: 0.7,
   },
-  actionButtonText: {
-    color: "#fff",
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginLeft: 12,
+    letterSpacing: -0.3,
+  },
+  countBadge: {
+    backgroundColor: "#E2E8F0",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  countText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  cardsContainer: {
+    gap: 12,
+  },
+  droneCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  droneHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 10,
+  },
+  droneInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  droneTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: 4,
+    letterSpacing: -0.3,
+  },
+  droneSubtitle: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  availableBadge: {
+    backgroundColor: "#DCFCE7",
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+  },
+  inUseBadge: {
+    backgroundColor: "#FEF3C7",
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  availableText: {
+    color: "#059669",
+  },
+  inUseText: {
+    color: "#D97706",
+  },
+  droneDetails: {
+    marginBottom: 14,
+    paddingVertical: 4,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+    paddingVertical: 1,
+  },
+  detailText: {
     fontSize: 13,
+    color: "#64748B",
+    marginLeft: 8,
+    fontWeight: "500",
+  },
+  droneActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    gap: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  editBtn: {
+    backgroundColor: "#3B82F6",
+  },
+  statusBtn: {
+    backgroundColor: "#F59E0B",
+  },
+  actionBtnText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 48,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#E2E8F0",
+    borderStyle: "dashed",
+    marginVertical: 4,
+  },
+  emptyText: {
+    fontSize: 17,
+    color: "#9CA3AF",
+    marginTop: 16,
+    textAlign: "center",
     fontWeight: "500",
   },
   // Modal Styles
@@ -431,42 +808,44 @@ const styles = StyleSheet.create({
   modalView: {
     margin: 20,
     backgroundColor: "white",
-    borderRadius: 15,
-    padding: 20,
+    borderRadius: 24,
+    padding: 24,
     alignItems: "stretch",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 8,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 12,
     width: "90%",
     maxHeight: "85%",
   },
   modalTitle: {
-    marginBottom: 20,
+    marginBottom: 24,
     textAlign: "center",
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#1E293B",
+    letterSpacing: -0.5,
   },
   label: {
-    fontSize: 15,
-    marginBottom: 5,
-    color: "#555",
-    fontWeight: "500",
+    fontSize: 16,
+    marginBottom: 8,
+    color: "#374151",
+    fontWeight: "600",
   },
   input: {
-    backgroundColor: "#f9f9f9",
-    borderColor: "#ddd",
+    backgroundColor: "#F9FAFB",
+    borderColor: "#E5E7EB",
     borderWidth: 1,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 6,
-    fontSize: 15,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    fontSize: 16,
+    color: "#1F2937",
   },
   textArea: {
     minHeight: 80,
@@ -480,25 +859,25 @@ const styles = StyleSheet.create({
   },
   statusOption: {
     paddingVertical: 9,
-    paddingHorizontal: 10, // Adjusted for smaller screens
+    paddingHorizontal: 8,
     borderRadius: 20,
     borderWidth: 1.5,
     borderColor: "#3498db",
-    flex: 1, // Make options take equal width
-    marginHorizontal: 3, // Add some space between options
-    alignItems: "center", // Center text
+    flex: 1,
+    marginHorizontal: 2,
+    alignItems: "center",
   },
   statusOptionSelected: {
     backgroundColor: "#3498db",
   },
   statusOptionText: {
     color: "#3498db",
-    fontSize: 12, // Adjusted font size
+    fontSize: 11,
     fontWeight: "500",
   },
   statusOptionTextSelected: {
     color: "#fff",
-    fontSize: 12, // Adjusted font size
+    fontSize: 11,
     fontWeight: "500",
   },
   modalActions: {
@@ -510,22 +889,28 @@ const styles = StyleSheet.create({
     paddingTop: 15,
   },
   modalButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    minWidth: 120,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    minWidth: 140,
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   cancelButton: {
-    backgroundColor: "#e74c3c",
+    backgroundColor: "#EF4444",
   },
   saveButton: {
-    backgroundColor: "#2ecc71",
+    backgroundColor: "#10B981",
   },
   modalButtonText: {
     color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 17,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
   infoBox: {
     marginTop: 15,
@@ -538,6 +923,125 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 13,
     color: "#2874a6",
+  },
+  // Status Update Modal Styles
+  statusModalCenteredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  statusModalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 24,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+    width: "85%",
+    maxWidth: 400,
+  },
+  statusModalTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  statusModalSubtitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#64748B",
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  statusModalDroneName: {
+    fontSize: 14,
+    color: "#9CA3AF",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  statusModalCurrentLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
+    alignSelf: "flex-start",
+  },
+  currentStatusBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginBottom: 20,
+    alignSelf: "center",
+  },
+  currentStatusText: {
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  statusModalSelectLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 16,
+    alignSelf: "flex-start",
+  },
+  statusOptionsContainer: {
+    width: "100%",
+    gap: 12,
+    marginBottom: 24,
+  },
+  statusOptionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  availableOptionButton: {
+    backgroundColor: "#10B981",
+  },
+  inUseOptionButton: {
+    backgroundColor: "#F59E0B",
+  },
+  disabledStatusOption: {
+    backgroundColor: "#E5E7EB",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  statusOptionButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  disabledStatusOptionText: {
+    color: "#9CA3AF",
+  },
+  statusModalCancelButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    backgroundColor: "#F3F4F6",
+  },
+  statusModalCancelText: {
+    color: "#6B7280",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 
