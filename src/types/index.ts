@@ -1,7 +1,7 @@
 export * from "./activities";
 export * from "./assignments";
+export * from "./cameras";
 export * from "./clients";
-export * from "./common";
 export * from "./drones";
 export * from "./incidents";
 export * from "./pictures";
@@ -11,3 +11,4 @@ export * from "./reports";
 export * from "./turbines";
 export * from "./users";
 export * from "./windParks";
+

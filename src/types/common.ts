@@ -12,6 +12,8 @@ export type TurbineStatus =
 
 export type DroneStatus = "AVAILABLE" | "IN_USE";
 
+export type CameraStatus = "AVAILABLE" | "IN_USE" | "MAINTENANCE";
+
 export type ActivityType =
   | "MOBILIZATION"
   | "AWAITING_PERMISSION"

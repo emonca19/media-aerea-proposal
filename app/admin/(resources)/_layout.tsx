@@ -42,8 +42,7 @@ export default function TabLayout() {
             </View>
           ),
         }}
-      />
-      <MaterialTopTabs.Screen
+      />      <MaterialTopTabs.Screen
         name="drones"
         options={{
           tabBarLabel: ({
@@ -61,6 +60,28 @@ export default function TabLayout() {
                 style={styles.tabIcon}
               />
               <Text style={[styles.tabBarLabelText, { color }]}>Drones</Text>
+            </View>
+          ),
+        }}
+      />
+      <MaterialTopTabs.Screen
+        name="cameras"
+        options={{
+          tabBarLabel: ({
+            focused,
+            color,
+          }: {
+            focused: boolean;
+            color: string;
+          }) => (
+            <View style={styles.tabLabelContainer}>
+              <Ionicons
+                name="camera-outline"
+                size={18}
+                color={color}
+                style={styles.tabIcon}
+              />
+              <Text style={[styles.tabBarLabelText, { color }]}>Cámaras</Text>
             </View>
           ),
         }}
