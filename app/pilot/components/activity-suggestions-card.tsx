@@ -6,7 +6,7 @@ interface ActivitySuggestionsCardProps {
   activities: any[]; // Usando any en lugar de Activity para evitar problemas con tipos
   onActivitySelect: (activityId: string, isTurbineActivity: boolean) => void;
   onClose: () => void;
-  onGoToPreflightChecklist?: (turbineId: string) => void;
+  onGoToPreflightChecklist?: (turbineId: string, activityId: string) => void; // Added activityId
 }
 
 const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
@@ -43,7 +43,7 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
             <TouchableOpacity 
               key={activity.id} 
               style={styles.activityButton}
-              onPress={() => onActivitySelect(activity.id, isTurbine)}
+              onPress={() => onActivitySelect(activity.id, false)}
             >
               <View style={styles.activityNumberContainer}>
                 <Text style={styles.activityNumber}>{index + 1}</Text>
@@ -63,7 +63,7 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
               {isTurbine ? (
                 <TouchableOpacity 
                   style={styles.preflightButton}
-                  onPress={() => onGoToPreflightChecklist && onGoToPreflightChecklist(turbineId)}
+                  onPress={() => onGoToPreflightChecklist && onGoToPreflightChecklist(turbineId, activity.id)} // Pass activity.id
                 >
                   <Ionicons name="clipboard-outline" size={16} color="#0369a1" />
                   <Text style={styles.preflightText}>Preflight</Text>

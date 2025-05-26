@@ -3,7 +3,7 @@ import { useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { CloseCircle, TickCircle } from 'iconsax-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -51,7 +51,8 @@ const categoryIcons: Record<Category, MaterialCommunityIconName> = {
 };
 
 export default function PreflightChecklistScreen() {
-  const { turbineId } = useLocalSearchParams();
+  const params = useLocalSearchParams<{ turbineId?: string; activityToStart?: string }>();
+  const { turbineId, activityToStart } = params; // activityToStart here is the critical one
   const router = useRouter();
   const [preflightChecklist, setPreflightChecklist] = useState(initialPreflightChecklist);
   const [generalNotes, setGeneralNotes] = useState('');
@@ -61,6 +62,14 @@ export default function PreflightChecklistScreen() {
   const [photoTakenCategories, setPhotoTakenCategories] = useState<Category[]>([]);
 
   const turbine = turbineId ? mockTurbines.find(t => t.id === turbineId) : null;
+
+  // Add this useEffect to log received parameters
+  useEffect(() => {
+    console.log('[PreflightChecklistScreen] Received params on load/change:', JSON.stringify(params));
+    console.log('[PreflightChecklistScreen] Parsed turbineId from params:', turbineId);
+    console.log('[PreflightChecklistScreen] Parsed activityToStart (activity ID) from params:', activityToStart);
+    console.log('[PreflightChecklistScreen] Derived turbine object (ID if exists, else null):', turbine ? turbine.id : 'null');
+  }, [params, turbineId, activityToStart, turbine]); // Corrected dependencies array
 
   const handleToggleItem = (id: string) => {
     setPreflightChecklist(prev =>
@@ -135,68 +144,35 @@ export default function PreflightChecklistScreen() {
   };
   
   const submitChecklist = () => {
-    const successMessage = turbine ? 
-      `¡Checklist completado para ${turbine.name}! La actividad se iniciará automáticamente.` : 
-      '¡Todo listo para el vuelo!';
-      
-    Alert.alert(
-      'Checklist Completado',
-      successMessage,
-      [
-        { 
-          text: 'Continuar', 
-          onPress: () => {
-            if (turbine) {
-              // Create and start turbine work activity automatically
-              createAndStartTurbineActivity();
-            } else {
-              router.push('/pilot/dashboard');
-            }
-            // Reset form states
-            setPreflightChecklist(initialPreflightChecklist);
-            setGeneralNotes('');
-            setExpandedCategory([]);
-            setPhotoTakenCategories([]);
-          }
+    console.log('[PreflightChecklistScreen] submitChecklist called.');
+    console.log('[PreflightChecklistScreen] submitChecklist - current activityToStart (param):', activityToStart);
+    console.log('[PreflightChecklistScreen] submitChecklist - current turbineId (param):', turbineId);
+    console.log('[PreflightChecklistScreen] submitChecklist - current turbine (object):', turbine ? turbine.id : 'null');
+
+    if (activityToStart) {
+      console.log('[PreflightChecklistScreen] submitChecklist: Navigating with activityToStartAfterPreflight.');
+      router.replace({
+        pathname: '/pilot/dashboard',
+        params: {
+          activityToStartAfterPreflight: String(activityToStart),
+          preflightCompletedForTurbine: 'true',
+          turbineIdForActivityStart: turbine ? turbine.id : (typeof turbineId === 'string' ? turbineId : undefined),
         }
-      ]
-    );
-  };
-
-  const createAndStartTurbineActivity = () => {
-    // Get current activities from AsyncStorage or context
-    // For now, we'll simulate creating the activity and navigate to activity log
-    // In a real implementation, this would integrate with the activity management system
-    
-    const now = new Date();
-    const newActivity = {
-      id: `act-${Date.now()}`,
-      type: 'TURBINE_WORK',
-      name: `Trabajo en ${turbine?.name || 'Turbina'}`,
-      notes: `Trabajo iniciado después de completar checklist de preflight para ${turbine?.name}`,
-      status: 'EN_PROGRESO',
-      time: 'Hoy - En curso',
-      actualStart: now.toISOString(),
-      scheduledStart: null,
-      description: `Trabajo iniciado después de completar checklist de preflight para ${turbine?.name}`,
-      scheduledEnd: null,
-      actualEnd: null,
-      turbineId: turbine?.id
-    };
-
-    // In a real implementation, you would:
-    // 1. Save this activity to your data store (AsyncStorage, Context, API)
-    // 2. Update the current project activities
-    // 3. Handle any existing ongoing activities
-    
-    // For now, navigate to activity log where the user can see their activities
-    router.push({
-      pathname: '/pilot/activity-log',
-      params: { 
-        newActivity: JSON.stringify(newActivity),
-        message: `Actividad "${newActivity.name}" iniciada automáticamente después del checklist`
-      }
-    });
+      });
+    } else if (turbine) {
+      console.log('[PreflightChecklistScreen] submitChecklist: Navigating with turbineIdForActivityStart (no pre-existing activity ID).');
+      router.replace({
+        pathname: '/pilot/dashboard',
+        params: {
+          preflightCompletedForTurbine: 'true',
+          turbineIdForActivityStart: turbine.id,
+        }
+      });
+    } else {
+      // This is the log you are seeing
+      console.warn("[PreflightChecklistScreen] submitChecklist: Neither activityToStart (param) nor turbine (object) are present. Returning to dashboard without specific start parameters.");
+      router.push('/pilot/dashboard');
+    }
   };
 
   const getCompletionPercentage = (category?: Category) => {

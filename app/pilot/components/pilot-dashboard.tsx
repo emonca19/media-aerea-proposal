@@ -1,8 +1,8 @@
 // app/pilot/dashboard/pilot-dashboard.tsx
 
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Href, useRouter, useLocalSearchParams, usePathname } from "expo-router"; // Added useLocalSearchParams, usePathname
+import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
+import { Href, useLocalSearchParams, usePathname, useRouter } from "expo-router"; // Added useLocalSearchParams, usePathname
 import React, {
   useCallback,
   useEffect,
@@ -20,7 +20,6 @@ import {
   View,
 } from "react-native";
 import useWeather from "../../hooks/useWeather"; // Asegúrate que la ruta a hooks sea correcta desde aquí
-import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
 
 // Importación nombrada para ActivitiesDisplayList
 import { IncidentFormData } from "../new-incident"; // Importamos el tipo desde el nuevo componente
@@ -632,11 +631,11 @@ function NoActivitiesCard({ message, iconName }: { message: string, iconName: ke
 }
 
 // Claves para almacenar datos en AsyncStorage
-const STORAGE_KEYS = {
-  CURRENT_PROJECT: 'pilot_dashboard_current_project',
-  ALERTS: 'pilot_dashboard_alerts',
-  ACTIVITY_PAUSE_STATE: 'pilot_dashboard_activity_pause',
-};
+// const STORAGE_KEYS = {
+//   CURRENT_PROJECT: 'pilot_dashboard_current_project',
+//   ALERTS: 'pilot_dashboard_alerts',
+//   ACTIVITY_PAUSE_STATE: 'pilot_dashboard_activity_pause',
+// };
 
 const PilotDashboard = () => {
   console.log("PilotDashboard RENDERED - V5"); // Incremented version for clarity
@@ -672,43 +671,6 @@ const PilotDashboard = () => {
     };
     return today.toLocaleDateString("es-ES", options);
   });
-
-  // Cargar datos almacenados al iniciar
-  useEffect(() => {
-    const loadStoredData = async () => {
-      try {
-        // Cargar proyecto actual con sus actividades
-        const storedProjectData = await AsyncStorage.getItem(STORAGE_KEYS.CURRENT_PROJECT);
-        if (storedProjectData) {
-          const parsedProjectData = JSON.parse(storedProjectData);
-          console.log('Datos cargados desde almacenamiento local:', parsedProjectData.name);
-          setCurrentProject(parsedProjectData);
-        }
-
-        // Cargar alertas
-        const storedAlerts = await AsyncStorage.getItem(STORAGE_KEYS.ALERTS);
-        if (storedAlerts) {
-          setAlerts(JSON.parse(storedAlerts));
-        }
-
-        // Cargar estado de pausa de actividades
-        const storedPauseState = await AsyncStorage.getItem(STORAGE_KEYS.ACTIVITY_PAUSE_STATE);
-        if (storedPauseState) {
-          setActivityPauseState(JSON.parse(storedPauseState)); 
-        }
-
-        // Cargar estados de preflight checks completados
-        const storedPreflightChecks = await AsyncStorage.getItem("COMPLETED_PREFLIGHT_CHECKS");
-        if (storedPreflightChecks) {
-          setCompletedPreflightChecks(JSON.parse(storedPreflightChecks));
-        }
-      } catch (error) {
-        console.error("Error al cargar datos almacenados:", error);
-      }
-    };
-
-    loadStoredData();
-  }, []); 
 
   const [isAlertsSectionVisible, setIsAlertsSectionVisible] = useState(true);
   const [isNewActivityModalVisible, setIsNewActivityModalVisible] =
@@ -827,11 +789,30 @@ const PilotDashboard = () => {
     [router]
   );
 
+  // Nueva función interna solo para forzar el actualStart al volver del checklist
+const forceStartActivityNow = useCallback((activityId: string) => {
+  setCurrentProject((prev) => {
+    const now = new Date().toISOString();
+    const updatedActivities = (prev.activities || []).map(
+      (act) =>
+        act.id === activityId
+          ? {
+              ...act,
+              status: "EN_PROGRESO" as Activity["status"],
+              actualStart: now,
+              time: "Hoy - En curso",
+              lastStartedAt: now, // Campo dummy para forzar rerender
+            }
+          : act
+    );
+    return { ...prev, activities: updatedActivities } as Project;
+  });
+}, []);
+
   const handleActivityAction = useCallback(
-    (activityId: string, newStatusString: string) => {
+    (activityId: string, newStatusString: string, taskType?: string) => {
       const newStatus = (newStatusString?.toUpperCase().replace(" ", "_") ||
         "PENDIENTE") as Activity["status"];
-      
       setCurrentProject((prev) => {
         const updatedActivities = (prev.activities || []).map(
           (act) =>
@@ -856,20 +837,9 @@ const PilotDashboard = () => {
                 }
               : act
         );
-
-        const updatedProject = {
-          ...prev,
-          activities: updatedActivities,
-        };
-        
-        AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
-          .catch(error => console.error("Error al guardar cambio de actividad:", error));
-        
-        return updatedProject;
+        return { ...prev, activities: updatedActivities };
       });
-    },
-    [] // No dependencies needed as setCurrentProject handles updates functionally
-  );
+    }, []);
 
   // Handler to finish the currently ongoing activity
   const handleFinishCurrentActivity = useCallback(() => {
@@ -883,22 +853,14 @@ const PilotDashboard = () => {
     (activityId: string) => {
       const activityToStart = activities.find(act => act.id === activityId);
 
-      if (activityToStart &&
-          (activityToStart.type === "TURBINE_WORK" || activityToStart.name?.toLowerCase().includes("turbina") || activityToStart.type?.toLowerCase().includes("turbine")) && 
-          activityToStart.turbineId) {
-        
-        const isChecklistDone = completedPreflightChecks[activityToStart.turbineId];
-        if (!isChecklistDone) {
-          Alert.alert(
-            "Pre-vuelo Requerido",
-            `Debes completar el checklist de pre-vuelo para la turbina ${activityToStart.turbineId} antes de iniciar esta actividad.`,
-            [
-              { text: "Cancelar", style: "cancel" },
-              { text: "Ir al Checklist", onPress: () => handleGoToPreflightChecklist(activityToStart.turbineId, activityId) }
-            ]
-          );
-          return; 
-        }
+      if (
+        activityToStart &&
+        (activityToStart.type === "TURBINE_WORK" || activityToStart.name?.toLowerCase().includes("turbina") || activityToStart.type?.toLowerCase().includes("turbine")) &&
+        activityToStart.turbineId
+      ) {
+        // Redirigir directo al checklist prevuelo para actividades de turbina, sin Alert
+        handleGoToPreflightChecklist(activityToStart.turbineId, activityId);
+        return;
       }
 
       if (currentOngoingActivityForDisplay) {
@@ -909,15 +871,13 @@ const PilotDashboard = () => {
       handleActivityAction(activityId, "EN_PROGRESO");
       setShowActivitySuggestions(false); 
     },
-    [activities, currentOngoingActivityForDisplay, handleActivityAction, completedPreflightChecks, handleGoToPreflightChecklist, setShowActivitySuggestions]
+    [activities, currentOngoingActivityForDisplay, handleActivityAction, handleGoToPreflightChecklist, setShowActivitySuggestions]
   );
 
   const handleDismissAlert = useCallback(
     (alertId: string) => {
       setAlerts((prev) => {
         const updatedAlerts = prev.filter((a) => a.id !== alertId);
-        AsyncStorage.setItem(STORAGE_KEYS.ALERTS, JSON.stringify(updatedAlerts))
-          .catch(error => console.error("Error al guardar alertas:", error));
         return updatedAlerts;
       });
     },
@@ -995,9 +955,6 @@ const PilotDashboard = () => {
           activities: [newActivity, ...baseActivities],
         };
 
-        AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
-          .catch(error => console.error("Error al guardar nueva actividad:", error));
-
         return updatedProject;
       });
 
@@ -1033,9 +990,6 @@ const PilotDashboard = () => {
           incidents: [...(prev.incidents || []), newIncident],
         };
         
-        AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
-          .catch(error => console.error("Error al guardar incidente:", error));
-          
         return updatedProject;
       });
       setIsNewIncidentModalVisible(false);
@@ -1101,8 +1055,6 @@ const PilotDashboard = () => {
           (act) => act.id !== activityId
         ),
       };
-      AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
-        .catch(error => console.error("Error al guardar eliminación de actividad:", error));
       return updatedProject;
     });
 
@@ -1124,8 +1076,6 @@ const handlePauseActivity = useCallback((reason: string) => {
   
   const newPauseState = { isPaused: true, reason, start: new Date().toISOString() };
   setActivityPauseState(newPauseState);
-  AsyncStorage.setItem(STORAGE_KEYS.ACTIVITY_PAUSE_STATE, JSON.stringify(newPauseState))
-    .catch(error => console.error("Error al guardar estado de pausa:", error));
   
   setCurrentProject(prev => {
     const updatedProject = {
@@ -1143,9 +1093,6 @@ const handlePauseActivity = useCallback((reason: string) => {
       ),
     };
     
-    AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
-      .catch(error => console.error("Error al guardar actualización de proyecto:", error));
-    
     return updatedProject;
   });
 }, [currentOngoingActivityForDisplay, setActivityPauseState]);
@@ -1155,8 +1102,6 @@ const handleResumeActivity = useCallback(() => {
   
   const newPauseState = { isPaused: false };
   setActivityPauseState(newPauseState);
-  AsyncStorage.setItem(STORAGE_KEYS.ACTIVITY_PAUSE_STATE, JSON.stringify(newPauseState))
-    .catch(error => console.error("Error al guardar estado de pausa:", error));
   
   setCurrentProject(prev => {
     const updatedProject = {
@@ -1175,9 +1120,6 @@ const handleResumeActivity = useCallback(() => {
       ),
     };
     
-    AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT, JSON.stringify(updatedProject))
-      .catch(error => console.error("Error al guardar actualización de proyecto:", error));
-    
     return updatedProject;
   });
 }, [currentOngoingActivityForDisplay, setActivityPauseState]); 
@@ -1189,8 +1131,6 @@ const handleFinishActivity = useCallback(() => {
   
   const newPauseState = { isPaused: false };
   setActivityPauseState(newPauseState);
-  AsyncStorage.setItem(STORAGE_KEYS.ACTIVITY_PAUSE_STATE, JSON.stringify(newPauseState))
-    .catch(error => console.error("Error al guardar estado de pausa:", error));
   
   handleActivityAction(activityId, "COMPLETADA");
   
@@ -1217,43 +1157,58 @@ const handleFinishActivity = useCallback(() => {
 // Effect to handle activity start after returning from preflight checklist
 useEffect(() => {
   const { activityToStartAfterPreflight, preflightCompletedForTurbine, turbineIdForActivityStart } = params;
+  console.log("[Dashboard Effect] Params received on screen focus/param change:", JSON.stringify(params));
 
   if (activityToStartAfterPreflight && preflightCompletedForTurbine === 'true' && turbineIdForActivityStart) {
-    console.log(`Preflight completed for turbine ${turbineIdForActivityStart}, attempting to start activity ${activityToStartAfterPreflight}`);
+    console.log(`[Dashboard Effect] Conditions MET. Preflight completed for turbine ${turbineIdForActivityStart}, attempting to start activity ${activityToStartAfterPreflight}`);
     
     const activityExists = activities.some(act => act.id === activityToStartAfterPreflight);
     if (!activityExists) {
-      console.warn(`Activity ${activityToStartAfterPreflight} not found after preflight.`);
+      console.warn(`[Dashboard Effect] Activity ${activityToStartAfterPreflight} not found in current activities list after preflight.`);
+      // Clear the params to prevent re-triggering with stale data
       const newParams = { ...params };
       delete newParams.activityToStartAfterPreflight;
       delete newParams.preflightCompletedForTurbine;
       delete newParams.turbineIdForActivityStart;
-      router.replace({ pathname: currentPathname, params: newParams } as any); // Use currentPathname
+      // Only replace if params actually changed to avoid loop if currentPathname itself is a param
+      if (Object.keys(newParams).length < Object.keys(params).length) {
+        router.replace({ pathname: currentPathname, params: newParams } as any);
+      }
       return;
     }
 
     if (currentOngoingActivityForDisplay && currentOngoingActivityForDisplay.id !== activityToStartAfterPreflight) {
-      console.log(`Completing current activity ${currentOngoingActivityForDisplay.id} before starting ${activityToStartAfterPreflight}`);
+      console.log(`[Dashboard Effect] Completing current activity ${currentOngoingActivityForDisplay.id} before starting ${activityToStartAfterPreflight}`);
       handleActivityAction(currentOngoingActivityForDisplay.id, "COMPLETADA");
     }
     
-    console.log(`Starting activity ${activityToStartAfterPreflight} after preflight.`);
-    handleActivityAction(activityToStartAfterPreflight, "EN_PROGRESO");
+    console.log(`[Dashboard Effect] Calling forceStartActivityNow for ${activityToStartAfterPreflight}`);
+    forceStartActivityNow(activityToStartAfterPreflight); // Forzar actualStart
     
     const updatedChecks = { ...completedPreflightChecks, [turbineIdForActivityStart]: true };
     setCompletedPreflightChecks(updatedChecks);
-    AsyncStorage.setItem("COMPLETED_PREFLIGHT_CHECKS", JSON.stringify(updatedChecks))
-      .catch(error => console.error("Error saving completed preflight checks:", error));
-      
+          
     setShowActivitySuggestions(false);
 
+    // Clear the params to prevent re-triggering
     const finalParams = { ...params };
     delete finalParams.activityToStartAfterPreflight;
     delete finalParams.preflightCompletedForTurbine;
     delete finalParams.turbineIdForActivityStart;
-    router.replace({ pathname: currentPathname, params: finalParams } as any); // Use currentPathname
+    if (Object.keys(finalParams).length < Object.keys(params).length) {
+        router.replace({ pathname: currentPathname, params: finalParams } as any);
+    }
+  } else {
+    // Log if some params are present but not all conditions are met
+    if (activityToStartAfterPreflight || preflightCompletedForTurbine || turbineIdForActivityStart) {
+        console.log("[Dashboard Effect] Conditions NOT MET. Params received:", {
+            activityToStartAfterPreflight,
+            preflightCompletedForTurbine,
+            turbineIdForActivityStart
+        });
+    }
   }
-}, [params, activities, currentOngoingActivityForDisplay, handleActivityAction, router, completedPreflightChecks, setCompletedPreflightChecks, setShowActivitySuggestions, currentPathname]);
+}, [params, activities, currentOngoingActivityForDisplay, handleActivityAction, router, completedPreflightChecks, setCompletedPreflightChecks, setShowActivitySuggestions, currentPathname, forceStartActivityNow]);
 
   const renderDashboardSection = useCallback(
     ({ item }: { item: DashboardSectionItem }) => {
@@ -1302,7 +1257,8 @@ useEffect(() => {
           const upcomingTodayActivities = pendingTodayActivities;          upcomingTodayActivities.forEach((activity, index) => {
             const activityType = activityTypes.find(t => t.type === activity.type);
             const isTurbineWork = activity.type === 'TURBINE_WORK' || 
-                                 activity.type?.toLowerCase().includes('turbine');            // Enhanced icon assignment with more specific fallbacks
+                                 activity.type?.toLowerCase().includes('turbine');
+            // Enhanced icon assignment with more specific fallbacks
             let iconName: any = "briefcase-outline"; // Default fallback
             if (activityType?.icon) {
               // Convertir MaterialCommunityIcons a Ionicons equivalentes para consistencia
@@ -1463,11 +1419,21 @@ useEffect(() => {
                   }
                 }}
                 onActionPress={(action: string, activityId: string, turbineId?: string) => {
-                  console.log("Action pressed:", action, "for activity:", activityId);
-                  if (action === "start_preflight" && turbineId) {
-                    handleGoToPreflightChecklist(turbineId, activityId); // Pass activityId
+                  const activity = activities.find(act => act.id === activityId);
+                  const isTurbine = activity && (
+                    activity.type === "TURBINE_WORK" ||
+                    activity.type === "TURBINE_INSPECTION" ||
+                    activity.name?.toLowerCase().includes("turbina") ||
+                    activity.type?.toLowerCase().includes("turbine")
+                  );
+                  if (action === "start_pending" && isTurbine && turbineId) {
+                    // Redirigir directo al checklist prevuelo para actividades de turbina
+                    handleGoToPreflightChecklist(turbineId, activityId);
+                  } else if (action === "start_pending" && activityId) {
+                    handleStartPendingActivity(activityId);
+                  } else if (action === "start_preflight" && turbineId) {
+                    handleGoToPreflightChecklist(turbineId, activityId);
                   } else if (action === "pause") {
-                    // For pausing, we might need a way to input reason or use a default
                     Alert.prompt(
                       "Pausar Actividad",
                       "Ingresa el motivo de la pausa (opcional):",
@@ -1479,14 +1445,12 @@ useEffect(() => {
                         },
                       ],
                       "plain-text",
-                      activityPauseReason // Use the constant here
+                      activityPauseReason
                     );
                   } else if (action === "resume") {
                     handleResumeActivity();
                   } else if (action === "finish") {
                     handleFinishActivity();
-                  } else if (action === "start_pending" && activityId) {
-                    handleStartPendingActivity(activityId);
                   }
                 }}
                 currentOngoingActivityId={currentOngoingActivityForDisplay?.id}
