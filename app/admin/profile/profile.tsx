@@ -4,14 +4,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { mockAdminUsers } from "../../../src/mocks/users";
 
@@ -36,12 +36,15 @@ export default function AdminProfile() {
   };
 
   const handleEditProfile = () => {};
-
   return (
     <View style={styles.screenContainer}>
       <StatusBar backgroundColor="#1E3A8A" barStyle="light-content" />
 
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Header del perfil */}
         <View style={styles.header}>
           <View style={styles.avatarSection}>
@@ -235,6 +238,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingTop: 50, // Add top padding to account for removed header
   },
   header: {
     backgroundColor: "#ffffff",

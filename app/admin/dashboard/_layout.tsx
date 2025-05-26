@@ -1,22 +1,16 @@
 import { Stack } from "expo-router";
 
-export default function ProfileLayout() {
+export default function DashboardLayout() {
   return (
     <Stack>
       <Stack.Screen
-        name="profile"
+        name="dashboard"
         options={{
           headerShown: false,
         }}
       />
       <Stack.Screen
-        name="kpisdashboard"
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="report"
+        name="notifications"
         options={{
           headerShown: false,
         }}

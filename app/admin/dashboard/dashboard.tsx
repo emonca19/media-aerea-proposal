@@ -12,14 +12,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { theme } from "../../src/constants/theme";
+import { theme } from "../../../src/constants/theme";
 import {
   mockActivities,
   mockDrones,
   mockIncidents,
   mockProjects,
   mockTurbines,
-} from "../../src/mocks";
+} from "../../../src/mocks";
 
 // Use light theme for web/mobile consistency
 const currentTheme = theme.light;
@@ -400,7 +400,7 @@ export default function AdminDashboard() {
             <Text style={styles.headerTitle}>Panel de Administración</Text>
             <TouchableOpacity 
               style={styles.notificationButton}
-              onPress={() => router.push("/admin/notifications")}
+              onPress={() => router.push("/admin/dashboard/notifications")}
             >
               <Ionicons
                 name="notifications-outline"
@@ -526,7 +526,7 @@ export default function AdminDashboard() {
       <View style={styles.notificationsSection}>
         <View style={styles.notificationsHeader}>
           <Text style={styles.sectionTitle}>Notificaciones Recientes</Text>
-          <TouchableOpacity onPress={() => router.push("/admin/notifications")}>
+          <TouchableOpacity onPress={() => router.push("/admin/dashboard/notifications")}>
             <Text style={styles.viewAllText}>Ver Todas</Text>
           </TouchableOpacity>
         </View>
