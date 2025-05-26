@@ -38,9 +38,7 @@ export default function TabLayout() {
                 color={color}
                 style={styles.tabIcon}
               />
-              <Text style={[styles.tabBarLabelText, { color }]}>
-                Proyectos
-              </Text>
+              <Text style={[styles.tabBarLabelText, { color }]}>Proyectos</Text>
             </View>
           ),
           sceneStyle: { backgroundColor: "#ffffff" },
@@ -92,6 +90,26 @@ export default function TabLayout() {
           sceneStyle: { backgroundColor: "#ffffff" },
         }}
       />
+      <MaterialTopTabs.Screen name="[id]" options={{
+          tabBarLabel: ({
+            focused,
+            color,
+          }: {
+            focused: boolean;
+            color: string;
+          }) => (
+            <View style={styles.tabLabelContainer}>
+              <Ionicons
+                name="document-lock-sharp"
+                size={18}
+                color={color}
+                style={styles.tabIcon}
+              />
+              <Text style={[styles.tabBarLabelText, { color }]}>Detalle</Text>
+            </View>
+          ),
+          sceneStyle: { backgroundColor: "#ffffff" },
+        }} />
     </MaterialTopTabs>
   );
 }
@@ -100,11 +118,6 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: "#ffffff",
     paddingTop: Constants.statusBarHeight, // Reduced paddingTop
-    // Add these lines to remove shadow/elevation
-    elevation: 0, // for Android
-    shadowOpacity: 0, // for iOS
-    borderBottomWidth: 1, // Add this line for the bottom border width
-    borderBottomColor: "#E0E0E0", // Add this line for a light gray border color
   },
   tabBarLabel: {
     fontSize: 15, // Increased font size

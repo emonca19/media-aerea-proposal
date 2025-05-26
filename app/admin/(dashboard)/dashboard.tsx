@@ -18,6 +18,7 @@ import {
   mockIncidents,
   mockProjects
 } from "../../../src/mocks";
+import Constants from "expo-constants";
 
 // Use light theme for web/mobile consistency
 const currentTheme = theme.light;
@@ -783,8 +784,14 @@ export default function AdminDashboard() {
           />
         ) : (
           <View style={styles.emptyNotifications}>
-            <Ionicons name="notifications-off-outline" size={32} color={currentTheme.textSecondary} />
-            <Text style={styles.emptyNotificationsText}>No hay notificaciones</Text>
+            <Ionicons
+              name="notifications-off-outline"
+              size={32}
+              color={currentTheme.textSecondary}
+            />
+            <Text style={styles.emptyNotificationsText}>
+              No hay notificaciones
+            </Text>
           </View>
         )}
       </View> */}
@@ -883,12 +890,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: currentTheme.background,
-    marginHorizontal: currentTheme.dimensions.spacing.sm,
-    marginTop: currentTheme.dimensions.spacing.lg,
   },
   header: {
     paddingHorizontal: currentTheme.dimensions.spacing.md,
-    paddingTop: currentTheme.dimensions.spacing.sm,
+    paddingTop: Constants.statusBarHeight, // Reduced paddingTop
     paddingBottom: currentTheme.dimensions.spacing.md,
     marginHorizontal: currentTheme.dimensions.spacing.md,
     marginTop: currentTheme.dimensions.spacing.lg,

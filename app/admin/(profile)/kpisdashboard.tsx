@@ -184,7 +184,7 @@ export default function AdminKPIDashboard() {
           headerRight: () => (
             <View style={styles.headerButtons}>
               <TouchableOpacity
-                onPress={() => router.push("/admin/(profile)/report")}
+                onPress={() => router.push("/admin/report")}
                 style={styles.headerButton}
               >
                 <Ionicons name="document-text" size={24} color="#ffffff" />

@@ -75,11 +75,6 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: "#ffffff",
     paddingTop: Constants.statusBarHeight, // Reduced paddingTop
-    // Add these lines to remove shadow/elevation
-    elevation: 0, // for Android
-    shadowOpacity: 0, // for iOS
-    borderBottomWidth: 1, // Add this line for the bottom border width
-    borderBottomColor: "#E0E0E0", // Add this line for a light gray border color
   },
   tabBarLabel: {
     fontSize: 16, // Increased font size

@@ -1,9 +1,6 @@
 import { ProjectStatus } from "../types/common";
 import { Project, ProjectProgress } from "../types/projects";
 
-// Re-export windParks for convenience
-export { mockWindParks } from "./windParks";
-
 export const mockProjects: Project[] = [
   {
     id: "proj_001",
