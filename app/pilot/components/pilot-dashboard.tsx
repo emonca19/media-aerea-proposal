@@ -1581,24 +1581,11 @@ useEffect(() => {
               turbineId: activity.turbineId || activity.id,
             });
           });          const renderTimelineContent = () => {
-            if (timelineActivities.length === 0) {
-              return (
-                <NoActivitiesCard 
-                  message="No hay actividades programadas o en curso por ahora."
-                  iconName="time-outline"
-                  showAction={false} // Explicitly set to false for compact mode
-                  actionText="Nueva Actividad"
-                  onActionPress={handleOpenNewActivityModal}
-                  compact={true}
-                  // Optionally, if you want to show quick actions in compact mode:
-                  // showQuickActions={true} 
-                  // onSecondaryActionPress={() => router.push('/pilot/turbines' as Href)}
-                />
-              );
-            }
+            // Always render ActivityTimeline - it will handle empty state internally
             return (
               <ActivityTimeline 
                 activities={timelineActivities}
+                onViewHistory={() => handleNavigate("/pilot/activity-log")}
                 onItemPress={(item: TimelineActivity) => { 
                   if (item.isTurbineWork && item.turbineId) {
                     router.push(`/pilot/turbines/${item.turbineId}` as Href); 
@@ -1646,8 +1633,11 @@ useEffect(() => {
               />
             );
           };
-
-          return <View style={{ marginTop: timelineActivities.length === 0 ? 2 : 10 }}>{renderTimelineContent()}</View>;
+          return (
+            <View style={{ marginTop: timelineActivities.length === 0 ? 2 : 10 }}>
+              {renderTimelineContent()}
+            </View>
+          );
         }
         case "REGISTER_ACTIVITY_BUTTON":
           return (
@@ -1935,13 +1925,12 @@ const welcomeStyles = StyleSheet.create({  container: {
     color: '#6b7280',
     fontWeight: '600',
     lineHeight: 18,
-  },
-  rightSection: {
+  },  rightSection: {
     alignItems: 'flex-end',
-    gap: 8,
+    gap: 6,
     flexShrink: 0,
-    minWidth: 100,
-  },  dateTimeSection: {
+    minWidth: 80,
+  },dateTimeSection: {
     alignItems: 'flex-end',
     maxWidth: 120,
   },  dateText: {
@@ -2105,13 +2094,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#374151",
     marginLeft: 8,
-  },
-  historyButton: {
+  },  historyButton: {
     marginTop: 16,
     backgroundColor: "#2563eb",
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: "center",
+    marginHorizontal: 0,
+    shadowColor: "#2563eb",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  historyButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   historyButtonText: {
     color: "white",

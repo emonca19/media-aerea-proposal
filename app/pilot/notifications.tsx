@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 
-// ... (Tipos y datos mock sin cambios)
+// Tipos y datos mock (sin cambios)
 declare global {
   interface Window {
     __hasNotifications?: boolean;
@@ -87,15 +87,50 @@ const sortedNotificationsData = [...mockNotificationsData].sort((a, b) => {
 
 const getNotificationTypeDetails = (type: NotificationType) => {
   switch (type) {
-    case 'incident_alert': return { iconName: 'shield-half-outline' as const, iconColor: '#C2410C', backgroundColor: '#FFEDD5'};
-    case 'warning': return { iconName: 'warning-outline' as const, iconColor: '#A16207', backgroundColor: '#FEF9C3'};
-    case 'critical': return { iconName: 'alert-circle-outline' as const, iconColor: '#B91C1C', backgroundColor: '#FEE2E2'};
-    case 'project_update': return { iconName: 'briefcase-outline' as const, iconColor: '#047857', backgroundColor: '#D1FAE5'};
-    case 'system_message': return { iconName: 'megaphone-outline' as const, iconColor: '#5B21B6', backgroundColor: '#EDE9FE'};
-    default: return { iconName: 'information-circle-outline' as const, iconColor: '#1E40AF', backgroundColor: '#DBEAFE'};
+    case 'incident_alert': 
+      return { 
+        iconName: 'alert-circle-outline' as const, 
+        iconColor: '#FF6B6B', 
+        backgroundColor: '#FFF5F5',
+        accentColor: '#FF5252'
+      };
+    case 'warning': 
+      return { 
+        iconName: 'warning-outline' as const, 
+        iconColor: '#FFA502', 
+        backgroundColor: '#FFF9E6',
+        accentColor: '#FFC107'
+      };
+    case 'critical': 
+      return { 
+        iconName: 'close-circle-outline' as const, 
+        iconColor: '#FF4757', 
+        backgroundColor: '#FFF0F0',
+        accentColor: '#FF3D3D'
+      };
+    case 'project_update': 
+      return { 
+        iconName: 'briefcase-outline' as const, 
+        iconColor: '#4CAF50', 
+        backgroundColor: '#F0FFF4',
+        accentColor: '#66BB6A'
+      };
+    case 'system_message': 
+      return { 
+        iconName: 'megaphone-outline' as const, 
+        iconColor: '#9C27B0', 
+        backgroundColor: '#F9F0FF',
+        accentColor: '#AB47BC'
+      };
+    default: 
+      return { 
+        iconName: 'information-circle-outline' as const, 
+        iconColor: '#2196F3', 
+        backgroundColor: '#F0F9FF',
+        accentColor: '#42A5F5'
+      };
   }
 };
-
 
 const AnimatedNotificationItem = ({
   children,
@@ -103,19 +138,17 @@ const AnimatedNotificationItem = ({
   onAnimationEnd,
 }: {
   children: React.ReactNode;
-  isRemoving: boolean; // Indicates if the final removal animation should play
-  onAnimationEnd: () => void; // Called after the final removal animation
+  isRemoving: boolean;
+  onAnimationEnd: () => void;
 }) => {
   const animatedHeight = useRef(new Animated.Value(0)).current;
-  const animatedOpacity = useRef(new Animated.Value(1)).current; // Start with full opacity
+  const animatedOpacity = useRef(new Animated.Value(1)).current;
   const [measuredHeight, setMeasuredHeight] = useState<number | null>(null);
   const [isLayoutDone, setIsLayoutDone] = useState(false);
   const [heightSet, setHeightSet] = useState(false);
 
   useEffect(() => {
     if (isLayoutDone && measuredHeight !== null && !heightSet) {
-       // Set initial height for slide-in or normal display.
-       // Ensure this runs only after measurement and if height is not already set.
       animatedHeight.setValue(measuredHeight);
       setHeightSet(true);
     }
@@ -131,8 +164,8 @@ const AnimatedNotificationItem = ({
         }),
         Animated.timing(animatedOpacity, {
           toValue: 0,
-          duration: 280, // Sync with height or slightly faster
-          useNativeDriver: false, // Keep false for parallel with height
+          duration: 280,
+          useNativeDriver: false,
         }),
       ]).start(() => {
         onAnimationEnd();
@@ -144,15 +177,15 @@ const AnimatedNotificationItem = ({
     <Animated.View
       style={{
         height: !isLayoutDone ? undefined : animatedHeight,
-        opacity: animatedOpacity, // This opacity is for the *final* removal animation
+        opacity: animatedOpacity,
         overflow: 'hidden',
       }}
       onLayout={(event) => {
-        if (!isLayoutDone) { // Measure only once
+        if (!isLayoutDone) {
           const height = event.nativeEvent.layout.height;
           if (height > 0) {
             setMeasuredHeight(height);
-            setIsLayoutDone(true); // Mark layout as done
+            setIsLayoutDone(true);
           }
         }
       }}
@@ -162,8 +195,7 @@ const AnimatedNotificationItem = ({
   );
 };
 
-
-const NotificationsScreen = ({ /* ...props... */ }) => {
+const NotificationsScreen = () => {
   const [notifications, setNotifications] = useState<NotificationItemData[]>(sortedNotificationsData);
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const [removingItemId, setRemovingItemId] = useState<string | null>(null);
@@ -175,7 +207,6 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
   const undoButtonOpacity = useRef(new Animated.Value(0)).current;
   const undoButtonTranslateY = useRef(new Animated.Value(50)).current;
 
-
   useEffect(() => {
     const unreadCount = notifications.filter(n => !n.read).length;
     if (typeof window !== 'undefined') {
@@ -183,18 +214,14 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
       window.__unreadNotificationsCount = unreadCount;
     }
   }, [notifications]);
-  // Handle immediate deletion with undo functionality
+
   const handleDelete = (id: string) => {
     const notificationToDelete = notifications.find(n => n.id === id);
     if (!notificationToDelete) return;
     
-    // Store the deleted notification for potential undo
     setDeletedNotification(notificationToDelete);
-    
-    // Remove from current list immediately
     setNotifications(prev => prev.filter(n => n.id !== id));
     
-    // Show undo button with animation
     setShowUndoButton(true);
     Animated.parallel([
       Animated.timing(undoButtonOpacity, {
@@ -209,7 +236,6 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
       }),
     ]).start();
     
-    // Auto-hide undo button after 5 seconds
     setTimeout(() => {
       hideUndoButton();
     }, 5000);
@@ -236,17 +262,14 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
   const handleUndo = () => {
     if (!deletedNotification) return;
     
-    // Check if notification with same ID doesn't already exist (safety check)
     const exists = notifications.find(n => n.id === deletedNotification.id);
     if (exists) {
       hideUndoButton();
       return;
     }
     
-    // Add back the deleted notification
     setNotifications(prev => {
       const newList = [...prev, deletedNotification];
-      // Re-sort to maintain proper order
       return newList.sort((a, b) => {
         const readDiff = (a.read ? 1 : 0) - (b.read ? 1 : 0);
         if (readDiff !== 0) return readDiff;
@@ -262,19 +285,104 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
     setRemovingItemId(null);
   };
 
-  const handleClearAll = () => { /* ... */ Alert.alert( "Limpiar Notificaciones", "¿Eliminar todas las notificaciones? Esta acción no se puede deshacer.", [ { text: "Cancelar", style: "cancel" }, { text: "Eliminar Todas", style: "destructive", onPress: () => setNotifications([]) } ] ); };
-  const handleMarkAllRead = () => { /* ... */ Alert.alert( "Marcar como Leídas", "¿Marcar todas las notificaciones como leídas?", [ { text: "Cancelar", style: "cancel" }, { text: "Marcar Todas", style: "default", onPress: () => setNotifications(prev => prev.map(n => ({ ...n, read: true }))) } ] ); };
-  const handleNotificationPress = (item: NotificationItemData) => { setNotifications(prev => prev.map(n => n.id === item.id ? { ...n, read: true } : n)); if (item.type === 'project_update') { const projectItem = item as ProjectNotificationItemData; Alert.alert( "Detalles del Proyecto", `ID: ${projectItem.projectId}\nProyecto: ${projectItem.projectName}\nTarea: ${projectItem.taskSummary || 'No especificada'}\n\n(Navegar a pantalla de detalles del proyecto)`, [{ text: "Entendido" }] ); } else if (item.type === 'incident_alert') { const incidentItem = item as IncidentNotificationItemData; Alert.alert( "Alerta de Incidencia", `ID Incidencia: ${incidentItem.incidentId}\nSeveridad: ${incidentItem.severity.toUpperCase()}\nEstado: ${incidentItem.status.replace('_',' ')}\n\nDescripción: ${incidentItem.message}\n\n(Navegar a pantalla de gestión de incidencias)`, [{ text: "Ver Detalles" }] ); } else { Alert.alert(item.title, item.message, [{ text: "OK" }]); } };
+  const handleClearAll = () => {
+    Alert.alert(
+      "Limpiar Notificaciones",
+      "¿Eliminar todas las notificaciones? Esta acción no se puede deshacer.",
+      [
+        { 
+          text: "Cancelar", 
+          style: "cancel" 
+        },
+        { 
+          text: "Eliminar Todas", 
+          style: "destructive", 
+          onPress: () => setNotifications([]) 
+        }
+      ]
+    );
+  };
+
+  const handleMarkAllRead = () => {
+    Alert.alert(
+      "Marcar como Leídas",
+      "¿Marcar todas las notificaciones como leídas?",
+      [
+        { 
+          text: "Cancelar", 
+          style: "cancel" 
+        },
+        { 
+          text: "Marcar Todas", 
+          style: "default", 
+          onPress: () => setNotifications(prev => prev.map(n => ({ ...n, read: true }))) 
+        }
+      ]
+    );
+  };
+
+  const handleNotificationPress = (item: NotificationItemData) => {
+    setNotifications(prev => prev.map(n => n.id === item.id ? { ...n, read: true } : n));
+    
+    const typeDetails = getNotificationTypeDetails(item.type);
+    
+    if (item.type === 'project_update') {
+      const projectItem = item as ProjectNotificationItemData;
+      Alert.alert(
+        "Detalles del Proyecto",
+        `ID: ${projectItem.projectId}\nProyecto: ${projectItem.projectName}\nTarea: ${projectItem.taskSummary || 'No especificada'}`,
+        [
+          { 
+            text: "Cerrar", 
+            style: "cancel" 
+          },
+          { 
+            text: "Ir al Proyecto", 
+            style: "default",
+            onPress: () => console.log("Navegar a proyecto") 
+          }
+        ]
+      );
+    } else if (item.type === 'incident_alert') {
+      const incidentItem = item as IncidentNotificationItemData;
+      Alert.alert(
+        "Alerta de Incidencia",
+        `ID Incidencia: ${incidentItem.incidentId}\nSeveridad: ${incidentItem.severity.toUpperCase()}\nEstado: ${incidentItem.status.replace('_',' ')}`,
+        [
+          { 
+            text: "Cerrar", 
+            style: "cancel" 
+          },
+          { 
+            text: "Ver Detalles", 
+            style: "default",
+            onPress: () => console.log("Navegar a incidencia") 
+          }
+        ]
+      );
+    } else {
+      Alert.alert(
+        item.title, 
+        item.message, 
+        [{ 
+          text: "OK", 
+          style: "default" 
+        }]
+      );
+    }
+  };
+
   const renderNotificationItem = ({ item }: { item: NotificationItemData }) => {
     const typeDetails = getNotificationTypeDetails(item.type);
     return (
-       <AnimatedNotificationItem
+      <AnimatedNotificationItem
         isRemoving={removingItemId === item.id}
         onAnimationEnd={() => handleAnimationEnd(item.id)}
       >
         <SwipeableNotification
           onDeleteIntent={() => handleDelete(item.id)}
           setScrollEnabled={setScrollEnabled}
+          accentColor={typeDetails.accentColor}
         >
           <TouchableOpacity
             activeOpacity={0.85}
@@ -285,11 +393,34 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
               <Ionicons name={typeDetails.iconName} size={22} color={typeDetails.iconColor} />
             </View>
             <View style={styles.notificationContent}>
-              <Text style={[styles.notificationTitle, item.read && styles.notificationTitleRead]} numberOfLines={1}>{item.title}</Text>
-              <Text style={[styles.notificationMessage, item.read && styles.notificationMessageRead]} numberOfLines={2}>{item.message}</Text>
-              <Text style={[styles.notificationTime, item.read && styles.notificationTimeRead]}>{item.time}</Text>
+              <View style={styles.notificationHeader}>
+                <Text style={[styles.notificationTitle, item.read && styles.notificationTitleRead]} numberOfLines={1}>
+                  {item.title}
+                </Text>
+                {!item.read && <View style={[styles.unreadIndicator, { backgroundColor: typeDetails.accentColor }]} />}
+              </View>
+              <Text style={[styles.notificationMessage, item.read && styles.notificationMessageRead]} numberOfLines={2}>
+                {item.message}
+              </Text>
+              <View style={styles.notificationFooter}>
+                <Text style={[styles.notificationTime, item.read && styles.notificationTimeRead]}>
+                  {item.time}
+                </Text>
+                {item.type === 'incident_alert' && (
+                  <View style={[styles.severityBadge, { 
+                    backgroundColor: (item as IncidentNotificationItemData).severity === 'alta' ? '#FFEBEE' : 
+                                    (item as IncidentNotificationItemData).severity === 'media' ? '#FFF8E1' : '#E8F5E9'
+                  }]}>
+                    <Text style={[styles.severityText, {
+                      color: (item as IncidentNotificationItemData).severity === 'alta' ? '#D32F2F' : 
+                             (item as IncidentNotificationItemData).severity === 'media' ? '#FF8F00' : '#388E3C'
+                    }]}>
+                      {(item as IncidentNotificationItemData).severity.toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
-            {!item.read && <View style={styles.unreadIndicator} />}
           </TouchableOpacity>
         </SwipeableNotification>
       </AnimatedNotificationItem>
@@ -300,18 +431,32 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={styles.safeArea.backgroundColor} />
-      <View style={styles.container}>        <View style={styles.header}>
-             <Text style={styles.headerTitle}>{`Notificaciones${unreadCount > 0 ? ` (${unreadCount})` : ''}`}</Text>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerTitle}>Notificaciones</Text>
+            <Text style={styles.headerSubtitle}>
+              {unreadCount > 0 ? `${unreadCount} sin leer` : 'Todo al día'}
+            </Text>
+          </View>
           <View style={styles.headerActions}>
             {unreadCount > 0 && (
-                 <TouchableOpacity onPress={handleMarkAllRead} style={styles.headerButton} accessibilityLabel="Marcar todas como leídas">
-                    <Ionicons name="checkmark-done-outline" size={26} color="#1e3a8a" />
-                 </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={handleMarkAllRead} 
+                style={styles.headerButton}
+                accessibilityLabel="Marcar todas como leídas"
+              >
+                <Ionicons name="checkmark-done-outline" size={24} color="#4A5568" />
+              </TouchableOpacity>
             )}
             {notifications.length > 0 && (
-              <TouchableOpacity onPress={handleClearAll} style={[styles.headerButton, { marginLeft: unreadCount > 0 ? 8 : 0 }]} accessibilityLabel="Eliminar todas las notificaciones">
-                <Ionicons name="trash-outline" size={24} color="#b91c1c" />
+              <TouchableOpacity 
+                onPress={handleClearAll} 
+                style={styles.headerButton}
+                accessibilityLabel="Eliminar todas las notificaciones"
+              >
+                <Ionicons name="trash-outline" size={22} color="#4A5568" />
               </TouchableOpacity>
             )}
           </View>
@@ -319,15 +464,21 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
 
         {notifications.length > 0 && (
           <View style={styles.swipeHintContainer}>
-             <Ionicons name="arrow-back-outline" size={15} color="#3730a3" style={{ marginRight: 6 }} />
-            <Text style={styles.swipeHintText}>Desliza a la izquierda para eliminar</Text>
+            <Ionicons name="arrow-back-outline" size={16} color="#5A67D8" style={{ marginRight: 8 }} />
+            <Text style={styles.swipeHintText}>Desliza para eliminar</Text>
           </View>
-        )}        {notifications.length === 0 ? (
-            <View style={styles.emptyStateContainer}>
-                <Ionicons name="notifications-off-outline" size={64} color="#94a3b8" />
-                <Text style={styles.emptyStateTitle}>Todo en calma</Text>
-                <Text style={styles.emptyStateText}>No tienes notificaciones pendientes.</Text>
+        )}
+
+        {notifications.length === 0 ? (
+          <View style={styles.emptyStateContainer}>
+            <View style={styles.emptyStateIcon}>
+              <Ionicons name="notifications-off-outline" size={48} color="#CBD5E0" />
             </View>
+            <Text style={styles.emptyStateTitle}>No hay notificaciones</Text>
+            <Text style={styles.emptyStateText}>
+              Cuando tengas nuevas notificaciones, aparecerán aquí.
+            </Text>
+          </View>
         ) : (
           <FlatList
             ref={flatListRef}
@@ -341,7 +492,6 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
           />
         )}
         
-        {/* Undo Button */}
         {showUndoButton && (
           <Animated.View 
             style={[
@@ -358,7 +508,7 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
               activeOpacity={0.8}
             >
               <Ionicons name="arrow-undo-outline" size={20} color="white" />
-              <Text style={styles.undoText}>Deshacer</Text>
+              <Text style={styles.undoText}>Deshacer eliminación</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -371,20 +521,21 @@ const SwipeableNotification = ({
   children,
   onDeleteIntent,
   setScrollEnabled,
+  accentColor,
 }: {
   children: React.ReactNode;
   onDeleteIntent: () => void;
   setScrollEnabled: (enabled: boolean) => void;
+  accentColor: string;
 }) => {
   const translateX = useRef(new Animated.Value(0)).current;
   const deleteOpacity = useRef(new Animated.Value(1)).current;
   const deleteScale = useRef(new Animated.Value(1)).current;
-  const SWIPE_THRESHOLD = -Dimensions.get('window').width * 0.3; // 30% of screen width
+  const SWIPE_THRESHOLD = -Dimensions.get('window').width * 0.3;
 
-  // Opacity linked to swipe gesture - more subtle
   const swipeOpacity = translateX.interpolate({
     inputRange: [SWIPE_THRESHOLD * 1.5, SWIPE_THRESHOLD, 0],
-    outputRange: [0.7, 0.85, 1], // More subtle fade
+    outputRange: [0.7, 0.85, 1],
     extrapolate: 'clamp',
   });
 
@@ -398,13 +549,12 @@ const SwipeableNotification = ({
         if (gs.dx < 0) {
           translateX.setValue(gs.dx);
         } else {
-          translateX.setValue(gs.dx / 3); // Resist right swipe
+          translateX.setValue(gs.dx / 3);
         }
       },
       onPanResponderRelease: (_, gs) => {
         setScrollEnabled(true);
         if (gs.dx < SWIPE_THRESHOLD) {
-          // Trigger delete with smooth animation
           Animated.parallel([
             Animated.timing(deleteOpacity, {
               toValue: 0,
@@ -433,10 +583,11 @@ const SwipeableNotification = ({
       },
     })
   ).current;
+
   return (
     <View style={styles.swipeableContainerWrapper}>
-      <View style={styles.deleteActionBackground}>
-        <Ionicons name="trash-outline" size={22} color="#dc2626" />
+      <View style={[styles.deleteActionBackground, { backgroundColor: accentColor }]}>
+        <Ionicons name="trash-outline" size={20} color="white" />
         <Text style={styles.deleteActionText}>Eliminar</Text>
       </View>
       <Animated.View
@@ -453,112 +604,224 @@ const SwipeableNotification = ({
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f1f5f9' },
-  container: { flex: 1 },
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: '#FFFFFF' 
+  },
+  container: { 
+    flex: 1 
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
     backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#EDF2F7',
   },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: '#1e293b' },
-  headerActions: { flexDirection: 'row', alignItems: 'center' },
-  headerButton: { padding: 6 },
-  listContentContainer: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 20 },
-    swipeableContainerWrapper: {
-    borderRadius: 12,
+  headerTitle: { 
+    fontSize: 24, 
+    fontWeight: '700', 
+    color: '#2D3748',
+    fontFamily: 'System',
+    letterSpacing: -0.5
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#718096',
+    marginTop: 2
+  },
+  headerActions: { 
+    flexDirection: 'row', 
+    alignItems: 'center' 
+  },
+  headerButton: { 
+    padding: 8,
+    marginLeft: 8,
+    borderRadius: 20,
+    backgroundColor: '#F7FAFC'
+  },
+  listContentContainer: { 
+    paddingHorizontal: 16, 
+    paddingTop: 8, 
+    paddingBottom: 24 
+  },
+  swipeableContainerWrapper: {
+    borderRadius: 14,
     backgroundColor: 'transparent',
-    shadowColor: '#334155',
+    marginVertical: 6,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-    marginVertical: 7,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   deleteActionBackground: {
-    position: 'absolute', top: 0, bottom: 0, right: 0, width: '100%',
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end',
-    paddingHorizontal: 24, borderRadius: 12, backgroundColor: 'transparent',
+    position: 'absolute', 
+    top: 0, 
+    bottom: 0, 
+    right: 0, 
+    width: '100%',
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'flex-end',
+    paddingHorizontal: 24, 
+    borderRadius: 14,
   },
-  deleteActionText: { color: '#dc2626', fontSize: 15, fontWeight: '500', marginLeft: 10 },
-  
+  deleteActionText: { 
+    color: 'white', 
+    fontSize: 14, 
+    fontWeight: '600', 
+    marginLeft: 8 
+  },
   notificationItemOuter: {
     flexDirection: 'row',
     backgroundColor: 'white',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 14,
     alignItems: 'flex-start',
-    position: 'relative',
+    borderWidth: 1,
+    borderColor: '#EDF2F7'
   },
-  notificationTitleRead: { color: '#475569' },
-  notificationMessageRead: { color: '#64748b' },
-  notificationTimeRead: { color: '#94a3b8' },
-  
+  notificationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  notificationTitle: { 
+    fontSize: 16, 
+    fontWeight: '600', 
+    color: '#2D3748', 
+    marginBottom: 4,
+    flex: 1,
+    paddingRight: 8
+  },
+  notificationTitleRead: { 
+    color: '#718096' 
+  },
+  notificationMessage: { 
+    fontSize: 14, 
+    color: '#4A5568', 
+    lineHeight: 20, 
+    marginBottom: 8 
+  },
+  notificationMessageRead: { 
+    color: '#A0AEC0' 
+  },
+  notificationFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  notificationTime: { 
+    fontSize: 12, 
+    color: '#718096' 
+  },
+  notificationTimeRead: { 
+    color: '#CBD5E0' 
+  },
   iconContainer: {
-    width: 40, height: 40, borderRadius: 20,
-    alignItems: 'center', justifyContent: 'center', marginRight: 14,
+    width: 40, 
+    height: 40, 
+    borderRadius: 12,
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginRight: 16,
     marginTop: 2,
   },
-  notificationContent: { flex: 1, justifyContent: 'center' },
-  notificationTitle: { fontSize: 16, fontWeight: '600', color: '#1e293b', marginBottom: 3 },
-  notificationMessage: { fontSize: 14, color: '#334155', lineHeight: 20, marginBottom: 5 },
-  notificationTime: { fontSize: 12, color: '#64748b' },
-  
+  notificationContent: { 
+    flex: 1, 
+    justifyContent: 'center' 
+  },
   unreadIndicator: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
-    backgroundColor: '#256eb',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
-
   emptyStateContainer: {
-    flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30, marginTop: -40,
+    flex: 1, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    padding: 40,
   },
-  emptyStateTitle: { fontSize: 20, fontWeight: '600', color: '#334155', marginTop: 20, marginBottom: 8 },
-  emptyStateText: { fontSize: 15, color: '#64748b', textAlign: 'center', lineHeight: 22 },
-    swipeHintContainer: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 10, backgroundColor: '#e0e7ff',
-    marginHorizontal: 16, borderRadius: 8, marginTop: 12, marginBottom: 10,
+  emptyStateIcon: {
+    backgroundColor: '#F7FAFC',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24
   },
-  swipeHintText: { color: '#3730a3', fontSize: 13, fontWeight: '500' },
-  
-  // Undo button styles
+  emptyStateTitle: { 
+    fontSize: 18, 
+    fontWeight: '600', 
+    color: '#2D3748', 
+    marginBottom: 8 
+  },
+  emptyStateText: { 
+    fontSize: 15, 
+    color: '#718096', 
+    textAlign: 'center', 
+    lineHeight: 22,
+    paddingHorizontal: 40
+  },
+  swipeHintContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    paddingVertical: 12, 
+    backgroundColor: '#EBF4FF',
+    marginHorizontal: 24, 
+    borderRadius: 10, 
+    marginTop: 8, 
+    marginBottom: 8,
+  },
+  swipeHintText: { 
+    color: '#5A67D8', 
+    fontSize: 13, 
+    fontWeight: '500' 
+  },
   undoContainer: {
     position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
+    bottom: 40,
+    left: 24,
+    right: 24,
     alignItems: 'center',
   },
   undoButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#374151',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 25,
+    backgroundColor: '#2D3748',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 28,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
     elevation: 8,
   },
   undoText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     marginLeft: 8,
   },
+  severityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 8
+  },
+  severityText: {
+    fontSize: 11,
+    fontWeight: '700'
+  }
 });
 
 export default NotificationsScreen;

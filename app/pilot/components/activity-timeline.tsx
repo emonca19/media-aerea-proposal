@@ -40,84 +40,91 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
       <View style={styles.headerRow}>
         <Text style={styles.title}>Línea de tiempo</Text>
         <Ionicons name="trending-up-outline" size={20} color="#22223b" />
-      </View>
-      <View style={styles.timelineContainer}>
-        {activities.map((activity, idx) => (
-          <View key={activity.id} style={styles.timelineRow}>
-            {/* Línea vertical y círculo del icono */}            <View style={styles.timelineLineContainer}>
-              <View style={styles.timelineIconWrapper}>                <View 
-                  style={[
-                    styles.timelineIconCircle, 
-                    { 
-                      backgroundColor: '#fff', 
-                      borderColor: activity.isPaused ? '#dc2626' : activity.statusBg 
-                    }
-                  ]}> 
-                  {/* Aseguramos que siempre haya un icono, y que sea rojo si está pausada */}
-                  <TouchableOpacity
-                    onPress={() => onItemPress && onItemPress(activity)}
-                    activeOpacity={0.7}
-                  >
-                    {activity.icon ? activity.icon : 
-                      <Ionicons name="briefcase-outline" size={28} color={activity.isPaused ? "#dc2626" : "#3b82f6"} />}
-                  </TouchableOpacity>
-                </View>
-                {idx !== activities.length - 1 && <View style={styles.timelineLine} />}
-              </View>
-            </View>
-            {/* Contenido */}
-            <View style={styles.timelineContent}>
-              <TouchableOpacity
-                onPress={() => onItemPress && onItemPress(activity)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.activityTitle}>{activity.title}</Text>
-                <View style={styles.timeRow}>
-                  <Ionicons name="time-outline" size={15} color="#9ca3af" style={{ marginRight: 4 }} />
-                  <Text style={styles.activityTime}>{activity.time}</Text>
-                  {activity.duration && (
-                    <Text style={styles.activityDuration}> · {activity.duration}</Text>
-                  )}
-                </View>                {/* Action buttons for activities - Simplificado a solo mostrar el botón Iniciar */}
-                {onActionPress && (
-                  <View style={styles.actionButtonsRow}>
-                    {/* Solo mostrar el botón "Iniciar" para actividades pendientes */}
-                    {activity.statusLabel === "Próxima" && (
-                      <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => onActionPress("start_pending", activity.id)}
-                      >
-                        <Ionicons name="play" size={14} color="#3b82f6" />
-                        <Text style={styles.actionButtonText}>Iniciar</Text>
-                      </TouchableOpacity>
-                    )}
+      </View>      <View style={styles.timelineContainer}>
+        {activities.length > 0 ? (
+          activities.map((activity, idx) => (
+            <View key={activity.id} style={styles.timelineRow}>
+              {/* Línea vertical y círculo del icono */}            <View style={styles.timelineLineContainer}>
+                <View style={styles.timelineIconWrapper}>                <View 
+                    style={[
+                      styles.timelineIconCircle, 
+                      { 
+                        backgroundColor: '#fff', 
+                        borderColor: activity.isPaused ? '#dc2626' : activity.statusBg 
+                      }
+                    ]}> 
+                    {/* Aseguramos que siempre haya un icono, y que sea rojo si está pausada */}
+                    <TouchableOpacity
+                      onPress={() => onItemPress && onItemPress(activity)}
+                      activeOpacity={0.7}
+                    >
+                      {activity.icon ? activity.icon : 
+                        <Ionicons name="briefcase-outline" size={28} color={activity.isPaused ? "#dc2626" : "#3b82f6"} />}
+                    </TouchableOpacity>
                   </View>
-                )}
-              </TouchableOpacity>
-            </View>            {/* Estado o duración */}            <View style={styles.statusContainer}>
-              <View style={[
-                styles.statusBadge, 
-                { backgroundColor: activity.isPaused ? '#fee2e2' : activity.statusBg }
-              ]}> 
-                <Text style={[
-                  styles.statusText, 
-                  { color: activity.isPaused ? '#dc2626' : activity.statusColor }
-                ]}>
-                  {activity.statusLabel}
-                </Text>
+                  {idx !== activities.length - 1 && <View style={styles.timelineLine} />}
+                </View>
               </View>
-            </View>
-          </View>        ))}
+              {/* Contenido */}
+              <View style={styles.timelineContent}>
+                <TouchableOpacity
+                  onPress={() => onItemPress && onItemPress(activity)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.activityTitle}>{activity.title}</Text>
+                  <View style={styles.timeRow}>
+                    <Ionicons name="time-outline" size={15} color="#9ca3af" style={{ marginRight: 4 }} />
+                    <Text style={styles.activityTime}>{activity.time}</Text>
+                    {activity.duration && (
+                      <Text style={styles.activityDuration}> · {activity.duration}</Text>
+                    )}
+                  </View>                {/* Action buttons for activities - Simplificado a solo mostrar el botón Iniciar */}
+                  {onActionPress && (
+                    <View style={styles.actionButtonsRow}>
+                      {/* Solo mostrar el botón "Iniciar" para actividades pendientes */}
+                      {activity.statusLabel === "Próxima" && (
+                        <TouchableOpacity
+                          style={styles.actionButton}
+                          onPress={() => onActionPress("start_pending", activity.id)}
+                        >
+                          <Ionicons name="play" size={14} color="#3b82f6" />
+                          <Text style={styles.actionButtonText}>Iniciar</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>            {/* Estado o duración */}            <View style={styles.statusContainer}>
+                <View style={[
+                  styles.statusBadge, 
+                  { backgroundColor: activity.isPaused ? '#fee2e2' : activity.statusBg }
+                ]}> 
+                  <Text style={[
+                    styles.statusText, 
+                    { color: activity.isPaused ? '#dc2626' : activity.statusColor }
+                  ]}>
+                    {activity.statusLabel}
+                  </Text>
+                </View>
+              </View>
+            </View>        ))
+        ) : (
+          <View style={styles.emptyStateContainer}>
+            <Ionicons name="time-outline" size={32} color="#9ca3af" />
+            <Text style={styles.emptyStateText}>No hay actividades pendientes</Text>
+            <Text style={styles.emptyStateSubtext}>Las nuevas actividades aparecerán aquí</Text>
+          </View>
+        )}
+
+        {/* History button - always visible inside timeline container */}
+        {onViewHistory && (
+          <TouchableOpacity style={styles.historyButton} onPress={onViewHistory}>
+            <Ionicons name="time-outline" size={18} color="#6b7280" />
+            <Text style={styles.historyButtonText}>Ver historial completo</Text>
+            <Ionicons name="chevron-forward-outline" size={16} color="#6b7280" />
+          </TouchableOpacity>
+        )}
       </View>
-      
-      {/* History button to view completed activities */}
-      {onViewHistory && (
-        <TouchableOpacity style={styles.historyButton} onPress={onViewHistory}>
-          <Ionicons name="time-outline" size={18} color="#6b7280" />
-          <Text style={styles.historyButtonText}>Ver historial completo</Text>
-          <Ionicons name="chevron-forward-outline" size={16} color="#6b7280" />
-        </TouchableOpacity>
-      )}
     </View>
   );
 };
@@ -298,12 +305,27 @@ const styles = StyleSheet.create({  card: {
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-  },
-  actionButtonText: {
+  },  actionButtonText: {
     fontSize: 12,
     color: '#374151',
     fontWeight: '500',
     marginLeft: 4,
+  },
+  emptyStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 24,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#6b7280',
+    marginTop: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginTop: 4,
   },
 });
 

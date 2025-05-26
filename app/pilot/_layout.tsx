@@ -106,13 +106,20 @@ export default function PilotLayout() {
               ),
             }}
           />
-          <Tabs.Screen
-            name="notifications"
-            options={{
-              title: 'Notificaciones',
-              tabBarIcon: (props) => <NotificationTabIcon {...props} />,
-            }}
-          />
+            <Tabs.Screen
+    name="confirm-photo-upload"
+    options={{
+      title: 'Actividades',
+      tabBarIcon: ({ color, size, focused }) => (
+        <Ionicons
+          name={focused ? "camera" : "camera-outline"} // Icono de cámara
+          size={size}
+          color={color}
+        />
+      ),
+    }}
+  />
+          
           <Tabs.Screen
             name="profile"
             options={{
@@ -146,6 +153,7 @@ export default function PilotLayout() {
           <Tabs.Screen name="site-map" options={{ href: null }} />
           <Tabs.Screen name="turbines" options={{ href: null }} />
           <Tabs.Screen name="support-chat" options={{ href: null }} />
+           <Tabs.Screen name="notifications" options={{ href: null }} />
           <Tabs.Screen name="components" options={{ href: null }} />
           <Tabs.Screen name="project-details" options={{ href: null }} />
           <Tabs.Screen name="components/activity-timeline" options={{ href: null }} />
