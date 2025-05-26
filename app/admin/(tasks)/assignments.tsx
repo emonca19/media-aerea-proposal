@@ -35,7 +35,6 @@ export default function AssignmentsScreen() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedPilot, setSelectedPilot] = useState<string>("");
   const [selectedDrone, setSelectedDrone] = useState<string>("");
-  const [selectedTurbines, setSelectedTurbines] = useState<string[]>([]);
   const [estimatedStartDate, setEstimatedStartDate] = useState<Date | null>(
     null
   );
@@ -45,7 +44,6 @@ export default function AssignmentsScreen() {
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showPilotsModal, setShowPilotsModal] = useState(false);
   const [showDronesModal, setShowDronesModal] = useState(false);
-  const [showTurbinesModal, setShowTurbinesModal] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   useEffect(() => {
@@ -53,7 +51,6 @@ export default function AssignmentsScreen() {
       const project = mockProjects.find((p) => p.id === preselectedProjectId);
       if (project) {
         setSelectedProject(project);
-        setSelectedTurbines([]); // Clear turbines when project is preselected
       }
     }
   }, [preselectedProjectId]);
@@ -68,18 +65,9 @@ export default function AssignmentsScreen() {
     setSelectedPilot(pilotId);
     setShowPilotsModal(false);
   };
-
   const handleDroneSelection = (droneId: string) => {
     setSelectedDrone(droneId);
     setShowDronesModal(false);
-  };
-
-  const handleTurbineSelection = (turbineId: string) => {
-    setSelectedTurbines((prev) =>
-      prev.includes(turbineId)
-        ? prev.filter((id) => id !== turbineId)
-        : [...prev, turbineId]
-    );
   };
   const calculateDuration = (start: Date | null, end: Date | null) => {
     if (start && end) {
@@ -117,10 +105,6 @@ export default function AssignmentsScreen() {
       Alert.alert("Error", "Debe seleccionar un drone");
       return;
     }
-    if (selectedTurbines.length === 0) {
-      Alert.alert("Error", "Debe seleccionar al menos una turbina");
-      return;
-    }
     if (!estimatedStartDate || !estimatedEndDate) {
       Alert.alert("Error", "Debe especificar las fechas de inicio y fin");
       return;
@@ -130,7 +114,7 @@ export default function AssignmentsScreen() {
       projectId: selectedProject.id,
       pilotIds: [selectedPilot],
       droneIds: [selectedDrone],
-      turbineIds: selectedTurbines,
+      turbineIds: [], // No specific turbines selected since they're now informational
       estimatedStartDate: estimatedStartDate,
       estimatedEndDate: estimatedEndDate,
       estimatedDuration: estimatedDuration,
@@ -155,7 +139,6 @@ export default function AssignmentsScreen() {
             setSelectedProject(null);
             setSelectedPilot("");
             setSelectedDrone("");
-            setSelectedTurbines([]);
             setEstimatedStartDate(null);
             setEstimatedEndDate(null);
             setEstimatedDuration(0);
@@ -191,93 +174,61 @@ export default function AssignmentsScreen() {
       </TouchableOpacity>
     </View>
   );
-  const renderTurbinesSection = () => (
-    <View style={styles.section}>
-      <View style={styles.sectionTitleContainer}>
-        <MaterialCommunityIcons
-          name="wind-turbine"
-          size={24}
-          color={selectedProject ? "#9C46CE" : "#9ca3af"}
-        />
-        <Text
-          style={[
-            styles.sectionTitle,
-            { color: selectedProject ? "#1f2937" : "#9ca3af" },
-          ]}
-        >
-          Turbinas del Proyecto
-        </Text>
-      </View>
+  const renderTurbinesSection = () => {
+    // Get all turbines for the selected project
+    const projectWindPark = selectedProject
+      ? mockWindParks.find((p) => p.projectId === selectedProject.id)
+      : null;
+    const projectTurbines = projectWindPark
+      ? mockTurbines.filter((t) => t.windParkId === projectWindPark.id)
+      : [];
 
-      {!selectedProject && (
-        <Text style={styles.disabledSectionText}>
-          Selecciona un proyecto primero para ver las turbinas disponibles
-        </Text>
-      )}
-
-      {selectedProject && (
-        <View style={styles.subsection}>
-          <TouchableOpacity
-            style={styles.resourceSelector}
-            onPress={() => setShowTurbinesModal(true)}
-          >
-            <View style={styles.resourceSelectorContent}>
-              {selectedTurbines.length > 0 ? (
-                <View>
-                  <Text style={styles.resourceSelectedCount}>
-                    {selectedTurbines.length} turbina
-                    {selectedTurbines.length > 1 ? "s" : ""} seleccionada
-                    {selectedTurbines.length > 1 ? "s" : ""}
-                  </Text>
-                  <Text style={styles.resourceSelectedNames}>
-                    {selectedTurbines
-                      .map((turbineId) => {
-                        const turbine = mockTurbines.find(
-                          (t) => t.id === turbineId
-                        );
-                        return turbine?.name;
-                      })
-                      .join(", ")}
-                  </Text>
+    if (!selectedProject) {
+      return null;
+    }
+    return (
+      <View style={styles.turbinesSection}>
+        {projectTurbines.length === 0 ? (
+          <Text style={styles.turbinesInfoText}>
+            No hay turbinas asociadas a este proyecto
+          </Text>
+        ) : (
+          <View>
+            <Text style={styles.turbinesCountText}>
+              {projectTurbines.length} turbina
+              {projectTurbines.length > 1 ? "s" : ""} encontrada
+              {projectTurbines.length > 1 ? "s" : ""}
+            </Text>
+            <View style={styles.turbinesGrid}>
+              {projectTurbines.map((turbine) => (
+                <View key={turbine.id} style={styles.turbineInfoItem}>
+                  <MaterialCommunityIcons
+                    name="wind-turbine"
+                    size={16}
+                    color="#9C46CE"
+                  />
+                  <Text style={styles.turbineInfoName}>{turbine.name}</Text>
                 </View>
-              ) : (
-                <Text style={styles.placeholderText}>
-                  Seleccionar turbinas...
-                </Text>
-              )}
+              ))}
             </View>
-            <View style={styles.resourceSelectorIndicator}>
-              <Text style={styles.resourceBadge}>
-                {selectedTurbines.length}
-              </Text>
-              <Ionicons name="chevron-down" size={20} color="#6b7280" />
-            </View>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
-
+          </View>
+        )}
+      </View>
+    );
+  };
   const renderAvailabilitySection = () => (
     <View style={styles.section}>
       <View style={styles.sectionTitleContainer}>
         <MaterialCommunityIcons
           name="tools"
           size={24}
-          color={
-            selectedProject && selectedTurbines.length > 0
-              ? "#10b981"
-              : "#9ca3af"
-          }
+          color={selectedProject ? "#10b981" : "#9ca3af"}
         />
         <Text
           style={[
             styles.sectionTitle,
             {
-              color:
-                selectedProject && selectedTurbines.length > 0
-                  ? "#1f2937"
-                  : "#9ca3af",
+              color: selectedProject ? "#1f2937" : "#9ca3af",
             },
           ]}
         >
@@ -285,13 +236,13 @@ export default function AssignmentsScreen() {
         </Text>
       </View>
 
-      {(!selectedProject || selectedTurbines.length === 0) && (
+      {!selectedProject && (
         <Text style={styles.disabledSectionText}>
-          Selecciona un proyecto y turbinas primero para ver la disponibilidad
+          Selecciona un proyecto primero para ver la disponibilidad
         </Text>
       )}
 
-      {selectedProject && selectedTurbines.length > 0 && (
+      {selectedProject && (
         <>
           {/* Pilots Selector */}
           <View style={styles.subsection}>
@@ -365,8 +316,7 @@ export default function AssignmentsScreen() {
     </View>
   );
   const renderDurationAndDates = () => {
-    const hasResourcesSelected =
-      selectedPilot && selectedDrone && selectedTurbines.length > 0;
+    const hasResourcesSelected = selectedPilot && selectedDrone;
     return (
       <View style={styles.section}>
         <View style={styles.sectionTitleContainer}>
@@ -589,7 +539,6 @@ export default function AssignmentsScreen() {
                 ]}
                 onPress={() => {
                   setSelectedProject(project);
-                  setSelectedTurbines([]); // Clear previously selected turbines when project changes
                   setShowProjectModal(false);
                 }}
               >
@@ -749,129 +698,6 @@ export default function AssignmentsScreen() {
         return "#6b7280";
     }
   };
-  const renderTurbinesModal = () => {
-    // Get turbines for the selected project
-    const projectWindPark = selectedProject
-      ? mockWindParks.find((p) => p.projectId === selectedProject.id)
-      : null;
-    // Only show turbines that haven't been started yet for assignment
-    const availableTurbines = projectWindPark
-      ? mockTurbines.filter(
-          (t) =>
-            t.windParkId === projectWindPark.id && t.status === "NOT_STARTED"
-        )
-      : [];
-
-    return (
-      <Modal
-        visible={showTurbinesModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowTurbinesModal(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Seleccionar Turbinas</Text>
-            <TouchableOpacity
-              onPress={() => setShowTurbinesModal(false)}
-              style={styles.modalCloseButton}
-            >
-              <Ionicons name="close" size={24} color="#6b7280" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView style={styles.modalContent}>
-            {availableTurbines.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>
-                  No hay turbinas disponibles sin iniciar para este proyecto
-                </Text>
-              </View>
-            ) : (
-              availableTurbines.map((turbine) => (
-                <TouchableOpacity
-                  key={turbine.id}
-                  style={[
-                    styles.availabilityCard,
-                    selectedTurbines.includes(turbine.id) &&
-                      styles.selectedCard,
-                  ]}
-                  onPress={() => handleTurbineSelection(turbine.id)}
-                >
-                  <View style={styles.cardHeader}>
-                    <View style={styles.cardInfo}>
-                      <Text style={styles.cardTitle}>{turbine.name}</Text>
-                      <View style={styles.statusBadge}>
-                        <View
-                          style={[
-                            styles.statusDot,
-                            {
-                              backgroundColor:
-                                turbine.status === "APPROVED"
-                                  ? "#16a34a"
-                                  : "#f59e0b",
-                            },
-                          ]}
-                        />
-                        <Text style={styles.statusText}>
-                          {turbine.status === "APPROVED"
-                            ? "Aprobada"
-                            : turbine.status === "INSPECTED"
-                            ? "Inspeccionada"
-                            : turbine.status === "PHOTOS_UPLOADED"
-                            ? "Fotos Subidas"
-                            : turbine.status === "NOT_STARTED"
-                            ? "No Iniciada"
-                            : turbine.status}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.selectionIndicator}>
-                      {selectedTurbines.includes(turbine.id) && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={24}
-                          color="#10b981"
-                        />
-                      )}
-                    </View>
-                  </View>
-                  {turbine.notes && (
-                    <Text style={styles.availabilityText}>{turbine.notes}</Text>
-                  )}
-                </TouchableOpacity>
-              ))
-            )}
-          </ScrollView>
-          <View style={styles.modalFooter}>
-            <TouchableOpacity
-              style={[
-                styles.confirmSelectionButton,
-                selectedTurbines.length === 0 &&
-                  styles.confirmSelectionButtonDisabled,
-              ]}
-              onPress={() => setShowTurbinesModal(false)}
-              disabled={selectedTurbines.length === 0}
-            >
-              <Ionicons
-                name="checkmark-circle"
-                size={20}
-                color={selectedTurbines.length === 0 ? "#9ca3af" : "#ffffff"}
-              />
-              <Text
-                style={[
-                  styles.confirmSelectionButtonText,
-                  selectedTurbines.length === 0 &&
-                    styles.confirmSelectionButtonTextDisabled,
-                ]}
-              >
-                Confirmar Selección ({selectedTurbines.length})
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -892,7 +718,6 @@ export default function AssignmentsScreen() {
               (!selectedProject ||
                 !selectedPilot ||
                 !selectedDrone ||
-                selectedTurbines.length === 0 ||
                 !estimatedStartDate ||
                 !estimatedEndDate) &&
                 styles.confirmButtonDisabled,
@@ -902,7 +727,6 @@ export default function AssignmentsScreen() {
               !selectedProject ||
               !selectedPilot ||
               !selectedDrone ||
-              selectedTurbines.length === 0 ||
               !estimatedStartDate ||
               !estimatedEndDate
             }
@@ -919,7 +743,6 @@ export default function AssignmentsScreen() {
       {renderProjectModal()}
       {renderPilotsModal()}
       {renderDronesModal()}
-      {renderTurbinesModal()}
     </View>
   );
 }
@@ -938,8 +761,11 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 6,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+  },
+  turbinesSection: {
+    paddingHorizontal: 6,
+    paddingTop: 4,
+    paddingBottom: 16,
   },
   sectionTitle: {
     fontSize: 20,
@@ -1348,5 +1174,48 @@ const styles = StyleSheet.create({
   },
   confirmSelectionButtonTextDisabled: {
     color: "#9ca3af",
+  },
+  // New styles for turbines information display
+  turbinesInfoText: {
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+    fontStyle: "italic",
+  },
+  turbinesCountText: {
+    fontSize: 15,
+    color: "#64748b",
+    marginBottom: 8,
+    fontWeight: "500",
+  },
+  turbinesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  turbineInfoItem: {
+    backgroundColor: "#ffffff",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    minWidth: 90,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  turbineInfoName: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#475569",
   },
 });
