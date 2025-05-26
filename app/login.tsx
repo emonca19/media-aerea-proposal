@@ -67,8 +67,9 @@ export default function LoginScreen() {
       -1, // infinite repeat
       false
     );
-  }, [currentTheme.animation.duration, fadeOpacity, scaleValue, logoRotation]);
-  // Keyboard handling for Android with Reanimated
+  }, [currentTheme.animation.duration, fadeOpacity, scaleValue, logoRotation]);  // Keyboard handling - Platform-specific approach for optimal UX
+  // Android: Custom Reanimated animation for fine control (avoids content shift issues)
+  // iOS: Native KeyboardAvoidingView behavior (maintains system consistency)
   useEffect(() => {
     if (Platform.OS === "android") {
       const keyboardDidShowListener = Keyboard.addListener(
@@ -167,17 +168,16 @@ export default function LoginScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Animated styles using Reanimated for 120Hz
+  };  // Animated styles using Reanimated for 120Hz optimization
   const mainContentStyle = useAnimatedStyle(() => {
     return {
       opacity: fadeOpacity.value,
       transform: [
         { scale: scaleValue.value },
-        {
-          translateY: Platform.OS === "android" ? keyboardTranslateY.value : 0,
-        },
+        // Platform-specific keyboard handling:
+        // - Android: Custom translation animation (prevents content shift issues)
+        // - iOS: Native KeyboardAvoidingView handles translation
+        ...(Platform.OS === "android" ? [{ translateY: keyboardTranslateY.value }] : []),
       ],
     };
   });
@@ -203,13 +203,14 @@ export default function LoginScreen() {
     return {
       transform: [{ scale: buttonScale.value }],
     };
-  });
-
-  return (
+  });  return (
+    // Platform-specific keyboard avoidance:
+    // iOS: padding behavior with native KeyboardAvoidingView
+    // Android: height behavior as fallback, custom animation handles main logic
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
-      enabled={Platform.OS === "ios"}
+      enabled={true}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
