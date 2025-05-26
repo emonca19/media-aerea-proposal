@@ -2,15 +2,30 @@ import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icon
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
+
+// Import incident types
+import { incidentTypes } from './components/pilot-dashboard-data';
+
+// Mock incident data - distribuido de manera más realista
+const mockIncidents = [
+  {
+    id: 'INC001',
+    type: 'INC_WEATHER',
+    description: 'Condiciones meteorológicas adversas detectadas durante la inspección.',
+    activityId: '2',
+    timestamp: '2023-05-18T09:30:00',
+    severity: 'medium',
+    status: 'resolved'
+  }
+];
 
 
 // Datos simulados más completos
@@ -111,12 +126,12 @@ const activityTypes = [
 
 export default function ActivityLogScreen() {
   const router = useRouter();
-  const { newActivity, message } = useLocalSearchParams();
-  const [selectedType, setSelectedType] = useState<ActivityType | null>(null);
+  const { newActivity, message } = useLocalSearchParams();  const [selectedType, setSelectedType] = useState<ActivityType | null>(null);
   const [selectedTurbine, setSelectedTurbine] = useState('');
   const [notes, setNotes] = useState('');
   const [activeTab, setActiveTab] = useState<'register' | 'activities' | 'project'>('register');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedTimeFilter, setSelectedTimeFilter] = useState('all');
 
   const currentProject = mockProjects[0];
   const assignedDrone = mockDrones[0];
@@ -138,7 +153,7 @@ export default function ActivityLogScreen() {
     }
   }, [newActivity, message]);
 
-  // Actualizar la hora actual cada minuto
+  // Actualizar la hora currente cada minuto
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -201,22 +216,28 @@ export default function ActivityLogScreen() {
     
     // Aquí en una app real, harías un dispatch o API call para guardar la actividad
     console.log('Nueva actividad iniciada:', newActivity);
-  };
-
-  const handleStopActivity = (activityId: string) => {
-    Alert.alert(
-      'Actividad Finalizada',
-      'La actividad se ha marcado como completada'
-    );
-    // En una app real, actualizarías el estado o harías un API call
-    console.log('Actividad finalizada:', activityId);
-  };
-
-  const formatTime = (date: Date | null) => {
+  };  const formatTime = (date: Date | null) => {
     if (!date) return '--:--';
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const getSeverityLabel = (severity: string) => {
+    switch (severity) {
+      case 'high': return 'ALTA';
+      case 'medium': return 'MEDIA';
+      case 'low': return 'BAJA';
+      default: return 'BAJA';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'open': return 'Abierto';
+      case 'investigating': return 'En investigación';
+      case 'resolved': return 'Resuelto';
+      default: return 'Resuelto';
+    }
+  };
   const formatDuration = (start: Date, end: Date | null) => {
     if (!end) return '';
     const diff = end.getTime() - start.getTime();
@@ -224,6 +245,29 @@ export default function ActivityLogScreen() {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}h ${minutes}m`;
   };
+  // Filter activities based on selected time filter
+  const getFilteredActivities = () => {
+    const now = new Date();
+
+    return todayActivities.filter(activity => {
+      const activityHour = activity.startTime.getHours();
+
+      switch (selectedTimeFilter) {
+        case 'morning':
+          return activityHour >= 6 && activityHour < 12;
+        case 'afternoon':
+          return activityHour >= 12 && activityHour < 18;
+        case 'last2h':
+          const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+          return activity.startTime >= twoHoursAgo;
+        case 'all':
+        default:
+          return true;
+      }
+    });
+  };
+
+  const filteredActivities = getFilteredActivities();
 
   // ... [Resto del código de renderizado permanece igual hasta el return]
   return (
@@ -239,25 +283,25 @@ export default function ActivityLogScreen() {
 
       {/* Tabs de navegación */}
       <View style={styles.tabContainer}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[
             styles.tabButton, 
-            activeTab === 'register' && styles.activeTab
+            activeTab === \'register\' && styles.activeTab
           ]}
-          onPress={() => setActiveTab('register')}
+          onPress={() => setActiveTab(\'register\')}
         >
           <Ionicons 
             name="add-circle-outline" 
             size={20} 
-            color={activeTab === 'register' ? '#2563eb' : '#64748b'} 
+            color={activeTab === \'register\' ? \'#2563eb\' : \'#64748b\'} 
           />
           <Text style={[
             styles.tabText,
-            activeTab === 'register' && styles.activeTabText
+            activeTab === \'register\' && styles.activeTabText
           ]}>
             Registrar
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         
         <TouchableOpacity
           style={[
@@ -301,7 +345,7 @@ export default function ActivityLogScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {activeTab === 'register' && (
+        {/* {activeTab === 'register' && (
           <View style={styles.registerSection}>
             <Text style={styles.sectionTitle}>Nueva Actividad</Text>
             <Text style={styles.currentTime}>
@@ -399,59 +443,100 @@ export default function ActivityLogScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-        )}        {activeTab === 'activities' && (
+        )} */} 
+        {activeTab === 'activities' && (
           <View style={styles.activitiesSection}>
-            {/* Statistics Container with Title and Date */}
-            <View style={{ 
-              backgroundColor: '#ffffff', 
-              borderRadius: 12, 
-              padding: 16, 
-              marginBottom: 16,
-              borderWidth: 1,
-              borderColor: '#e2e8f0',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.05,
-              shadowRadius: 2,
-              elevation: 1
-            }}>              {/* Header with title and date */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: '#1e293b' }}>Registro del Día</Text>
-                <Text style={{ fontSize: 15, color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>
-                  {currentTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {/* Enhanced Statistics Container */}
+            <View style={styles.enhancedStatsContainer}>
+              {/* Header with title and date */}              <View style={styles.statsHeader}>
+                <View style={styles.statsTitleContainer}>
+                  <View style={styles.statsIconWrapper}>
+                    <MaterialCommunityIcons name="chart-line" size={24} color="#2563eb" />
+                  </View>
+                  <Text style={styles.statsTitle}>Registro del Día</Text>
+                </View>
+                <View style={styles.dateContainer}>
+                  <MaterialCommunityIcons name="calendar-today" size={16} color="#64748b" style={{ marginRight: 6 }} />
+                  <Text style={styles.statsDate}>
+                    {currentTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  </Text>
+                </View>
+              </View>
+              
+              {/* Enhanced Statistics Grid */}              <View style={styles.statsGrid}>
+                <View style={styles.statCard}>
+                  <View style={[styles.statIconContainer, { backgroundColor: '#eff6ff' }]}>
+                    <MaterialCommunityIcons name="clock-outline" size={22} color="#3b82f6" />
+                  </View>
+                  <Text style={styles.statValue}>4:00:45</Text>
+                  <Text style={styles.statLabel}>Tiempo Total</Text>
+                </View>
+                
+                <View style={styles.statDivider} />
+                
+                <View style={styles.statCard}>
+                  <View style={[styles.statIconContainer, { backgroundColor: '#ecfdf5' }]}>
+                    <MaterialCommunityIcons name="chart-timeline-variant" size={22} color="#059669" />
+                  </View>
+                  <Text style={[styles.statValue, { color: '#059669' }]}>3:35:12</Text>
+                  <Text style={styles.statLabel}>Tiempo Productivo</Text>
+                </View>
+                
+                <View style={styles.statDivider} />
+                
+                <View style={styles.statCard}>
+                  <View style={[styles.statIconContainer, { backgroundColor: '#fef2f2' }]}>
+                    <MaterialCommunityIcons name="alert-circle-outline" size={22} color="#ef4444" />
+                  </View>
+                  <Text style={[styles.statValue, { color: '#ef4444' }]}>1</Text>
+                  <Text style={styles.statLabel}>Incidencias</Text>
+                </View>
+              </View>
+            </View>            {/* Time Filter Component */}
+            <View style={styles.timeFilterContainer}>
+              <View style={styles.timeFilterHeader}>
+                <Text style={styles.timeFilterTitle}>Filtrar por:</Text>
+                <Text style={styles.filterResultText}>
+                  {filteredActivities.length} de {todayActivities.length} actividades
                 </Text>
               </View>
-              
-              {/* Divider line */}
-              <View style={{ height: 1, backgroundColor: '#e2e8f0', marginBottom: 12 }} />
-              
-              {/* Statistics */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-                <View style={{ alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, fontWeight: '700', color: '#1e293b', marginBottom: 2 }}>4:00:45</Text>
-                  <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '500' }}>Tiempo Total</Text>
-                </View>
-                <View style={{ width: 1, backgroundColor: '#e2e8f0', marginHorizontal: 16 }} />
-                <View style={{ alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, fontWeight: '700', color: '#059669', marginBottom: 2 }}>3:35:12</Text>
-                  <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '500' }}>Tiempo Productivo</Text>
-                </View>
+              <View style={styles.timeFilterButtons}>
+                {[
+                  { id: 'all', label: 'Todo el día' },
+                  { id: 'morning', label: 'Mañana' },
+                  { id: 'afternoon', label: 'Tarde' },
+                  { id: 'last2h', label: 'Últimas 2h' }
+                ].map((filter) => (
+                  <TouchableOpacity
+                    key={filter.id}
+                    style={[
+                      styles.timeFilterButton,
+                      selectedTimeFilter === filter.id && styles.timeFilterButtonActive
+                    ]}
+                    onPress={() => setSelectedTimeFilter(filter.id)}
+                  >
+                    <Text style={[
+                      styles.timeFilterButtonText,
+                      selectedTimeFilter === filter.id && styles.timeFilterButtonTextActive
+                    ]}>
+                      {filter.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
-            
-            <View style={{ flexDirection: 'column', marginTop: 8, position: 'relative', alignItems: 'flex-start', paddingHorizontal: 0, width: '100%' }}>
-              {todayActivities.length > 0 ? (
-                todayActivities.map((activity, index, arr) => {
+              {/* Activities Timeline */}
+            <View style={styles.activitiesTimeline}>              {filteredActivities.length > 0 ? (
+                filteredActivities.map((activity, index, arr) => {
                   // Detectar si es 'Inicio de jornada'
                   const isStartOfDay = activity.notes && activity.notes.toLowerCase().includes('inicio de jornada');
                   if (isStartOfDay) {
-                    // Línea punteada horizontal con bloque central destacado
                     return (
-                      <View key={activity.id} style={{ width: '100%', alignItems: 'center', marginVertical: 2 }}>
+                      <View key={activity.id} style={styles.startOfDayContainer}>
                         <View style={styles.dottedLineContainer}>
                           <View style={styles.dottedLine} />
                           <View style={styles.startDayBlock}>
-                            <MaterialCommunityIcons name="weather-sunset" size={22} color="#2563eb" style={{ marginRight: 8 }} />
+                            <MaterialCommunityIcons name="weather-sunset" size={20} color="#2563eb" style={{ marginRight: 8 }} />
                             <Text style={styles.startDayText}>Inicio de Jornada</Text>
                             <Text style={styles.startDayHour}>{formatTime(activity.startTime)}</Text>
                           </View>
@@ -459,125 +544,97 @@ export default function ActivityLogScreen() {
                         </View>
                       </View>
                     );
-                  }                  const activityType = activityTypes.find(t => t.type === activity.type);
+                  }
+
+                  const activityType = activityTypes.find(t => t.type === activity.type);
                   const turbine = activity.turbineId ? mockTurbines.find(t => t.id === activity.turbineId) : null;
-                  const mainColor = '#2563eb'; // Always blue for consistency
-                  // Subactividades (pausas)
-                  const subActivities = activity.subActivities || [];
-                  // Determinar margen inferior: menos margen si no hay subactividades
-                  const activityMarginBottom = subActivities.length > 0 ? 12 : 6;
+                  
                   return (
-                    <View key={activity.id} style={{ flexDirection: 'row', alignItems: 'flex-start', minHeight: 100, marginBottom: activityMarginBottom, position: 'relative', width: '100%' }}>
-                      <View style={{ width: 0 }} />
-                      <View style={{ flex: 1, marginLeft: 0, marginTop: 0, marginRight: 0, maxWidth: '100%' }}>                        <View style={[styles.fixedActivityCard, { marginBottom: subActivities.length > 0 ? 6 : 0 }]}>                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                    <View key={activity.id} style={styles.activityCardContainer}>
+                      {/* Main Activity Card */}
+                      <View style={styles.activityCardWrapper}>
+                        <View style={styles.activityHeaderRow}>
+                          <View style={styles.activityTitleSection}>
+                            <View style={styles.activityIconWrapper}>
                               <MaterialCommunityIcons
                                 name={(activityType?.icon || 'clock') as any}
-                                size={20}
-                                color={mainColor}
-                                style={{ marginRight: 8 }}
+                                size={24}
+                                color="#2563eb"
                               />
-                              <Text style={{ color: mainColor, fontWeight: '700', fontSize: 16 }}>{activityType?.label || activity.type}</Text>
                             </View>
-                            {activity.endTime && (
-                              <View style={{ 
-                                backgroundColor: '#f8fafc', 
-                                paddingHorizontal: 12, 
-                                paddingVertical: 8, 
-                                borderRadius: 8,
-                                borderWidth: 1,
-                                borderColor: '#e2e8f0'
-                              }}>
-                                <Text style={{ color: '#1e293b', fontSize: 12, fontWeight: '700' }}>
-                                  {formatDuration(activity.startTime, activity.endTime)}
-                                </Text>
-                              </View>
-                            )}
+                            <Text style={styles.activityTitle}>{activityType?.label || activity.type}</Text>
                           </View>
-                          {turbine && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                              <Ionicons name="cog" size={15} color="#64748b" style={{ marginRight: 6 }} />
-                              <Text style={{ color: '#475569', fontSize: 13 }}>{turbine.name} • {turbine.status === 'COMPLETED' ? 'Completada' : 'En progreso'}</Text>
+                          {activity.endTime && (
+                            <View style={styles.activityDurationBadge}>
+                              <Text style={styles.activityDurationText}>
+                                {formatDuration(activity.startTime, activity.endTime)}
+                              </Text>
                             </View>
-                          )}                          {activity.notes && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                              <Ionicons name="document-text" size={15} color="#64748b" style={{ marginRight: 6 }} />
-                              <Text style={{ color: '#475569', fontSize: 13 }}>{activity.notes}</Text>
+                          )}
+                        </View>
+
+                        <View style={styles.activityDetailsSection}>
+                          {turbine && (
+                            <View style={styles.activityDetailRow}>
+                              <Ionicons name="cog" size={16} color="#64748b" style={styles.activityDetailIcon} />
+                              <Text style={styles.activityDetailText}>
+                                {turbine.name} • {turbine.status === 'COMPLETED' ? 'Completada' : 'En progreso'}
+                              </Text>
                             </View>
                           )}
                           
-                          {/* Time information */}
-                          <View style={{ marginTop: 6 }}>
-                            <Text style={{ color: '#64748b', fontSize: 12, marginBottom: 1 }}>
-                              Fecha Inicio: {formatTime(activity.startTime)}
+                          {activity.notes && (
+                            <View style={styles.activityDetailRow}>
+                              <Ionicons name="document-text" size={16} color="#64748b" style={styles.activityDetailIcon} />
+                              <Text style={styles.activityDetailText}>{activity.notes}</Text>
+                            </View>
+                          )}
+
+                          <View style={styles.activityDetailRow}>
+                            <MaterialCommunityIcons name="clock-start" size={16} color="#64748b" style={styles.activityDetailIcon} />
+                            <Text style={styles.activityDetailText}>
+                              Inicio: {formatTime(activity.startTime)}
+                              {activity.endTime && ` • Fin: ${formatTime(activity.endTime)}`}
                             </Text>
-                            {activity.endTime && (
-                              <Text style={{ color: '#64748b', fontSize: 12 }}>
-                                Fecha Fin: {formatTime(activity.endTime)}
-                              </Text>
-                            )}
-                          </View>{/* Detalles adicionales de la actividad (solo lo esencial) */}
-                          <View style={{ marginTop: 6, gap: 2 }}>
-                            {activity.type === 'TURBINE_WORK' && (
-                              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                                <Ionicons name="person" size={14} color="#64748b" style={{ marginRight: 5 }} />
-                                <Text style={{ color: '#64748b', fontSize: 13 }}>Operador: {activity.operator}</Text>
-                              </View>
-                            )}
-                            {activity.type === 'TURBINE_WORK' && turbine && (
-                              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                                <MaterialCommunityIcons name="wind-turbine" size={14} color="#3b82f6" style={{ marginRight: 5 }} />
-                                <Text style={{ color: '#475569', fontSize: 13 }}>Turbina: {turbine.name} ({turbine.status === 'COMPLETED' ? 'Completada' : 'En progreso'})</Text>
-                              </View>
-                            )}
-                            {activity.type === 'TURBINE_WORK' && (
-                              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                                <MaterialCommunityIcons name="drone" size={14} color="#64748b" style={{ marginRight: 5 }} />
-                                <Text style={{ color: '#64748b', fontSize: 13 }}>Dron: {assignedDrone.model}</Text>
-                              </View>
-                            )}
                           </View>
+
+                          {activity.type === 'TURBINE_WORK' && (
+                            <View style={styles.activityDetailRow}>
+                              <MaterialCommunityIcons name="drone" size={16} color="#64748b" style={styles.activityDetailIcon} />
+                              <Text style={styles.activityDetailText}>Dron: {assignedDrone.model}</Text>
+                            </View>
+                          )}
                         </View>
-                        {/* Subactividades (pausas), indentadas y tamaño fijo */}
-                        {subActivities.length > 0 && subActivities.map((sub, subIdx) => {
-                          const subType = activityTypes.find(t => t.type === sub.type);
-                          return (
-                            <View key={sub.id} style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: subIdx === 0 ? 0 : 4, marginBottom: 0, marginLeft: 28, marginRight: 0 }}>
-                              <View style={{ width: 0, marginRight: 0 }} />
-                              <View style={[styles.fixedSubActivityCard, { marginBottom: 0, marginTop: 0 }]}>                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2, marginLeft: 2 }}>
-                                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                                    <MaterialCommunityIcons name={subType?.icon as any} size={16} color={sub.type === 'BREAK' ? '#d97706' : '#2563eb'} style={{ marginRight: 6 }} />
-                                    <Text style={{ color: sub.type === 'BREAK' ? '#d97706' : '#2563eb', fontWeight: '700', fontSize: 14 }}>{subType?.label || 'Pausa'}</Text>
-                                  </View>
-                                  {sub.endTime && sub.startTime && (
-                                    <View style={{
-                                      backgroundColor: sub.type === 'BREAK' ? '#fef3c7' : '#e0f2fe',
-                                      paddingHorizontal: 8,
-                                      paddingVertical: 4,
-                                      borderRadius: 6,
-                                      borderWidth: 1,
-                                      borderColor: sub.type === 'BREAK' ? '#f59e0b' : '#0891b2'
-                                    }}>
-                                      <Text style={{ color: sub.type === 'BREAK' ? '#92400e' : '#0c4a6e', fontSize: 11, fontWeight: '600' }}>
-                                        {formatDuration(sub.startTime, sub.endTime)}
-                                      </Text>
-                                    </View>
-                                  )}
-                                </View>
-                                <Text style={{ color: '#64748b', fontSize: 13, marginLeft: 2 }}>{sub.notes}</Text>
-                                <View style={{ marginTop: 4, marginLeft: 2 }}>
-                                  <Text style={{ color: '#64748b', fontSize: 12, marginBottom: 1 }}>
-                                    Fecha Inicio: {formatTime(sub.startTime)}
-                                  </Text>
-                                  <Text style={{ color: '#64748b', fontSize: 12 }}>
-                                    Fecha Fin: {formatTime(sub.endTime)}
-                                  </Text>
-                                </View>
+                      </View>
+
+                      {/* Incidencias asociadas */}
+                      {mockIncidents.filter(incident => incident.activityId === activity.id).map((incident) => {
+                        const incidentType = incidentTypes.find(t => t.id === incident.type);
+                        return (
+                          <View key={incident.id} style={styles.incidentCardWrapper}>
+                            <View style={styles.incidentHeader}>
+                              <View style={styles.incidentTitleSection}>
+                                <MaterialCommunityIcons 
+                                  name={incidentType?.icon as any} 
+                                  size={18} 
+                                  color="#ef4444" 
+                                  style={{ marginRight: 8 }} 
+                                />
+                                <Text style={styles.incidentTitle}>
+                                  {incidentType?.label || 'Incidente'}
+                                </Text>
                               </View>
                             </View>
-                          );
-                        })}
-                      </View>
+                            
+                            <Text style={styles.incidentDescription}>{incident.description}</Text>                            <View style={styles.incidentDetails}>
+                              <Text style={styles.incidentDetailText}>
+                                {formatTime(new Date(incident.timestamp))}
+                                {/* • Estado: {getStatusLabel(incident.status)} */}
+                              </Text>
+                            </View>
+                          </View>
+                        );
+                      })}
                     </View>
                   );
                 })
@@ -725,12 +782,11 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: '#2563eb',
     fontWeight: '600',
-  },
-  content: {
-    padding: 16,
+  },  content: {
+    padding: 12, // Reduced from 16
   },
   registerSection: {
-    marginBottom: 24,
+    marginBottom: 0, // Reduced from 24
   },
   currentTime: {
     color: '#64748b',
@@ -849,10 +905,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
     fontSize: 16,
-  },
-  // Activities Tab Styles
+  },  // Activities Tab Styles (Updated for Consistency)
   activitiesSection: {
-    marginBottom: 24,
+    marginBottom: 16, // Reduced from 24
   },
   activityCard: {
     backgroundColor: '#ffffff',
@@ -888,16 +943,11 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontSize: 14,
     marginTop: 2,
-  },
-  activityDetail: {
+  },  activityDetail: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginTop: 8,
-  },
-  activityDetailText: {
-    color: '#475569',
-    fontSize: 14,
   },
   stopButton: {
     alignSelf: 'flex-start',
@@ -911,10 +961,9 @@ const styles = StyleSheet.create({
     color: '#dc2626',
     fontSize: 12,
     fontWeight: '500',
-  },
-  // Project Tab Styles
+  },  // Project Tab Styles (Updated for Consistency)
   projectSection: {
-    marginBottom: 24,
+    marginBottom: 16, // Reduced from 24
   },
   projectCard: {
     backgroundColor: '#ffffff',
@@ -1043,8 +1092,187 @@ const styles = StyleSheet.create({
   turbineStatusText: {
     fontSize: 12,
     fontWeight: '500',
+  },  // Activities Timeline
+  activitiesTimeline: {
+    marginTop: 0, // Adjusted from 8 for consistent spacing with time filter
   },
-  // Empty State
+  startOfDayContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: -1, // Adjusted from marginVertical
+    marginBottom: 16, // Added for consistency
+  },
+  // Activity Card Styles (Updated for Consistency)
+  activityCardContainer: {
+    marginBottom: 16, // Consistent spacing between timeline items
+  },
+  activityCardWrapper: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 0, // Spacing to incident handled by incident's marginTop
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  activityHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12, // Reduced from 16
+  },
+  activityTitleSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  activityIconWrapper: {
+    width: 36, // Reduced from 48
+    height: 36, // Reduced from 48
+    borderRadius: 18, // Reduced from 24
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12, // Reduced from 16
+    borderWidth: 1.5, // Reduced from 2
+    borderColor: '#dbeafe',
+  },
+  activityTitle: {
+    fontSize: 16, // Reduced from 18
+    fontWeight: '600', // Reduced from '700'
+    color: '#1e293b',
+  },
+  activityDurationBadge: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 12, // Reduced from 16
+    paddingVertical: 6, // Reduced from 8
+    borderRadius: 10, // Reduced from 12
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  activityDurationText: {
+    color: '#475569',
+    fontSize: 13, // Reduced from 14
+    fontWeight: '600',
+  },
+  activityDetailsSection: {
+    gap: 8, // Reduced from 12
+  },
+  activityDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activityDetailIcon: {
+    marginRight: 10, // Reduced from 12
+    width: 18, // Reduced from 20
+    textAlign: 'center',
+  },
+  activityDetailText: {
+    color: '#64748b',
+    fontSize: 13, // Reduced from 14
+    flex: 1,
+  },  // Time Filter Styles
+  timeFilterContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  timeFilterHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  timeFilterTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  filterResultText: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  timeFilterButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  timeFilterButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#f9fafb',
+    alignItems: 'center',
+  },
+  timeFilterButtonActive: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  timeFilterButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#6b7280',
+  },
+  timeFilterButtonTextActive: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },// Incident Card Styles (Updated for Consistency)
+  incidentCardWrapper: {
+    backgroundColor: '#fef2f2',
+    borderRadius: 10,
+    padding: 12,
+    marginLeft: 16,
+    marginTop: 16, // Increased from 12 to add more space
+    marginBottom: 0, // Spacing to next activity handled by activityCardContainer
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderLeftWidth: 3, // Reduced from 4
+    borderLeftColor: '#ef4444',
+  },
+  incidentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6, // Reduced from 8
+  },
+  incidentTitleSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  incidentTitle: {
+    color: '#ef4444',
+    fontWeight: '600', // Reduced from '700'
+    fontSize: 14, // Reduced from 16
+  },
+  incidentDescription: {
+    color: '#64748b',
+    fontSize: 13, // Reduced from 14
+    marginBottom: 6, // Reduced from 8
+    lineHeight: 18, // Reduced from 20
+  },
+  incidentDetails: {
+    marginTop: 2, // Reduced from 4
+  },
+  incidentDetailText: {
+    color: '#64748b',
+    fontSize: 11, // Reduced from 12
+  },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -1132,10 +1360,108 @@ const styles = StyleSheet.create({
     color: '#2563eb',
     fontSize: 15,
     marginRight: 8,
-  },
-  startDayHour: {
+  },  startDayHour: {
     color: '#64748b',
     fontSize: 14,
     fontWeight: '400',
+  },  // Enhanced Statistics Container Styles (Updated for Consistency)
+  enhancedStatsContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12, // Reduced from 16
+    padding: 16, // Reduced from 20
+    marginBottom: 16, // Reduced from 20
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 }, // Reduced shadow
+    shadowOpacity: 0.03, // Reduced from 0.05
+    shadowRadius: 4, // Reduced from 8
+    elevation: 1, // Reduced from 2
+  },
+  statsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16, // Reduced from 20
+  },
+  statsTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statsIconWrapper: {
+    marginRight: 10, // Reduced from 12
+    padding: 3, // Reduced from 4
+  },
+  statsTitle: {
+    fontSize: 18, // Reduced from 20
+    fontWeight: '600', // Reduced from '700'
+    color: '#1e293b',
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 10, // Reduced from 12
+    paddingVertical: 6, // Reduced from 8
+    borderRadius: 10, // Reduced from 12
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  statsDate: {
+    fontSize: 11, // Reduced from 12
+    color: '#64748b',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  statCard: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statIconContainer: {
+    width: 36, // Reduced from 40
+    height: 36, // Reduced from 40
+    borderRadius: 18, // Reduced from 20
+    backgroundColor: '#f8fafc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6, // Reduced from 8
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  statValue: {
+    fontSize: 18, // Reduced from 20
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: 3, // Reduced from 4
+  },
+  statLabel: {
+    fontSize: 11, // Reduced from 12
+    color: '#64748b',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  statDivider: {
+    width: 1,
+    height: 36, // Reduced from 40
+    backgroundColor: '#e5e7eb',
+    marginHorizontal: 12, // Reduced from 16
+  },// Incident Card Styles (Legacy - Replaced by enhanced version)
+  incidentSeverityBadge: {
+    backgroundColor: '#fee2e2',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+  },
+  incidentSeverityText: {
+    color: '#b91c1c',
+    fontSize: 11,
+    fontWeight: '600',
   },
 });
