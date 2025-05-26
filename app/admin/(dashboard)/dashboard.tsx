@@ -1,24 +1,25 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    Alert,
-    Dimensions,
-    FlatList,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  FlatList,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { theme } from "../../../src/constants/theme";
 import {
-    mockActivities,
-    mockDrones,
-    mockIncidents,
-    mockProjects,
-    mockTurbines,
+  mockActivities,
+  mockDrones,
+  mockIncidents,
+  mockProjects,
+  mockTurbines,
 } from "../../../src/mocks";
 
 // Use light theme for web/mobile consistency
@@ -130,6 +131,77 @@ const getNotificationTypeDetails = (type: NotificationType) => {
       return { iconName: 'information-circle-outline' as const, iconColor: '#1E40AF', backgroundColor: '#DBEAFE' };
   }
 };
+
+// Overview Card Components
+interface OverviewCardProps {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  icon: keyof typeof MaterialIcons.glyphMap;
+  gradientColors: [string, string] | [string, string, string];
+  onPress?: () => void;
+  isLarge?: boolean;  details?: {
+    completionRate?: string;
+    onTimeRate?: string;
+    efficiency?: string;
+  };
+}
+
+const OverviewCard: React.FC<OverviewCardProps> = ({
+  title,
+  value,
+  subtitle,
+  icon,
+  gradientColors,
+  onPress,
+  isLarge = false,
+  details,
+}) => (
+  <TouchableOpacity
+    style={[styles.overviewCard, isLarge && styles.overviewCardLarge]}
+    onPress={onPress}
+    activeOpacity={0.9}
+  >    <LinearGradient
+      colors={gradientColors}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.overviewGradient, isLarge && styles.overviewGradientLarge]}
+    >
+      <View style={styles.overviewContent}>
+        <View style={styles.overviewHeader}>
+          <View style={styles.overviewIconContainer}>
+            <MaterialIcons name={icon} size={isLarge ? 28 : 24} color="white" />
+          </View>
+          <MaterialIcons name="chevron-right" size={20} color="rgba(255,255,255,0.7)" />
+        </View>
+        <View style={styles.overviewMainContent}>
+          <View style={styles.overviewInfo}>
+            <Text style={[styles.overviewValue, isLarge && styles.overviewValueLarge]}>{value}</Text>
+            <Text style={[styles.overviewTitle, isLarge && styles.overviewTitleLarge]}>{title}</Text>
+            {subtitle && (
+              <Text style={styles.overviewSubtitle}>{subtitle}</Text>
+            )}
+          </View>          {isLarge && details && (
+            <View style={styles.overviewDetails}>
+              <View style={styles.detailItem}>
+                <MaterialIcons name="check-circle" size={16} color="rgba(255,255,255,0.9)" />
+                <Text style={styles.detailText}>Completados: {details.completionRate}</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <MaterialIcons name="schedule" size={16} color="rgba(255,255,255,0.9)" />
+                <Text style={styles.detailText}>A tiempo: {details.onTimeRate}</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <MaterialIcons name="trending-up" size={16} color="rgba(255,255,255,0.9)" />
+                <Text style={styles.detailText}>Eficiencia: {details.efficiency}</Text>
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
+    </LinearGradient>
+  </TouchableOpacity>
+);
 
 interface KPICardProps {
   title: string;
@@ -262,11 +334,9 @@ const NotificationCard: React.FC<{ notification: NotificationItemData }> = ({ no
     <TouchableOpacity style={styles.notificationCard} onPress={handleNotificationPress} activeOpacity={0.8}>
       <View style={[styles.notificationIcon, { backgroundColor }]}>
         <Ionicons name={iconName} size={20} color={iconColor} />
-      </View>
-      <View style={styles.notificationContent}>
+      </View>      <View style={styles.notificationContent}>
         <Text style={styles.notificationTitle} numberOfLines={1}>{notification.title}</Text>
         <Text style={styles.notificationMessage} numberOfLines={2}>{notification.message}</Text>
-        <Text style={styles.notificationTime}>{notification.time}</Text>
       </View>
       <TouchableOpacity onPress={handleDeleteNotification} style={styles.notificationAction}>
         <Ionicons name="close-outline" size={20} color={currentTheme.textSecondary} />
@@ -279,7 +349,6 @@ export default function AdminDashboard() {
   const [selectedTimeframe, setSelectedTimeframe] = useState<
     "today" | "week" | "month"
   >("today");
-
   // Calculate KPIs from mock data
   const activeProjects = mockProjects.filter(
     (p) => p.status === "ACTIVE"
@@ -288,6 +357,25 @@ export default function AdminDashboard() {
   const completedProjects = mockProjects.filter(
     (p) => p.status === "COMPLETED"
   ).length;
+
+  // Calculate urgent projects (within 7 days deadline)
+  const urgentProjects = mockProjects.filter((p) => {
+    const daysUntilDeadline = Math.ceil(
+      (p.endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return daysUntilDeadline <= 7 && p.status === "ACTIVE";
+  }).length;
+
+  // Calculate completion rate
+  const completionRate = Math.round((completedProjects / totalProjects) * 100);
+
+  // Find next deadline
+  const nextProject = mockProjects
+    .filter(p => p.status === "ACTIVE")
+    .sort((a, b) => a.endDate.getTime() - b.endDate.getTime())[0];
+  const nextDeadline = nextProject ? 
+    new Date(nextProject.endDate).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }) : 
+    "N/A";
 
   const todayActivities = mockActivities.filter(
     (a) => a.startTime && a.startTime.toDateString() === new Date().toDateString()
@@ -414,7 +502,36 @@ export default function AdminDashboard() {
             ¡Bienvenido de vuelta! Aquí tienes tu resumen de operaciones
           </Text>
         </View>
+      </View>      {/* Overview Section */}
+      <View style={styles.overviewSection}>        <OverviewCard
+          title="Proyectos Activos"
+          value={activeProjects}
+          subtitle={`Ver mas`}
+          icon="assignment"
+          gradientColors={['#3b82f6', '#1e40af']}
+          isLarge={true}
+          onPress={() => router.push("/admin/(projects)/projects")}
+        />
+        <View style={styles.overviewBottomRow}>
+          <OverviewCard
+            title="Fotos por Aprobar"
+            value="2"
+            subtitle="Pendientes"
+            icon="photo-camera"
+            gradientColors={['#1f2937', '#111827']}
+            onPress={() => router.push("/admin/(tasks)/pictures")}
+          />
+          <OverviewCard
+            title="Rendimiento Operativo"
+            value="88%"
+            subtitle="Esta semana"
+            icon="trending-up"
+            gradientColors={['#10b981', '#059669']}
+            onPress={() => router.push("/admin/(profile)/kpisdashboard")}
+          />
+        </View>
       </View>
+
       {/* Time Filter */}
       <View style={styles.timeFilter}>
         {(["today", "week", "month"] as const).map((period) => (
@@ -426,7 +543,6 @@ export default function AdminDashboard() {
             ]}
             onPress={() => setSelectedTimeframe(period)}
           >
-            
             <Text
               style={[
                 styles.timeFilterText,
@@ -442,6 +558,7 @@ export default function AdminDashboard() {
           </TouchableOpacity>
         ))}
       </View>
+      
       {/* KPI Cards */}
       <View style={styles.kpiSection}>
         <Text style={styles.sectionTitle}>
@@ -591,14 +708,18 @@ export default function AdminDashboard() {
 const { width } = Dimensions.get("window");
 const isTablet = width > 768;
 
-const styles = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({  container: {
     flex: 1,
     backgroundColor: currentTheme.background,
+    marginHorizontal: currentTheme.dimensions.spacing.sm,
   },  header: {
-    paddingHorizontal: currentTheme.dimensions.spacing.md,
+    paddingHorizontal: currentTheme.dimensions.spacing.lg,
     paddingTop: Platform.OS === "ios" ? 60 : currentTheme.dimensions.spacing.lg,
     paddingBottom: currentTheme.dimensions.spacing.md,
+    marginHorizontal: currentTheme.dimensions.spacing.sm,
+    backgroundColor: currentTheme.card,
+    borderRadius: currentTheme.dimensions.borderRadius.medium,
+    marginBottom: currentTheme.dimensions.spacing.md,
   },
   headerContent: {
     flex: 1,
@@ -836,15 +957,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: currentTheme.text,
     marginBottom: 2,
-  },
-  notificationMessage: {
+  },  notificationMessage: {
     fontSize: currentTheme.dimensions.fontSize.xs,
     color: currentTheme.textSecondary,
     marginBottom: 4,
-  },
-  notificationTime: {
-    fontSize: currentTheme.dimensions.fontSize.xs,
-    color: currentTheme.textSecondary,
   },
   notificationAction: {
     padding: 8,
@@ -869,5 +985,96 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: currentTheme.dimensions.spacing.md,
+  },  overviewSection: {
+    marginBottom: currentTheme.dimensions.spacing.lg,
+    paddingHorizontal: currentTheme.dimensions.spacing.md,
+  },  overviewCard: {
+    marginBottom: currentTheme.dimensions.spacing.sm,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+    flex: 1, // Add flex to the card container
+  },
+  overviewCardLarge: {
+    marginBottom: currentTheme.dimensions.spacing.md,
+  },  overviewBottomRow: {
+    flexDirection: "row",
+    gap: currentTheme.dimensions.spacing.sm,
+    width: "100%",
+  },  overviewGradient: {
+    borderRadius: currentTheme.dimensions.borderRadius.medium,
+    padding: currentTheme.dimensions.spacing.lg,
+    minHeight: 140,
+    flex: 1,
+  },overviewGradientLarge: {
+    padding: currentTheme.dimensions.spacing.lg,
+    minHeight: 120, // Larger minimum height for the large card
+  },
+  overviewContent: {
+    flex: 1,
+  },
+  overviewHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: currentTheme.dimensions.spacing.md,
+  },  overviewInfo: {
+    flex: 1,
+  },  overviewIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.25)",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "rgba(0,0,0,0.1)",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  overviewValue: {
+    fontSize: currentTheme.dimensions.fontSize.xl,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 4,
+  },
+  overviewValueLarge: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 4,
+  },
+  overviewTitle: {
+    fontSize: currentTheme.dimensions.fontSize.sm,
+    color: "white",
+  },
+  overviewTitleLarge: {
+    fontSize: currentTheme.dimensions.fontSize.md,
+    fontWeight: "600",
+    color: "white",
+  },  overviewSubtitle: {
+    fontSize: currentTheme.dimensions.fontSize.xs,
+    color: "rgba(255,255,255,0.8)",
+  },
+  overviewMainContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  overviewDetails: {
+    marginLeft: currentTheme.dimensions.spacing.md,
+    gap: currentTheme.dimensions.spacing.xs,
+  },
+  detailItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  detailText: {
+    fontSize: currentTheme.dimensions.fontSize.xs,
+    color: "rgba(255,255,255,0.9)",
+    fontWeight: "500",
   },
 });
