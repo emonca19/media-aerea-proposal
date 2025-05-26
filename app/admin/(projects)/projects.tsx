@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -104,13 +104,11 @@ export default function ProjectsScreen() {
       [{ text: "OK" }]
     );
   };
-
   const handleProjectPress = (project: Project) => {
-    Alert.alert(
-      "Detalle del Proyecto",
-      `Navegando al detalle del proyecto: ${project.name}\n\nEsta funcionalidad se implementará próximamente.`,
-      [{ text: "OK" }]
-    );
+    router.push({
+      pathname: "/admin/(projects)/[id]",
+      params: { id: project.id },
+    });
   };
 
   const renderProjectItem = ({ item }: { item: Project }) => {
@@ -457,8 +455,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#f9fafb",
     borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
     gap: 12,
     borderWidth: 1,
     borderColor: "#e5e7eb",

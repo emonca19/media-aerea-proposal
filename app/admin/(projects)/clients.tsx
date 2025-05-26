@@ -173,8 +173,7 @@ export default function ClientsScreen() {
               style={styles.projectCard}
               onPress={() => {
                 router.push({
-                  pathname:
-                    "/admin/project-details" as "/admin/project-details",
+                  pathname: "/admin/projects" as "/admin/projects",
                   params: { id: project.id },
                 });
               }}

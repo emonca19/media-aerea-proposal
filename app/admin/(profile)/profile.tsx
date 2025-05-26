@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { mockAdminUsers } from "../../../src/mocks/users";
+import Constants from "expo-constants";
 
 const admin = mockAdminUsers[0];
 
@@ -127,9 +128,7 @@ export default function AdminProfile() {
             onPress={() => router.push("/admin/kpisdashboard")}
           >
             <Ionicons name="stats-chart" size={20} color="#ffffff" />
-            <Text style={styles.kpiAccessText}>
-              Ver Indicadores Completos
-            </Text>
+            <Text style={styles.kpiAccessText}>Ver Indicadores Completos</Text>
           </TouchableOpacity>
         </View>
         {/* Configuración */}
@@ -187,12 +186,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContent: {
-  },
+  scrollContent: {},
   header: {
     backgroundColor: "#ffffff",
     paddingHorizontal: 16,
-    paddingVertical: 20,
+    paddingTop: Constants.statusBarHeight, // Reduced paddingTop
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
