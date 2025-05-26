@@ -87,7 +87,7 @@ const sortedNotificationsData = [...mockNotificationsData].sort((a, b) => {
 
 const getNotificationTypeDetails = (type: NotificationType) => {
   switch (type) {
-    case 'incident_alert': return { iconName: 'shield-alert-outline' as const, iconColor: '#C2410C', backgroundColor: '#FFEDD5'};
+    case 'incident_alert': return { iconName: 'shield-half-outline' as const, iconColor: '#C2410C', backgroundColor: '#FFEDD5'};
     case 'warning': return { iconName: 'warning-outline' as const, iconColor: '#A16207', backgroundColor: '#FEF9C3'};
     case 'critical': return { iconName: 'alert-circle-outline' as const, iconColor: '#B91C1C', backgroundColor: '#FEE2E2'};
     case 'project_update': return { iconName: 'briefcase-outline' as const, iconColor: '#047857', backgroundColor: '#D1FAE5'};
@@ -110,15 +110,16 @@ const AnimatedNotificationItem = ({
   const animatedOpacity = useRef(new Animated.Value(1)).current; // Start with full opacity
   const [measuredHeight, setMeasuredHeight] = useState<number | null>(null);
   const [isLayoutDone, setIsLayoutDone] = useState(false);
-
+  const [heightSet, setHeightSet] = useState(false);
 
   useEffect(() => {
-    if (isLayoutDone && measuredHeight !== null && animatedHeight._value === 0 ) {
+    if (isLayoutDone && measuredHeight !== null && !heightSet) {
        // Set initial height for slide-in or normal display.
        // Ensure this runs only after measurement and if height is not already set.
       animatedHeight.setValue(measuredHeight);
+      setHeightSet(true);
     }
-  }, [isLayoutDone, measuredHeight, animatedHeight]);
+  }, [isLayoutDone, measuredHeight, heightSet, animatedHeight]);
 
   useEffect(() => {
     if (isRemoving && measuredHeight !== null) {
@@ -166,7 +167,13 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
   const [notifications, setNotifications] = useState<NotificationItemData[]>(sortedNotificationsData);
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const [removingItemId, setRemovingItemId] = useState<string | null>(null);
+  const [deletedNotification, setDeletedNotification] = useState<NotificationItemData | null>(null);
+  const [showUndoButton, setShowUndoButton] = useState(false);
   const flatListRef = useRef<FlatList<NotificationItemData>>(null);
+  
+  // Undo button animations
+  const undoButtonOpacity = useRef(new Animated.Value(0)).current;
+  const undoButtonTranslateY = useRef(new Animated.Value(50)).current;
 
 
   useEffect(() => {
@@ -176,33 +183,78 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
       window.__unreadNotificationsCount = unreadCount;
     }
   }, [notifications]);
+  // Handle immediate deletion with undo functionality
+  const handleDelete = (id: string) => {
+    const notificationToDelete = notifications.find(n => n.id === id);
+    if (!notificationToDelete) return;
+    
+    // Store the deleted notification for potential undo
+    setDeletedNotification(notificationToDelete);
+    
+    // Remove from current list immediately
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    
+    // Show undo button with animation
+    setShowUndoButton(true);
+    Animated.parallel([
+      Animated.timing(undoButtonOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(undoButtonTranslateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    
+    // Auto-hide undo button after 5 seconds
+    setTimeout(() => {
+      hideUndoButton();
+    }, 5000);
+  };
 
-  const confirmAndDelete = (id: string, panXRef: Animated.Value) => {
-    Alert.alert(
-      "Confirmar Eliminación",
-      "¿Estás seguro de que quieres eliminar esta notificación?",
-      [
-        {
-          text: "Cancelar",
-          style: "cancel",
-          onPress: () => {
-            // Animate back to original position if user cancels
-            Animated.spring(panXRef, {
-              toValue: 0,
-              bounciness: 5,
-              useNativeDriver: true,
-            }).start();
-          }
-        },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: () => {
-            setRemovingItemId(id); // Trigger final collapse animation
-          },
-        },
-      ]
-    );
+  const hideUndoButton = () => {
+    Animated.parallel([
+      Animated.timing(undoButtonOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(undoButtonTranslateY, {
+        toValue: 50,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowUndoButton(false);
+      setDeletedNotification(null);
+    });
+  };
+
+  const handleUndo = () => {
+    if (!deletedNotification) return;
+    
+    // Check if notification with same ID doesn't already exist (safety check)
+    const exists = notifications.find(n => n.id === deletedNotification.id);
+    if (exists) {
+      hideUndoButton();
+      return;
+    }
+    
+    // Add back the deleted notification
+    setNotifications(prev => {
+      const newList = [...prev, deletedNotification];
+      // Re-sort to maintain proper order
+      return newList.sort((a, b) => {
+        const readDiff = (a.read ? 1 : 0) - (b.read ? 1 : 0);
+        if (readDiff !== 0) return readDiff;
+        return parseTimeToMinutesAgo(a.time) - parseTimeToMinutesAgo(b.time);
+      });
+    });
+    
+    hideUndoButton();
   };
   
   const handleAnimationEnd = (id: string) => {
@@ -213,7 +265,6 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
   const handleClearAll = () => { /* ... */ Alert.alert( "Limpiar Notificaciones", "¿Eliminar todas las notificaciones? Esta acción no se puede deshacer.", [ { text: "Cancelar", style: "cancel" }, { text: "Eliminar Todas", style: "destructive", onPress: () => setNotifications([]) } ] ); };
   const handleMarkAllRead = () => { /* ... */ Alert.alert( "Marcar como Leídas", "¿Marcar todas las notificaciones como leídas?", [ { text: "Cancelar", style: "cancel" }, { text: "Marcar Todas", style: "default", onPress: () => setNotifications(prev => prev.map(n => ({ ...n, read: true }))) } ] ); };
   const handleNotificationPress = (item: NotificationItemData) => { setNotifications(prev => prev.map(n => n.id === item.id ? { ...n, read: true } : n)); if (item.type === 'project_update') { const projectItem = item as ProjectNotificationItemData; Alert.alert( "Detalles del Proyecto", `ID: ${projectItem.projectId}\nProyecto: ${projectItem.projectName}\nTarea: ${projectItem.taskSummary || 'No especificada'}\n\n(Navegar a pantalla de detalles del proyecto)`, [{ text: "Entendido" }] ); } else if (item.type === 'incident_alert') { const incidentItem = item as IncidentNotificationItemData; Alert.alert( "Alerta de Incidencia", `ID Incidencia: ${incidentItem.incidentId}\nSeveridad: ${incidentItem.severity.toUpperCase()}\nEstado: ${incidentItem.status.replace('_',' ')}\n\nDescripción: ${incidentItem.message}\n\n(Navegar a pantalla de gestión de incidencias)`, [{ text: "Ver Detalles" }] ); } else { Alert.alert(item.title, item.message, [{ text: "OK" }]); } };
-
   const renderNotificationItem = ({ item }: { item: NotificationItemData }) => {
     const typeDetails = getNotificationTypeDetails(item.type);
     return (
@@ -222,8 +273,7 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
         onAnimationEnd={() => handleAnimationEnd(item.id)}
       >
         <SwipeableNotification
-          // Pass the translateX ref to confirmAndDelete if needed for snapping back
-          onDeleteIntent={(panXRef) => confirmAndDelete(item.id, panXRef)}
+          onDeleteIntent={() => handleDelete(item.id)}
           setScrollEnabled={setScrollEnabled}
         >
           <TouchableOpacity
@@ -251,9 +301,8 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={styles.safeArea.backgroundColor} />
-      <View style={styles.container}>
-        <View style={styles.header}>
-             <Text style={styles.headerTitle}>Notificaciones</Text>
+      <View style={styles.container}>        <View style={styles.header}>
+             <Text style={styles.headerTitle}>{`Notificaciones${unreadCount > 0 ? ` (${unreadCount})` : ''}`}</Text>
           <View style={styles.headerActions}>
             {unreadCount > 0 && (
                  <TouchableOpacity onPress={handleMarkAllRead} style={styles.headerButton} accessibilityLabel="Marcar todas como leídas">
@@ -273,9 +322,7 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
              <Ionicons name="arrow-back-outline" size={15} color="#3730a3" style={{ marginRight: 6 }} />
             <Text style={styles.swipeHintText}>Desliza a la izquierda para eliminar</Text>
           </View>
-        )}
-
-        {notifications.length === 0 ? (
+        )}        {notifications.length === 0 ? (
             <View style={styles.emptyStateContainer}>
                 <Ionicons name="notifications-off-outline" size={64} color="#94a3b8" />
                 <Text style={styles.emptyStateTitle}>Todo en calma</Text>
@@ -287,10 +334,33 @@ const NotificationsScreen = ({ /* ...props... */ }) => {
             data={notifications}
             renderItem={renderNotificationItem}
             keyExtractor={item => item.id}
+            extraData={notifications.length}
             contentContainerStyle={styles.listContentContainer}
             scrollEnabled={scrollEnabled}
             showsVerticalScrollIndicator={false}
           />
+        )}
+        
+        {/* Undo Button */}
+        {showUndoButton && (
+          <Animated.View 
+            style={[
+              styles.undoContainer,
+              {
+                opacity: undoButtonOpacity,
+                transform: [{ translateY: undoButtonTranslateY }],
+              },
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.undoButton}
+              onPress={handleUndo}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="arrow-undo-outline" size={20} color="white" />
+              <Text style={styles.undoText}>Deshacer</Text>
+            </TouchableOpacity>
+          </Animated.View>
         )}
       </View>
     </SafeAreaView>
@@ -303,16 +373,18 @@ const SwipeableNotification = ({
   setScrollEnabled,
 }: {
   children: React.ReactNode;
-  onDeleteIntent: (panXRef: Animated.Value) => void; // Pass the translateX ref back
+  onDeleteIntent: () => void;
   setScrollEnabled: (enabled: boolean) => void;
 }) => {
   const translateX = useRef(new Animated.Value(0)).current;
+  const deleteOpacity = useRef(new Animated.Value(1)).current;
+  const deleteScale = useRef(new Animated.Value(1)).current;
   const SWIPE_THRESHOLD = -Dimensions.get('window').width * 0.3; // 30% of screen width
 
-  // Opacity linked to swipe gesture
+  // Opacity linked to swipe gesture - more subtle
   const swipeOpacity = translateX.interpolate({
-    inputRange: [SWIPE_THRESHOLD * 1.5, SWIPE_THRESHOLD, 0], // Start fading out before threshold
-    outputRange: [0.3, 0.6, 1], // Fade to 30% opacity when swiped far
+    inputRange: [SWIPE_THRESHOLD * 1.5, SWIPE_THRESHOLD, 0],
+    outputRange: [0.7, 0.85, 1], // More subtle fade
     extrapolate: 'clamp',
   });
 
@@ -332,8 +404,21 @@ const SwipeableNotification = ({
       onPanResponderRelease: (_, gs) => {
         setScrollEnabled(true);
         if (gs.dx < SWIPE_THRESHOLD) {
-          onDeleteIntent(translateX); // Pass translateX for potential snap back
-          // Don't immediately snap back here; let confirmAndDelete handle it
+          // Trigger delete with smooth animation
+          Animated.parallel([
+            Animated.timing(deleteOpacity, {
+              toValue: 0,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(deleteScale, {
+              toValue: 0.8,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+          ]).start(() => {
+            onDeleteIntent();
+          });
         } else {
           Animated.spring(translateX, {
             toValue: 0,
@@ -348,17 +433,16 @@ const SwipeableNotification = ({
       },
     })
   ).current;
-
   return (
     <View style={styles.swipeableContainerWrapper}>
       <View style={styles.deleteActionBackground}>
-        <Ionicons name="trash-outline" size={22} color="white" />
+        <Ionicons name="trash-outline" size={22} color="#dc2626" />
         <Text style={styles.deleteActionText}>Eliminar</Text>
       </View>
       <Animated.View
         style={{
-          transform: [{ translateX }],
-          opacity: swipeOpacity, // Apply opacity during swipe
+          transform: [{ translateX }, { scale: deleteScale }],
+          opacity: Animated.multiply(swipeOpacity, deleteOpacity),
         }}
         {...panResponder.panHandlers}
       >
@@ -386,10 +470,9 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: 'row', alignItems: 'center' },
   headerButton: { padding: 6 },
   listContentContainer: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 20 },
-  
-  swipeableContainerWrapper: {
+    swipeableContainerWrapper: {
     borderRadius: 12,
-    backgroundColor: 'rgb(69, 0, 97)',
+    backgroundColor: 'transparent',
     shadowColor: '#334155',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -400,9 +483,9 @@ const styles = StyleSheet.create({
   deleteActionBackground: {
     position: 'absolute', top: 0, bottom: 0, right: 0, width: '100%',
     flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end',
-    paddingHorizontal: 24, borderRadius: 12,
+    paddingHorizontal: 24, borderRadius: 12, backgroundColor: 'transparent',
   },
-  deleteActionText: { color: 'white', fontSize: 15, fontWeight: '500', marginLeft: 10 },
+  deleteActionText: { color: '#dc2626', fontSize: 15, fontWeight: '500', marginLeft: 10 },
   
   notificationItemOuter: {
     flexDirection: 'row',
@@ -442,13 +525,40 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: { fontSize: 20, fontWeight: '600', color: '#334155', marginTop: 20, marginBottom: 8 },
   emptyStateText: { fontSize: 15, color: '#64748b', textAlign: 'center', lineHeight: 22 },
-  
-  swipeHintContainer: {
+    swipeHintContainer: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingVertical: 10, backgroundColor: '#e0e7ff',
     marginHorizontal: 16, borderRadius: 8, marginTop: 12, marginBottom: 10,
   },
   swipeHintText: { color: '#3730a3', fontSize: 13, fontWeight: '500' },
+  
+  // Undo button styles
+  undoContainer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 20,
+    right: 20,
+    alignItems: 'center',
+  },
+  undoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#374151',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  undoText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
 });
 
 export default NotificationsScreen;
