@@ -1,4 +1,8 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import {
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -22,6 +26,7 @@ import {
 } from "../../../src/mocks";
 import { ProjectAssignment } from "../../../src/types/assignments";
 import { Project } from "../../../src/types/projects";
+import { typography } from "@/src/styles";
 
 export default function AssignmentsScreen() {
   const params = useLocalSearchParams();
@@ -44,12 +49,12 @@ export default function AssignmentsScreen() {
   const [showTurbinesModal, setShowTurbinesModal] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-
   useEffect(() => {
     if (preselectedProjectId) {
       const project = mockProjects.find((p) => p.id === preselectedProjectId);
       if (project) {
         setSelectedProject(project);
+        setSelectedTurbines([]); // Clear turbines when project is preselected
       }
     }
   }, [preselectedProjectId]);
@@ -121,12 +126,12 @@ export default function AssignmentsScreen() {
       Alert.alert("Error", "Debe especificar las fechas de inicio y fin");
       return;
     }
-
     const newAssignment: ProjectAssignment = {
       id: `assign_${Date.now()}`,
       projectId: selectedProject.id,
       pilotIds: [selectedPilot],
       droneIds: [selectedDrone],
+      turbineIds: selectedTurbines,
       estimatedStartDate: estimatedStartDate,
       estimatedEndDate: estimatedEndDate,
       estimatedDuration: estimatedDuration,
@@ -164,7 +169,7 @@ export default function AssignmentsScreen() {
   const renderProjectSelector = () => (
     <View style={styles.section}>
       <View style={styles.sectionTitleContainer}>
-        <MaterialIcons name="assignment" size={24} color="#3b82f6" />
+        <Ionicons name="document-text" size={24} color="#9C46CE" />
         <Text style={styles.sectionTitle}>Proyecto</Text>
       </View>
       <TouchableOpacity
@@ -187,13 +192,14 @@ export default function AssignmentsScreen() {
       </TouchableOpacity>
     </View>
   );
-  const renderAvailabilitySection = () => (
+  const renderTurbinesSection = () => (
     <View style={styles.section}>
       <View style={styles.sectionTitleContainer}>
-        <MaterialIcons
-          name="people"
+        
+        <MaterialCommunityIcons
+          name="wind-turbine"
           size={24}
-          color={selectedProject ? "#10b981" : "#9ca3af"}
+          color={selectedProject ? "#9C46CE" : "#9ca3af"}
         />
         <Text
           style={[
@@ -201,22 +207,102 @@ export default function AssignmentsScreen() {
             { color: selectedProject ? "#1f2937" : "#9ca3af" },
           ]}
         >
-          Disponibilidad de Personal y Equipos
+          Turbinas del Proyecto
         </Text>
       </View>
 
       {!selectedProject && (
         <Text style={styles.disabledSectionText}>
-          Selecciona un proyecto primero para ver la disponibilidad
+          Selecciona un proyecto primero para ver las turbinas disponibles
         </Text>
       )}
 
       {selectedProject && (
+        <View style={styles.subsection}>
+          <TouchableOpacity
+            style={styles.resourceSelector}
+            onPress={() => setShowTurbinesModal(true)}
+          >
+            <View style={styles.resourceSelectorContent}>
+              {selectedTurbines.length > 0 ? (
+                <View>
+                  <Text style={styles.resourceSelectedCount}>
+                    {selectedTurbines.length} turbina
+                    {selectedTurbines.length > 1 ? "s" : ""} seleccionada
+                    {selectedTurbines.length > 1 ? "s" : ""}
+                  </Text>
+                  <Text style={styles.resourceSelectedNames}>
+                    {selectedTurbines
+                      .map((turbineId) => {
+                        const turbine = mockTurbines.find(
+                          (t) => t.id === turbineId
+                        );
+                        return turbine?.name;
+                      })
+                      .join(", ")}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.placeholderText}>
+                  Seleccionar turbinas...
+                </Text>
+              )}
+            </View>
+            <View style={styles.resourceSelectorIndicator}>
+              <Text style={styles.resourceBadge}>
+                {selectedTurbines.length}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color="#6b7280" />
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+
+  const renderAvailabilitySection = () => (
+    <View style={styles.section}>
+      <View style={styles.sectionTitleContainer}>
+        <MaterialCommunityIcons
+          name="tools"
+          size={24}
+          color={
+            selectedProject && selectedTurbines.length > 0
+              ? "#10b981"
+              : "#9ca3af"
+          }
+        />
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              color:
+                selectedProject && selectedTurbines.length > 0
+                  ? "#1f2937"
+                  : "#9ca3af",
+            },
+          ]}
+        >
+          Disponibilidad de Recursos
+        </Text>
+      </View>
+
+      {(!selectedProject || selectedTurbines.length === 0) && (
+        <Text style={styles.disabledSectionText}>
+          Selecciona un proyecto y turbinas primero para ver la disponibilidad
+        </Text>
+      )}
+
+      {selectedProject && selectedTurbines.length > 0 && (
         <>
           {/* Pilots Selector */}
           <View style={styles.subsection}>
             <View style={styles.subsectionTitleContainer}>
-              <MaterialIcons name="person" size={18} color="#10b981" />
+              <MaterialCommunityIcons
+                name="account"
+                size={18}
+                color="#10b981"
+              />
               <Text style={styles.subsectionTitle}>
                 Pilotos Disponibles ({availablePilots.length})
               </Text>
@@ -225,7 +311,6 @@ export default function AssignmentsScreen() {
               style={styles.resourceSelector}
               onPress={() => setShowPilotsModal(true)}
             >
-              
               <View style={styles.resourceSelectorContent}>
                 {selectedPilot ? (
                   <Text style={styles.resourceSelectedSingle}>
@@ -249,7 +334,7 @@ export default function AssignmentsScreen() {
           {/* Drones Selector */}
           <View style={styles.subsection}>
             <View style={styles.subsectionTitleContainer}>
-              <MaterialIcons name="flight" size={18} color="#10b981" />
+              <MaterialCommunityIcons name="drone" size={18} color="#10b981" />
               <Text style={styles.subsectionTitle}>
                 Drones Disponibles ({availableDrones.length})
               </Text>
@@ -258,7 +343,6 @@ export default function AssignmentsScreen() {
               style={styles.resourceSelector}
               onPress={() => setShowDronesModal(true)}
             >
-              
               <View style={styles.resourceSelectorContent}>
                 {selectedDrone ? (
                   <Text style={styles.resourceSelectedSingle}>
@@ -274,50 +358,6 @@ export default function AssignmentsScreen() {
                 )}
               </View>
               <View style={styles.resourceSelectorIndicator}>
-                <Ionicons name="chevron-down" size={20} color="#6b7280" />
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Turbines Selector */}
-          <View style={styles.subsection}>
-            <View style={styles.subsectionTitleContainer}>
-              <MaterialIcons name="settings" size={18} color="#10b981" />
-              <Text style={styles.subsectionTitle}>Turbinas del Proyecto</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.resourceSelector}
-              onPress={() => setShowTurbinesModal(true)}
-            >
-              <View style={styles.resourceSelectorContent}>
-                {selectedTurbines.length > 0 ? (
-                  <View>
-                    <Text style={styles.resourceSelectedCount}>
-                      {selectedTurbines.length} turbina
-                      {selectedTurbines.length > 1 ? "s" : ""} seleccionada
-                      {selectedTurbines.length > 1 ? "s" : ""}
-                    </Text>
-                    <Text style={styles.resourceSelectedNames}>
-                      {selectedTurbines
-                        .map((turbineId) => {
-                          const turbine = mockTurbines.find(
-                            (t) => t.id === turbineId
-                          );
-                          return turbine?.name;
-                        })
-                        .join(", ")}
-                    </Text>
-                  </View>
-                ) : (
-                  <Text style={styles.placeholderText}>
-                    Seleccionar turbinas...
-                  </Text>
-                )}
-              </View>
-              <View style={styles.resourceSelectorIndicator}>
-                <Text style={styles.resourceBadge}>
-                  {selectedTurbines.length}
-                </Text>
                 <Ionicons name="chevron-down" size={20} color="#6b7280" />
               </View>
             </TouchableOpacity>
@@ -367,7 +407,7 @@ export default function AssignmentsScreen() {
                       ? estimatedStartDate.toLocaleDateString()
                       : "Seleccionar fecha"}
                   </Text>
-                  <Ionicons name="calendar" size={20} color="#3b82f6" />
+                  <Ionicons name="calendar" size={20} color="#9C46CE" />
                 </TouchableOpacity>
               </View>
 
@@ -382,7 +422,7 @@ export default function AssignmentsScreen() {
                       ? estimatedEndDate.toLocaleDateString()
                       : "Seleccionar fecha"}
                   </Text>
-                  <Ionicons name="calendar" size={20} color="#3b82f6" />
+                  <Ionicons name="calendar" size={20} color="#9C46CE" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -431,7 +471,7 @@ export default function AssignmentsScreen() {
                       type="date"
                       style={{
                         padding: 12,
-                        fontSize: 16,
+                        ...typography.body,
                         border: `1px solid #d1d5db`,
                         borderRadius: 8,
                         marginBottom: 16,
@@ -482,7 +522,7 @@ export default function AssignmentsScreen() {
                       type="date"
                       style={{
                         padding: 12,
-                        fontSize: 16,
+                        ...typography.body,
                         border: `1px solid #d1d5db`,
                         borderRadius: 8,
                         marginBottom: 16,
@@ -551,6 +591,7 @@ export default function AssignmentsScreen() {
                 ]}
                 onPress={() => {
                   setSelectedProject(project);
+                  setSelectedTurbines([]); // Clear previously selected turbines when project changes
                   setShowProjectModal(false);
                 }}
               >
@@ -703,21 +744,24 @@ export default function AssignmentsScreen() {
       case "PAUSED":
         return "#f59e0b";
       case "FINISHED":
-        return "#3b82f6";
+        return "#9C46CE";
       case "COMPLETED":
         return "#8b5cf6";
       default:
         return "#6b7280";
     }
   };
-
   const renderTurbinesModal = () => {
     // Get turbines for the selected project
     const projectWindPark = selectedProject
       ? mockWindParks.find((p) => p.projectId === selectedProject.id)
       : null;
+    // Only show turbines that haven't been started yet for assignment
     const availableTurbines = projectWindPark
-      ? mockTurbines.filter((t) => t.windParkId === projectWindPark.id)
+      ? mockTurbines.filter(
+          (t) =>
+            t.windParkId === projectWindPark.id && t.status === "NOT_STARTED"
+        )
       : [];
 
     return (
@@ -738,10 +782,11 @@ export default function AssignmentsScreen() {
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.modalContent}>
+            
             {availableTurbines.length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyStateText}>
-                  No hay turbinas disponibles para este proyecto
+                  No hay turbinas disponibles sin iniciar para este proyecto
                 </Text>
               </View>
             ) : (
@@ -840,6 +885,7 @@ export default function AssignmentsScreen() {
       />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {renderProjectSelector()}
+        {renderTurbinesSection()}
         {renderAvailabilitySection()}
         {renderDurationAndDates()}
         <View style={styles.finalSection}>
@@ -891,18 +937,15 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 12,
-    paddingTop: 12,
+    paddingHorizontal: 15,
   },
   section: {
-    paddingHorizontal: 6,
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    ...typography.heading3,
     color: "#1f2937",
     marginLeft: 8,
   },
@@ -913,12 +956,9 @@ const styles = StyleSheet.create({
   },
   subsection: {
     marginBottom: 20,
-    paddingLeft: 12,
   },
   subsectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
+    ...typography.bodyMedium,
     marginLeft: 8,
   },
   subsectionTitleContainer: {
@@ -927,9 +967,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   disabledSectionText: {
-    fontSize: 14,
+    ...typography.body,
     color: "#9ca3af",
-    fontStyle: "italic",
     textAlign: "center",
     paddingVertical: 20,
   },
@@ -945,17 +984,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   projectName: {
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
     color: "#1f2937",
     marginBottom: 4,
   },
   projectDescription: {
-    fontSize: 14,
+    ...typography.caption,
     color: "#6b7280",
   },
   placeholderText: {
-    fontSize: 16,
+    ...typography.body,
     color: "#9ca3af",
   },
   availabilityCard: {
@@ -966,7 +1004,7 @@ const styles = StyleSheet.create({
     borderColor: "#e5e7eb",
   },
   selectedCard: {
-    borderColor: "#3b82f6",
+    borderColor: "#9C46CE",
     backgroundColor: "#f8fafc",
   },
   cardHeader: {
@@ -979,8 +1017,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
     color: "#1f2937",
     marginBottom: 6,
   },
@@ -1000,23 +1037,18 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: "500",
+    ...typography.caption,
     color: "#16a34a",
   },
   selectionIndicator: {
     marginLeft: 12,
   },
   availabilityText: {
-    fontSize: 14,
-    color: "#6b7280",
+    ...typography.caption,
     marginBottom: 8,
-    fontWeight: "500",
   },
   availabilityWindow: {
-    fontSize: 13,
-    color: "#374151",
-    fontWeight: "400",
+    ...typography.caption,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -1033,15 +1065,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
+    ...typography.bodyMedium,
     color: "#374151",
     marginBottom: 8,
   },
   input: {
     borderRadius: 8,
     padding: 12,
-    fontSize: 16,
+    ...typography.body,
     color: "#1f2937",
     borderWidth: 1,
     borderColor: "#d1d5db",
@@ -1055,10 +1086,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   durationText: {
-    fontSize: 16,
-    color: "#1f2937",
+    ...typography.bodyMedium,
     marginLeft: 8,
-    fontWeight: "600",
   },
   dateButton: {
     borderRadius: 8,
@@ -1070,8 +1099,7 @@ const styles = StyleSheet.create({
     borderColor: "#d1d5db",
   },
   dateButtonText: {
-    fontSize: 16,
-    color: "#374151",
+    ...typography.bodyMedium,
   },
   notesContainer: {
     marginBottom: 16,
@@ -1081,14 +1109,14 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   confirmButton: {
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#9C46CE",
     borderRadius: 12,
     padding: 18,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 32,
-    shadowColor: "#3b82f6",
+    shadowColor: "#9C46CE",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -1101,8 +1129,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: "white",
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.button,
     marginLeft: 8,
   },
   modalContainer: {
@@ -1121,8 +1148,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    ...typography.heading3,
     color: "#1f2937",
   },
   modalCloseButton: {
@@ -1140,17 +1166,16 @@ const styles = StyleSheet.create({
     borderColor: "#e5e7eb",
   },
   selectedProjectCard: {
-    borderColor: "#3b82f6",
+    borderColor: "#9C46CE",
     backgroundColor: "#f8fafc",
   },
   projectCardName: {
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
     color: "#1f2937",
     marginBottom: 6,
   },
   projectCardDescription: {
-    fontSize: 14,
+    ...typography.caption,
     color: "#6b7280",
     marginBottom: 12,
     lineHeight: 20,
@@ -1161,9 +1186,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   projectCardDetail: {
-    fontSize: 14,
+    ...typography.caption,
     color: "#374151",
-    fontWeight: "500",
   },
   projectStatusBadge: {
     paddingHorizontal: 12,
@@ -1171,8 +1195,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   projectStatusText: {
-    fontSize: 12,
-    fontWeight: "600",
+    ...typography.caption,
     color: "white",
   },
   datePickerModal: {
@@ -1194,22 +1217,19 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   datePickerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
+    ...typography.heading3,
     marginBottom: 16,
     textAlign: "center",
   },
   datePickerCloseButton: {
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#9C46CE",
     borderRadius: 8,
     padding: 12,
     alignItems: "center",
   },
   datePickerCloseText: {
     color: "white",
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
   },
   finalSection: {
     paddingHorizontal: 16,
@@ -1237,26 +1257,21 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   resourceSelectedCount: {
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
     color: "#1f2937",
     marginBottom: 4,
   },
   resourceSelectedNames: {
-    fontSize: 14,
-    color: "#6b7280",
-    lineHeight: 18,
+    ...typography.caption,
   },
   resourceSelectedSingle: {
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
     color: "#1f2937",
   },
   resourceBadge: {
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#9C46CE",
     color: "white",
-    fontSize: 12,
-    fontWeight: "600",
+    ...typography.caption,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -1270,10 +1285,9 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyStateText: {
-    fontSize: 16,
+    ...typography.bodyMedium,
     color: "#9ca3af",
     textAlign: "center",
-    fontStyle: "italic",
   },
   modalFooter: {
     paddingHorizontal: 20,
@@ -1302,8 +1316,7 @@ const styles = StyleSheet.create({
   },
   confirmSelectionButtonText: {
     color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
     marginLeft: 8,
   },
   confirmSelectionButtonTextDisabled: {
