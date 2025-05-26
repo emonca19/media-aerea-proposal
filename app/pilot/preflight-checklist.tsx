@@ -15,7 +15,10 @@ import {
   View,
 } from 'react-native';
 import { Card } from '../../src/components/common';
-import { mockTurbines } from '../../src/mocks/index';
+import { mockActivities } from "../../src/mocks/activities";
+import { mockTurbines } from "../../src/mocks/turbines";
+import { Activity } from "../../src/types/activities";
+import { Turbine } from "../../src/types/turbines";
 
 // Define the type for icon names from MaterialCommunityIcons
 type MaterialCommunityIconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -29,6 +32,12 @@ interface ChecklistItem {
   item: string;
   checked: boolean;
   notes?: string;
+}
+
+// Define PreflightChecklistRouteParams for useLocalSearchParams
+interface PreflightChecklistRouteParams {
+  turbineId?: string;
+  activityToStart?: string;
 }
 
 const initialPreflightChecklist: ChecklistItem[] = [
@@ -50,26 +59,89 @@ const categoryIcons: Record<Category, MaterialCommunityIconName> = {
   'Condiciones': 'weather-cloudy'
 };
 
-export default function PreflightChecklistScreen() {
-  const params = useLocalSearchParams<{ turbineId?: string; activityToStart?: string }>();
-  const { turbineId, activityToStart } = params; // activityToStart here is the critical one
+const PreflightChecklistScreen = () => {
+  const params = useLocalSearchParams();
   const router = useRouter();
+
+  const turbineIdFromRoute = Array.isArray(params.turbineId) ? params.turbineId[0] : params.turbineId;
+  const activityToStartIdFromRoute = Array.isArray(params.activityToStart) ? params.activityToStart[0] : params.activityToStart;
+
   const [preflightChecklist, setPreflightChecklist] = useState(initialPreflightChecklist);
   const [generalNotes, setGeneralNotes] = useState('');
   const [expandedCategory, setExpandedCategory] = useState<Category[]>([]);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [mediaLibraryPermission, requestMediaLibraryPermission] = ImagePicker.useMediaLibraryPermissions();
   const [photoTakenCategories, setPhotoTakenCategories] = useState<Category[]>([]);
+  
+  const [currentActivityToStart, setCurrentActivityToStart] = useState<Activity | null>(null);
+  const [currentTurbine, setCurrentTurbine] = useState<Turbine | null>(null);
 
-  const turbine = turbineId ? mockTurbines.find(t => t.id === turbineId) : null;
-
-  // Add this useEffect to log received parameters
   useEffect(() => {
-    console.log('[PreflightChecklistScreen] Received params on load/change:', JSON.stringify(params));
-    console.log('[PreflightChecklistScreen] Parsed turbineId from params:', turbineId);
-    console.log('[PreflightChecklistScreen] Parsed activityToStart (activity ID) from params:', activityToStart);
-    console.log('[PreflightChecklistScreen] Derived turbine object (ID if exists, else null):', turbine ? turbine.id : 'null');
-  }, [params, turbineId, activityToStart, turbine]); // Corrected dependencies array
+    console.log(
+      "[PreflightChecklistScreen] useEffect - Params received on load/change:",
+      { turbineIdParam: turbineIdFromRoute, activityIdParam: activityToStartIdFromRoute }
+    );
+
+    let determinedActivity: Activity | null = null;
+    let determinedTurbine: Turbine | null = null;
+
+    if (activityToStartIdFromRoute) {
+      const foundActivity = mockActivities.find(act => act.id === activityToStartIdFromRoute);
+      if (foundActivity) {
+        determinedActivity = foundActivity;
+        console.log("[PreflightChecklistScreen] useEffect - Found activity from activityIdParam:", determinedActivity.id);
+
+        if (determinedActivity.turbineId) {
+          const normalizedActivityTurbineId = determinedActivity.turbineId.replace(/-/g, '_');
+          const turbineForActivity = mockTurbines.find(t => t.id === normalizedActivityTurbineId);
+          if (turbineForActivity) {
+            determinedTurbine = turbineForActivity;
+            console.log(`[PreflightChecklistScreen] useEffect - Activity '${determinedActivity.id}' turbineId '${determinedActivity.turbineId}' (norm: '${normalizedActivityTurbineId}'). Found turbine: ${determinedTurbine.id}`);
+          } else {
+            console.warn(`[PreflightChecklistScreen] useEffect - Turbine for activity '${determinedActivity.id}' (turbineId '${determinedActivity.turbineId}', norm: '${normalizedActivityTurbineId}') not found. Available mock turbine IDs: ${mockTurbines.map(t => t.id).join(', ')}`);
+          }
+        } else if (turbineIdFromRoute) { 
+          const normalizedTurbineIdParam = turbineIdFromRoute.replace(/-/g, '_');
+          const turbineFromParam = mockTurbines.find(t => t.id === normalizedTurbineIdParam);
+          if (turbineFromParam) {
+            determinedTurbine = turbineFromParam;
+            console.log(`[PreflightChecklistScreen] useEffect - Activity '${determinedActivity.id}' has no turbineId. Used route turbineId '${turbineIdFromRoute}' (norm: '${normalizedTurbineIdParam}'). Found turbine: ${determinedTurbine.id}`);
+          } else {
+            console.warn(`[PreflightChecklistScreen] useEffect - Activity '${determinedActivity.id}' has no turbineId. Route turbineId '${turbineIdFromRoute}' (norm: '${normalizedTurbineIdParam}') not found. Available mock turbine IDs: ${mockTurbines.map(t => t.id).join(', ')}`);
+          }
+        } else {
+          console.log(`[PreflightChecklistScreen] useEffect - Activity '${determinedActivity.id}' has no turbineId, and no fallback turbineIdFromRoute param.`);
+        }
+      } else { 
+        console.warn(`[PreflightChecklistScreen] useEffect - Activity with id '${activityToStartIdFromRoute}' not found.`);
+        if (turbineIdFromRoute) { 
+          const normalizedTurbineIdParam = turbineIdFromRoute.replace(/-/g, '_');
+          const turbineFromParam = mockTurbines.find(t => t.id === normalizedTurbineIdParam);
+          if (turbineFromParam) {
+            determinedTurbine = turbineFromParam;
+            console.log(`[PreflightChecklistScreen] useEffect - Activity '${activityToStartIdFromRoute}' (not found). Used route turbineId '${turbineIdFromRoute}' (norm: '${normalizedTurbineIdParam}'). Found turbine: ${determinedTurbine.id}`);
+          } else {
+            console.warn(`[PreflightChecklistScreen] useEffect - Activity '${activityToStartIdFromRoute}' (not found). Route turbineId '${turbineIdFromRoute}' (norm: '${normalizedTurbineIdParam}') also not found. Available mock turbine IDs: ${mockTurbines.map(t => t.id).join(', ')}`);
+          }
+        }
+      }
+    } else if (turbineIdFromRoute) { 
+      const normalizedTurbineIdParam = turbineIdFromRoute.replace(/-/g, '_');
+      const turbineFromParam = mockTurbines.find(t => t.id === normalizedTurbineIdParam);
+      if (turbineFromParam) {
+        determinedTurbine = turbineFromParam;
+        console.log(`[PreflightChecklistScreen] useEffect - No activityIdParam. Used route turbineId '${turbineIdFromRoute}' (norm: '${normalizedTurbineIdParam}'). Found turbine: ${determinedTurbine.id}`);
+      } else {
+        console.warn(`[PreflightChecklistScreen] useEffect - No activityIdParam. Route turbineId '${turbineIdFromRoute}' (norm: '${normalizedTurbineIdParam}') not found. Available mock turbine IDs: ${mockTurbines.map(t => t.id).join(', ')}`);
+      }
+    } else {
+      console.warn("[PreflightChecklistScreen] useEffect - Neither activityIdParam nor turbineIdParam provided.");
+    }
+
+    setCurrentActivityToStart(determinedActivity);
+    setCurrentTurbine(determinedTurbine);
+
+  }, [turbineIdFromRoute, activityToStartIdFromRoute]);
 
   const handleToggleItem = (id: string) => {
     setPreflightChecklist(prev =>
@@ -87,7 +159,6 @@ export default function PreflightChecklistScreen() {
         return;
       }
     }
-
     if (!mediaLibraryPermission?.granted) {
       const permissionResult = await requestMediaLibraryPermission();
       if (!permissionResult.granted) {
@@ -95,19 +166,14 @@ export default function PreflightChecklistScreen() {
         return;
       }
     }
-
     try {
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: 'images',
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: false,
-        aspect: [4, 3],
         quality: 1,
       });
-
       if (!result.canceled) {
-        console.log('ImagePicker Result:', result.assets ? result.assets[0].uri : 'No assets');
-        // Here you can handle the taken image, e.g., save its URI
-        // Alert.alert('Photo Taken', `Photo for ${category} taken successfully! URI: ${result.assets ? result.assets[0].uri : 'N/A'}`);
+        console.log('ImagePicker Result URI:', result.assets ? result.assets[0].uri : 'No assets');
         if (!photoTakenCategories.includes(category)) {
           setPhotoTakenCategories(prev => [...prev, category]);
         }
@@ -125,70 +191,88 @@ export default function PreflightChecklistScreen() {
         : [...prevExpandedCategories, category]
     );
   };
-  const handleSubmitPreflight = () => {
-    const uncheckedItems = preflightChecklist.filter(item => !item.checked);
-    
-    // Ya no requerimos que todas las fotos estén tomadas
-    if (uncheckedItems.length > 0) {
-      Alert.alert(
-        'Lista Incompleta',
-        '¿Estás seguro de que quieres iniciar el vuelo con elementos sin verificar?',
-        [
-          { text: 'Revisar', style: 'cancel' },
-          { text: 'Continuar', onPress: submitChecklist }
-        ]
-      );
-    } else {
-      submitChecklist();
-    }
-  };
   
-  const submitChecklist = () => {
-    console.log('[PreflightChecklistScreen] submitChecklist called.');
-    console.log('[PreflightChecklistScreen] submitChecklist - current activityToStart (param):', activityToStart);
-    console.log('[PreflightChecklistScreen] submitChecklist - current turbineId (param):', turbineId);
-    console.log('[PreflightChecklistScreen] submitChecklist - current turbine (object):', turbine ? turbine.id : 'null');
+  const handleSubmitPreflight = () => {
+    // This function is called for the general preflight checklist.
+    // The submit button (for general preflight) is disabled if not all items are checked,
+    // ensuring that by the time this function is invoked, the checklist is complete.
+    // Therefore, no further checks for completeness or alerts for incomplete items are needed here.
+    submitChecklist();
+  };
 
-    if (activityToStart) {
-      console.log('[PreflightChecklistScreen] submitChecklist: Navigating with activityToStartAfterPreflight.');
-      router.replace({
-        pathname: '/pilot/dashboard',
-        params: {
-          activityToStartAfterPreflight: String(activityToStart),
-          preflightCompletedForTurbine: 'true',
-          turbineIdForActivityStart: turbine ? turbine.id : (typeof turbineId === 'string' ? turbineId : undefined),
-        }
-      });
-    } else if (turbine) {
-      console.log('[PreflightChecklistScreen] submitChecklist: Navigating with turbineIdForActivityStart (no pre-existing activity ID).');
-      router.replace({
-        pathname: '/pilot/dashboard',
-        params: {
-          preflightCompletedForTurbine: 'true',
-          turbineIdForActivityStart: turbine.id,
-        }
-      });
-    } else {
-      // This is the log you are seeing
-      console.warn("[PreflightChecklistScreen] submitChecklist: Neither activityToStart (param) nor turbine (object) are present. Returning to dashboard without specific start parameters.");
-      router.push('/pilot/dashboard');
+  const submitChecklist = async () => {
+    // Derive activityId to start: use route param or fallback to determined activity state
+    const activityIdToPass = activityToStartIdFromRoute ?? currentActivityToStart?.id;
+    const turbineIdToPass = currentTurbine?.id ? currentTurbine.id.replace(/-/g, '_') : undefined;
+
+    console.log('[PreflightChecklistScreen] submitChecklist: currentTurbine (state for nav):', currentTurbine ? currentTurbine.id : 'null');
+    console.log('[PreflightChecklistScreen] submitChecklist: currentActivityToStart (state for context):', currentActivityToStart ? currentActivityToStart.id : 'null');
+    console.log('[PreflightChecklistScreen] submitChecklist: resolved activityIdToPass:', activityIdToPass);
+    // console.log('[PreflightChecklistScreen] submitChecklist: activityToStartIdFromRoute (original param to send back):', activityIdToPass);
+    console.log('[PreflightChecklistScreen] submitChecklist: turbineIdForNav (normalized, derived from currentTurbine state):', turbineIdToPass);
+
+    const navigationParams: Record<string, string | boolean | number | undefined> = { timestamp: Date.now() };
+
+    if (activityIdToPass) {
+      navigationParams.activityToStartAfterPreflight = activityIdToPass;
     }
+
+    if (turbineIdToPass) {
+      navigationParams.turbineIdForActivityStart = turbineIdToPass;
+      navigationParams.preflightCompletedForTurbine = true;
+    } else {
+      navigationParams.preflightCompletedForTurbine = false;
+    }
+
+    // Ensure undefined is not passed for string params if not set, router might handle it, but explicit is better.
+    if (!navigationParams.activityToStartAfterPreflight) delete navigationParams.activityToStartAfterPreflight;
+    if (!navigationParams.turbineIdForActivityStart) delete navigationParams.turbineIdForActivityStart;
+
+    // Final log for navigation params
+    console.log('[PreflightChecklistScreen] FINAL NAV PARAMS:', JSON.stringify(navigationParams));
+
+    if (Object.keys(navigationParams).length > 1 || navigationParams.preflightCompletedForTurbine) { 
+        console.log(`[PreflightChecklistScreen] submitChecklist: Navigating to PilotDashboard with params:`, navigationParams);
+    } else {
+        console.warn("[PreflightChecklistScreen] submitChecklist: Context unclear or no specific action. Returning to dashboard generally.", navigationParams);
+    }
+
+    // Build query string manually for navigation to ensure params are passed on web
+    const queryParams = new URLSearchParams();
+    if (navigationParams.activityToStartAfterPreflight) {
+      queryParams.append('activityToStartAfterPreflight', String(navigationParams.activityToStartAfterPreflight));
+    }
+    if (navigationParams.turbineIdForActivityStart) {
+      queryParams.append('turbineIdForActivityStart', String(navigationParams.turbineIdForActivityStart));
+      queryParams.append('preflightCompletedForTurbine', String(navigationParams.preflightCompletedForTurbine));
+    }
+    // Optionally include timestamp to force route change if needed
+    // queryParams.append('timestamp', String(navigationParams.timestamp));
+    const dashboardUrl = `/pilot/dashboard${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    console.log('[PreflightChecklistScreen] submitChecklist: Navigating via URL:', dashboardUrl);
+    router.push(dashboardUrl as unknown as any);
   };
 
   const getCompletionPercentage = (category?: Category) => {
     const items = category ? 
       preflightChecklist.filter(i => i.category === category) : 
       preflightChecklist;
-      
+    if (items.length === 0) return 100;
     const checked = items.filter(i => i.checked).length;
     return Math.round((checked / items.length) * 100);
   };
+
+  const isGeneralPreflight = !currentTurbine;
+  const allGeneralItemsChecked = preflightChecklist.every(item => item.checked);
+  // Button is disabled for general preflight if not all items are checked.
+  // For turbine-specific, button is always enabled (simplified flow).
+  const generalSubmitButtonDisabled = isGeneralPreflight && !allGeneralItemsChecked;
 
   return (
     <View style={styles.container}>
       <Stack.Screen
         options={{
-          title: turbine ? `Inspección - ${turbine.name}` : 'Checklist Prevuelo',
+          title: currentTurbine ? `Checklist Turbina ${currentTurbine.name}` : 'Checklist Prevuelo General',
           headerStyle: { backgroundColor: '#ffffff' },
           headerTintColor: '#4338ca',
           headerShadowVisible: false,
@@ -196,12 +280,12 @@ export default function PreflightChecklistScreen() {
       />
 
       <ScrollView style={styles.content}>
-        {!turbine ? (
+        {isGeneralPreflight ? (
           <>
             <View style={styles.header}>
-              <Text style={styles.headerTitle}>Verificación Prevuelo</Text>
+              <Text style={styles.headerTitle}>Verificación Prevuelo General</Text>
               <Text style={styles.headerSubtitle}>
-                Completa todos los checks antes de despegar
+                Completa todos los checks antes de despegar.
               </Text>
               <View style={styles.progressContainer}>
                 <View style={[styles.progressBar, { width: `${getCompletionPercentage()}%` }]} />
@@ -227,14 +311,13 @@ export default function PreflightChecklistScreen() {
                       color="#4f46e5" 
                     />
                     <Text style={styles.categoryTitle}>{category}</Text>
-                  </View>                      <TouchableOpacity 
+                  </View>
+                  <TouchableOpacity 
                     onPress={() => handleOpenCamera(category)} 
-                    style={{ 
-                      marginRight: 8, 
-                      padding: 6,
-                      backgroundColor: photoTakenCategories.includes(category) ? '#eef2ff' : 'transparent',
-                      borderRadius: 20
-                    }}
+                    style={[
+                        styles.cameraIconTouchable, 
+                        { backgroundColor: photoTakenCategories.includes(category) ? '#eef2ff' : 'transparent'}
+                    ]}
                   >
                     <MaterialCommunityIcons 
                       name="camera" 
@@ -245,7 +328,7 @@ export default function PreflightChecklistScreen() {
                   <View style={styles.categoryStatus}>
                     <Text style={styles.categoryPercentage}>
                       {getCompletionPercentage(category)}%
-                    </Text>                    
+                    </Text>
                     <MaterialCommunityIcons 
                       name={expandedCategory.includes(category) ? 'chevron-up' : 'chevron-down'} 
                       size={22} 
@@ -287,7 +370,7 @@ export default function PreflightChecklistScreen() {
             ))}
 
             <Card style={styles.notesCard}>
-              <Text style={styles.notesTitle}>Notas Adicionales</Text>
+              <Text style={styles.notesTitle}>Notas Adicionales (General)</Text>
               <TextInput
                 style={styles.notesInput}
                 multiline
@@ -296,333 +379,256 @@ export default function PreflightChecklistScreen() {
                 value={generalNotes}
                 onChangeText={setGeneralNotes}
               />
-            </Card>            <TouchableOpacity
+            </Card>
+            <TouchableOpacity
               style={[
                 styles.submitButton,
-                getCompletionPercentage() < 100 && styles.submitButtonDisabled
+                generalSubmitButtonDisabled && styles.submitButtonDisabled
               ]}
               onPress={handleSubmitPreflight}
-              disabled={getCompletionPercentage() < 100}
+              disabled={generalSubmitButtonDisabled}
             >
               <Text style={styles.submitButtonText}>
-                {getCompletionPercentage() === 100 ? 
-                  'Confirmar y Comenzar Vuelo' : 
-                  'Completar todos los checks'}
+                {generalSubmitButtonDisabled ? 
+                  'Completar todos los checks' : 
+                  'Confirmar Checklist General'}
               </Text>
             </TouchableOpacity>
           </>
         ) : (
+          // UI for Turbine-Specific Checklist
           <View style={styles.turbineContainer}>
             <View style={styles.turbineHeader}>
               <MaterialCommunityIcons name="wind-turbine" size={32} color="#4338ca" />
-              <Text style={styles.turbineTitle}>Checklist de Turbina {turbine.name}</Text>
+              <Text style={styles.turbineTitle}>Checklist para Turbina: {currentTurbine.name}</Text>
             </View>
             <Text style={styles.turbineSubtitle}>
-              Complete todas las verificaciones antes de comenzar la inspección
+              Verificaciones específicas para la inspección de {currentTurbine.name}.
+              Este checklist es simplificado y se asume completado al continuar.
             </Text>
             
-            <Card style={styles.turbineCard}>
-              <View style={styles.checklistItem}>
-                <View style={styles.itemContent}>
-                  <TickCircle size={22} color="#4f46e5" variant="Bold" />
-                  <Text style={styles.itemTextChecked}>Verificación estructural</Text>
-                </View>
-              </View>
-              <View style={styles.checklistItem}>
-                <View style={styles.itemContent}>
-                  <TickCircle size={22} color="#4f46e5" variant="Bold" />
-                  <Text style={styles.itemTextChecked}>Aspas</Text>
-                </View>
-              </View>
-              <View style={styles.checklistItem}>
-                <View style={styles.itemContent}>
-                  <CloseCircle size={22} color="#ef4444" variant="Bold" />
-                  <Text style={styles.itemText}>Sistema eléctrico</Text>
-                </View>
-                <Switch
-                  value={false}
-                  onValueChange={() => {}}
-                  trackColor={{ false: '#d1d5db', true: '#c7d2fe' }}
-                  thumbColor="#f3f4f6"
-                />
-              </View>
+            <Card style={styles.turbineInfoCard}>
+                <Text style={styles.turbineInfoText}>Turbina ID: {currentTurbine.id}</Text>
+                <Text style={styles.turbineInfoText}>Parque Eólico: {currentTurbine.windParkId}</Text>
+                <Text style={styles.turbineInfoText}>Próxima Inspección: {currentTurbine.nextInspection ? new Date(currentTurbine.nextInspection).toLocaleDateString() : 'N/A'}</Text>
+            </Card>
+
+            <Card style={styles.notesCard}> 
+              <Text style={styles.notesTitle}>Notas para {currentTurbine.name}</Text>
+              <TextInput
+                style={styles.notesInput}
+                multiline
+                placeholder={`Notas específicas para la turbina ${currentTurbine.name}...`}
+                placeholderTextColor="#9ca3af"
+                value={generalNotes}
+                onChangeText={setGeneralNotes}
+              />
             </Card>
 
             <TouchableOpacity
               style={styles.submitButton}
-              onPress={() => router.push('/pilot/activity-log')}
+              onPress={submitChecklist} // Directly call submitChecklist for turbine-specific
             >
-              <Text style={styles.submitButtonText}>Finalizar Inspección</Text>
+              <Text style={styles.submitButtonText}>Confirmar Checklist para {currentTurbine.name}</Text>
             </TouchableOpacity>
           </View>
         )}
       </ScrollView>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7ff', // Fondo más coherente con el dashboard
+    backgroundColor: '#f5f7ff',
   },
   content: {
-    padding: 20, // Más padding para dar más espacio y consistencia
+    padding: 16,
   },
   header: {
-    marginBottom: 5, 
-    padding: 22,
+    marginBottom: 20, 
+    padding: 20,
     backgroundColor: '#ffffff',
-    borderRadius: 16,
+    borderRadius: 12,
     shadowColor: '#4338ca',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
     elevation: 3,
-    borderWidth: 1,
-    borderColor: '#e5edff',
   },
   headerTitle: {
-    fontSize: 24, // Tamaño coherente con el dashboard
-    fontWeight: '700',
-    color: '#4338ca', // Color principal del sistema
-    marginBottom: 6,
-    letterSpacing: 0.2,
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#4338ca',
+    marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#64748b',
-    marginBottom: 20,
-    lineHeight: 22,
-    letterSpacing: 0.1,
+    marginBottom: 16,
   },
   progressContainer: {
-    height: 8, // Altura consistente con el dashboard
-    backgroundColor: '#e0e7ff', // Fondo azul claro
-    borderRadius: 4, // Bordes ligeramente redondeados
+    height: 8,
+    backgroundColor: '#e0e7ff',
+    borderRadius: 4,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   progressBar: {
     height: '100%',
-    borderRadius: 4,
-    backgroundColor: '#4f46e5', // Color principal violeta/azul
+    backgroundColor: '#4f46e5',
   },
   progressText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#4f46e5', // Combinando con el color de la barra
+    fontSize: 12,
+    color: '#4f46e5',
     textAlign: 'right',
-    marginTop: 6,
+    marginBottom: 8,
+  },
+  photoHint: {
+    fontSize: 12,
+    color: '#64748b',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   categoryCard: {
-    marginBottom: 5, // Más espacio entre categorías
-    borderRadius: 16, // Redondeado consistente
-    overflow: 'hidden',
-    backgroundColor: 'white',
-    shadowColor: '#4f46e5', // Sombra coordinada con color principal
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-    borderWidth: 1, // Añadimos borde
-    borderColor: '#e5edff', // Borde sutil azul claro
+    marginBottom: 16,
+    padding: 0, 
   },
   categoryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 14, // Más padding para dar espacio
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5edff',
-    backgroundColor: '#fafbff', // Fondo ligeramente distinto
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 8, 
+    borderTopRightRadius: 8,
+    borderBottomWidth: 1, 
+    borderBottomColor: '#e5e7eb',
   },
   categoryTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
   categoryTitle: {
-    fontSize: 17, 
-    fontWeight: '700',
-    color: '#4338ca', // Color más intenso similar al dashboard
-    marginLeft: 12,
-    letterSpacing: 0.2, // Espaciado de letras consistente
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#374151',
+    marginLeft: 10,
+  },
+  cameraIconTouchable: {
+    marginRight: 8,
+    padding: 6,
+    borderRadius: 20,
   },
   categoryStatus: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    backgroundColor: '#eef2ff', // Fondo más consistente con el tema violeta
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
-    minWidth: 85,
-    borderWidth: 1,
-    borderColor: '#c7d2fe', // Borde más coherente con el tema 
   },
   categoryPercentage: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#4f46e5', // Usando nuestro color azul/violeta principal
-    marginRight: 6,
+    fontSize: 14,
+    color: '#4f46e5',
+    fontWeight: '500',
+    marginRight: 8,
   },
   checklistItems: {
-    paddingHorizontal: 16, // Más espacio en los laterales
-    paddingBottom: 16,
-    paddingTop: 0,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    backgroundColor: '#fff',
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
   },
   checklistItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12, // Más espacio vertical
-    paddingHorizontal: 10, // Padding horizontal consistente
-    marginVertical: 5, // Separación consistente entre items
-    borderRadius: 10, // Redondeado coherente con otros elementos
-    backgroundColor: '#ffffff',
-    shadowColor: '#a5b4fc', // Sombra violeta muy sutil
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: '#f5f7ff', // Borde muy sutil
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
   },
   itemContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    marginRight: 12, // Más separación
+    flex: 1, 
   },
   itemText: {
-    fontSize: 16, // Ligeramente más grande
-    color: '#1f2937', // Color más oscuro para mejor legibilidad
-    marginLeft: 10, 
-    flexShrink: 1,
-    fontWeight: '600', // Más negrita
+    fontSize: 15,
+    color: '#374151',
+    marginLeft: 12,
+    flexShrink: 1, 
   },
   itemTextChecked: {
-    fontSize: 16,
-    color: '#94a3b8', // Gris más claro para items marcados
-    marginLeft: 10,
-    flexShrink: 1,
-    textDecorationLine: 'line-through',
-    fontWeight: '500',
-    fontStyle: 'italic', // Añadir estilo itálico para marcar aún más
+    color: '#10b981', 
+    textDecorationLine: 'none', 
   },
   notesCard: {
-    marginBottom: 0, // Espaciado consistente
-    marginHorizontal: 0,
-    padding: 20, // Padding más generoso
-    backgroundColor: '#ffffff',
-    borderRadius: 16, // Radio consistente con dashboard
-    shadowColor: '#4f46e5',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#e5edff', // Borde sutil que coincide con las tarjetas del dashboard
+    marginTop: 8, 
+    marginBottom: 20,
+    padding: 16,
   },
   notesTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#4338ca', // Consistente con otros títulos
-    marginBottom: 16,
-    letterSpacing: 0.3,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
   },
   notesInput: {
-    backgroundColor: '#f9faff', // Fondo sutilmente coloreado, más consistente con el dashboard
-    borderWidth: 1, // Borde consistente
-    borderColor: '#e0e7ff', // Color del borde coherente con el tema
-    borderRadius: 10,
-    padding: 16,
-    minHeight: 120, // Área más grande
+    minHeight: 100,
     textAlignVertical: 'top',
-    color: '#1f2937', // Texto más oscuro para mejor lectura
-    fontSize: 15,
-    shadowColor: '#e0e7ff', // Sombra interior sutil
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 1,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 6,
+    padding: 10,
+    fontSize: 14,
+    color: '#374151',
   },
   submitButton: {
-    backgroundColor: '#4f46e5', // Color coordinado con el nuevo esquema
-    padding: 18,
-    borderRadius: 12, // Redondeado similar al dashboard
+    backgroundColor: '#4f46e5',
+    paddingVertical: 16,
+    borderRadius: 8,
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#4338ca',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-    marginBottom: 32,
-    marginTop: 12,
+    marginTop: 10, 
   },
   submitButtonDisabled: {
-    backgroundColor: '#a5b4fc', // Color más clarito
-    opacity: 0.6,
-    shadowColor: 'transparent',
+    backgroundColor: '#a5b4fc', 
   },
   submitButtonText: {
     color: '#ffffff',
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: 0.5, // Pequeño espaciado para mejor legibilidad
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   turbineContainer: {
-    flex: 1,
+    padding: 0, 
   },
   turbineHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 18,
-    padding: 20,
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    shadowColor: '#4f46e5',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#e5edff',
+    marginBottom: 8,
+    paddingHorizontal: 4, 
   },
   turbineTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: 'bold',
     color: '#4338ca',
-    marginLeft: 16,
-    letterSpacing: 0.2,
+    marginLeft: 8,
   },
   turbineSubtitle: {
-    fontSize: 15,
-    color: '#64748b',
-    marginBottom: 28,
-    paddingHorizontal: 16,
-    lineHeight: 22,
-    letterSpacing: 0.2,
-  },
-  turbineCard: {
-    marginBottom: 28,
-    borderRadius: 16,
-    shadowColor: '#4f46e5',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#e5edff',
-    backgroundColor: '#ffffff',
-    padding: 18,
-  },
-  photoHint: {
     fontSize: 14,
-    color: '#6b7280',
-    marginTop: 4,
-    textAlign: 'center',
+    color: '#64748b',
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  turbineInfoCard: {
+    padding: 16,
+    marginBottom: 16,
+  },
+  turbineInfoText: {
+    fontSize: 15,
+    color: '#374151',
+    marginBottom: 6,
   },
 });
+
+export default PreflightChecklistScreen;

@@ -2,7 +2,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
-import { Href, useLocalSearchParams, usePathname, useRouter } from "expo-router"; // Added useLocalSearchParams, usePathname
+import { Href, useLocalSearchParams, usePathname, useRouter } from "expo-router"; // Changed to useSearchParams
 import React, {
   useCallback,
   useEffect,
@@ -640,12 +640,23 @@ function NoActivitiesCard({ message, iconName }: { message: string, iconName: ke
 const PilotDashboard = () => {
   console.log("PilotDashboard RENDERED - V5"); // Incremented version for clarity
   const router = useRouter();
-  const params = useLocalSearchParams<{ activityToStartAfterPreflight?: string; preflightCompletedForTurbine?: string; turbineIdForActivityStart?: string }>();
-  const currentPathname = usePathname(); // Get current pathname
+  // Combine route params and URL query string, memoized
+  const routeParams = useLocalSearchParams<{ activityToStartAfterPreflight?: string; preflightCompletedForTurbine?: string; turbineIdForActivityStart?: string }>();
+  const params = useMemo(() => {
+    const combined: Record<string, string> = { ...routeParams };
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      sp.forEach((value, key) => {
+        combined[key] = value;
+      });
+    }
+    return combined;
+  }, [routeParams]);
+   const currentPathname = usePathname(); // Get current pathname
 
-  // Estado para pausa de actividad - MOVED EARLIER
-  const [activityPauseState, setActivityPauseState] = useState<{ isPaused: boolean; reason?: string; start?: string; end?: string }>({ isPaused: false });
-  const [completedPreflightChecks, setCompletedPreflightChecks] = useState<Record<string, boolean>>({});
+   // Estado para pausa de actividad - MOVED EARLIER
+   const [activityPauseState, setActivityPauseState] = useState<{ isPaused: boolean; reason?: string; start?: string; end?: string }>({ isPaused: false });
+   const [completedPreflightChecks, setCompletedPreflightChecks] = useState<Record<string, boolean>>({});
   
   // Inicializamos con datos por defecto, pero intentaremos cargar desde almacenamiento local
   const [currentProject, setCurrentProject] =
@@ -1533,7 +1544,8 @@ useEffect(() => {
                       const activity = suggestedActivities.find(act => act.id === activityId);
                       if (activity) {
                         const turbineId = activity.turbineId || activity.id;
-                        handleGoToPreflightChecklist(turbineId, activityId);
+                        // Si se selecciona una actividad de turbina directamente, va al preflight CON activityId
+                        handleGoToPreflightChecklist(turbineId, activityId); // <--- AQUI SE ENVÍA activityId
                         setShowActivitySuggestions(false);
                       }
                     } else {
@@ -1541,8 +1553,9 @@ useEffect(() => {
                       setShowActivitySuggestions(false);
                     }
                   }}
-                  onGoToPreflightChecklist={(turbineId: string) => { // MODIFIED HERE
-                    handleGoToPreflightChecklist(turbineId, undefined); // activityId is undefined
+                  onGoToPreflightChecklist={(turbineId: string, activityId: string) => { // Asegúrate que la firma coincida con la de ActivitySuggestionsCardProps
+                    // Ahora 'activityId' viene desde ActivitySuggestionsCard
+                    handleGoToPreflightChecklist(turbineId, activityId); 
                     setShowActivitySuggestions(false);
                   }}
                 />
