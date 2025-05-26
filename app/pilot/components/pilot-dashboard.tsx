@@ -604,28 +604,179 @@ type DashboardSectionItem = {
     | "MY_INDICATORS_BUTTON";
 };
 
-// Define a simple NoActivitiesCard component
-function NoActivitiesCard({ message, iconName }: { message: string, iconName: keyof typeof Ionicons.glyphMap }) {
+// Enhanced NoActivitiesCard component with improved design and optional actions
+function NoActivitiesCard({ 
+  message, 
+  iconName, 
+  onActionPress, 
+  actionText = "Crear Nueva Actividad",
+  showAction = false,
+  showQuickActions = false,
+  onSecondaryActionPress,
+  secondaryActionText = "Ver Turbinas",
+  compact = false
+}: { 
+  message: string, 
+  iconName: keyof typeof Ionicons.glyphMap,
+  onActionPress?: () => void,
+  actionText?: string,
+  showAction?: boolean,
+  showQuickActions?: boolean,
+  onSecondaryActionPress?: () => void,
+  secondaryActionText?: string,
+  compact?: boolean
+}) {
+  const router = useRouter();
+
+  const handleNavigate = useCallback(
+    (route: string) => {
+      router.push(route as Href);
+    },
+    [router]
+  );
   return (
     <View style={{
-      backgroundColor: '#fff',
-      borderRadius: 16,
-      padding: 20,
-      marginVertical: 8,
+      backgroundColor: '#ffffff',
+      borderRadius: compact ? 12 : 20,
+      padding: compact ? 16 : 32,
+      marginVertical: compact ? 2 : 8,
       alignItems: 'center',
       justifyContent: 'center',
-      minHeight: 120,
-      borderWidth: 1,
-      borderColor: '#f3f4f6',
+      minHeight: compact ? 100 : 160,
+      borderWidth: compact ? 0 : 2, // Updated borderWidth
+      borderColor: compact ? 'transparent' : '#e0f2fe', // Updated borderColor
+      shadowColor: '#3b82f6',
+      shadowOffset: { width: 0, height: compact ? 1 : 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: compact ? 4 : 12,
+      elevation: compact ? 1 : 4,
     }}>
-      <Ionicons name={iconName} size={40} color="#d1d5db" style={{ marginBottom: 12 }} />
+      {/* Icon with gradient background */}
+      <View style={{
+        width: compact ? 48 : 72,
+        height: compact ? 48 : 72,
+        borderRadius: compact ? 24 : 36,
+        backgroundColor: '#f0f9ff',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: compact ? 8 : 16,
+        borderWidth: 2,
+        borderColor: '#bae6fd',
+        shadowColor: '#0ea5e9',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+      }}>
+        <Ionicons 
+          name={iconName} 
+          size={compact ? 24 : 36} 
+          color="#0ea5e9" 
+        />
+      </View>
+      
+      {/* Enhanced message */}
       <Text style={{
-        fontSize: 15,
-        color: '#6b7280',
+        fontSize: compact ? 14 : 16,
+        color: '#1e293b',
         textAlign: 'center',
-        maxWidth: '80%',
-        lineHeight: 22,
+        maxWidth: '90%',
+        lineHeight: compact ? 18 : 24,
+        fontWeight: '500',
+        marginBottom: (showAction && !compact || showQuickActions) ? (compact ? 12 : 20) : 0, // Adjusted marginBottom
       }}>{message}</Text>
+        {/* Primary action button */}
+      {showAction && !compact && onActionPress && ( // Added !compact condition
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#3b82f6',
+            borderRadius: compact ? 8 : 12,
+            paddingHorizontal: compact ? 14 : 20,
+            paddingVertical: compact ? 8 : 12,
+            shadowColor: '#3b82f6',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 3,
+            marginBottom: showQuickActions ? (compact ? 8 : 12) : 0,
+          }}
+          onPress={onActionPress}
+          activeOpacity={0.8}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="add-circle-outline" size={compact ? 16 : 20} color="#ffffff" style={{ marginRight: compact ? 4 : 8 }} />
+            <Text style={{
+              color: '#ffffff',
+              fontSize: compact ? 13 : 15,
+              fontWeight: '600',
+            }}>{actionText}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+      
+      {/* Quick actions row */}
+      {showQuickActions && (
+        <View style={{ 
+          flexDirection: 'row', 
+          justifyContent: 'center',
+          gap: compact ? 8 : 12,
+          marginTop: (showAction && !compact) ? 0 : (compact ? 8 : 0), // Adjusted marginTop for quick actions when primary is hidden
+        }}>
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#f8fafc',
+              borderRadius: compact ? 6 : 10,
+              paddingHorizontal: compact ? 10 : 16,
+              paddingVertical: compact ? 6 : 10,
+              borderWidth: 1,
+              borderColor: '#e2e8f0',
+              shadowColor: '#64748b',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.05,
+              shadowRadius: 2,
+              elevation: 1,
+            }}
+            onPress={onSecondaryActionPress}
+            activeOpacity={0.7}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="nuclear-outline" size={compact ? 12 : 16} color="#64748b" style={{ marginRight: compact ? 3 : 6 }} />
+              <Text style={{
+                color: '#64748b',
+                fontSize: compact ? 11 : 13,
+                fontWeight: '600',
+              }}>{secondaryActionText}</Text>
+            </View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#f8fafc',
+              borderRadius: compact ? 6 : 10,
+              paddingHorizontal: compact ? 10 : 16,
+              paddingVertical: compact ? 6 : 10,
+              borderWidth: 1,
+              borderColor: '#e2e8f0',
+              shadowColor: '#64748b',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.05,
+              shadowRadius: 2,
+              elevation: 1,
+            }}
+            onPress={() => handleNavigate('/pilot/activities')}
+            activeOpacity={0.7}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="list-outline" size={compact ? 12 : 16} color="#64748b" style={{ marginRight: compact ? 3 : 6 }} />
+              <Text style={{
+                color: '#64748b',
+                fontSize: compact ? 11 : 13,
+                fontWeight: '600',
+              }}>Ver Todas</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -1408,14 +1559,19 @@ useEffect(() => {
               isTurbineWork: isTurbineWork,
               turbineId: activity.turbineId || activity.id,
             });
-          });
-            
-          const renderTimelineContent = () => {
+          });          const renderTimelineContent = () => {
             if (timelineActivities.length === 0) {
               return (
                 <NoActivitiesCard 
                   message="No hay actividades programadas o en curso por ahora."
                   iconName="time-outline"
+                  showAction={false} // Explicitly set to false for compact mode
+                  actionText="Nueva Actividad"
+                  onActionPress={handleOpenNewActivityModal}
+                  compact={true}
+                  // Optionally, if you want to show quick actions in compact mode:
+                  // showQuickActions={true} 
+                  // onSecondaryActionPress={() => router.push('/pilot/turbines' as Href)}
                 />
               );
             }
@@ -1470,7 +1626,7 @@ useEffect(() => {
             );
           };
 
-          return <View style={{ marginTop: 10 }}>{renderTimelineContent()}</View>;
+          return <View style={{ marginTop: timelineActivities.length === 0 ? 2 : 10 }}>{renderTimelineContent()}</View>;
         }
         case "REGISTER_ACTIVITY_BUTTON":
           return (

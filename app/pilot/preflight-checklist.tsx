@@ -34,12 +34,6 @@ interface ChecklistItem {
   notes?: string;
 }
 
-// Define PreflightChecklistRouteParams for useLocalSearchParams
-interface PreflightChecklistRouteParams {
-  turbineId?: string;
-  activityToStart?: string;
-}
-
 const initialPreflightChecklist: ChecklistItem[] = [
   { id: '1', category: 'Dron', item: 'Hélices en buen estado', checked: false },
   { id: '2', category: 'Dron', item: 'Baterías cargadas', checked: false },
@@ -64,11 +58,9 @@ const PreflightChecklistScreen = () => {
   const router = useRouter();
 
   const turbineIdFromRoute = Array.isArray(params.turbineId) ? params.turbineId[0] : params.turbineId;
-  const activityToStartIdFromRoute = Array.isArray(params.activityToStart) ? params.activityToStart[0] : params.activityToStart;
-
-  const [preflightChecklist, setPreflightChecklist] = useState(initialPreflightChecklist);
+  const activityToStartIdFromRoute = Array.isArray(params.activityToStart) ? params.activityToStart[0] : params.activityToStart;  const [preflightChecklist, setPreflightChecklist] = useState(initialPreflightChecklist);
   const [generalNotes, setGeneralNotes] = useState('');
-  const [expandedCategory, setExpandedCategory] = useState<Category[]>([]);
+  const [expandedCategory, setExpandedCategory] = useState<Category[]>([...CATEGORIES]); // Todas expandidas por defecto
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [mediaLibraryPermission, requestMediaLibraryPermission] = ImagePicker.useMediaLibraryPermissions();
   const [photoTakenCategories, setPhotoTakenCategories] = useState<Category[]>([]);
@@ -142,13 +134,20 @@ const PreflightChecklistScreen = () => {
     setCurrentTurbine(determinedTurbine);
 
   }, [turbineIdFromRoute, activityToStartIdFromRoute]);
-
   const handleToggleItem = (id: string) => {
-    setPreflightChecklist(prev =>
-      prev.map(item =>
+    setPreflightChecklist(prev => {
+      const updated = prev.map(item =>
         item.id === id ? { ...item, checked: !item.checked } : item
-      )
-    );
+      );
+      
+      // Auto-expand category when first item is checked
+      const toggledItem = updated.find(item => item.id === id);
+      if (toggledItem && toggledItem.checked && !expandedCategory.includes(toggledItem.category)) {
+        setExpandedCategory(prevExpanded => [...prevExpanded, toggledItem.category]);
+      }
+      
+      return updated;
+    });
   };
 
   const handleOpenCamera = async (category: Category) => {
@@ -252,7 +251,6 @@ const PreflightChecklistScreen = () => {
     console.log('[PreflightChecklistScreen] submitChecklist: Navigating via URL:', dashboardUrl);
     router.push(dashboardUrl as unknown as any);
   };
-
   const getCompletionPercentage = (category?: Category) => {
     const items = category ? 
       preflightChecklist.filter(i => i.category === category) : 
@@ -268,6 +266,20 @@ const PreflightChecklistScreen = () => {
   // For turbine-specific, button is always enabled (simplified flow).
   const generalSubmitButtonDisabled = isGeneralPreflight && !allGeneralItemsChecked;
 
+  // Get checklist status for each category
+  const getCategoryStatus = (category: Category) => {
+    const items = preflightChecklist.filter(i => i.category === category);
+    const checkedItems = items.filter(i => i.checked).length;
+    const totalItems = items.length;
+    const percentage = Math.round((checkedItems / totalItems) * 100);
+    return {
+      checkedItems,
+      totalItems,
+      percentage,
+      isComplete: percentage === 100
+    };
+  };
+
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -280,324 +292,753 @@ const PreflightChecklistScreen = () => {
       />
 
       <ScrollView style={styles.content}>
-        {isGeneralPreflight ? (
-          <>
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>Verificación Prevuelo General</Text>
-              <Text style={styles.headerSubtitle}>
-                Completa todos los checks antes de despegar.
-              </Text>
-              <View style={styles.progressContainer}>
-                <View style={[styles.progressBar, { width: `${getCompletionPercentage()}%` }]} />
+        {/* Si hay turbina, mostrar la tarjeta de información arriba */}
+        {currentTurbine && (
+          <Card style={styles.turbineInfoCard}>
+            <View style={styles.turbineInfoHeader}>
+              <View style={styles.turbineInfoIconContainer}>
+                <MaterialCommunityIcons name="information" size={20} color="#4f46e5" />
               </View>
-              <Text style={styles.progressText}>{getCompletionPercentage()}% completado</Text>
-              {photoTakenCategories.length > 0 && photoTakenCategories.length < CATEGORIES.length && (
-                <Text style={styles.photoHint}>
-                  Has tomado {photoTakenCategories.length} de {CATEGORIES.length} fotos (opcional)
+              <Text style={styles.turbineInfoHeaderTitle}>Información de la Turbina</Text>
+            </View>
+            <View style={styles.turbineInfoContent}>
+              <View style={styles.turbineInfoRow}>
+                <View style={styles.turbineInfoItem}>
+                  <Text style={styles.turbineInfoLabel}>ID Turbina</Text>
+                  <Text style={styles.turbineInfoValue}>{currentTurbine.id}</Text>
+                </View>
+              </View>
+              <View style={styles.turbineInfoRow}>
+                <View style={styles.turbineInfoItem}>
+                  <Text style={styles.turbineInfoLabel}>Parque Eólico</Text>
+                  <Text style={styles.turbineInfoValue}>{currentTurbine.windParkId}</Text>
+                </View>
+              </View>
+              <View style={styles.turbineInfoRow}>
+                <View style={styles.turbineInfoItem}>
+                  <Text style={styles.turbineInfoLabel}>Próxima Inspección</Text>
+                  <Text style={styles.turbineInfoValue}>
+                    {currentTurbine.nextInspection ? new Date(currentTurbine.nextInspection).toLocaleDateString() : 'N/A'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </Card>
+        )}        {/* Header y progreso del checklist */}
+        <View style={styles.header}>
+          <View style={styles.headerIconContainer}>
+            <MaterialCommunityIcons name="clipboard-check" size={32} color="#3b82f6" />
+          </View>
+          <Text style={styles.headerTitle}>{currentTurbine ? 'Checklist Prevuelo de Turbina' : 'Verificación Prevuelo General'}</Text>
+          <Text style={styles.headerSubtitle}>
+            {currentTurbine ? `Completa todos los checks antes de inspeccionar la turbina ${currentTurbine.name}.` : 'Completa todos los checks antes de despegar con seguridad.'}
+          </Text>
+
+          {/* Progress Section with enhanced styling */}
+          <View style={styles.progressSection}>
+            <View style={styles.progressInfo}>
+              <Text style={styles.progressLabel}>Progreso del Checklist</Text>
+              <Text style={[
+                styles.progressPercentage,
+                allGeneralItemsChecked && styles.progressPercentageComplete
+              ]}>
+                {allGeneralItemsChecked ? "✓ 100%" : `${getCompletionPercentage()}%`}
+              </Text>
+            </View>
+            <View style={styles.progressContainer}>
+              <View style={[
+                styles.progressBar,
+                { width: `${getCompletionPercentage()}%` },
+                allGeneralItemsChecked && styles.progressBarComplete
+              ]} />
+              {allGeneralItemsChecked && <View style={styles.progressGlowComplete} />}
+              <View style={styles.progressGlow} />
+            </View>
+            {/* Status badges */}
+            <View style={styles.statusBadges}>
+              <View style={[styles.statusBadge, allGeneralItemsChecked ? styles.statusBadgeComplete : styles.statusBadgeIncomplete]}>
+                <MaterialCommunityIcons
+                  name={allGeneralItemsChecked ? "check-circle" : "clock-outline"}
+                  size={16}
+                  color={allGeneralItemsChecked ? "#22c55e" : "#f59e0b"}
+                />
+                <Text style={[styles.statusBadgeText, allGeneralItemsChecked ? styles.statusBadgeTextComplete : styles.statusBadgeTextIncomplete]}>
+                  {allGeneralItemsChecked ? "✅ ¡Listo para volar!" : "⏳ Completando checklist"}
                 </Text>
+              </View>
+              {photoTakenCategories.length > 0 && (
+                <View style={styles.statusBadge}>
+                  <MaterialCommunityIcons name="camera" size={16} color="#6366f1" />
+                  <Text style={styles.statusBadgeText}>
+                    📸 {photoTakenCategories.length}/{CATEGORIES.length} fotos tomadas
+                  </Text>
+                </View>
               )}
             </View>
+          </View>
+        </View>
 
-            {CATEGORIES.map(category => (
-              <Card key={category} style={styles.categoryCard}>
-                <TouchableOpacity 
-                  style={styles.categoryHeader}
-                  onPress={() => toggleCategory(category)}
-                >
-                  <View style={styles.categoryTitleContainer}>                    
-                    <MaterialCommunityIcons 
-                      name={categoryIcons[category]} 
-                      size={26} 
-                      color="#4f46e5" 
+        {/* Checklist por categorías */}
+        {CATEGORIES.map(category => {
+          const categoryStatus = getCategoryStatus(category);
+          return (
+            <Card key={category} style={styles.categoryCard}>
+              <TouchableOpacity
+                style={[
+                  styles.categoryHeader,
+                  categoryStatus.isComplete && styles.categoryHeaderComplete
+                ]}
+                onPress={() => toggleCategory(category)}
+              >
+                <View style={styles.categoryTitleContainer}>
+                  <View style={[
+                    styles.categoryIconContainer,
+                    categoryStatus.isComplete ? styles.categoryIconContainerComplete : styles.categoryIconContainerIncomplete
+                  ]}>
+                    <MaterialCommunityIcons
+                      name={categoryIcons[category]}
+                      size={24}
+                      color={categoryStatus.isComplete ? "#22c55e" : "#4f46e5"}
                     />
-                    <Text style={styles.categoryTitle}>{category}</Text>
                   </View>
-                  <TouchableOpacity 
-                    onPress={() => handleOpenCamera(category)} 
+                  <View style={styles.categoryInfo}>
+                    <Text style={[
+                      styles.categoryTitle,
+                      categoryStatus.isComplete && styles.categoryTitleComplete
+                    ]}>
+                      {category}
+                    </Text>
+                    <Text style={styles.categoryProgress}>
+                      {categoryStatus.checkedItems}/{categoryStatus.totalItems} completado
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.categoryActions}>
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      handleOpenCamera(category);
+                    }}
                     style={[
-                        styles.cameraIconTouchable, 
-                        { backgroundColor: photoTakenCategories.includes(category) ? '#eef2ff' : 'transparent'}
+                      styles.cameraIconTouchable,
+                      photoTakenCategories.includes(category) && styles.cameraIconTouchableActive
                     ]}
                   >
-                    <MaterialCommunityIcons 
-                      name="camera" 
-                      size={24} 
-                      color={photoTakenCategories.includes(category) ? "#4f46e5" : "#6b7280"}
+                    <MaterialCommunityIcons
+                      name="camera"
+                      size={20}
+                      color={photoTakenCategories.includes(category) ? "#4f46e5" : "#9ca3af"}
                     />
+                    {photoTakenCategories.includes(category) && (
+                      <View style={styles.photoIndicator}>
+                        <MaterialCommunityIcons name="check" size={12} color="#ffffff" />
+                      </View>
+                    )}
                   </TouchableOpacity>
                   <View style={styles.categoryStatus}>
-                    <Text style={styles.categoryPercentage}>
-                      {getCompletionPercentage(category)}%
-                    </Text>
-                    <MaterialCommunityIcons 
-                      name={expandedCategory.includes(category) ? 'chevron-up' : 'chevron-down'} 
-                      size={22} 
-                      color="#4f46e5" 
+                    <View style={[
+                      styles.percentageCircle,
+                      categoryStatus.isComplete ? styles.percentageCircleComplete : styles.percentageCircleIncomplete
+                    ]}>
+                      <Text style={[
+                        styles.categoryPercentage,
+                        categoryStatus.isComplete && styles.categoryPercentageComplete
+                      ]}>
+                        {categoryStatus.percentage}%
+                      </Text>
+                    </View>
+                    <MaterialCommunityIcons
+                      name={expandedCategory.includes(category) ? 'chevron-up' : 'chevron-down'}
+                      size={20}
+                      color="#6b7280"
                     />
                   </View>
-                </TouchableOpacity>
-
-                {expandedCategory.includes(category) && (
-                  <View style={styles.checklistItems}>
-                    {preflightChecklist
-                      .filter(item => item.category === category)
-                      .map(item => (
-                        <View key={item.id} style={styles.checklistItem}>
-                          <View style={styles.itemContent}>                            
+                </View>
+              </TouchableOpacity>
+              {expandedCategory.includes(category) && (
+                <View style={styles.checklistItems}>
+                  {preflightChecklist
+                    .filter(item => item.category === category)
+                    .map((item, index) => (
+                      <View key={item.id} style={[
+                        styles.checklistItem,
+                        index === preflightChecklist.filter(i => i.category === category).length - 1 && styles.checklistItemLast
+                      ]}>
+                        <View style={styles.itemContent}>
+                          <View style={[
+                            styles.checkIcon,
+                            item.checked ? styles.checkIconChecked : styles.checkIconUnchecked
+                          ]}>
                             {item.checked ? (
-                              <TickCircle size={22} color="#4f46e5" variant="Bold" />
+                              <TickCircle size={20} color="#22c55e" variant="Bold" />
                             ) : (
-                              <CloseCircle size={22} color="#ef4444" variant="Bold" />
+                              <CloseCircle size={20} color="#ef4444" variant="Bold" />
                             )}
-                            <Text style={[
-                              styles.itemText,
-                              item.checked && styles.itemTextChecked
-                            ]}>
-                              {item.item}
-                            </Text>
-                          </View>                          
+                          </View>
+                          <Text style={[
+                            styles.itemText,
+                            item.checked && styles.itemTextChecked
+                          ]}>
+                            {item.item}
+                          </Text>
+                        </View>
+                        <View style={styles.switchContainer}>
                           <Switch
                             value={item.checked}
                             onValueChange={() => handleToggleItem(item.id)}
-                            trackColor={{ false: '#d1d5db', true: '#c7d2fe' }}
-                            thumbColor={item.checked ? '#4f46e5' : '#f3f4f6'}
+                            trackColor={{ false: '#e5e7eb', true: '#dcfce7' }}
+                            thumbColor={item.checked ? '#22c55e' : '#f9fafb'}
+                            ios_backgroundColor="#e5e7eb"
                           />
                         </View>
-                      ))}
-                  </View>
-                )}
-              </Card>
-            ))}
-
-            <Card style={styles.notesCard}>
-              <Text style={styles.notesTitle}>Notas Adicionales (General)</Text>
-              <TextInput
-                style={styles.notesInput}
-                multiline
-                placeholder="Agregar notas o comentarios relevantes..."
-                placeholderTextColor="#9ca3af"
-                value={generalNotes}
-                onChangeText={setGeneralNotes}
-              />
+                      </View>
+                    ))}
+                </View>
+              )}
             </Card>
-            <TouchableOpacity
-              style={[
-                styles.submitButton,
-                generalSubmitButtonDisabled && styles.submitButtonDisabled
-              ]}
-              onPress={handleSubmitPreflight}
-              disabled={generalSubmitButtonDisabled}
-            >
-              <Text style={styles.submitButtonText}>
-                {generalSubmitButtonDisabled ? 
-                  'Completar todos los checks' : 
-                  'Confirmar Checklist General'}
-              </Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          // UI for Turbine-Specific Checklist
-          <View style={styles.turbineContainer}>
-            <View style={styles.turbineHeader}>
-              <MaterialCommunityIcons name="wind-turbine" size={32} color="#4338ca" />
-              <Text style={styles.turbineTitle}>Checklist para Turbina: {currentTurbine.name}</Text>
-            </View>
-            <Text style={styles.turbineSubtitle}>
-              Verificaciones específicas para la inspección de {currentTurbine.name}.
-              Este checklist es simplificado y se asume completado al continuar.
-            </Text>
-            
-            <Card style={styles.turbineInfoCard}>
-                <Text style={styles.turbineInfoText}>Turbina ID: {currentTurbine.id}</Text>
-                <Text style={styles.turbineInfoText}>Parque Eólico: {currentTurbine.windParkId}</Text>
-                <Text style={styles.turbineInfoText}>Próxima Inspección: {currentTurbine.nextInspection ? new Date(currentTurbine.nextInspection).toLocaleDateString() : 'N/A'}</Text>
-            </Card>
-
-            <Card style={styles.notesCard}> 
-              <Text style={styles.notesTitle}>Notas para {currentTurbine.name}</Text>
-              <TextInput
-                style={styles.notesInput}
-                multiline
-                placeholder={`Notas específicas para la turbina ${currentTurbine.name}...`}
-                placeholderTextColor="#9ca3af"
-                value={generalNotes}
-                onChangeText={setGeneralNotes}
-              />
-            </Card>
-
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={submitChecklist} // Directly call submitChecklist for turbine-specific
-            >
-              <Text style={styles.submitButtonText}>Confirmar Checklist para {currentTurbine.name}</Text>
-            </TouchableOpacity>
+          );
+        })}
+        {/* Notas */}
+        <Card style={styles.notesCard}>
+          <View style={styles.notesHeader}>
+            <MaterialCommunityIcons name="note-text" size={20} color="#4f46e5" />
+            <Text style={styles.notesTitle}>{currentTurbine ? `Notas para ${currentTurbine.name}` : 'Notas Adicionales (General)'}</Text>
           </View>
-        )}
+          <View style={styles.notesInputContainer}>
+            <TextInput
+              style={styles.notesInput}
+              multiline
+              placeholder={currentTurbine ? `Notas específicas para la turbina ${currentTurbine.name}...` : 'Agregar notas o comentarios relevantes...'}
+              placeholderTextColor="#9ca3af"
+              value={generalNotes}
+              onChangeText={setGeneralNotes}
+            />
+          </View>
+        </Card>
+        {/* Botón de submit */}
+        <TouchableOpacity
+          style={[
+            styles.submitButton,
+            (!allGeneralItemsChecked) && styles.submitButtonDisabled
+          ]}
+          onPress={handleSubmitPreflight}
+          disabled={!allGeneralItemsChecked}
+        >
+          <View style={styles.submitButtonContent}>
+            <MaterialCommunityIcons
+              name={!allGeneralItemsChecked ? "clock-outline" : "check-circle"}
+              size={20}
+              color="#ffffff"
+            />
+            <Text style={styles.submitButtonText}>
+              {!allGeneralItemsChecked ?
+                (currentTurbine ? 'Completar todos los checks' : 'Completar todos los checks') :
+                (currentTurbine ? `Confirmar Checklist para ${currentTurbine.name}` : 'Confirmar Checklist General')
+              }
+            </Text>
+          </View>
+          {allGeneralItemsChecked && (
+            <View style={styles.submitButtonGlow} />
+          )}
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({  container: {
     flex: 1,
-    backgroundColor: '#f5f7ff',
+    backgroundColor: '#f8fafc',
   },
   content: {
-    padding: 16,
-  },
-  header: {
-    marginBottom: 20, 
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 24,
+  },  header: {
+    marginBottom: 16,
+    marginTop: 12,
+    padding: 28,
     backgroundColor: '#ffffff',
-    borderRadius: 12,
-    shadowColor: '#4338ca',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    borderRadius: 20,
+    position: 'relative',
+    overflow: 'hidden',
+    shadowColor: '#1f2937',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  headerIconContainer: {
+    alignSelf: 'center',
+    width: 72,
+    height: 72,
+    backgroundColor: '#eff6ff',
+    borderRadius: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#dbeafe',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
     elevation: 3,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#4338ca',
-    marginBottom: 4,
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 10,
+    textAlign: 'center',
+    lineHeight: 32,
+    letterSpacing: 0.3,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#64748b',
-    marginBottom: 16,
-  },
-  progressContainer: {
-    height: 8,
-    backgroundColor: '#e0e7ff',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 4,
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#4f46e5',
-  },
-  progressText: {
-    fontSize: 12,
-    color: '#4f46e5',
-    textAlign: 'right',
-    marginBottom: 8,
-  },
-  photoHint: {
-    fontSize: 12,
-    color: '#64748b',
+    fontSize: 16,
+    color: '#6b7280',
+    marginBottom: 24,
     textAlign: 'center',
-    fontStyle: 'italic',
+    lineHeight: 22,
+    fontWeight: '500',
+  },progressSection: {
+    marginTop: 16,
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
-  categoryCard: {
-    marginBottom: 16,
-    padding: 0, 
-  },
-  categoryHeader: {
+  progressInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    marginBottom: 12,
+  },
+  progressLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  progressPercentage: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#3b82f6',
+  },
+  progressPercentageComplete: {
+    color: '#10b981',
+  },  progressContainer: {
+    height: 12,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 12,
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#3b82f6',
+    borderRadius: 8,
+    position: 'relative',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+  },
+  progressGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(59, 130, 246, 0.3)',
+    borderRadius: 8,
+  },
+  progressBarComplete: {
+    backgroundColor: '#10b981',
+  },
+  progressGlowComplete: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(16, 185, 129, 0.3)',
+    borderRadius: 8,
+  },
+  statusBadges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 16,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 8, 
-    borderTopRightRadius: 8,
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    shadowColor: '#1f2937',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  statusBadgeComplete: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+    shadowColor: '#22c55e',
+    shadowOpacity: 0.15,
+  },
+  statusBadgeIncomplete: {
+    backgroundColor: '#fffbeb',
+    borderColor: '#fed7aa',
+    shadowColor: '#f59e0b',
+    shadowOpacity: 0.15,
+  },  statusBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  statusBadgeTextComplete: {
+    color: '#166534',
+  },
+  statusBadgeTextIncomplete: {
+    color: '#b45309',
+  },  categoryCard: {
+    marginBottom: 20,
+    borderRadius: 18,
+    backgroundColor: '#ffffff',
+    shadowColor: '#1f2937',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    overflow: 'hidden',
+  },
+  categoryCardGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 16,
+  },
+  categoryCardContent: {
+    padding: 0,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },  categoryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    backgroundColor: '#f8fafc',
+    borderTopLeftRadius: 16, 
+    borderTopRightRadius: 16,
     borderBottomWidth: 1, 
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: '#e2e8f0',
+  },
+  categoryHeaderComplete: {
+    backgroundColor: '#f0fdf4',
+    borderBottomColor: '#bbf7d0',
   },
   categoryTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+  },  categoryIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#eff6ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    borderWidth: 2,
+    borderColor: '#dbeafe',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  categoryTitle: {
+  categoryIconContainerComplete: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+    shadowColor: '#22c55e',
+    shadowOpacity: 0.15,
+  },
+  categoryIconContainerIncomplete: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#dbeafe',
+    shadowColor: '#3b82f6',
+    shadowOpacity: 0.12,
+  },categoryInfo: {
+    flex: 1,
+  },  categoryTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#374151',
-    marginLeft: 10,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 4,
   },
-  cameraIconTouchable: {
-    marginRight: 8,
-    padding: 6,
-    borderRadius: 20,
+  categoryTitleComplete: {
+    color: '#166534',
+  },
+  categoryProgress: {
+    fontSize: 13,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  categoryActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },  cameraIconTouchable: {
+    padding: 10,
+    borderRadius: 24,
+    backgroundColor: '#f8fafc',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#1f2937',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  cameraIconTouchableActive: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#dbeafe',
+    shadowColor: '#3b82f6',
+    shadowOpacity: 0.15,
+  },
+  photoIndicator: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#22c55e',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 2,
   },
   categoryStatus: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+  },  percentageCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f8fafc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#1f2937',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  percentageCircleComplete: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+    shadowColor: '#22c55e',
+    shadowOpacity: 0.15,
+  },
+  percentageCircleIncomplete: {
+    backgroundColor: '#fffbeb',
+    borderColor: '#fed7aa',
+    shadowColor: '#f59e0b',
+    shadowOpacity: 0.15,
   },
   categoryPercentage: {
-    fontSize: 14,
-    color: '#4f46e5',
-    fontWeight: '500',
-    marginRight: 8,
+    fontSize: 13,
+    color: '#3b82f6',
+    fontWeight: '700',
   },
-  checklistItems: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    backgroundColor: '#fff',
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
+  categoryPercentageComplete: {
+    color: '#166534',
+  },checklistItems: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: '#ffffff',
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
   },
   checklistItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 4,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#f1f5f9',
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  checklistItemLast: {
+    borderBottomWidth: 0,
+    marginBottom: 8,
   },
   itemContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1, 
   },
+  checkIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+    shadowColor: '#1f2937',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  checkIconChecked: {
+    backgroundColor: '#dcfce7',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  checkIconUnchecked: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+  },
   itemText: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#374151',
-    marginLeft: 12,
-    flexShrink: 1, 
+    flexShrink: 1,
+    lineHeight: 22,
+    fontWeight: '500',
   },
   itemTextChecked: {
-    color: '#10b981', 
-    textDecorationLine: 'none', 
+    color: '#166534',
+    fontWeight: '600',
   },
-  notesCard: {
+  switchContainer: {
+    marginLeft: 16,
+    padding: 4,
+  },notesCard: {
     marginTop: 8, 
     marginBottom: 20,
-    padding: 16,
+    padding: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    shadowColor: '#1f2937',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },
+  notesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 10,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
   },
   notesTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+  notesInputContainer: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    overflow: 'hidden',
+    shadowColor: '#1f2937',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
   },
   notesInput: {
-    minHeight: 100,
+    minHeight: 120,
     textAlignVertical: 'top',
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 6,
-    padding: 10,
-    fontSize: 14,
+    backgroundColor: 'transparent',
+    padding: 18,
+    fontSize: 15,
     color: '#374151',
-  },
-  submitButton: {
-    backgroundColor: '#4f46e5',
-    paddingVertical: 16,
-    borderRadius: 8,
+    lineHeight: 22,
+    fontWeight: '400',
+  },submitButton: {
+    backgroundColor: '#3b82f6',
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    borderRadius: 20,
     alignItems: 'center',
-    marginTop: 10, 
+    marginTop: 12,
+    marginBottom: 8,
+    position: 'relative',
+    overflow: 'hidden',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#2563eb',
   },
   submitButtonDisabled: {
-    backgroundColor: '#a5b4fc', 
+    backgroundColor: '#9ca3af',
+    shadowColor: '#6b7280',
+    shadowOpacity: 0.15,
+    borderColor: '#d1d5db',
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  submitButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },  submitButtonGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 20,
   },
   submitButtonText: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   turbineContainer: {
     padding: 0, 
@@ -619,10 +1060,73 @@ const styles = StyleSheet.create({
     color: '#64748b',
     marginBottom: 16,
     paddingHorizontal: 4,
-  },
-  turbineInfoCard: {
-    padding: 16,
+  },  turbineInfoCard: {
+    padding: 0,
     marginBottom: 16,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    shadowColor: '#1f2937',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  turbineInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    gap: 12,
+  },
+  turbineInfoIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#eff6ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  turbineInfoHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+  turbineInfoContent: {
+    padding: 20,
+    backgroundColor: '#ffffff',
+  },
+  turbineInfoRow: {
+    marginBottom: 16,
+    paddingVertical: 4,
+  },
+  turbineInfoItem: {
+    flex: 1,
+  },
+  turbineInfoLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6b7280',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  turbineInfoValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1f2937',
   },
   turbineInfoText: {
     fontSize: 15,
