@@ -499,6 +499,7 @@ interface Incident {
   description: string;
   timestamp: string;
   icon?: keyof typeof Ionicons.glyphMap;
+  activityId?: string; // Optional field to associate incident with activity
 }
 interface ChecklistItem {
   id: string;
@@ -854,7 +855,6 @@ const PilotDashboard = () => {
     };
     return today.toLocaleDateString("es-ES", options);
   });
-
   const [isAlertsSectionVisible, setIsAlertsSectionVisible] = useState(true);
   const [isNewActivityModalVisible, setIsNewActivityModalVisible] =
     useState(false);
@@ -864,6 +864,8 @@ const PilotDashboard = () => {
   // Estado para el componente de sugerencias de actividades
   const [showActivitySuggestions, setShowActivitySuggestions] = useState(false);
   const [suggestedActivities, setSuggestedActivities] = useState<Activity[]>([]);
+  // Estado para el incidente actual
+  const [currentIncident, setCurrentIncident] = useState<Incident | null>(null);
   
   const {
     weather,
@@ -1151,38 +1153,6 @@ const forceStartActivityNow = useCallback((activityId: string) => {
     },
      [] // Depends on setCurrentProject, setIsNewActivityModalVisible, mockTurbines, activityTypes
     );
-  
-  const handleCreateNewIncident = useCallback(
-    (incidentData: IncidentFormData) => {
-      const incidentTypeInfo = importedIncidentTypes.find(
-        (it) => it.id === incidentData.type
-      );
-      const newIncident: Incident = {
-        id: `inc-${Date.now()}`,
-        type: incidentData.type,
-        label: incidentTypeInfo?.label || "Desconocido",
-        description: incidentData.description,
-        timestamp: new Date().toISOString(),
-        icon:
-          (incidentTypeInfo?.icon as keyof typeof Ionicons.glyphMap) ||
-          "alert-circle-outline",
-      };
-      setCurrentProject((prev) => {
-        const updatedProject = {
-          ...prev,
-          incidents: [...(prev.incidents || []), newIncident],
-        };
-        
-        return updatedProject;
-      });
-      setIsNewIncidentModalVisible(false);
-      Alert.alert(
-        "Incidencia Registrada",
-        `"${newIncident.label}" registrada.`
-      );
-    },
-    [] // Depends on setCurrentProject, setIsNewIncidentModalVisible, importedIncidentTypes
-  );
 
   const getStatusStyling = useCallback((status: string) => {
     const normalizedStatus = (status?.toUpperCase().replace(" ", "_") ||
@@ -1286,6 +1256,9 @@ const handleResumeActivity = useCallback(() => {
   const newPauseState = { isPaused: false };
   setActivityPauseState(newPauseState);
   
+  // Clear current incident when resuming activity
+  setCurrentIncident(null);
+  
   setCurrentProject(prev => {
     const updatedProject = {
       ...prev,
@@ -1305,7 +1278,50 @@ const handleResumeActivity = useCallback(() => {
     
     return updatedProject;
   });
-}, [currentOngoingActivityForDisplay, setActivityPauseState]); 
+}, [currentOngoingActivityForDisplay, setActivityPauseState]);
+
+const handleCreateNewIncident = useCallback(
+  (incidentData: IncidentFormData) => {
+    const incidentTypeInfo = importedIncidentTypes.find(
+      (it) => it.id === incidentData.type
+    );
+    const newIncident: Incident = {
+      id: `inc-${Date.now()}`,
+      type: incidentData.type,
+      label: incidentTypeInfo?.label || "Desconocido",
+      description: incidentData.description,
+      timestamp: new Date().toISOString(),
+      icon:
+        (incidentTypeInfo?.icon as keyof typeof Ionicons.glyphMap) ||
+        "alert-circle-outline",
+      activityId: incidentData.activityId || currentOngoingActivityForDisplay?.id, // Associate with current activity
+    };
+    
+    // Set current incident state only if it's associated with the current activity
+    if (newIncident.activityId === currentOngoingActivityForDisplay?.id) {
+      setCurrentIncident(newIncident);
+      
+      // Pause current activity
+      const pauseReason = `Incidente: ${newIncident.label} - ${newIncident.description}`;
+      handlePauseActivity(pauseReason);
+    }
+    
+    setCurrentProject((prev) => {
+      const updatedProject = {
+        ...prev,
+        incidents: [...(prev.incidents || []), newIncident],
+      };
+      
+      return updatedProject;
+    });
+    setIsNewIncidentModalVisible(false);
+    Alert.alert(
+      "Incidencia Registrada",
+      `"${newIncident.label}" registrada. La actividad en curso ha sido pausada automáticamente.`
+    );
+  },
+  [currentOngoingActivityForDisplay, handlePauseActivity] // Updated dependencies
+);
 
 const handleFinishActivity = useCallback(() => {
   if (!currentOngoingActivityForDisplay) return;
@@ -1675,8 +1691,7 @@ useEffect(() => {
           );        case "QUICK_ACTIONS_MENU_CARD":
           return (
             <>
-              {currentOngoingActivityForDisplay && (
-                <ActivityControl
+              {currentOngoingActivityForDisplay && (                <ActivityControl
                   ongoingActivity={currentOngoingActivityForDisplay}
                   onStart={handleStartJornada} // This might need to be re-evaluated if "Jornada" is a specific activity type
                   onPause={(reason) => { // Ensure reason is captured or prompted
@@ -1698,6 +1713,8 @@ useEffect(() => {
                   onFinish={handleFinishActivity}
                   isPaused={activityPauseState.isPaused}
                   currentPauseReason={activityPauseState.reason}
+                  onIncidentCreate={() => setIsNewIncidentModalVisible(true)}
+                  currentIncident={currentIncident}
                 />
               )}
               {showActivitySuggestions && (                <ActivitySuggestionsCard

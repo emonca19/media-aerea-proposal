@@ -145,41 +145,34 @@ export default function PilotStatistics() {
           headerShadowVisible: false,
         }}
       />
-      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Header Section with Simple Title */}
+        <Animated.View entering={FadeInUp.delay(100)} style={styles.headerSection}>
+          <Text style={styles.mainTitle}>Estadísticas de Piloto</Text>
+          
+          <View style={styles.rankBadgeSimple}>
+            <Ionicons name="ribbon-outline" size={20} color={COLORS.accentYellow} />
+            <Text style={styles.rankTextSimple}>Top #{pilotStats.overall.rank} de {pilotStats.overall.totalPilots} pilotos</Text>
+          </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInUp.delay(100)} style={styles.headerCardWrapper}>
-          <LinearGradient
-            colors={[COLORS.primary, COLORS.primaryLight]}
-            style={styles.gradientCard}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.headerContent}>
-              <View style={styles.rankBadge}>
-                <Ionicons name="ribbon-outline" size={18} color={COLORS.accentYellow} />
-                <Text style={styles.rankText}>Top #{pilotStats.overall.rank} / {pilotStats.overall.totalPilots}</Text>
-              </View>
-              <Text style={styles.efficiencyBig}>{pilotStats.overall.efficiency}%</Text>
-              <Text style={styles.efficiencyLabel}>Eficiencia General</Text>
-              <View style={styles.headerStats}>
-                <View style={styles.headerStat}>
-                  <Text style={styles.headerStatValue}>{pilotStats.overall.totalFlights}</Text>
-                  <Text style={styles.headerStatLabel}>Vuelos</Text>
-                </View>
-                <View style={styles.headerStatSeparator} />
-                <View style={styles.headerStat}>
-                  <Text style={styles.headerStatValue}>{pilotStats.overall.flightHours}</Text>
-                  <Text style={styles.headerStatLabel}>Horas</Text>
-                </View>
-                <View style={styles.headerStatSeparator} />
-                <View style={styles.headerStat}>
-                  <Text style={styles.headerStatValue}>{pilotStats.incidents.safetyStreak}</Text>
-                  <Text style={styles.headerStatLabel}>Días Seguros</Text>
-                </View>
-              </View>
+          <View style={styles.mainStatsRow}>
+            <View style={styles.mainStatItem}>
+              <Text style={styles.mainStatValue}>{pilotStats.overall.efficiency}%</Text>
+              <Text style={styles.mainStatLabel}>Eficiencia</Text>
             </View>
-          </LinearGradient>
+            <View style={styles.mainStatItem}>
+              <Text style={styles.mainStatValue}>{pilotStats.overall.totalFlights}</Text>
+              <Text style={styles.mainStatLabel}>Vuelos</Text>
+            </View>
+            <View style={styles.mainStatItem}>
+              <Text style={styles.mainStatValue}>{pilotStats.overall.flightHours}</Text>
+              <Text style={styles.mainStatLabel}>Horas</Text>
+            </View>
+            <View style={styles.mainStatItem}>
+              <Text style={styles.mainStatValue}>{pilotStats.incidents.safetyStreak}</Text>
+              <Text style={styles.mainStatLabel}>Días Seguros</Text>
+            </View>
+          </View>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(200)} style={styles.periodSelectorContainer}>
@@ -203,46 +196,78 @@ export default function PilotStatistics() {
               </TouchableOpacity>
             ))}
           </View>
-        </Animated.View>
+        </Animated.View>        <Animated.View entering={FadeInDown.delay(300)} style={styles.card}>
+          <View style={styles.chartHeader}>
+            <Text style={styles.cardTitle}>Rendimiento de Eficiencia</Text>
+            <Text style={styles.chartSubtitle}>
+              {selectedPeriod === '7d' ? 'Últimos 7 días' : selectedPeriod === '30d' ? 'Últimas 4 semanas' : 'Últimos 12 meses'}
+            </Text>
+          </View>
+          
+          <View style={styles.chartContainer}>
+            <View style={styles.chartLegend}>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: COLORS.secondary }]} />
+                <Text style={styles.legendText}>Máximo rendimiento</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: '#9ca3af' }]} />
+                <Text style={styles.legendText}>Rendimiento estándar</Text>
+              </View>
+            </View>
+            
+            <View style={styles.chart}>
+              {currentChartData.efficiency.map((value, index) => {
+                const barHeightPercent = maxValue > 0 ? (value / maxValue) * 100 : 0;
+                const isHighest = value === maxValue && maxValue > 0;
+                const valueIsVeryLow = barHeightPercent < 15;
 
-        <Animated.View entering={FadeInDown.delay(300)} style={styles.card}>
-          <Text style={styles.cardTitle}>Eficiencia ({selectedPeriod === '7d' ? 'Diaria' : selectedPeriod === '30d' ? 'Semanal' : 'Mensual'})</Text>
-          <View style={styles.chart}>
-            {currentChartData.efficiency.map((value, index) => {
-              const barHeightPercent = maxValue > 0 ? (value / maxValue) * 100 : 0;
-              const isHighest = value === maxValue && maxValue > 0;
-              // Ajustar posición y color del valor para mejor legibilidad
-              const valueIsVeryLow = barHeightPercent < 15; // Umbral para barras muy cortas
-
-              return (
-                <View key={index} style={styles.chartColumn}>
-                  <View style={styles.chartBarContainer}>
-                    <Text style={[
-                        styles.chartValue,
-                        isHighest && styles.chartValueHighest,
-                        // Si es muy bajo y no es el más alto, moverlo más arriba y oscurecerlo
-                        valueIsVeryLow && !isHighest && styles.chartValueLow
-                      ]}>
-                      {value}%
-                    </Text>
-                    <Animated.View
-                      entering={SlideInUp.delay(450 + index * 70).duration(400)} // Animación mejorada
-                      style={[
-                        styles.chartBar,
-                        { height: `${barHeightPercent}%` },
-                        isHighest && styles.chartBarHighest,
-                      ]}
-                    >
-                      <LinearGradient
-                        colors={isHighest ? [COLORS.secondary, COLORS.secondaryDark] : ['#d1d5db', '#9ca3af']} // Barras por defecto un poco más oscuras
-                        style={styles.chartBarGradient}
-                      />
-                    </Animated.View>
+                return (
+                  <View key={index} style={styles.chartColumn}>
+                    <View style={styles.chartBarContainer}>
+                      <Text style={[
+                          styles.chartValue,
+                          isHighest && styles.chartValueHighest,
+                          valueIsVeryLow && !isHighest && styles.chartValueLow
+                        ]}>
+                        {value}%
+                      </Text>
+                      <Animated.View
+                        entering={SlideInUp.delay(450 + index * 70).duration(600)}
+                        style={[
+                          styles.chartBar,
+                          { height: `${barHeightPercent}%` },
+                          isHighest && styles.chartBarHighest,
+                        ]}
+                      >
+                        <LinearGradient
+                          colors={isHighest ? [COLORS.secondary, COLORS.secondaryDark] : [COLORS.primaryLight, '#6366f1']}
+                          style={styles.chartBarGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 0, y: 1 }}
+                        />
+                      </Animated.View>
+                    </View>
+                    <Text style={styles.chartLabel}>{currentChartData.labels[index]}</Text>
                   </View>
-                  <Text style={styles.chartLabel}>{currentChartData.labels[index]}</Text>
-                </View>
-              );
-            })}
+                );
+              })}
+            </View>
+            
+            <View style={styles.chartStats}>
+              <View style={styles.chartStatItem}>
+                <Text style={styles.chartStatValue}>{Math.max(...currentChartData.efficiency)}%</Text>
+                <Text style={styles.chartStatLabel}>Máximo</Text>
+              </View>
+              <View style={styles.chartStatItem}>
+                <Text style={styles.chartStatValue}>{Math.round(currentChartData.efficiency.reduce((a, b) => a + b, 0) / currentChartData.efficiency.length)}%</Text>
+                <Text style={styles.chartStatLabel}>Promedio</Text>
+              </View>
+              <View style={styles.chartStatItem}>
+                <Text style={styles.chartStatValue}>{Math.min(...currentChartData.efficiency)}%</Text>
+                <Text style={styles.chartStatLabel}>Mínimo</Text>
+              </View>
+            </View>
           </View>
         </Animated.View>
 
@@ -411,87 +436,129 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.textPrimary,
-  },
-  sectionTitle: {
+  },  sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: COLORS.textPrimary,
     marginBottom: 16,
     paddingHorizontal: 4, // Small padding if it's directly in a container with margin
   },
-  headerCardWrapper: {
+  headerSection: {
     marginHorizontal: 16,
     marginTop: 16,
     marginBottom: 20,
-    borderRadius: 20,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  gradientCard: {
-    padding: 24,
-    borderRadius: 20,
-  },
-  headerContent: {
     alignItems: 'center',
   },
-  rankBadge: {
+  mainTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  rankBadgeSimple: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: COLORS.cardBackground,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 20,
-    marginBottom: 16,
+    marginBottom: 24,
+    shadowColor: COLORS.textSecondary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  rankText: {
-    color: COLORS.textLight,
-    fontSize: 14,
+  rankTextSimple: {
+    color: COLORS.textSecondary,
+    fontSize: 15,
     fontWeight: '600',
     marginLeft: 8,
   },
-  efficiencyBig: {
-    fontSize: 52,
-    fontWeight: 'bold',
-    color: COLORS.textLight,
-    marginBottom: 4,
-  },
-  efficiencyLabel: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.85)',
-    marginBottom: 24,
-    fontWeight: '500',
-  },
-  headerStats: {
+  mainStatsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'center',
     width: '100%',
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: COLORS.textSecondary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 5,
   },
-  headerStat: {
+  mainStatItem: {
     alignItems: 'center',
     flex: 1,
   },
-  headerStatSeparator: {
-    width: 1,
-    height: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  headerStatValue: {
+  mainStatValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.textLight,
-    marginBottom: 4,
+    color: COLORS.primary,
+    marginBottom: 6,
   },
-  headerStatLabel: {
+  mainStatLabel: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.75)',
-    textTransform: 'uppercase',
+    color: COLORS.textMuted,
+    textAlign: 'center',
     fontWeight: '500',
   },
-  periodSelectorContainer: {
+  chartHeader: {
+    marginBottom: 20,
+  },
+  chartSubtitle: {
+    fontSize: 14,
+    color: COLORS.textMuted,
+    marginTop: 4,
+  },
+  chartContainer: {
+    marginTop: 8,
+  },
+  chartLegend: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
+    gap: 24,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 6,
+  },
+  legendText: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    fontWeight: '500',
+  },
+  chartStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.separator,
+  },
+  chartStatItem: {
+    alignItems: 'center',
+  },
+  chartStatValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginBottom: 2,
+  },
+  chartStatLabel: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    fontWeight: '500',
+  },  periodSelectorContainer: {
     marginHorizontal: 16,
     marginBottom: 20,
   },

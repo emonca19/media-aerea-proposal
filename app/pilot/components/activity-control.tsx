@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from "react";
-import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { activityTypes } from './quick-register-activity-form';
 
 interface ActivityControlProps {
@@ -12,14 +12,11 @@ interface ActivityControlProps {
   onFinish: () => void;
   isPaused: boolean;
   currentPauseReason?: string;
+  onIncidentCreate?: (incidentData: any) => void;
+  currentIncident?: any | null;
 }
 
-const PAUSE_REASONS = [
-  { label: "Esperando permiso", icon: "clock-outline", color: "#f59e0b" },
-  { label: "Clima", icon: "weather-partly-cloudy", color: "#38bdf8" },
-  { label: "Descanso", icon: "coffee-outline", color: "#a78bfa" },
-  { label: "Revisión técnica", icon: "tools", color: "#f87171" },  { label: "Otro", icon: "dots-horizontal", color: "#64748b" },
-];
+
 
 export default function ActivityControl({
   ongoingActivity,
@@ -28,11 +25,10 @@ export default function ActivityControl({
   onResume,
   onFinish,
   isPaused,
-  currentPauseReason
+  currentPauseReason,
+  onIncidentCreate,
+  currentIncident
 }: ActivityControlProps) {
-  const [pauseModalVisible, setPauseModalVisible] = useState(false);
-  const [pauseReason, setPauseReason] = useState<string>("");
-  const [pauseNotes, setPauseNotes] = useState("");
   const [pauseStart, setPauseStart] = useState<number | null>(null);
   const [accumulated, setAccumulated] = useState(0); // tiempo acumulado antes de pausar
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -84,6 +80,15 @@ export default function ActivityControl({
       setActivityStartTime(null); // Clear if no activity or start date
     }
   }, [ongoingActivity]); // Re-run when ongoingActivity changes
+
+  // Automatically pause activity when an incident is reported
+  React.useEffect(() => {
+    if (currentIncident && hasActivity && !isPaused) {
+      // Create pause reason from incident information
+      const pauseReason = `Incidente: ${currentIncident.type} - ${currentIncident.description}`;
+      onPause(pauseReason);
+    }
+  }, [currentIncident, hasActivity, isPaused, onPause]);
 
   // Calculate total pause time from all pauses
   function getTotalPauseTime() {
@@ -218,76 +223,28 @@ export default function ActivityControl({
                   <Text style={styles.buttonText}>Reanudar</Text>
                 </TouchableOpacity>
               </LinearGradient>
-            )}
-          </View>
-          
-          {/* Botón de pausa pequeño debajo */}
-          {!isPaused && (
-            <TouchableOpacity 
-              style={styles.smallPauseButton} 
-              onPress={() => setPauseModalVisible(true)} 
-              activeOpacity={0.7}
-            >
-              <Ionicons name="pause" size={12} color="#9ca3af" style={{ marginRight: 4 }} />
-              <Text style={styles.smallPauseText}>Pausar actividad</Text>
-            </TouchableOpacity>
-          )}
+            )}          </View>
         </>
-      )}
-      <Modal visible={pauseModalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.pauseModalBox}>
-            <View style={styles.modalHeaderRow}>
-              <Text style={styles.modalTitle}>Motivo de la pausa</Text>
-              <TouchableOpacity onPress={() => setPauseModalVisible(false)} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#64748b" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={{ width: '100%' }}>
-              {PAUSE_REASONS.map((reason) => (
-                <TouchableOpacity
-                  key={reason.label}
-                  style={[
-                    styles.pauseReasonBtn,
-                    { backgroundColor: pauseReason === reason.label ? reason.color : '#f3f4f6', borderColor: reason.color },
-                  ]}
-                  onPress={() => setPauseReason(reason.label)}
-                  activeOpacity={0.85}
-                >
-                  <MaterialCommunityIcons name={reason.icon as any} size={22} color={pauseReason === reason.label ? '#fff' : reason.color} style={{ marginRight: 12 }} />
-                  <Text style={[
-                    styles.pauseReasonText,
-                    { color: pauseReason === reason.label ? '#fff' : '#1e293b', fontWeight: pauseReason === reason.label ? 'bold' : '500' }
-                  ]}>{reason.label}</Text>
-                </TouchableOpacity>
-              ))}
-              <Text style={styles.notesLabel}>Notas adicionales (opcional)</Text>
-              <TextInput
-                style={styles.notesInput}
-                placeholder="Describe detalles de la pausa..."
-                placeholderTextColor="#94a3b8"
-                value={pauseNotes}
-                onChangeText={setPauseNotes}
-                multiline
-              />
-            </ScrollView>
-            <TouchableOpacity
-              style={[styles.confirmPauseBtn, !pauseReason && { opacity: 0.5 }]}
-              disabled={!pauseReason}
-              onPress={() => {
-                setPauseModalVisible(false);
-                onPause(pauseReason + (pauseNotes ? `: ${pauseNotes}` : ""));
-                setPauseReason("");
-                setPauseNotes("");
-              }}
-            >
-              <Ionicons name="checkmark-circle" size={22} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={styles.confirmPauseText}>Confirmar Pausa</Text>
-            </TouchableOpacity>
+      )}      
+      {/* Current incident display when there's an incident */}
+      {currentIncident && (
+        <View style={styles.currentIncidentDisplay}>
+          <View style={styles.incidentHeader}>
+            <Ionicons name="warning" size={20} color="#ef4444" style={{ marginRight: 8 }} />
+            <Text style={styles.incidentTitle}>Incidente Activo</Text>
           </View>
+          <Text style={styles.incidentType}>{currentIncident.label || currentIncident.type}</Text>
+          <Text style={styles.incidentDescription}>{currentIncident.description}</Text>
+          <Text style={styles.incidentTime}>
+            Reportado: {new Date(currentIncident.timestamp).toLocaleString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </Text>
         </View>
-      </Modal>
-    </View>
+      )}    </View>
   );
 }
 
@@ -556,8 +513,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18,
     shadowRadius: 12,
     elevation: 6,
-  },
-  smallPauseButton: {
+  },  smallPauseButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -567,6 +523,60 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: 'transparent',
     alignSelf: 'center',
+  },
+  incidentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 8,
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    alignSelf: 'center',
+  },
+  incidentButtonText: {
+    fontSize: 13,
+    color: '#ef4444',
+    fontWeight: '600',
+  },
+  currentIncidentDisplay: {
+    backgroundColor: '#fef2f2',
+    borderRadius: 10,
+    padding: 16,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    width: '100%',
+  },
+  incidentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  incidentTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ef4444',
+  },
+  incidentType: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#dc2626',
+    marginBottom: 4,
+  },
+  incidentDescription: {
+    fontSize: 13,
+    color: '#7f1d1d',
+    marginBottom: 6,
+    lineHeight: 18,
+  },
+  incidentTime: {
+    fontSize: 12,
+    color: '#991b1b',
+    fontStyle: 'italic',
   },
   confirmPauseBtn: {
     backgroundColor: '#4F6DF5',
