@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // --- DATOS DE PROYECTO (tomados de activity-log) ---
 const mockTurbines = [
@@ -46,6 +47,8 @@ const projectMembers = [
 // --- FIN DATOS DE PROYECTO ---
 
 const ProjectInfoMenu = () => {
+  const router = useRouter();
+  
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
   };
@@ -58,6 +61,30 @@ const ProjectInfoMenu = () => {
         <Text style={styles.client}>{mockProject.client}</Text>
         <Text style={styles.description}>{mockProject.description}</Text>
       </View>
+
+      {/* Quick Access Buttons */}
+      <View style={styles.quickAccessContainer}>
+        <TouchableOpacity 
+          style={styles.quickAccessButton}
+          onPress={() => router.push('/pilot/turbines')}
+        >
+          <View style={styles.buttonIconContainer}>
+            <Ionicons name="nuclear-outline" size={20} color="#3b82f6" />
+          </View>
+          <Text style={styles.buttonText}>Turbinas</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.quickAccessButton}
+          onPress={() => router.push('/pilot/site-map')}
+        >
+          <View style={styles.buttonIconContainer}>
+            <Ionicons name="map-outline" size={20} color="#10b981" />
+          </View>
+          <Text style={styles.buttonText}>Mapa del Sitio</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.detailsSection}>
         <View style={styles.detailRow}>
           <Ionicons name="business-outline" size={16} color="#6b7280" style={styles.detailIcon} />
@@ -145,6 +172,46 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  quickAccessContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    gap: 12,
+  },
+  quickAccessButton: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  buttonIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  buttonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#374151',
+    textAlign: 'center',
   },
   detailsSection: {
     marginTop: 12,
