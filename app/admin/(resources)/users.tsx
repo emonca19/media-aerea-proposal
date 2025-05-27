@@ -1,10 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Stack } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
-  // Button, // We'll replace the default Button for modals
-  FlatList,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -40,6 +40,8 @@ const UsersScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState<Partial<User>>({});
+  const [activeUsersExpanded, setActiveUsersExpanded] = useState(true);
+  const [inactiveUsersExpanded, setInactiveUsersExpanded] = useState(true);
 
   const filteredUsers = users.filter((user) => {
     const matchesSearchQuery =
@@ -141,72 +143,90 @@ const UsersScreen = () => {
     setEmail("");
     setSelectedRole("PILOT");
   };
-  const renderRoleSelector = (
-    currentRole: UserRole | undefined, // Allow undefined for initial filter state
-    onSelectRole: (role: UserRole) => void
-  ) => {
-    const roles: UserRole[] = ["PILOT", "ADMIN", "SUPER_ADMIN"];
-    return (
-      <View style={styles.roleContainer}>
-        <Text style={styles.modalLabel}>Rol:</Text>
-        {roles.map((role) => (
-          <TouchableOpacity
-            key={role}
-            style={[
-              styles.roleButton,
-              currentRole === role && styles.roleButtonSelected,
-            ]}
-            onPress={() => onSelectRole(role)}
-          >
-            <Text
-              style={[
-                styles.roleButtonText,
-                currentRole === role && styles.roleButtonTextSelected,
-              ]}
-            >
-              {getRoleDisplayText(role)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
-  const renderUserItem = ({ item }: { item: User }) => (
-    <View style={styles.userItem}>
-      <View style={styles.userInfo}>
-        <Text style={styles.userName}>
-          {item.name} ({getRoleDisplayText(item.role)})
-        </Text>
-        <Text style={styles.userEmail}>{item.email}</Text>
-        {item.lastLogin && (
-          <Text style={styles.userLastLogin}>
-            Último acceso: {item.lastLogin.toLocaleDateString("es-ES")}
-          </Text>
-        )}
-        <Text
-          style={
-            item.active ? styles.userStatusActive : styles.userStatusInactive
-          }
+
+  const renderUserCard = (user: User) => (
+    <View key={user.id} style={styles.userCard}>
+      <View style={styles.userHeader}>
+        <View style={styles.userInfo}>
+          <Text style={styles.userTitle}>{user.name}</Text>
+          <Text style={styles.userSubtitle}>{user.email}</Text>
+        </View>
+        <View
+          style={[
+            styles.roleBadge,
+            user.role === "SUPER_ADMIN"
+              ? styles.superAdminBadge
+              : user.role === "ADMIN"
+              ? styles.adminBadge
+              : styles.pilotBadge,
+          ]}
         >
-          {item.active ? "Activo" : "Inactivo"}
-        </Text>
+          <Text
+            style={[
+              styles.roleBadgeText,
+              user.role === "SUPER_ADMIN"
+                ? styles.superAdminText
+                : user.role === "ADMIN"
+                ? styles.adminText
+                : styles.pilotText,
+            ]}
+          >
+            {getRoleDisplayText(user.role)}
+          </Text>
+        </View>
       </View>
+
+      <View style={styles.userDetails}>
+        {user.lastLogin && (
+          <View style={styles.detailRow}>
+            <Ionicons name="time-outline" size={16} color="#666" />
+            <Text style={styles.detailText}>
+              Último acceso: {user.lastLogin.toLocaleDateString("es-ES")}
+            </Text>
+          </View>
+        )}
+        <View style={styles.detailRow}>
+          <Ionicons
+            name={
+              user.active ? "checkmark-circle-outline" : "close-circle-outline"
+            }
+            size={16}
+            color={user.active ? "#10B981" : "#EF4444"}
+          />
+          <Text
+            style={[
+              styles.detailText,
+              { color: user.active ? "#10B981" : "#EF4444" },
+            ]}
+          >
+            {user.active ? "Activo" : "Inactivo"}
+          </Text>
+        </View>
+      </View>
+
       <View style={styles.userActions}>
         <TouchableOpacity
-          onPress={() => handleEditUser(item)}
-          style={styles.actionButton}
+          onPress={() => handleEditUser(user)}
+          style={[styles.actionBtn, styles.editBtn]}
         >
-          <Ionicons name="pencil" size={24} color="#007AFF" />
+          <Ionicons name="create-outline" size={16} color="#fff" />
+          <Text style={styles.actionBtnText}>Editar</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => handleDeactivateUser(item.id)}
-          style={styles.actionButton}
+          onPress={() => handleDeactivateUser(user.id)}
+          style={[
+            styles.actionBtn,
+            user.active ? styles.deactivateBtn : styles.activateBtn,
+          ]}
         >
           <Ionicons
-            name={item.active ? "eye-off" : "eye"}
-            size={24}
-            color={item.active ? "#FF3B30" : "#34C759"}
+            name={user.active ? "eye-off-outline" : "eye-outline"}
+            size={16}
+            color="#fff"
           />
+          <Text style={styles.actionBtnText}>
+            {user.active ? "Desactivar" : "Activar"}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -220,188 +240,323 @@ const UsersScreen = () => {
   const applyFiltersAndClose = () => {
     setShowFilterModal(false);
   };
-
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{ title: "Usuarios" }} />
+      {/* Search and Filter Section */}
       <View style={styles.searchFilterContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Buscar usuarios..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+        <View style={styles.searchContainer}>
+          <Ionicons
+            name="search"
+            size={20}
+            color="#6B7280"
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar usuarios..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
         <TouchableOpacity
           style={styles.filterButton}
           onPress={() => setShowFilterModal(true)}
         >
-          <Ionicons name="filter" size={24} color="#ffffff" />
+          <Ionicons name="options" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={filteredUsers}
-        renderItem={renderUserItem}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          <View style={styles.emptyListContainer}>
-            <Text style={styles.emptyListText}>
-              No se encontraron usuarios.
-            </Text>
-          </View>
-        }
-      />
-      <TouchableOpacity style={styles.fab} onPress={handleAddUser}>
-        <Ionicons name="add" size={30} color="white" />
-      </TouchableOpacity>
+      {/* Add Button */}
+      <View style={styles.addButtonContainer}>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddUser}>
+          <Ionicons name="add" size={20} color="#fff" />
+          <Text style={styles.addButtonText}>Nuevo Usuario</Text>
+        </TouchableOpacity>
+      </View>
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {" "}
+        {/* Active Users Section */}
+        <View style={styles.sectionContainer}>
+          <TouchableOpacity
+            style={styles.sectionHeader}
+            onPress={() => setActiveUsersExpanded(!activeUsersExpanded)}
+          >
+            <View style={styles.sectionHeaderLeft}>
+              <Ionicons name="people" size={24} color="#10B981" />
+              <Text style={styles.sectionTitle}>Usuarios Activos</Text>
+            </View>
+            <View style={styles.sectionHeaderRight}>
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>
+                  {filteredUsers.filter((u) => u.active).length}
+                </Text>
+              </View>
+              <Ionicons
+                name={activeUsersExpanded ? "chevron-up" : "chevron-down"}
+                size={20}
+                color="#64748B"
+                style={styles.chevronIcon}
+              />
+            </View>
+          </TouchableOpacity>
 
+          {activeUsersExpanded && (
+            <View style={styles.cardsContainer}>
+              {filteredUsers.filter((u) => u.active).length > 0 ? (
+                filteredUsers
+                  .filter((u) => u.active)
+                  .map((user) => renderUserCard(user))
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="people-outline" size={48} color="#9CA3AF" />
+                  <Text style={styles.emptyText}>No hay usuarios activos</Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+        {/* Inactive Users Section */}
+        <View style={styles.sectionContainer}>
+          <TouchableOpacity
+            style={styles.sectionHeader}
+            onPress={() => setInactiveUsersExpanded(!inactiveUsersExpanded)}
+          >
+            <View style={styles.sectionHeaderLeft}>
+              <Ionicons name="person-remove" size={24} color="#EF4444" />
+              <Text style={styles.sectionTitle}>Usuarios Inactivos</Text>
+            </View>
+            <View style={styles.sectionHeaderRight}>
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>
+                  {filteredUsers.filter((u) => !u.active).length}
+                </Text>
+              </View>
+              <Ionicons
+                name={inactiveUsersExpanded ? "chevron-up" : "chevron-down"}
+                size={20}
+                color="#64748B"
+                style={styles.chevronIcon}
+              />
+            </View>
+          </TouchableOpacity>
+
+          {inactiveUsersExpanded && (
+            <View style={styles.cardsContainer}>
+              {filteredUsers.filter((u) => !u.active).length > 0 ? (
+                filteredUsers
+                  .filter((u) => !u.active)
+                  .map((user) => renderUserCard(user))
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="people-outline" size={48} color="#9CA3AF" />
+                  <Text style={styles.emptyText}>
+                    No hay usuarios inactivos
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      </ScrollView>{" "}
+      {/* Add/Edit Modal */}
       <Modal
-        animationType="fade"
+        animationType="slide"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>
-              {isEditing ? "Editar Usuario" : "Crear Usuario"}
-            </Text>
-            <TextInput
-              placeholder="Nombre completo"
-              value={name}
-              onChangeText={setName}
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Correo electrónico"
-              value={email}
-              onChangeText={setEmail}
-              style={styles.input}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            {renderRoleSelector(selectedRole, setSelectedRole)}
-            <View style={styles.modalButtonsContainer}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonCancel]}
-                onPress={() => setModalVisible(false)}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[styles.modalButtonText, styles.modalButtonTextCancel]}
-                >
-                  Cancelar
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <ScrollView style={{ width: "100%" }}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {isEditing ? "Editar Usuario" : "Crear Usuario"}
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonPrimary]}
-                onPress={handleSaveUser}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.modalButtonText,
-                    styles.modalButtonTextPrimary,
-                  ]}
+                <TouchableOpacity
+                  style={styles.modalCloseButton}
+                  onPress={() => setModalVisible(false)}
                 >
-                  {isEditing ? "Guardar Cambios" : "Crear"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                  <Ionicons name="close" size={20} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.label}>Nombre Completo*</Text>
+              <TextInput
+                placeholder="e.g. Juan Pérez"
+                value={name}
+                onChangeText={setName}
+                style={styles.input}
+              />
+
+              <Text style={styles.label}>Correo Electrónico*</Text>
+              <TextInput
+                placeholder="e.g. juan.perez@empresa.com"
+                value={email}
+                onChangeText={setEmail}
+                style={styles.input}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+
+              <Text style={styles.label}>Rol*</Text>
+              <View style={styles.statusSelector}>
+                {(["PILOT", "ADMIN", "SUPER_ADMIN"] as UserRole[]).map(
+                  (role) => (
+                    <TouchableOpacity
+                      key={role}
+                      style={[
+                        styles.statusOption,
+                        selectedRole === role && styles.statusOptionSelected,
+                      ]}
+                      onPress={() => setSelectedRole(role)}
+                    >
+                      <Text
+                        style={[
+                          selectedRole === role
+                            ? styles.statusOptionTextSelected
+                            : styles.statusOptionText,
+                        ]}
+                      >
+                        {getRoleDisplayText(role)}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                )}
+              </View>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={handleSaveUser}
+                >
+                  <Text style={styles.modalButtonText}>
+                    {isEditing ? "Guardar Cambios" : "Crear Usuario"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
-      </Modal>
-
+      </Modal>{" "}
+      {/* Filter Modal */}
       <Modal
         animationType="fade"
         transparent={true}
         visible={showFilterModal}
         onRequestClose={() => setShowFilterModal(false)}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPressOut={() => setShowFilterModal(false)}
-        >
-          <View
-            style={styles.filterModalContainer}
-            onStartShouldSetResponder={() => true} // Prevents modal closing when pressing inside
-          >
-            <Text style={styles.modalTitle}>Filtrar Usuarios</Text>
-            <Text style={styles.modalLabel}>Estado:</Text>
-            <View style={styles.filterOptionContainer}>
-              {[
-                { label: "Activo", value: true },
-                { label: "Inactivo", value: false },
-                { label: "Todos", value: undefined }, // Option to clear status filter
-              ].map((item) => (
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <ScrollView style={{ width: "100%" }}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Filtrar Usuarios</Text>
                 <TouchableOpacity
-                  key={item.label}
-                  style={[
-                    styles.filterOptionButton,
-                    activeFilter.active === item.value &&
-                      styles.filterOptionButtonSelected,
-                  ]}
-                  onPress={() =>
-                    setActiveFilter((prev) => ({
-                      ...prev,
-                      active: item.value,
-                    }))
-                  }
-                  activeOpacity={0.7}
+                  style={styles.modalCloseButton}
+                  onPress={() => setShowFilterModal(false)}
                 >
-                  <Text
-                    style={[
-                      styles.filterOptionText,
-                      activeFilter.active === item.value &&
-                        styles.filterOptionTextSelected,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
+                  <Ionicons name="close" size={20} color="#6B7280" />
                 </TouchableOpacity>
-              ))}
-            </View>
-            {renderRoleSelector(activeFilter.role as UserRole, (role) =>
-              setActiveFilter((prev) => ({ ...prev, role: role }))
-            )}
-            {/* Button to clear role filter */}
-            <TouchableOpacity
-              style={[styles.roleButton, styles.clearRoleButton]}
-              onPress={() =>
-                setActiveFilter((prev) => ({ ...prev, role: undefined }))
-              }
-              activeOpacity={0.7}
-            >
-              <Text style={styles.clearRoleButtonText}>Limpiar Rol</Text>
-            </TouchableOpacity>
-            <View style={styles.modalButtonsContainer}>
+              </View>
+
+              <Text style={styles.label}>Estado:</Text>
+              <View style={styles.statusSelector}>
+                {[
+                  { label: "Activo", value: true },
+                  { label: "Inactivo", value: false },
+                  { label: "Todos", value: undefined },
+                ].map((item) => (
+                  <TouchableOpacity
+                    key={item.label}
+                    style={[
+                      styles.statusOption,
+                      activeFilter.active === item.value &&
+                        styles.statusOptionSelected,
+                    ]}
+                    onPress={() =>
+                      setActiveFilter((prev) => ({
+                        ...prev,
+                        active: item.value,
+                      }))
+                    }
+                  >
+                    <Text
+                      style={[
+                        activeFilter.active === item.value
+                          ? styles.statusOptionTextSelected
+                          : styles.statusOptionText,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.label}>Rol:</Text>
+              <View style={styles.statusSelector}>
+                {(["PILOT", "ADMIN", "SUPER_ADMIN"] as UserRole[]).map(
+                  (role) => (
+                    <TouchableOpacity
+                      key={role}
+                      style={[
+                        styles.statusOption,
+                        activeFilter.role === role &&
+                          styles.statusOptionSelected,
+                      ]}
+                      onPress={() =>
+                        setActiveFilter((prev) => ({ ...prev, role: role }))
+                      }
+                    >
+                      <Text
+                        style={[
+                          activeFilter.role === role
+                            ? styles.statusOptionTextSelected
+                            : styles.statusOptionText,
+                        ]}
+                      >
+                        {getRoleDisplayText(role)}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                )}
+              </View>
+
               <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonClear]}
-                onPress={clearFilters}
-                activeOpacity={0.7}
+                style={styles.clearRoleButton}
+                onPress={() =>
+                  setActiveFilter((prev) => ({ ...prev, role: undefined }))
+                }
               >
-                <Text
-                  style={[styles.modalButtonText, styles.modalButtonTextClear]}
-                >
-                  Limpiar Todo
-                </Text>
+                <Text style={styles.clearRoleButtonText}>Limpiar Rol</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonPrimary]}
-                onPress={applyFiltersAndClose}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.modalButtonText,
-                    styles.modalButtonTextPrimary,
-                  ]}
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={clearFilters}
                 >
-                  Aplicar
-                </Text>
-              </TouchableOpacity>
-            </View>
+                  <Text style={styles.modalButtonText}>Limpiar Todo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={applyFiltersAndClose}
+                >
+                  <Text style={styles.modalButtonText}>Aplicar</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </View>
   );
@@ -410,216 +565,358 @@ const UsersScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: "#F2F2F2",
+    backgroundColor: "#F8FAFC",
   },
   searchFilterContainer: {
     flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+    gap: 12,
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  searchIcon: {
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    height: 48, // Increased height
-    borderColor: "#ced4da", // Softer border color
-    borderWidth: 1,
-    borderRadius: 24, // More rounded
-    paddingHorizontal: 20,
-    marginRight: 12,
-    backgroundColor: "#fff",
     fontSize: 16,
-    color: "#495057",
+    color: "#1F2937",
+    padding: 0,
   },
   filterButton: {
-    padding: 12,
-    borderRadius: 24, // Match search input
-    backgroundColor: "#9C46CE", // Light gray background
+    backgroundColor: "#9C46CE",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    shadowColor: "#9C46CE",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  userItem: {
-    backgroundColor: "#ffffff",
-    padding: 16, // Increased padding
-    marginVertical: 8,
-    marginHorizontal: 2,
-    borderRadius: 12, // Softer corners
+  addButtonContainer: {
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: "transparent",
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#9C46CE",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    shadowColor: "#9C46CE",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  addButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 6,
+  },
+  scrollContainer: {
+    flex: 1,
+    padding: 20,
+  },
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  sectionHeaderLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  sectionHeaderRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  chevronIcon: {
+    marginLeft: 4,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginLeft: 12,
+    letterSpacing: -0.3,
+  },
+  countBadge: {
+    backgroundColor: "#E2E8F0",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  countText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  cardsContainer: {
+    gap: 12,
+  },
+  userCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  userHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 10,
   },
   userInfo: {
     flex: 1,
+    marginRight: 12,
   },
-  userName: {
-    fontSize: 17, // Slightly larger
-    fontWeight: "600",
-    color: "#343a40", // Darker gray
+  userTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: 4,
+    letterSpacing: -0.3,
   },
-  userEmail: {
+  userSubtitle: {
     fontSize: 14,
-    color: "#6c757d", // Medium gray
-    marginTop: 3,
-  },
-  userLastLogin: {
-    fontSize: 12,
-    color: "#6c757d", // Medium gray
-    marginTop: 2,
-    fontStyle: "italic",
-  },
-  userStatusActive: {
-    fontSize: 13,
-    color: "#28a745", // Bootstrap green
-    marginTop: 5,
+    color: "#64748B",
     fontWeight: "500",
   },
-  userStatusInactive: {
+  roleBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  superAdminBadge: {
+    backgroundColor: "#FEE2E2",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+  },
+  adminBadge: {
+    backgroundColor: "#DBEAFE",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  pilotBadge: {
+    backgroundColor: "#DCFCE7",
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+  },
+  roleBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  superAdminText: {
+    color: "#DC2626",
+  },
+  adminText: {
+    color: "#2563EB",
+  },
+  pilotText: {
+    color: "#059669",
+  },
+  userDetails: {
+    marginBottom: 14,
+    paddingVertical: 4,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+    paddingVertical: 1,
+  },
+  detailText: {
     fontSize: 13,
-    color: "#dc3545", // Bootstrap red
-    marginTop: 5,
+    color: "#64748B",
+    marginLeft: 8,
     fontWeight: "500",
   },
   userActions: {
     flexDirection: "row",
-    alignItems: "center",
+    gap: 8,
   },
-  actionButton: {
-    padding: 8,
-    marginLeft: 12, // Increased spacing
-  },
-  fab: {
-    position: "absolute",
-    right: 25,
-    bottom: 25,
-    backgroundColor: "#9C46CE",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyListContainer: {
+  actionBtn: {
     flex: 1,
-    justifyContent: "center",
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 60,
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    gap: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  emptyListText: {
+  editBtn: {
+    backgroundColor: "#3B82F6",
+  },
+  deactivateBtn: {
+    backgroundColor: "#EF4444",
+  },
+  activateBtn: {
+    backgroundColor: "#10B981",
+  },
+  actionBtnText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 48,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#E2E8F0",
+    borderStyle: "dashed",
+    marginVertical: 4,
+  },
+  emptyText: {
     fontSize: 17,
-    color: "#6c757d",
+    color: "#9CA3AF",
+    marginTop: 16,
+    textAlign: "center",
+    fontWeight: "500",
   },
-  modalOverlay: {
+  // Modal Styles
+  centeredView: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)", // Darker overlay for more focus
     justifyContent: "center",
     alignItems: "center",
-    padding: 20, // Ensure modal isn't touching screen edges
+    backgroundColor: "rgba(0,0,0,0.6)",
   },
-  modalContainer: {
-    // Shared by Edit and base for Filter
-    width: "100%", // Take full width of overlay padding
-    maxWidth: 400, // Max width for larger screens
+  modalView: {
+    margin: 20,
     backgroundColor: "white",
-    borderRadius: 16, // Larger radius
-    padding: 24, // More padding
-    // alignItems: "center", // Content will align itself
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15, // Softer shadow
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  filterModalContainer: {
-    // Inherits from modalContainer, can add specifics if needed
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: "white",
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 24,
+    alignItems: "stretch",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
     shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 10,
+    shadowRadius: 24,
+    elevation: 12,
+    width: "90%",
+    maxHeight: "85%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 16,
+    marginBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
   },
   modalTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 24, // More space below title
-    color: "#343a40",
-    textAlign: "center",
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1E293B",
+    letterSpacing: -0.5,
+  },
+  modalCloseButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: "#F3F4F6",
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+    color: "#374151",
+    fontWeight: "600",
   },
   input: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#f8f9fa", // Light background for input
-    borderColor: "#ced4da",
+    backgroundColor: "#F9FAFB",
+    borderColor: "#E5E7EB",
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 18, // More space between inputs
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
     fontSize: 16,
-    color: "#495057",
+    color: "#1F2937",
   },
-  roleContainer: {
-    width: "100%",
-    marginBottom: 12, // Reduced margin as clear button for role is added
-  },
-  modalLabel: {
-    fontSize: 16,
-    color: "#495057", // Subtler label color
-    marginBottom: 10,
-    fontWeight: "500",
-  },
-  roleButton: {
-    backgroundColor: "#e9ecef", // Lighter gray
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    marginVertical: 5,
-    borderWidth: 1,
-    borderColor: "#ced4da", // Match input border
-  },
-  roleButtonSelected: {
-    backgroundColor: "#9C46CE",
-    borderColor: "#9C46CE",
-  },
-  roleButtonText: {
-    textAlign: "center",
-    color: "#495057",
-    fontWeight: "500",
-    fontSize: 15,
-  },
-  roleButtonTextSelected: {
-    color: "white",
-    fontWeight: "bold",
-  },
-  filterOptionContainer: {
+  statusSelector: {
     flexDirection: "row",
-    justifyContent: "space-between", // Spreads items evenly
-    width: "100%",
+    justifyContent: "space-around",
     marginBottom: 15,
+    marginTop: 5,
   },
-  filterOptionButton: {
-    backgroundColor: "#e9ecef",
-    paddingVertical: 10,
-    paddingHorizontal: 12, // Adjusted padding
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ced4da",
-    flex: 1, // Distribute space
-    marginHorizontal: 4, // Small gap
-    alignItems: "center", // Center text
+  statusOption: {
+    paddingVertical: 9,
+    paddingHorizontal: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: "#3498db",
+    flex: 1,
+    marginHorizontal: 2,
+    alignItems: "center",
   },
-  filterOptionButtonSelected: {
-    backgroundColor: "#9C46CE",
-    borderColor: "#9C46CE",
+  statusOptionSelected: {
+    backgroundColor: "#3498db",
   },
-  filterOptionText: {
-    textAlign: "center",
-    color: "#495057",
+  statusOptionText: {
+    color: "#3498db",
+    fontSize: 11,
     fontWeight: "500",
-    fontSize: 14,
   },
-  filterOptionTextSelected: {
-    color: "white",
-    fontWeight: "bold",
+  statusOptionTextSelected: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "500",
   },
   clearRoleButton: {
     backgroundColor: "transparent",
@@ -628,7 +925,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     alignItems: "center",
-    marginBottom: 20, // Space before action buttons
+    marginBottom: 20,
     marginTop: 5,
   },
   clearRoleButtonText: {
@@ -636,58 +933,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
-
-  // --- New Modal Button Styles ---
-  modalButtonsContainer: {
+  modalActions: {
     flexDirection: "row",
-    justifyContent: "flex-end", // Aligns buttons to the right
-    width: "100%",
-    marginTop: 24, // Increased top margin for separation
+    justifyContent: "space-around",
+    marginTop: 25,
+    borderTopColor: "#eee",
+    borderTopWidth: 1,
+    paddingTop: 15,
   },
   modalButton: {
-    // Base style for all modal buttons
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 20, // Generous padding
-    marginHorizontal: 6, // Space between buttons
-    minWidth: 100, // Ensure decent tap target size
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    minWidth: 100,
     alignItems: "center",
-    justifyContent: "center",
-    elevation: 1, // Subtle elevation for buttons
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  cancelButton: {
+    backgroundColor: "#6B7280",
+  },
+  saveButton: {
+    backgroundColor: "#3B82F6",
   },
   modalButtonText: {
-    // Base text style for all modal buttons
-    fontSize: 15, // Slightly smaller for better fit
-    fontWeight: "600",
-    textAlign: "center",
-  },
-
-  // Primary button (Save, Create, Apply)
-  modalButtonPrimary: {
-    backgroundColor: "#9C46CE", // Main app color
-  },
-  modalButtonTextPrimary: {
     color: "white",
-  },
-
-  // Cancel button (Edit/Create modal)
-  modalButtonCancel: {
-    backgroundColor: "#e9ecef", // Match Clear button's background
-    borderColor: "#ced4da", // Match Clear button's border color
-    borderWidth: 1, // Match Clear button's border width
-  },
-  modalButtonTextCancel: {
-    color: "#495057", // Darker gray text
-  },
-
-  // Clear Filters button (Filter modal)
-  modalButtonClear: {
-    backgroundColor: "#e9ecef", // Light gray, distinct from cancel
-    borderColor: "#ced4da",
-    borderWidth: 1,
-  },
-  modalButtonTextClear: {
-    color: "#495057", // Darker gray text
+    fontSize: 14,
+    fontWeight: "600",
+    letterSpacing: 0.3,
   },
 });
 

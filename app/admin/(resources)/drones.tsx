@@ -343,12 +343,22 @@ const DronesScreen = () => {
           resetForm();
         }}
       >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
+        <View style={styles.centeredView}>          <View style={styles.modalView}>
             <ScrollView style={{ width: "100%" }}>
-              <Text style={styles.modalTitle}>
-                {isNewDrone ? "Registrar Nuevo Dron" : "Detalles del Dron"}
-              </Text>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {isNewDrone ? "Registrar Nuevo Dron" : "Detalles del Dron"}
+                </Text>
+                <TouchableOpacity
+                  style={styles.modalCloseButton}
+                  onPress={() => {
+                    setModalVisible(false);
+                    resetForm();
+                  }}
+                >
+                  <Ionicons name="close" size={20} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
 
               <Text style={styles.label}>Nombre*</Text>
               <TextInput
@@ -821,14 +831,26 @@ const styles = StyleSheet.create({
     elevation: 12,
     width: "90%",
     maxHeight: "85%",
+  },  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 16,
+    marginBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
   },
   modalTitle: {
-    marginBottom: 24,
-    textAlign: "center",
-    fontSize: 26,
-    fontWeight: "800",
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "700",
     color: "#1E293B",
     letterSpacing: -0.5,
+  },
+  modalCloseButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: "#F3F4F6",
   },
   label: {
     fontSize: 16,
@@ -887,30 +909,29 @@ const styles = StyleSheet.create({
     borderTopColor: "#eee",
     borderTopWidth: 1,
     paddingTop: 15,
-  },
-  modalButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 14,
-    minWidth: 140,
+  },  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    minWidth: 100,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
   },
   cancelButton: {
-    backgroundColor: "#EF4444",
+    backgroundColor: "#6B7280",
   },
   saveButton: {
-    backgroundColor: "#10B981",
+    backgroundColor: "#3B82F6",
   },
   modalButtonText: {
     color: "white",
-    fontSize: 17,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    fontSize: 14,
+    fontWeight: "600",
+    letterSpacing: 0.3,
   },
   infoBox: {
     marginTop: 15,
