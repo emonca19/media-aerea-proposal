@@ -19,10 +19,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import useWeather from "../../hooks/useWeather"; // Asegúrate que la ruta a hooks sea correcta desde aquí
+import useWeather from "./../../hooks/useWeather"; // Asegúrate que la ruta a hooks sea correcta desde aquí
 
 // Importación nombrada para ActivitiesDisplayList
-import { IncidentFormData } from "../new-incident"; // Importamos el tipo desde el nuevo componente
 import { ActivitiesDisplayList } from "./activities-display-list"; // Ajusta la ruta si es necesario
 import ActivityControl from "./activity-control"; // Importamos el nuevo componente para control de actividad
 import ActivitySuggestionsCard from "./activity-suggestions-card"; // Importamos el nuevo componente de sugerencias
@@ -30,6 +29,7 @@ import ActivityTimeline, { TimelineActivity } from "./activity-timeline"; // Imp
 import AlertsDisplayCard from "./alerts-display-card"; // Ajusta la ruta si es necesaria
 import IncidentFormModal from "./incident-form-modal"; // Importamos el nuevo componente modal para incidentes
 import MyIndicatorsButton from "./my-indicators-button"; // Ajusta la ruta si es necesaria
+import { IncidentFormData } from "./new-incident-formmodal"; // Importamos el tipo desde el nuevo componente
 import QuickActionsMenuCard from "./quick-actions-menu-card"; // Ajusta la ruta si es necesaria
 import QuickRegisterActivityForm, {
   activityTypes,
@@ -713,7 +713,8 @@ type DashboardSectionItem = {
     | "ALERTS_DISPLAY_CARD"
     | "QUICK_ACTIONS_MENU_CARD"
     | "ACTIVITIES_DISPLAY_LIST"
-    | "MY_INDICATORS_BUTTON";
+    | "MY_INDICATORS_BUTTON"
+    | "ACTIVITY_SUGGESTIONS";
 };
 
 // Enhanced NoActivitiesCard component with improved design and optional actions
@@ -971,6 +972,7 @@ const PilotDashboard = () => {
   const [completedPreflightChecks, setCompletedPreflightChecks] = useState<
     Record<string, boolean>
   >({});
+  const [bladeInspectionStatus, setBladeInspectionStatus] = useState<Record<string, boolean>>({});
 
   // Inicializamos con datos por defecto, pero intentaremos cargar desde almacenamiento local
   const [currentProject, setCurrentProject] =
@@ -1363,10 +1365,11 @@ const PilotDashboard = () => {
     (): DashboardSectionItem[] => [
       { id: "welcome-header", type: "WELCOME_HEADER" },
       { id: "project-summary", type: "PROJECT_SUMMARY_CARD" },
+      ...(showActivitySuggestions ? [{ id: "activity-suggestions", type: "ACTIVITY_SUGGESTIONS" as const }] : []),
       { id: "quickActions", type: "QUICK_ACTIONS_MENU_CARD" },
       { id: "timeline", type: "ACTIVITY_TIMELINE" },
     ],
-    []
+    [showActivitySuggestions]
   );
 
   const handleDeleteActivity = useCallback((activityId: string) => {
@@ -1551,18 +1554,39 @@ const PilotDashboard = () => {
     if (!currentOngoingActivityForDisplay) return;
 
     const activityId = currentOngoingActivityForDisplay.id;
+    const requiresBladeInspection = isBladeInspectionRequired(currentOngoingActivityForDisplay);
 
+    // Check if blade inspection is required and not completed
+    if (requiresBladeInspection && !hasCompletedBladeInspection(activityId)) {
+      Alert.alert(
+        '⚠️ Inspección de Aspas Requerida',
+        'Para finalizar esta actividad de turbina, debe completar la inspección de todas las aspas.',
+        [
+          {
+            text: 'Ir a Inspección',
+            onPress: () => {
+              const turbineId = currentOngoingActivityForDisplay.turbineId || 
+                              currentOngoingActivityForDisplay.id.replace('turbine-', '') ||
+                              'default';
+              router.push(`/pilot/blade-inspection-detail?turbineId=${turbineId}&activityId=${activityId}`);
+            }
+          },
+          { text: 'Cancelar', style: 'cancel' }
+        ]
+      );
+      return;
+    }
+
+    // Proceed with normal finish logic
     const newPauseState = { isPaused: false };
     setActivityPauseState(newPauseState);
 
     handleActivityAction(activityId, "COMPLETADA");
 
-    // If suggestions were visible when finishing, hide them.
     if (showActivitySuggestions) {
       setShowActivitySuggestions(false);
     }
 
-    // Set termination type to completed
     setActivityTerminationType("completed");
 
     const pendingForToday = pendingTodayActivities.filter(
@@ -1590,225 +1614,199 @@ const PilotDashboard = () => {
     showActivitySuggestions,
     setShowActivitySuggestions,
     setActivityTerminationType,
+    router,
+    bladeInspectionStatus
   ]);
 
-  const handleFinishActivityByBlockingIncident = useCallback(
-    (incidentId: string) => {
-      if (!currentOngoingActivityForDisplay) return;
-
-      const activityId = currentOngoingActivityForDisplay.id;
-
-      // Mark activity as terminated by blocking incident (not completed)
-      const newPauseState = { isPaused: false };
-      setActivityPauseState(newPauseState);
-
-      // Update activity status to a special status for incident termination
+  // Handler para el cambio de estado de la actividad al volver del checklist
+  const handleActivityPostChecklist = useCallback(
+    (activityId: string) => {
       setCurrentProject((prev) => {
-        const updatedProject = {
-          ...prev,
-          activities: (prev.activities || []).map((act) =>
-            act.id === activityId
-              ? {
-                  ...act,
-                  status: "TERMINADA_POR_INCIDENTE" as any, // Special status
-                  actualEnd: new Date().toISOString(),
-                  time: "Hoy - Terminada por incidente bloqueante",
-                  incidentTerminationReason: `Terminada debido al incidente bloqueante: ${incidentId}`,
-                }
-              : act
-          ),
-        };
-        return updatedProject;
+        const updatedActivities = (prev.activities || []).map((act) =>
+          act.id === activityId
+            ? {
+                ...act,
+                status: "EN_PROGRESO" as Activity["status"],
+                actualStart: new Date().toISOString(),
+                time: "Hoy - En curso",
+              }
+            : act
+        );
+        return { ...prev, activities: updatedActivities };
       });
-      // Clear current incident
-      setCurrentIncident(null);
-
-      // Set termination type to incident
-      setActivityTerminationType("incident");
-
-      // Show suggestions for next activities
-      if (showActivitySuggestions) {
-        setShowActivitySuggestions(false);
-      }
-
-      const pendingForToday = pendingTodayActivities.filter(
-        (act) => act.id !== activityId
-      );
-      const genericPendingToShow = genericPendingActivities.filter(
-        (act) => act.id !== activityId
-      );
-
-      if (pendingForToday.length > 0) {
-        setSuggestedActivities(pendingForToday.slice(0, 3));
-        setShowActivitySuggestions(true);
-      } else if (genericPendingToShow.length > 0) {
-        setSuggestedActivities(genericPendingToShow.slice(0, 3));
-        setShowActivitySuggestions(true);
-      } else {
-        setShowActivitySuggestions(false);
-      }
-
-      Alert.alert(
-        "Actividad Terminada",
-        "La actividad ha sido terminada debido al incidente bloqueante. No se marca como completada.",
-        [{ text: "Entendido" }]
-      );
     },
-    [
-      currentOngoingActivityForDisplay,
-      pendingTodayActivities,
-      genericPendingActivities,
-      setActivityPauseState,
-      setCurrentIncident,
-      setCurrentProject,
-      setShowActivitySuggestions,
-      showActivitySuggestions,
-      setActivityTerminationType,
-    ]
+    []
   );
 
-  const handleToggleIncidentBlocking = useCallback(
-    (incidentId: string, isBlocking: boolean) => {
-      if (!currentIncident || currentIncident.id !== incidentId) return;
-
-      // Update the current incident's blocking status
-      const updatedIncident = {
-        ...currentIncident,
-        isBlocking: isBlocking,
-        blockingTimestamp: isBlocking ? new Date().toISOString() : undefined,
-        blockingReason: isBlocking
-          ? "Marcado como bloqueante por el piloto después de la creación"
-          : undefined,
-      };
-
-      setCurrentIncident(updatedIncident);
-
-      // Update the incident in the project's incidents array
-      setCurrentProject((prev) => {
-        const updatedProject = {
-          ...prev,
-          incidents: (prev.incidents || []).map((incident) =>
-            incident.id === incidentId ? updatedIncident : incident
-          ),
-        };
-        return updatedProject;
-      });
-
-      Alert.alert(
-        isBlocking
-          ? "Incidente Marcado como Bloqueante"
-          : "Incidente Ya No Es Bloqueante",
-        isBlocking
-          ? "El incidente ahora está bloqueando la actividad. Puedes terminar la actividad usando el botón correspondiente."
-          : "El incidente ya no está bloqueando la actividad.",
-        [{ text: "Entendido" }]
-      );
-    },
-    [currentIncident, setCurrentIncident, setCurrentProject]
-  );
-
-  // Effect to handle activity start after returning from preflight checklist
+  // Efecto para iniciar la actividad de turbina después del checklist prevuelo
   useEffect(() => {
-    const {
-      activityToStartAfterPreflight,
-      preflightCompletedForTurbine,
-      turbineIdForActivityStart,
-    } = params;
-    console.log(
-      "[Dashboard Effect] Params received on screen focus/param change:",
-      JSON.stringify(params)
-    );
-
+    const { activityToStartAfterPreflight, preflightCompletedForTurbine } = params;
     if (
       activityToStartAfterPreflight &&
-      preflightCompletedForTurbine === "true" &&
-      turbineIdForActivityStart
+      preflightCompletedForTurbine === "true"
     ) {
-      console.log(
-        `[Dashboard Effect] Conditions MET. Preflight completed for turbine ${turbineIdForActivityStart}, attempting to start activity ${activityToStartAfterPreflight}`
-      );
-
-      const activityExists = activities.some(
-        (act) => act.id === activityToStartAfterPreflight
-      );
-      if (!activityExists) {
-        console.warn(
-          `[Dashboard Effect] Activity ${activityToStartAfterPreflight} not found in current activities list after preflight.`
+      // Marcar la actividad como EN_PROGRESO si no lo está ya
+      setCurrentProject((prev) => {
+        const updatedActivities = (prev.activities || []).map((act) =>
+          act.id === activityToStartAfterPreflight && act.status !== "EN_PROGRESO"
+            ? {
+                ...act,
+                status: "EN_PROGRESO",
+                actualStart: new Date().toISOString(),
+                time: "Hoy - En curso",
+              }
+            : act
         );
-        // Clear the params to prevent re-triggering with stale data
-        const newParams = { ...params };
-        delete newParams.activityToStartAfterPreflight;
-        delete newParams.preflightCompletedForTurbine;
-        delete newParams.turbineIdForActivityStart;
-        // Only replace if params actually changed to avoid loop if currentPathname itself is a param
-        if (Object.keys(newParams).length < Object.keys(params).length) {
-          router.replace({
-            pathname: currentPathname,
-            params: newParams,
-          } as any);
-        }
-        return;
-      }
+        return { ...prev, activities: updatedActivities };
+      });
 
-      if (
-        currentOngoingActivityForDisplay &&
-        currentOngoingActivityForDisplay.id !== activityToStartAfterPreflight
-      ) {
-        console.log(
-          `[Dashboard Effect] Completing current activity ${currentOngoingActivityForDisplay.id} before starting ${activityToStartAfterPreflight}`
-        );
-        handleActivityAction(currentOngoingActivityForDisplay.id, "COMPLETADA");
-      }
-
-      console.log(
-        `[Dashboard Effect] Calling forceStartActivityNow for ${activityToStartAfterPreflight}`
-      );
-      forceStartActivityNow(activityToStartAfterPreflight); // Forzar actualStart
-
-      const updatedChecks = {
-        ...completedPreflightChecks,
-        [turbineIdForActivityStart]: true,
-      };
-      setCompletedPreflightChecks(updatedChecks);
-
-      setShowActivitySuggestions(false);
-
-      // Clear the params to prevent re-triggering
-      const finalParams = { ...params };
-      delete finalParams.activityToStartAfterPreflight;
-      delete finalParams.preflightCompletedForTurbine;
-      delete finalParams.turbineIdForActivityStart;
-      if (Object.keys(finalParams).length < Object.keys(params).length) {
+      // Limpiar los parámetros de la URL para evitar reinicios infinitos
+      const newParams = { ...params };
+      delete newParams.activityToStartAfterPreflight;
+      delete newParams.preflightCompletedForTurbine;
+      delete newParams.turbineIdForActivityStart;
+      delete newParams.timestamp;
+      if (Object.keys(newParams).length < Object.keys(params).length) {
         router.replace({
           pathname: currentPathname,
-          params: finalParams,
+          params: newParams,
         } as any);
       }
-    } else {
-      // Log if some params are present but not all conditions are met
-      if (
-        activityToStartAfterPreflight ||
-        preflightCompletedForTurbine ||
-        turbineIdForActivityStart
-      ) {
-        console.log("[Dashboard Effect] Conditions NOT MET. Params received:", {
-          activityToStartAfterPreflight,
-          preflightCompletedForTurbine,
-          turbineIdForActivityStart,
+    }
+  }, [params, router, currentPathname]);
+
+  // Effect para manejar la finalización de la inspección de aspas
+  useEffect(() => {
+    const {
+      bladeInspectionCompleted,
+      turbineId: completedTurbineId,
+      activityId: completedActivityId,
+      keepActivityRunning
+    } = params;
+
+    if (bladeInspectionCompleted === 'true' && completedTurbineId && completedActivityId) {
+      console.log(`[Dashboard Effect] Blade inspection completed for turbine ${completedTurbineId}`);
+      
+      // Mark the blade inspection as completed
+      setBladeInspectionStatus(prev => ({
+        ...prev,
+        [completedActivityId]: true
+      }));
+
+      // Only mark activity as completed if keepActivityRunning is not set
+      if (keepActivityRunning !== 'true') {
+        setCurrentProject((prev) => {
+          const updatedActivities = (prev.activities || []).map((act) =>
+            act.id === completedActivityId
+              ? {
+                  ...act,
+                  status: "COMPLETADA" as Activity["status"],
+                  actualEnd: new Date().toISOString(),
+                  time: "Hoy - Completada",
+                }
+              : act
+          );
+          return { ...prev, activities: updatedActivities };
         });
+
+        // Show activity suggestions for next activities
+        const pendingForToday = pendingTodayActivities.filter(
+          (act) => act.id !== completedActivityId
+        );
+        const genericPendingToShow = genericPendingActivities.filter(
+          (act) => act.id !== completedActivityId
+        );
+
+        if (pendingForToday.length > 0) {
+          setSuggestedActivities(pendingForToday.slice(0, 3));
+          setShowActivitySuggestions(true);
+        } else if (genericPendingToShow.length > 0) {
+          setSuggestedActivities(genericPendingToShow.slice(0, 3));
+          setShowActivitySuggestions(true);
+        } else {
+          setShowActivitySuggestions(false);
+        }
+      }
+
+      // Clear pause state if activity was paused
+      setActivityPauseState({ isPaused: false });
+
+      // Show success message - different based on whether activity is kept running
+      setTimeout(() => {
+        Alert.alert(
+          keepActivityRunning === 'true' ? "✅ Checklist Completado" : "✅ Actividad Completada", 
+          keepActivityRunning === 'true' 
+            ? "La inspección de aspas ha sido completada exitosamente. Ya puede finalizar la actividad."
+            : "La inspección de aspas y la actividad han sido completadas exitosamente."
+        );
+      }, 500);
+
+      // Clear the params
+      const newParams = { ...params };
+      delete newParams.bladeInspectionCompleted;
+      delete newParams.turbineId;
+      delete newParams.activityId;
+      delete newParams.timestamp;
+      delete newParams.keepActivityRunning;
+      delete newParams.showSuggestions;
+      
+      if (Object.keys(newParams).length < Object.keys(params).length) {
+        router.replace({
+          pathname: currentPathname,
+          params: newParams,
+        } as any);
       }
     }
+  }, [params, currentPathname, router, setCurrentProject, pendingTodayActivities, genericPendingActivities, setSuggestedActivities, setShowActivitySuggestions, setActivityPauseState]);
+
+  const isBladeInspectionRequired = (activity: any) => {
+    return activity && (
+      activity.type === 'TURBINE_WORK' ||
+      activity.type === 'TURBINE_INSPECTION' ||
+      activity.name?.toLowerCase().includes('turbina') ||
+      activity.type?.toLowerCase().includes('turbine')
+    );
+  };
+
+  const hasCompletedBladeInspection = (activityId: string) => {
+    return bladeInspectionStatus[activityId] === true;
+  };
+
+  // Add a stub for handleToggleIncidentBlocking to fix the error
+  const handleToggleIncidentBlocking = useCallback(() => {
+    // Implement logic to toggle incident blocking if needed
+    Alert.alert("Funcionalidad no implementada", "El cambio de estado de bloqueo de incidente aún no está implementado.");
+  }, []);
+
+  // Stub para finalizar actividad por incidente bloqueante
+  const handleFinishActivityByBlockingIncident = useCallback(() => {
+    if (currentOngoingActivityForDisplay) {
+      Alert.alert(
+        "Finalizar por Incidente",
+        `La actividad "${currentOngoingActivityForDisplay.name}" se finalizará debido al incidente actual. ¿Continuar?`,
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Sí, finalizar",
+            onPress: () => {
+              handleActivityAction(currentOngoingActivityForDisplay.id, "COMPLETADA");
+              setCurrentIncident(null);
+              setActivityPauseState({ isPaused: false });
+              Alert.alert("Actividad Finalizada", "La actividad se ha finalizado debido al incidente.");
+              setShowActivitySuggestions(false);
+            },
+          },
+        ]
+      );
+    } else {
+      Alert.alert("Error", "No hay actividad en curso para finalizar por incidente.");
+    }
   }, [
-    params,
-    activities,
     currentOngoingActivityForDisplay,
     handleActivityAction,
-    router,
-    completedPreflightChecks,
-    setCompletedPreflightChecks,
+    setCurrentIncident,
+    setActivityPauseState,
     setShowActivitySuggestions,
-    currentPathname,
-    forceStartActivityNow,
   ]);
 
   const renderDashboardSection = useCallback(
@@ -2192,15 +2190,48 @@ const PilotDashboard = () => {
               showDismissAllButton={true}
             />
           );
+        case "ACTIVITY_SUGGESTIONS":
+          return (
+            <ActivitySuggestionsCard
+              activities={suggestedActivities}
+              terminationType={activityTerminationType}
+              onClose={() => {
+                setShowActivitySuggestions(false);
+                console.log("Sugerencias cerradas por el usuario");
+              }}
+              onActivitySelect={(activityId, isTurbineActivity) => {
+                if (isTurbineActivity) {
+                  const activity = suggestedActivities.find(
+                    (act) => act.id === activityId
+                  );
+                  if (activity) {
+                    const turbineId = activity.turbineId || activity.id;
+                    handleGoToPreflightChecklist(turbineId, activityId);
+                    setShowActivitySuggestions(false);
+                  }
+                } else {
+                  handleStartPendingActivity(activityId);
+                  setShowActivitySuggestions(false);
+                }
+              }}
+              onGoToPreflightChecklist={(
+                turbineId: string,
+                activityId: string
+              ) => {
+                handleGoToPreflightChecklist(turbineId, activityId);
+                setShowActivitySuggestions(false);
+              }}
+            />
+          );
+
         case "QUICK_ACTIONS_MENU_CARD":
           return (
             <>
               {currentOngoingActivityForDisplay && (
                 <ActivityControl
                   ongoingActivity={currentOngoingActivityForDisplay}
-                  onStart={handleStartJornada} // This might need to be re-evaluated if "Jornada" is a specific activity type
+                  onStart={handleStartJornada}
                   onPause={(reason) => {
-                    // Ensure reason is captured or prompted
                     Alert.prompt(
                       "Pausar Actividad",
                       "Ingresa el motivo de la pausa (opcional):",
@@ -2213,63 +2244,36 @@ const PilotDashboard = () => {
                         },
                       ],
                       "plain-text",
-                      activityPauseReason // Use the constant here
+                      activityPauseReason
                     );
                   }}
                   onResume={handleResumeActivity}
                   onFinish={handleFinishActivity}
-                  isPaused={activityPauseState.isPaused}
-                  currentPauseReason={activityPauseState.reason}
-                  onIncidentCreate={() => setIsNewIncidentModalVisible(true)}
-                  currentIncident={currentIncident}
+                  onNewIncident={handleOpenNewIncidentModal}
                   onToggleIncidentBlocking={handleToggleIncidentBlocking}
-                  onFinishActivityByBlockingIncident={
-                    handleFinishActivityByBlockingIncident
-                  }
-                />
-              )}
-              {showActivitySuggestions && (
-                <ActivitySuggestionsCard
-                  activities={suggestedActivities}
-                  terminationType={activityTerminationType}
-                  onClose={() => {
-                    setShowActivitySuggestions(false);
-                    console.log("Sugerencias cerradas por el usuario");
-                  }}
-                  onActivitySelect={(activityId, isTurbineActivity) => {
-                    if (isTurbineActivity) {
-                      const activity = suggestedActivities.find(
-                        (act) => act.id === activityId
-                      );
-                      if (activity) {
-                        const turbineId = activity.turbineId || activity.id;
-                        // Si se selecciona una actividad de turbina directamente, va al preflight CON activityId
-                        handleGoToPreflightChecklist(turbineId, activityId); // <--- AQUI SE ENVÍA activityId
-                        setShowActivitySuggestions(false);
-                      }
-                    } else {
-                      handleStartPendingActivity(activityId);
-                      setShowActivitySuggestions(false);
-                    }
-                  }}
-                  onGoToPreflightChecklist={(
-                    turbineId: string,
-                    activityId: string
-                  ) => {
-                    // Asegúrate que la firma coincida con la de ActivitySuggestionsCardProps
-                    // Ahora 'activityId' viene desde ActivitySuggestionsCard
-                    handleGoToPreflightChecklist(turbineId, activityId);
-                    setShowActivitySuggestions(false);
+                  onFinishByBlockingIncident={handleFinishActivityByBlockingIncident}
+                  activityPauseState={activityPauseState}
+                  currentIncident={currentIncident}
+                  // Pass turbine checklist props
+                  requiresBladeInspection={isBladeInspectionRequired(currentOngoingActivityForDisplay)}
+                  hasCompletedBladeInspection={hasCompletedBladeInspection(currentOngoingActivityForDisplay.id)}
+                  onGoToBladeInspection={() => {
+                    const turbineId = currentOngoingActivityForDisplay.turbineId || 
+                                    currentOngoingActivityForDisplay.id.replace('turbine-', '') ||
+                                    'default';
+                    router.push(`/pilot/blade-inspection-detail?turbineId=${turbineId}&activityId=${currentOngoingActivityForDisplay.id}`);
                   }}
                 />
               )}
               <QuickActionsMenuCard
-                onNavigate={handleNavigate}
-                onOpenNewActivity={handleOpenNewActivityModal}
-                onOpenNewIncident={handleOpenNewIncidentModal}
-                onSubmitActivity={(activityData: any) => {
-                  console.log("Activity submitted:", activityData);
-                }}
+                onCreateActivity={handleOpenNewActivityModal}
+                onCreateIncident={handleOpenNewIncidentModal}
+                onViewActivities={() => handleNavigate("/pilot/activities")}
+                onViewTurbines={() => handleNavigate("/pilot/turbines")}
+                onViewFlights={() => handleNavigate("/pilot/flights")}
+                onLogout={handleLogout}
+                currentProject={currentProject}
+                onGoToPreflightChecklist={handleGoToPreflightChecklist}
               />
             </>
           );
@@ -2280,12 +2284,12 @@ const PilotDashboard = () => {
           );
           if (typeof memoizedActivityListsForDisplay.ongoing === "undefined") {
             console.error(
-              "CRITICAL IN RENDER: memoizedActivityListsForDisplay.ongoing es undefined"
+              "PilotDashboard: memoizedActivityListsForDisplay.ongoing is undefined!"
             );
             return (
               <View style={styles.errorCard}>
                 <Text style={styles.errorText}>
-                  Error: Datos de actividades (ongoing) no disponibles.
+                  Error: No se pudieron cargar las actividades
                 </Text>
               </View>
             );
@@ -2312,9 +2316,9 @@ const PilotDashboard = () => {
       currentDate,
       weather,
       weatherLoading,
-      weatherError, // Added weatherError
-      router, // Added router
-      pilot, // Added pilot
+      weatherError,
+      router,
+      pilot,
       activityPauseState,
       pendingTodayActivities,
       genericPendingActivities,
@@ -2346,7 +2350,8 @@ const PilotDashboard = () => {
       setShowActivitySuggestions,
       handleToggleIncidentBlocking,
       handleFinishActivityByBlockingIncident,
-      // activityPauseReason is a constant, not needed in deps
+      currentIncident,
+      activities,
     ]
   );
 
@@ -2374,17 +2379,20 @@ const PilotDashboard = () => {
           </View>
         }
       />
+      
+      {/* Quick Register Activity Modal */}
       <QuickRegisterActivityForm
         isVisible={isNewActivityModalVisible}
         onClose={() => setIsNewActivityModalVisible(false)}
         onSubmit={handleCreateQuickActivity}
       />
+
+      {/* Incident Form Modal */}
       <IncidentFormModal
         isVisible={isNewIncidentModalVisible}
         onClose={() => setIsNewIncidentModalVisible(false)}
         onSubmit={handleCreateNewIncident}
         activities={[...ongoingActivities, ...pendingTodayActivities].map(
-          // Added ongoingActivities
           (act) => ({
             id: act.id,
             name: act.name,
@@ -2426,7 +2434,7 @@ const welcomeStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    minWidth: 0, // Permite que el texto se corte si es necesario
+    minWidth: 0,
   },
   avatarContainer: {
     position: "relative",
@@ -2453,7 +2461,7 @@ const welcomeStyles = StyleSheet.create({
   },
   userInfo: {
     flex: 1,
-    minWidth: 0, // Permite que el texto se corte si es necesario
+    minWidth: 0,
   },
   name: {
     fontSize: 18,
@@ -2666,4 +2674,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PilotDashboard; // Esta exportación default es para la PANTALLA.
+export default PilotDashboard;

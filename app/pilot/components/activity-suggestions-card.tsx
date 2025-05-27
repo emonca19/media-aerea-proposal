@@ -49,7 +49,7 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
   return (    <View style={styles.container}>
       <View style={styles.header}>
         <Ionicons name={headerInfo.icon} size={24} color={headerInfo.color} />
-        <Text style={[styles.title, { color: headerInfo.color }]}>{headerInfo.title}</Text>
+        <Text style={styles.title}>{headerInfo.title}</Text>
       </View>
 
       <Text style={styles.subtitle}>{headerInfo.subtitle}</Text>
@@ -128,10 +128,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-  },  title: {
+  },
+  title: {
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 8,
+    color: '#10b981',
   },
   subtitle: {
     fontSize: 16,

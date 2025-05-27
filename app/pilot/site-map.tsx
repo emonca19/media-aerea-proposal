@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Animated, Dimensions, GestureResponderEvent, Modal, PanResponder, PanResponderGestureState, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -132,7 +132,12 @@ const styles = StyleSheet.create({
 });
 
 
-const SiteMap: React.FC = () => {
+const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
+  const { turbineId, flowType } = useLocalSearchParams<{
+    turbineId?: string;
+    flowType?: string;
+  }>();
+  
   const [selectedItem, setSelectedItem] = useState<Turbine | Drone | Facility | null>(null);
   const [floatingLabel, setFloatingLabel] = useState<string>('');
   const [userLocation, setUserLocation] = useState<{ x: number; y: number } | null>(null);
@@ -278,8 +283,17 @@ const SiteMap: React.FC = () => {
       ],
     }
   }), []);
-
   const currentParkData = parkDataDefinition[currentParkId];
+
+  // Auto-select turbine if turbineId is provided in URL
+  React.useEffect(() => {
+    if (turbineId && currentParkData) {
+      const targetTurbine = currentParkData.turbines.find(t => t.id === turbineId);
+      if (targetTurbine) {
+        setSelectedItem(targetTurbine);
+      }
+    }
+  }, [turbineId, currentParkData]);
 
   if (!currentParkData) {
     return <View style={styles.loadingContainer}><Text>Cargando datos del parque...</Text></View>;
@@ -1002,10 +1016,24 @@ const SiteMap: React.FC = () => {
             { !('power' in selectedItem) && !('battery' in selectedItem) && (
                 <Text style={styles.itemDetailPlaceholder}>Más detalles de la instalación aquí.</Text>
             )}
-          </View>
-
-          <TouchableOpacity style={styles.itemDetailButton}>
-            <Text style={styles.itemDetailButtonText}>Ver Detalles Completos</Text>
+          </View>          <TouchableOpacity 
+            style={styles.itemDetailButton}
+            onPress={() => {
+              if ('power' in selectedItem && flowType === 'inspection') {
+                // Navigate to preflight checklist for turbine inspection
+                router.push(`/pilot/preflight-checklist?turbineId=${selectedItem.id}&turbineName=${encodeURIComponent(selectedItem.name)}&flowType=inspection`);
+              } else {
+                // Default action - show details
+                console.log('Ver detalles completos de:', selectedItem.name);
+              }
+            }}
+          >
+            <Text style={styles.itemDetailButtonText}>
+              {('power' in selectedItem && flowType === 'inspection') 
+                ? 'Comenzar Inspección' 
+                : 'Ver Detalles Completos'
+              }
+            </Text>
             <Ionicons name="arrow-forward-outline" size={18} color="#ffffff" />
           </TouchableOpacity>
         </View>

@@ -16,6 +16,10 @@ interface ActivityControlProps {
   currentIncident?: any | null;
   onToggleIncidentBlocking?: (incidentId: string, isBlocking: boolean) => void;
   onFinishActivityByBlockingIncident?: (incidentId: string) => void;
+  // New props for blade inspection
+  requiresBladeInspection?: boolean;
+  hasCompletedBladeInspection?: boolean;
+  onGoToBladeInspection?: () => void;
 }
 
 
@@ -31,7 +35,10 @@ export default function ActivityControl({
   onIncidentCreate,
   currentIncident,
   onToggleIncidentBlocking,
-  onFinishActivityByBlockingIncident
+  onFinishActivityByBlockingIncident,
+  requiresBladeInspection = false,
+  hasCompletedBladeInspection = false,
+  onGoToBladeInspection
 }: ActivityControlProps) {
   const [pauseStart, setPauseStart] = useState<number | null>(null);
   const [accumulated, setAccumulated] = useState(0); // tiempo acumulado antes de pausar
@@ -39,6 +46,10 @@ export default function ActivityControl({
   const [activityStartTime, setActivityStartTime] = useState<string | null>(null);
 
   const hasActivity = ongoingActivity && ongoingActivity.actualStart;
+
+  const isInspectionPendingAndActionable = requiresBladeInspection && !hasCompletedBladeInspection && onGoToBladeInspection;
+  const isInspectionRequiredNotActionable = requiresBladeInspection && !hasCompletedBladeInspection && !onGoToBladeInspection;
+
 
   // Update current time continuously
   React.useEffect(() => {
@@ -194,24 +205,94 @@ export default function ActivityControl({
             }}>
               Iniciada el: {activityStartTime}
             </Text>
-          )}
-          {/* Botón principal: Terminar o Reanudar */}
+          )}          {/* Blade inspection status for turbine activities */}
+          {requiresBladeInspection && (
+            <View style={styles.bladeInspectionStatus}>
+              <View style={styles.bladeInspectionHeader}>
+                <Ionicons 
+                  name={hasCompletedBladeInspection ? "checkmark-circle" : "nuclear"} 
+                  size={16} 
+                  color={hasCompletedBladeInspection ? "#10b981" : "#f59e0b"} 
+                />
+                <Text style={[
+                  styles.bladeInspectionText,
+                  hasCompletedBladeInspection && styles.bladeInspectionCompleted
+                ]}>
+                  Inspección de Aspas: {hasCompletedBladeInspection ? 'Completada' : 'Pendiente'}
+                </Text>
+              </View>
+              {isInspectionPendingAndActionable && (
+                <TouchableOpacity 
+                  style={styles.bladeInspectionButton}
+                  onPress={onGoToBladeInspection}
+                >
+                  <Ionicons name="search-outline" size={14} color="#3b82f6" style={{marginRight: 4}} />
+                  <Text style={styles.bladeInspectionButtonText}>Inspeccionar Aspas</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}          {/* Botón principal: Terminar o Reanudar */}
           <View style={styles.cardActionsRow}>
             {!isPaused && (
-              <LinearGradient
-                colors={["#ff5858", "#f857a6"]}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                style={styles.gradientButton}
-              >
-                <TouchableOpacity style={styles.gradientBtnContent} onPress={onFinish} activeOpacity={0.9}>
-                  <Ionicons name="stop" size={20} color="#fff" style={{ marginRight: 8 }} />
-                  <Text style={styles.buttonText}>Terminar</Text>
-                </TouchableOpacity>
-              </LinearGradient>
+              <>
+                {isInspectionPendingAndActionable ? (
+                  // Only the disabled "Terminar" button.
+                  // The "Completar Inspección" button is removed from this row.
+                  // The onGoToBladeInspection prop would need to be triggered by another UI element if desired.
+                  <LinearGradient
+                    colors={["#9ca3af", "#6b7280"]} // Grey gradient
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    style={styles.gradientButton}
+                  >
+                    <TouchableOpacity
+                      style={styles.gradientBtnContent}
+                      onPress={() => Alert.alert("Inspección Requerida", "Debe completar la inspección de aspas para terminar la actividad.")}
+                      activeOpacity={1} // Less feedback for disabled appearance
+                    >
+                      <Ionicons name="lock-closed-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+                      <Text style={styles.buttonText}>Requiere Inspección</Text>
+                    </TouchableOpacity>
+                  </LinearGradient>
+                ) : isInspectionRequiredNotActionable ? (
+                  // Case: Inspection is required, but no onGoToBladeInspection prop is provided.
+                  // Show only the disabled "Terminar" button.
+                  <LinearGradient
+                    colors={["#9ca3af", "#6b7280"]} // Grey gradient
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    style={styles.gradientButton}
+                  >
+                    <TouchableOpacity
+                      style={styles.gradientBtnContent}
+                      onPress={() => Alert.alert("Inspección Requerida", "La inspección de aspas es necesaria pero la acción para completarla no está disponible.")}
+                      activeOpacity={1}
+                    >
+                      <Ionicons name="lock-closed-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+                      <Text style={styles.buttonText}>Requiere Inspección</Text>
+                    </TouchableOpacity>
+                  </LinearGradient>
+                ) : (
+                  /* Botón Terminar (Habilitado, Rojo) */
+                  /* Covers: No inspection required OR inspection required AND completed. */
+                  <LinearGradient
+                    colors={["#ff5858", "#f857a6"]} // Red gradient for finish
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    style={styles.gradientButton}
+                  >
+                    <TouchableOpacity
+                      style={styles.gradientBtnContent}
+                      onPress={onFinish}
+                      activeOpacity={0.9}
+                    >
+                      <Ionicons name="stop" size={20} color="#fff" style={{ marginRight: 8 }} />
+                      <Text style={styles.buttonText}>Terminar</Text>
+                    </TouchableOpacity>
+                  </LinearGradient>
+                )}
+              </>
             )}
             {isPaused && (
               <LinearGradient
-                colors={["#43cea2", "#185a9d"]}
+                colors={["#43cea2", "#185a9d"]} // Green gradient for resume
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                 style={styles.gradientButton}
               >
@@ -709,6 +790,47 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 20,
     padding: 4,
+  },
+  bladeInspectionStatus: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    padding: 10,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    width: '100%',
+  },
+  bladeInspectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    // justifyContent: 'space-between', // Removed to allow button to be on new line if text is long
+    marginBottom: 4,
+  },
+  bladeInspectionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#f59e0b',
+    flex: 1,
+    marginLeft: 6,
+  },
+  bladeInspectionCompleted: {
+    color: '#10b981',
+  },
+  bladeInspectionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#dbeafe', 
+    paddingHorizontal: 10, 
+    paddingVertical: 6,    
+    borderRadius: 6,
+    alignSelf: 'flex-start', 
+    marginTop: 8, 
+  },
+  bladeInspectionButtonText: {
+    fontSize: 13, 
+    color: '#3b82f6', 
+    fontWeight: '600',
+    marginLeft: 4, 
   },
 });
 

@@ -87,11 +87,13 @@ export default function TurbinesScreen() {
                 <Text style={styles.detailValue}>{new Date(turbine.nextInspection).toLocaleDateString()}</Text>
               </View>
             </View>
-            
-            <View style={styles.actionRow}>
+              <View style={styles.actionRow}>
               <TouchableOpacity 
                 style={styles.actionButton}
-                onPress={() => alert(`Inspección para ${turbine.name} será implementada próximamente`)}
+                onPress={() => {
+                  // Navigate to site map first to visualize turbine location
+                  router.push(`/pilot/site-map?turbineId=${turbine.id}&flowType=inspection`);
+                }}
               >
                 <Ionicons name="camera-outline" size={18} color="#3b82f6" />
                 <Text style={styles.actionText}>Inspeccionar</Text>

@@ -159,6 +159,7 @@ export default function PilotLayout() {
           <Tabs.Screen name="components/activity-timeline" options={{ href: null }} />
           <Tabs.Screen name="components/activity-control" options={{ href: null }}/>
           <Tabs.Screen name="components/activity-suggestions-card" options={{ href: null }} />
+           <Tabs.Screen name="blade-inspection-detail" options={{ href: null }} />
         </Tabs>
       </View>
     </SafeAreaView>
