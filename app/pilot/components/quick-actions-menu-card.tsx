@@ -11,13 +11,25 @@ interface QuickActionsMenuCardProps {
   onOpenNewActivity: () => void;
   onOpenNewIncident: () => void;
   onSubmitActivity?: (activityData: any) => void;
+  onViewActivities?: () => void;
+  onViewTurbines?: () => void;
+  onViewFlights?: () => void;
+  onLogout?: () => void;
+  currentProject?: any;
+  onGoToPreflightChecklist?: () => void;
 }
 
 const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({ 
   onNavigate, 
   onOpenNewActivity, 
   onOpenNewIncident, 
-  onSubmitActivity 
+  onSubmitActivity,
+  onViewActivities,
+  onViewTurbines,
+  onViewFlights,
+  onLogout,
+  currentProject,
+  onGoToPreflightChecklist
 }) => {
   const [isQuickActivityFormVisible, setIsQuickActivityFormVisible] = useState(false);
   

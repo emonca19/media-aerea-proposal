@@ -155,14 +155,7 @@ export default function ActivityLogScreen() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen
-        options={{
-          title: 'Registro Operativo',
-          headerStyle: { backgroundColor: '#ffffff' },
-          headerTintColor: '#1e3a8a',
-          headerShadowVisible: false
-        }}
-      />
+      
 
       {/* El ScrollView ahora siempre muestra las actividades, sin tabs */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>

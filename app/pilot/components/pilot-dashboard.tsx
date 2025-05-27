@@ -1295,10 +1295,9 @@ const PilotDashboard = () => {
           );
           if (currentOngoing) {
             baseActivities = baseActivities.map((act) =>
-              act.id === currentOngoing.id
-                ? {
+              act.id === currentOngoing.id                ? {
                     ...act,
-                    status: "COMPLETADA",
+                    status: "COMPLETADA" as Activity["status"],
                     actualEnd: now.toISOString(),
                     time: `Hoy - Completada`,
                   }
@@ -1648,10 +1647,9 @@ const PilotDashboard = () => {
       // Marcar la actividad como EN_PROGRESO si no lo está ya
       setCurrentProject((prev) => {
         const updatedActivities = (prev.activities || []).map((act) =>
-          act.id === activityToStartAfterPreflight && act.status !== "EN_PROGRESO"
-            ? {
+          act.id === activityToStartAfterPreflight && act.status !== "EN_PROGRESO"              ? {
                 ...act,
-                status: "EN_PROGRESO",
+                status: "EN_PROGRESO" as Activity["status"],
                 actualStart: new Date().toISOString(),
                 time: "Hoy - En curso",
               }
@@ -2247,13 +2245,13 @@ const PilotDashboard = () => {
                       activityPauseReason
                     );
                   }}
-                  onResume={handleResumeActivity}
-                  onFinish={handleFinishActivity}
-                  onNewIncident={handleOpenNewIncidentModal}
-                  onToggleIncidentBlocking={handleToggleIncidentBlocking}
-                  onFinishByBlockingIncident={handleFinishActivityByBlockingIncident}
-                  activityPauseState={activityPauseState}
+                  onResume={handleResumeActivity}                  onFinish={handleFinishActivity}
+                  isPaused={activityPauseState.isPaused}
+                  currentPauseReason={activityPauseState.reason}
+                  onIncidentCreate={handleOpenNewIncidentModal}
                   currentIncident={currentIncident}
+                  onToggleIncidentBlocking={handleToggleIncidentBlocking}
+                  onFinishActivityByBlockingIncident={handleFinishActivityByBlockingIncident}
                   // Pass turbine checklist props
                   requiresBladeInspection={isBladeInspectionRequired(currentOngoingActivityForDisplay)}
                   hasCompletedBladeInspection={hasCompletedBladeInspection(currentOngoingActivityForDisplay.id)}
@@ -2264,10 +2262,11 @@ const PilotDashboard = () => {
                     router.push(`/pilot/blade-inspection-detail?turbineId=${turbineId}&activityId=${currentOngoingActivityForDisplay.id}`);
                   }}
                 />
-              )}
-              <QuickActionsMenuCard
-                onCreateActivity={handleOpenNewActivityModal}
-                onCreateIncident={handleOpenNewIncidentModal}
+              )}              <QuickActionsMenuCard
+                onNavigate={handleNavigate}
+                onOpenNewActivity={handleOpenNewActivityModal}
+                onOpenNewIncident={handleOpenNewIncidentModal}
+                onSubmitActivity={handleCreateQuickActivity}
                 onViewActivities={() => handleNavigate("/pilot/activities")}
                 onViewTurbines={() => handleNavigate("/pilot/turbines")}
                 onViewFlights={() => handleNavigate("/pilot/flights")}
