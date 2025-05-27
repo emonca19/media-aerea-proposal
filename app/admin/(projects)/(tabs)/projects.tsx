@@ -469,7 +469,7 @@ export default function ProjectsScreen() {
             </Text>
           </View>
         }
-      />{" "}
+      />
       <FilterModal
         isVisible={isFilterModalVisible}
         onClose={handleCloseModal}
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9fafb",
     borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 2,
     gap: 12,
     borderWidth: 1,
     borderColor: "#e5e7eb",

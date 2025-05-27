@@ -99,22 +99,12 @@ export default function LoginScreen() {
       }
 
       // Intento de login con animación
-      const { user } = await auth.login(email, password);
-
-      // Animación de éxito
-      Animated.sequence([
-        Animated.spring(logoRotate, {
-          toValue: 4,
-          friction: 3,
-          tension: 40,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: currentTheme.animation.duration.fast,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
+      const { user } = await auth.login(email, password); // Animación de éxito (sin logoRotate para mayor velocidad)
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: currentTheme.animation.duration.fast,
+        useNativeDriver: true,
+      }).start(() => {
         // Redirigir según rol
         switch (user.role) {
           case "PILOT":

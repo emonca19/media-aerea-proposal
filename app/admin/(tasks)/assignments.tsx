@@ -320,7 +320,7 @@ export default function AssignmentsScreen() {
               <Text style={styles.subsectionTitle}>
                 Pilotos Disponibles ({availablePilots.length})
               </Text>
-            </View>{" "}
+            </View>
             <TouchableOpacity
               style={styles.resourceSelector}
               onPress={() => setShowPilotsModal(true)}
@@ -417,10 +417,9 @@ export default function AssignmentsScreen() {
 
         {hasResourcesSelected && (
           <>
-            {" "}
             <View style={styles.dateRow}>
               <View style={styles.dateInput}>
-                <Text style={styles.inputLabel}>Fecha de Inicio</Text>{" "}
+                <Text style={styles.inputLabel}>Fecha de Inicio</Text>
                 <TouchableOpacity
                   style={styles.dateButton}
                   onPress={() => {
@@ -438,7 +437,7 @@ export default function AssignmentsScreen() {
               </View>
 
               <View style={styles.dateInput}>
-                <Text style={styles.inputLabel}>Fecha de Fin</Text>{" "}
+                <Text style={styles.inputLabel}>Fecha de Fin</Text>
                 <TouchableOpacity
                   style={styles.dateButton}
                   onPress={() => {
@@ -463,15 +462,22 @@ export default function AssignmentsScreen() {
                   {dateValidationMessage}
                 </Text>
               </View>
-            )}
+            )}{" "}
             <View style={styles.durationContainer}>
-              <Text style={styles.inputLabel}>Duración Estimada</Text>
               <View style={styles.durationDisplay}>
                 <MaterialIcons name="access-time" size={20} color="#6b7280" />
-                <Text style={styles.durationText}>
-                  {estimatedDuration > 0
-                    ? `${estimatedDuration} días`
-                    : "Seleccione fechas para calcular"}
+                <Text style={styles.durationLabel}>
+                  <Text>Duración: </Text>
+                  <Text
+                    style={[
+                      styles.durationText,
+                      { color: estimatedDuration > 0 ? "#1f2937" : "#9ca3af" },
+                    ]}
+                  >
+                    {estimatedDuration > 0
+                      ? `${estimatedDuration} días`
+                      : "Seleccione fechas para calcular"}
+                  </Text>
                 </Text>
               </View>
             </View>
@@ -504,7 +510,8 @@ export default function AssignmentsScreen() {
                   <View style={styles.datePickerContainer}>
                     <Text style={styles.datePickerTitle}>
                       Seleccionar Fecha de Inicio
-                    </Text>{" "}
+                    </Text>
+                    <Text> </Text>
                     <input
                       type="date"
                       style={{
@@ -690,7 +697,6 @@ export default function AssignmentsScreen() {
               ]}
               onPress={() => handlePilotSelection(pilot.pilotId)}
             >
-              {" "}
               <View style={styles.pilotCardWithImage}>
                 <PilotImage pilotId={pilot.pilotId} />
                 <View style={styles.cardHeader}>
@@ -713,7 +719,7 @@ export default function AssignmentsScreen() {
                         size={24}
                         color="#10b981"
                       />
-                    )}{" "}
+                    )}
                   </View>
                 </View>
               </View>
@@ -780,7 +786,6 @@ export default function AssignmentsScreen() {
               ]}
               onPress={() => handleDroneSelection(drone.droneId)}
             >
-              {" "}
               <View style={styles.cardHeader}>
                 <View style={styles.cardInfo}>
                   <Text style={styles.cardTitle}>{drone.droneName}</Text>
@@ -1056,10 +1061,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 8,
   },
+  durationLabel: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginLeft: 6,
+    fontWeight: "500",
+  },
   durationText: {
     fontSize: 16,
     color: "#1f2937",
-    marginLeft: 8,
     fontWeight: "600",
   },
   dateButton: {
@@ -1266,7 +1276,6 @@ const styles = StyleSheet.create({
   resourceSelectedMultiple: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#10b981",
   },
   resourceBadge: {
     backgroundColor: "#9C46CE",

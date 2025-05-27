@@ -1,4 +1,4 @@
-import { Client, Contract } from "../types/clients";
+import { Client } from "../types/clients";
 
 export const mockClients: Client[] = [
   {
@@ -9,14 +9,7 @@ export const mockClients: Client[] = [
       email: "roberto.wilson@energiaverde.com",
       phone: "+34-91-555-0101",
     },
-    contracts: ["contract_001", "contract_002"],
     projects: ["proj_001", "proj_002"],
-    customCodes: {
-      MOBILIZATION: "MOB",
-      TURBINE_WORK: "TW",
-      DEMOBILIZATION: "DEMOB",
-      EMERGENCY: "EMRG",
-    },
     createdAt: new Date("2024-01-15T09:00:00Z"),
     updatedAt: new Date("2025-03-10T14:30:00Z"),
   },
@@ -28,13 +21,7 @@ export const mockClients: Client[] = [
       email: "maria.garcia@solucioneseolicas.com",
       phone: "+34-93-555-0202",
     },
-    contracts: ["contract_003"],
     projects: ["proj_003"],
-    customCodes: {
-      INSPECTION: "INSP",
-      MAINTENANCE: "MAINT",
-      SURVEY: "SURV",
-    },
     createdAt: new Date("2024-03-20T11:00:00Z"),
     updatedAt: new Date("2025-04-05T16:45:00Z"),
   },
@@ -46,13 +33,7 @@ export const mockClients: Client[] = [
       email: "david.thompson@parqueseolicoscosteros.com",
       phone: "+34-96-555-0303",
     },
-    contracts: ["contract_004", "contract_005"],
     projects: ["proj_004"],
-    customCodes: {
-      BLADE_INSPECTION: "BI",
-      TOWER_CHECK: "TC",
-      NACELLE_SURVEY: "NS",
-    },
     createdAt: new Date("2024-06-10T08:30:00Z"),
     updatedAt: new Date("2025-05-20T10:15:00Z"),
   },
@@ -64,68 +45,8 @@ export const mockClients: Client[] = [
       email: "jennifer.lopez@energiamontanosa.com",
       phone: "+34-985-555-0404",
     },
-    contracts: [],
     projects: [],
     createdAt: new Date("2025-05-01T12:00:00Z"),
     updatedAt: new Date("2025-05-01T12:00:00Z"),
-  },
-];
-
-export const mockContracts: Contract[] = [
-  {
-    id: "contract_001",
-    clientId: "client_001",
-    contractNumber: "EV-2024-001",
-    startDate: new Date("2024-01-15"),
-    endDate: new Date("2025-12-31"),
-    description:
-      "Servicios anuales de inspección de aerogeneradores para Parque Eólico Alfa",
-    active: true,
-    createdAt: new Date("2024-01-15T09:00:00Z"),
-    updatedAt: new Date("2024-01-15T09:00:00Z"),
-  },
-  {
-    id: "contract_002",
-    clientId: "client_001",
-    contractNumber: "EV-2024-002",
-    startDate: new Date("2024-06-01"),
-    endDate: new Date("2025-05-31"),
-    description: "Respuesta de emergencia e inspecciones de mantenimiento",
-    active: true,
-    createdAt: new Date("2024-06-01T10:00:00Z"),
-    updatedAt: new Date("2024-06-01T10:00:00Z"),
-  },
-  {
-    id: "contract_003",
-    clientId: "client_002",
-    contractNumber: "SET-2024-001",
-    startDate: new Date("2024-03-20"),
-    endDate: new Date("2024-09-20"),
-    description: "Ciclo de inspección trimestral para parque eólico marino",
-    active: false,
-    createdAt: new Date("2024-03-20T11:00:00Z"),
-    updatedAt: new Date("2024-09-20T17:00:00Z"),
-  },
-  {
-    id: "contract_004",
-    clientId: "client_003",
-    contractNumber: "PEC-2024-001",
-    startDate: new Date("2024-06-10"),
-    endDate: new Date("2026-06-10"),
-    description: "Servicio integral de inspección y monitoreo por dos años",
-    active: true,
-    createdAt: new Date("2024-06-10T08:30:00Z"),
-    updatedAt: new Date("2024-06-10T08:30:00Z"),
-  },
-  {
-    id: "contract_005",
-    clientId: "client_003",
-    contractNumber: "PEC-2025-001",
-    startDate: new Date("2025-01-01"),
-    endDate: new Date("2025-12-31"),
-    description: "Programa anual de evaluación del estado de las palas",
-    active: true,
-    createdAt: new Date("2024-12-15T14:00:00Z"),
-    updatedAt: new Date("2024-12-15T14:00:00Z"),
   },
 ];
