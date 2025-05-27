@@ -441,7 +441,7 @@ const DronesScreen = () => {
                     Creado: {editingDrone.createdAt.toLocaleDateString()}
                   </Text>
                   <Text style={styles.infoText}>
-                    Última Actualización:{" "}
+                    Última Actualización:
                     {editingDrone.updatedAt.toLocaleDateString()}
                   </Text>
                 </View>
@@ -487,7 +487,7 @@ const DronesScreen = () => {
               <>
                 <Text style={styles.statusModalTitle}>Actualizar Estado</Text>
                 <Text style={styles.statusModalSubtitle}>
-                  {selectedDroneForStatusUpdate.manufacturer}{" "}
+                  {selectedDroneForStatusUpdate.manufacturer}
                   {selectedDroneForStatusUpdate.model}
                 </Text>
                 <Text style={styles.statusModalDroneName}>

@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
+  Platform,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -220,6 +222,17 @@ export default function AdminNotificationsScreen() {
     sortedNotificationsData
   );
 
+  // Set StatusBar when this screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      StatusBar.setBarStyle("dark-content", true);
+      if (Platform.OS === "android") {
+        StatusBar.setBackgroundColor("#f1f5f9", true);
+        StatusBar.setTranslucent(false);
+      }
+    }, [])
+  );
+
   useEffect(() => {
     const unreadCount = notifications.filter((n) => !n.read).length;
     if (typeof window !== "undefined") {
@@ -371,7 +384,7 @@ export default function AdminNotificationsScreen() {
             >
               <Ionicons name="checkmark-done" size={20} color="#64748b" />
             </TouchableOpacity>
-          </View>{" "}
+          </View>
         </View>
 
         {/* Notifications List */}

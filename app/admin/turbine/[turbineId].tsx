@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { mockWindParks, mockTurbines } from "../../../src/mocks/index";
+import { mockTurbines, mockWindParks } from "../../../src/mocks/index";
 
 export default function TurbineDetailsScreen() {
   const router = useRouter();
@@ -91,14 +91,14 @@ export default function TurbineDetailsScreen() {
                 ? new Date(turbine.lastInspection).toLocaleDateString()
                 : "No hay inspecciones registradas"}
             </Text>
-          </View>{" "}
+          </View>
           <View style={styles.infoCard}>
             <Text style={styles.infoTitle}>Ubicación</Text>
             <Text style={styles.info}>
               Parque: {park?.name || "No especificado"}
             </Text>
             <Text style={styles.info}>
-              Coordenadas: {park?.location?.latitude || "N/A"},{" "}
+              Coordenadas: {park?.location?.latitude || "N/A"},
               {park?.location?.longitude || "N/A"}
             </Text>
           </View>

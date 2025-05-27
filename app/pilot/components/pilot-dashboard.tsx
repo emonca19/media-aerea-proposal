@@ -1,14 +1,14 @@
 // app/pilot/dashboard/pilot-dashboard.tsx
 
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
-import { Href, useLocalSearchParams, usePathname, useRouter } from "expo-router"; // Changed to useSearchParams
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { LinearGradient } from "expo-linear-gradient"; // Import LinearGradient
+import {
+  Href,
+  useLocalSearchParams,
+  usePathname,
+  useRouter,
+} from "expo-router"; // Changed to useSearchParams
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -40,56 +40,91 @@ import {
   ChecklistItemData,
   incidentTypes as importedIncidentTypes,
   pilot,
-  initialCurrentProject as projectDataFromImport
+  initialCurrentProject as projectDataFromImport,
 } from "./pilot-dashboard-data"; // Asegúrate que la ruta sea correcta
 
 // Función auxiliar para asignar iconos a las actividades
-const getActivityIcon = (activityType: any, activity: any, isPaused = false) => {
+const getActivityIcon = (
+  activityType: any,
+  activity: any,
+  isPaused = false
+) => {
   let iconName = "briefcase-outline"; // Default icon
-  
+
   if (activityType?.icon) {
     // Convertir MaterialCommunityIcons a Ionicons equivalentes
-    if (activityType.icon === 'wind-turbine') {
+    if (activityType.icon === "wind-turbine") {
       iconName = "nuclear-outline"; // Icono para turbinas
-    } else if (activityType.icon === 'bus') {
+    } else if (activityType.icon === "bus") {
       iconName = "car-outline";
-    } else if (activityType.icon === 'coffee') {
+    } else if (activityType.icon === "coffee") {
       iconName = "cafe-outline";
-    } else if (activityType.icon === 'food') {
+    } else if (activityType.icon === "food") {
       iconName = "restaurant-outline";
-    } else if (activityType.icon === 'weather-cloudy') {
+    } else if (activityType.icon === "weather-cloudy") {
       iconName = "rainy-outline";
-    } else if (activityType.icon === 'dots-horizontal') {
+    } else if (activityType.icon === "dots-horizontal") {
       iconName = "ellipsis-horizontal-outline";
     } else {
       iconName = activityType.icon;
     }
   } else if (activity) {
     // Determinar icono basado en el tipo y nombre de actividad
-    const activityTypeLower = (activity.type || '').toLowerCase();
-    const activityNameLower = (activity.name || '').toLowerCase();
-    
-    if (activityTypeLower.includes('turbine') || activityTypeLower.includes('trabajo_turbina') || 
-        activityNameLower.includes('turbina') || activityNameLower.includes('aerogenerador')) {
+    const activityTypeLower = (activity.type || "").toLowerCase();
+    const activityNameLower = (activity.name || "").toLowerCase();
+
+    if (
+      activityTypeLower.includes("turbine") ||
+      activityTypeLower.includes("trabajo_turbina") ||
+      activityNameLower.includes("turbina") ||
+      activityNameLower.includes("aerogenerador")
+    ) {
       iconName = "nuclear-outline";
-    } else if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección')) {
+    } else if (
+      activityTypeLower.includes("inspection") ||
+      activityTypeLower.includes("inspección")
+    ) {
       iconName = "search-outline";
-    } else if (activityTypeLower.includes('vuelo') || activityTypeLower.includes('flight')) {
+    } else if (
+      activityTypeLower.includes("vuelo") ||
+      activityTypeLower.includes("flight")
+    ) {
       iconName = "airplane-outline";
-    } else if (activityTypeLower.includes('maintenance') || activityTypeLower.includes('mantenimiento')) {
+    } else if (
+      activityTypeLower.includes("maintenance") ||
+      activityTypeLower.includes("mantenimiento")
+    ) {
       iconName = "construct-outline";
-    } else if (activityTypeLower.includes('transporte') || activityTypeLower.includes('movilizacion')) {
+    } else if (
+      activityTypeLower.includes("transporte") ||
+      activityTypeLower.includes("movilizacion")
+    ) {
       iconName = "car-outline";
-    } else if (activityTypeLower.includes('photo') || activityTypeLower.includes('fotografía')) {
+    } else if (
+      activityTypeLower.includes("photo") ||
+      activityTypeLower.includes("fotografía")
+    ) {
       iconName = "camera-outline";
-    } else if (activityTypeLower.includes('thermal') || activityTypeLower.includes('térmico')) {
+    } else if (
+      activityTypeLower.includes("thermal") ||
+      activityTypeLower.includes("térmico")
+    ) {
       iconName = "thermometer-outline";
-    } else if (activityTypeLower.includes('comida') || activityTypeLower.includes('almuerzo')) {
+    } else if (
+      activityTypeLower.includes("comida") ||
+      activityTypeLower.includes("almuerzo")
+    ) {
       iconName = "restaurant-outline";
     }
   }
-  
-  return <Ionicons name={iconName as any} size={28} color={isPaused ? "#dc2626" : "#3b82f6"} />;
+
+  return (
+    <Ionicons
+      name={iconName as any}
+      size={28}
+      color={isPaused ? "#dc2626" : "#3b82f6"}
+    />
+  );
 }; // Importamos el nuevo componente con sus datos
 
 // Enhanced ProjectSummaryCard component with more information and visual improvements
@@ -103,26 +138,35 @@ function ProjectSummaryCard({
   name?: string;
   client?: string;
   onPress?: () => void;
-}) {  // Use project data or fallback to individual props
+}) {
+  // Use project data or fallback to individual props
   const projectName = project?.name || name || "Proyecto sin Nombre";
   const projectClient = project?.client || client || "Cliente No Especificado";
-  
+
   // Get status color and text
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'EN_PROGRESO': return '#3b82f6';
-      case 'COMPLETADO': return '#10b981';
-      case 'PAUSADO': return '#f59e0b';
-      default: return '#6b7280';
+      case "EN_PROGRESO":
+        return "#3b82f6";
+      case "COMPLETADO":
+        return "#10b981";
+      case "PAUSADO":
+        return "#f59e0b";
+      default:
+        return "#6b7280";
     }
   };
-  
+
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'EN_PROGRESO': return 'En Progreso';
-      case 'COMPLETADO': return 'Completado';
-      case 'PAUSADO': return 'Pausado';
-      default: return 'Estado desconocido';
+      case "EN_PROGRESO":
+        return "En Progreso";
+      case "COMPLETADO":
+        return "Completado";
+      case "PAUSADO":
+        return "Pausado";
+      default:
+        return "Estado desconocido";
     }
   };
   return (
@@ -131,21 +175,42 @@ function ProjectSummaryCard({
       onPress={onPress}
       style={{ width: "100%" }}
     >
-      <View style={projectSummaryStyles.cardWrapper}>        
+      <View style={projectSummaryStyles.cardWrapper}>
         <View style={projectSummaryStyles.cardCompact}>
           {/* Header compacto con información esencial */}
           <View style={projectSummaryStyles.headerRowCompact}>
             <View style={projectSummaryStyles.iconCircleCompact}>
               <Ionicons name="business-outline" size={20} color="#3b82f6" />
-            </View>            
+            </View>
             <View style={projectSummaryStyles.headerInfo}>
-              <Text style={projectSummaryStyles.titleCompact}>{projectName}</Text>
-              <Text style={projectSummaryStyles.subtitleCompact}>{projectClient}</Text>
+              <Text style={projectSummaryStyles.titleCompact}>
+                {projectName}
+              </Text>
+              <Text style={projectSummaryStyles.subtitleCompact}>
+                {projectClient}
+              </Text>
               {project?.status && (
-                <View style={[projectSummaryStyles.statusBadgeCompact, { backgroundColor: getStatusColor(project.status) + '20', borderColor: getStatusColor(project.status) }]}>
-                  <View style={[projectSummaryStyles.statusDotCompact, { backgroundColor: getStatusColor(project.status) }]}>
-                  </View>
-                  <Text style={[projectSummaryStyles.statusTextCompact, { color: getStatusColor(project.status) }]}>
+                <View
+                  style={[
+                    projectSummaryStyles.statusBadgeCompact,
+                    {
+                      backgroundColor: getStatusColor(project.status) + "20",
+                      borderColor: getStatusColor(project.status),
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      projectSummaryStyles.statusDotCompact,
+                      { backgroundColor: getStatusColor(project.status) },
+                    ]}
+                  ></View>
+                  <Text
+                    style={[
+                      projectSummaryStyles.statusTextCompact,
+                      { color: getStatusColor(project.status) },
+                    ]}
+                  >
                     {getStatusText(project.status)}
                   </Text>
                 </View>
@@ -173,7 +238,7 @@ function WelcomeHeader({
   const router = useRouter();
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [hasNotifications, setHasNotifications] = useState(
-    typeof window !== 'undefined' && !!window.__hasNotifications
+    typeof window !== "undefined" && !!window.__hasNotifications
   );
   useEffect(() => {
     const timer = setInterval(() => {
@@ -184,7 +249,7 @@ function WelcomeHeader({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         setHasNotifications(!!window.__hasNotifications);
       }
     }, 500);
@@ -192,27 +257,36 @@ function WelcomeHeader({
   }, []);
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('es-MX', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString("es-MX", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
   // Removed formatTime function since we're not showing time anymore
 
   const getWeatherIcon = (condition: string) => {
-    const conditionLower = (condition || '').toLowerCase() || '';
-    if (conditionLower.includes('sol') || conditionLower.includes('despejado')) {
-      return 'sunny-outline';
-    } else if (conditionLower.includes('nublado') || conditionLower.includes('nube')) {
-      return 'partly-sunny-outline';
-    } else if (conditionLower.includes('lluvia') || conditionLower.includes('lluvioso')) {
-      return 'rainy-outline';
-    } else if (conditionLower.includes('viento')) {
-      return 'leaf-outline';
+    const conditionLower = (condition || "").toLowerCase() || "";
+    if (
+      conditionLower.includes("sol") ||
+      conditionLower.includes("despejado")
+    ) {
+      return "sunny-outline";
+    } else if (
+      conditionLower.includes("nublado") ||
+      conditionLower.includes("nube")
+    ) {
+      return "partly-sunny-outline";
+    } else if (
+      conditionLower.includes("lluvia") ||
+      conditionLower.includes("lluvioso")
+    ) {
+      return "rainy-outline";
+    } else if (conditionLower.includes("viento")) {
+      return "leaf-outline";
     }
-    return 'cloud-outline';
+    return "cloud-outline";
   };
 
   return (
@@ -222,30 +296,31 @@ function WelcomeHeader({
           <View style={welcomeStyles.avatarContainer}>
             <Image source={pilot.avatar} style={welcomeStyles.avatar} />
             <View style={welcomeStyles.statusIndicator} />
-          </View>          <View style={welcomeStyles.userInfo}>
+          </View>
+          <View style={welcomeStyles.userInfo}>
             <Text style={welcomeStyles.name}>{pilotName}</Text>
             <Text style={welcomeStyles.role}>Piloto de Drones</Text>
-            <Text style={welcomeStyles.dateText}>{formatDate(currentDateTime)}</Text>
-          </View>        </View>
-          <View style={welcomeStyles.rightSection}>
-          <TouchableOpacity 
+            <Text style={welcomeStyles.dateText}>
+              {formatDate(currentDateTime)}
+            </Text>
+          </View>
+        </View>
+        <View style={welcomeStyles.rightSection}>
+          <TouchableOpacity
             style={welcomeStyles.notificationButton}
-            onPress={() => router.push('/pilot/notifications')}
+            onPress={() => router.push("/pilot/notifications")}
           >
-            <Ionicons 
-              name="notifications-outline" 
-              size={20} 
-              color="#6b7280" 
-            />
+            <Ionicons name="notifications-outline" size={20} color="#6b7280" />
             {hasNotifications && (
               <View style={welcomeStyles.notificationBadge} />
             )}
-          </TouchableOpacity>{!weatherLoading && weather && (
+          </TouchableOpacity>
+          {!weatherLoading && weather && (
             <View style={welcomeStyles.weatherSection}>
-              <Ionicons 
-                name={getWeatherIcon(weather.condition)} 
-                size={16} 
-                color="#6b7280" 
+              <Ionicons
+                name={getWeatherIcon(weather.condition)}
+                size={16}
+                color="#6b7280"
               />
               <Text style={welcomeStyles.weatherText}>
                 {weather.temperature}°
@@ -285,7 +360,8 @@ const projectSummaryStyles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-  },  card: {
+  },
+  card: {
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
@@ -298,7 +374,8 @@ const projectSummaryStyles = StyleSheet.create({
     elevation: 4,
     borderWidth: 1,
     borderColor: "#f3f4f6",
-  },  headerRow: {
+  },
+  headerRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     marginBottom: 12,
@@ -395,7 +472,8 @@ const projectSummaryStyles = StyleSheet.create({
     backgroundColor: "#e5e7eb",
     borderRadius: 4,
     overflow: "hidden",
-  },  progressFill: {
+  },
+  progressFill: {
     height: "100%",
     borderRadius: 4,
   },
@@ -417,7 +495,8 @@ const projectSummaryStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 0,
-  },  iconCircleCompact: {
+  },
+  iconCircleCompact: {
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -462,7 +541,7 @@ const projectSummaryStyles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.3,
   },
-});// Asegúrate que la ruta sea correcta desde aquí
+}); // Asegúrate que la ruta sea correcta desde aquí
 
 interface Pause {
   reason: string;
@@ -539,7 +618,8 @@ const typedProjectData: Project = {
   drone: projectDataFromImport.drone || "Drone No Especificado",
   checklist: (projectDataFromImport.checklist || []).map(
     (item: ChecklistItemData) => ({ ...item })
-  ),  activities: [
+  ),
+  activities: [
     {
       id: "mock-pending-1",
       type: "TURBINE_INSPECTION",
@@ -561,7 +641,8 @@ const typedProjectData: Project = {
       status: "PENDIENTE",
       time: "Hoy - 11:00",
       scheduledStart: new Date(new Date().setHours(11, 0, 0, 0)).toISOString(),
-      description: "Definir rutas de vuelo y verificar condiciones meteorológicas para inspecciones T-02 y T-03.",
+      description:
+        "Definir rutas de vuelo y verificar condiciones meteorológicas para inspecciones T-02 y T-03.",
       actualStart: null,
       actualEnd: null,
       scheduledEnd: null,
@@ -574,7 +655,8 @@ const typedProjectData: Project = {
       status: "PENDIENTE",
       time: "Hoy - 14:00",
       scheduledStart: new Date(new Date().setHours(14, 0, 0, 0)).toISOString(),
-      description: "Revisar permisos de vuelo, manuales de operación de drones y protocolos de seguridad.",
+      description:
+        "Revisar permisos de vuelo, manuales de operación de drones y protocolos de seguridad.",
       actualStart: null,
       actualEnd: null,
       scheduledEnd: null,
@@ -584,22 +666,27 @@ const typedProjectData: Project = {
   incidents: [
     {
       id: "inc-001",
-      type: "SAFETY",      label: "Viento Fuerte",
+      type: "SAFETY",
+      label: "Viento Fuerte",
       description: "Ráfagas de viento superiores a 40 km/h.",
       timestamp: "2024-05-23T10:15:00Z",
       icon: "alert-circle-outline",
     },
-  ],  alerts: [
+  ],
+  alerts: [
     {
       id: "alert-001",
       type: "INFO",
       message: "Mantenimiento programado para el dron DR-002 mañana.",
-      timestamp: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), // Ayer
+      timestamp: new Date(
+        new Date().setDate(new Date().getDate() - 1)
+      ).toISOString(), // Ayer
       severity: "LOW",
     },
     {
       id: "alert-002",
-      type: "WARNING",      message: "Batería baja en la estación meteorológica remota.",
+      type: "WARNING",
+      message: "Batería baja en la estación meteorológica remota.",
       timestamp: new Date().toISOString(), // Hoy
       severity: "MEDIUM",
     },
@@ -630,26 +717,26 @@ type DashboardSectionItem = {
 };
 
 // Enhanced NoActivitiesCard component with improved design and optional actions
-function NoActivitiesCard({ 
-  message, 
-  iconName, 
-  onActionPress, 
+function NoActivitiesCard({
+  message,
+  iconName,
+  onActionPress,
   actionText = "Crear Nueva Actividad",
   showAction = false,
   showQuickActions = false,
   onSecondaryActionPress,
   secondaryActionText = "Ver Turbinas",
-  compact = false
-}: { 
-  message: string, 
-  iconName: keyof typeof Ionicons.glyphMap,
-  onActionPress?: () => void,
-  actionText?: string,
-  showAction?: boolean,
-  showQuickActions?: boolean,
-  onSecondaryActionPress?: () => void,
-  secondaryActionText?: string,
-  compact?: boolean
+  compact = false,
+}: {
+  message: string;
+  iconName: keyof typeof Ionicons.glyphMap;
+  onActionPress?: () => void;
+  actionText?: string;
+  showAction?: boolean;
+  showQuickActions?: boolean;
+  onSecondaryActionPress?: () => void;
+  secondaryActionText?: string;
+  compact?: boolean;
 }) {
   const router = useRouter();
 
@@ -660,102 +747,124 @@ function NoActivitiesCard({
     [router]
   );
   return (
-    <View style={{
-      backgroundColor: '#ffffff',
-      borderRadius: compact ? 12 : 20,
-      padding: compact ? 16 : 32,
-      marginVertical: compact ? 2 : 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: compact ? 100 : 160,
-      borderWidth: compact ? 0 : 2, // Updated borderWidth
-      borderColor: compact ? 'transparent' : '#e0f2fe', // Updated borderColor
-      shadowColor: '#3b82f6',
-      shadowOffset: { width: 0, height: compact ? 1 : 4 },
-      shadowOpacity: 0.08,
-      shadowRadius: compact ? 4 : 12,
-      elevation: compact ? 1 : 4,
-    }}>
+    <View
+      style={{
+        backgroundColor: "#ffffff",
+        borderRadius: compact ? 12 : 20,
+        padding: compact ? 16 : 32,
+        marginVertical: compact ? 2 : 8,
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: compact ? 100 : 160,
+        borderWidth: compact ? 0 : 2, // Updated borderWidth
+        borderColor: compact ? "transparent" : "#e0f2fe", // Updated borderColor
+        shadowColor: "#3b82f6",
+        shadowOffset: { width: 0, height: compact ? 1 : 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: compact ? 4 : 12,
+        elevation: compact ? 1 : 4,
+      }}
+    >
       {/* Icon with gradient background */}
-      <View style={{
-        width: compact ? 48 : 72,
-        height: compact ? 48 : 72,
-        borderRadius: compact ? 24 : 36,
-        backgroundColor: '#f0f9ff',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: compact ? 8 : 16,
-        borderWidth: 2,
-        borderColor: '#bae6fd',
-        shadowColor: '#0ea5e9',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
-      }}>
-        <Ionicons 
-          name={iconName} 
-          size={compact ? 24 : 36} 
-          color="#0ea5e9" 
-        />
+      <View
+        style={{
+          width: compact ? 48 : 72,
+          height: compact ? 48 : 72,
+          borderRadius: compact ? 24 : 36,
+          backgroundColor: "#f0f9ff",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: compact ? 8 : 16,
+          borderWidth: 2,
+          borderColor: "#bae6fd",
+          shadowColor: "#0ea5e9",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 2,
+        }}
+      >
+        <Ionicons name={iconName} size={compact ? 24 : 36} color="#0ea5e9" />
       </View>
-      
+
       {/* Enhanced message */}
-      <Text style={{
-        fontSize: compact ? 14 : 16,
-        color: '#1e293b',
-        textAlign: 'center',
-        maxWidth: '90%',
-        lineHeight: compact ? 18 : 24,
-        fontWeight: '500',
-        marginBottom: (showAction && !compact || showQuickActions) ? (compact ? 12 : 20) : 0, // Adjusted marginBottom
-      }}>{message}</Text>
-        {/* Primary action button */}
-      {showAction && !compact && onActionPress && ( // Added !compact condition
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#3b82f6',
-            borderRadius: compact ? 8 : 12,
-            paddingHorizontal: compact ? 14 : 20,
-            paddingVertical: compact ? 8 : 12,
-            shadowColor: '#3b82f6',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 3,
-            marginBottom: showQuickActions ? (compact ? 8 : 12) : 0,
-          }}
-          onPress={onActionPress}
-          activeOpacity={0.8}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons name="add-circle-outline" size={compact ? 16 : 20} color="#ffffff" style={{ marginRight: compact ? 4 : 8 }} />
-            <Text style={{
-              color: '#ffffff',
-              fontSize: compact ? 13 : 15,
-              fontWeight: '600',
-            }}>{actionText}</Text>
-          </View>
-        </TouchableOpacity>
-      )}
-      
-      {/* Quick actions row */}
-      {showQuickActions && (
-        <View style={{ 
-          flexDirection: 'row', 
-          justifyContent: 'center',
-          gap: compact ? 8 : 12,
-          marginTop: (showAction && !compact) ? 0 : (compact ? 8 : 0), // Adjusted marginTop for quick actions when primary is hidden
-        }}>
+      <Text
+        style={{
+          fontSize: compact ? 14 : 16,
+          color: "#1e293b",
+          textAlign: "center",
+          maxWidth: "90%",
+          lineHeight: compact ? 18 : 24,
+          fontWeight: "500",
+          marginBottom:
+            (showAction && !compact) || showQuickActions
+              ? compact
+                ? 12
+                : 20
+              : 0, // Adjusted marginBottom
+        }}
+      >
+        {message}
+      </Text>
+      {/* Primary action button */}
+      {showAction &&
+        !compact &&
+        onActionPress && ( // Added !compact condition
           <TouchableOpacity
             style={{
-              backgroundColor: '#f8fafc',
+              backgroundColor: "#3b82f6",
+              borderRadius: compact ? 8 : 12,
+              paddingHorizontal: compact ? 14 : 20,
+              paddingVertical: compact ? 8 : 12,
+              shadowColor: "#3b82f6",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 3,
+              marginBottom: showQuickActions ? (compact ? 8 : 12) : 0,
+            }}
+            onPress={onActionPress}
+            activeOpacity={0.8}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Ionicons
+                name="add-circle-outline"
+                size={compact ? 16 : 20}
+                color="#ffffff"
+                style={{ marginRight: compact ? 4 : 8 }}
+              />
+              <Text
+                style={{
+                  color: "#ffffff",
+                  fontSize: compact ? 13 : 15,
+                  fontWeight: "600",
+                }}
+              >
+                {actionText}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+
+      {/* Quick actions row */}
+      {showQuickActions && (
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            gap: compact ? 8 : 12,
+            marginTop: showAction && !compact ? 0 : compact ? 8 : 0, // Adjusted marginTop for quick actions when primary is hidden
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              backgroundColor: "#f8fafc",
               borderRadius: compact ? 6 : 10,
               paddingHorizontal: compact ? 10 : 16,
               paddingVertical: compact ? 6 : 10,
               borderWidth: 1,
-              borderColor: '#e2e8f0',
-              shadowColor: '#64748b',
+              borderColor: "#e2e8f0",
+              shadowColor: "#64748b",
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 0.05,
               shadowRadius: 2,
@@ -764,40 +873,58 @@ function NoActivitiesCard({
             onPress={onSecondaryActionPress}
             activeOpacity={0.7}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="nuclear-outline" size={compact ? 12 : 16} color="#64748b" style={{ marginRight: compact ? 3 : 6 }} />
-              <Text style={{
-                color: '#64748b',
-                fontSize: compact ? 11 : 13,
-                fontWeight: '600',
-              }}>{secondaryActionText}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Ionicons
+                name="nuclear-outline"
+                size={compact ? 12 : 16}
+                color="#64748b"
+                style={{ marginRight: compact ? 3 : 6 }}
+              />
+              <Text
+                style={{
+                  color: "#64748b",
+                  fontSize: compact ? 11 : 13,
+                  fontWeight: "600",
+                }}
+              >
+                {secondaryActionText}
+              </Text>
             </View>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={{
-              backgroundColor: '#f8fafc',
+              backgroundColor: "#f8fafc",
               borderRadius: compact ? 6 : 10,
               paddingHorizontal: compact ? 10 : 16,
               paddingVertical: compact ? 6 : 10,
               borderWidth: 1,
-              borderColor: '#e2e8f0',
-              shadowColor: '#64748b',
+              borderColor: "#e2e8f0",
+              shadowColor: "#64748b",
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 0.05,
               shadowRadius: 2,
               elevation: 1,
             }}
-            onPress={() => handleNavigate('/pilot/activities')}
+            onPress={() => handleNavigate("/pilot/activities")}
             activeOpacity={0.7}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="list-outline" size={compact ? 12 : 16} color="#64748b" style={{ marginRight: compact ? 3 : 6 }} />
-              <Text style={{
-                color: '#64748b',
-                fontSize: compact ? 11 : 13,
-                fontWeight: '600',
-              }}>Ver Todas</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Ionicons
+                name="list-outline"
+                size={compact ? 12 : 16}
+                color="#64748b"
+                style={{ marginRight: compact ? 3 : 6 }}
+              />
+              <Text
+                style={{
+                  color: "#64748b",
+                  fontSize: compact ? 11 : 13,
+                  fontWeight: "600",
+                }}
+              >
+                Ver Todas
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -817,10 +944,14 @@ const PilotDashboard = () => {
   console.log("PilotDashboard RENDERED - V5"); // Incremented version for clarity
   const router = useRouter();
   // Combine route params and URL query string, memoized
-  const routeParams = useLocalSearchParams<{ activityToStartAfterPreflight?: string; preflightCompletedForTurbine?: string; turbineIdForActivityStart?: string }>();
+  const routeParams = useLocalSearchParams<{
+    activityToStartAfterPreflight?: string;
+    preflightCompletedForTurbine?: string;
+    turbineIdForActivityStart?: string;
+  }>();
   const params = useMemo(() => {
     const combined: Record<string, string> = { ...routeParams };
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const sp = new URLSearchParams(window.location.search);
       sp.forEach((value, key) => {
         combined[key] = value;
@@ -828,12 +959,19 @@ const PilotDashboard = () => {
     }
     return combined;
   }, [routeParams]);
-   const currentPathname = usePathname(); // Get current pathname
+  const currentPathname = usePathname(); // Get current pathname
 
-   // Estado para pausa de actividad - MOVED EARLIER
-   const [activityPauseState, setActivityPauseState] = useState<{ isPaused: boolean; reason?: string; start?: string; end?: string }>({ isPaused: false });
-   const [completedPreflightChecks, setCompletedPreflightChecks] = useState<Record<string, boolean>>({});
-  
+  // Estado para pausa de actividad - MOVED EARLIER
+  const [activityPauseState, setActivityPauseState] = useState<{
+    isPaused: boolean;
+    reason?: string;
+    start?: string;
+    end?: string;
+  }>({ isPaused: false });
+  const [completedPreflightChecks, setCompletedPreflightChecks] = useState<
+    Record<string, boolean>
+  >({});
+
   // Inicializamos con datos por defecto, pero intentaremos cargar desde almacenamiento local
   const [currentProject, setCurrentProject] =
     useState<Project>(typedProjectData);
@@ -863,18 +1001,23 @@ const PilotDashboard = () => {
     useState(false);
   const [isNewIncidentModalVisible, setIsNewIncidentModalVisible] =
     useState(false);
-  const [isProjectDetailsVisible, setIsProjectDetailsVisible] = useState(true);   // Estado para el componente de sugerencias de actividades
+  const [isProjectDetailsVisible, setIsProjectDetailsVisible] = useState(true); // Estado para el componente de sugerencias de actividades
   const [showActivitySuggestions, setShowActivitySuggestions] = useState(false);
-  const [suggestedActivities, setSuggestedActivities] = useState<Activity[]>([]);
-  const [activityTerminationType, setActivityTerminationType] = useState<'completed' | 'incident'>('completed');
+  const [suggestedActivities, setSuggestedActivities] = useState<Activity[]>(
+    []
+  );
+  const [activityTerminationType, setActivityTerminationType] = useState<
+    "completed" | "incident"
+  >("completed");
   // Estado para el incidente actual
   const [currentIncident, setCurrentIncident] = useState<Incident | null>(null);
-  
+
   const {
     weather,
     loading: weatherLoading,
     error: weatherError,
-  } = useWeather();  useEffect(() => {
+  } = useWeather();
+  useEffect(() => {
     setAlerts(currentProject.alerts || []);
   }, [currentProject.alerts]);
 
@@ -938,7 +1081,7 @@ const PilotDashboard = () => {
     () => (ongoingActivities.length > 0 ? ongoingActivities[0] : null),
     [ongoingActivities]
   );
-    // Ocultar las sugerencias cuando cambia la actividad actual
+  // Ocultar las sugerencias cuando cambia la actividad actual
   useEffect(() => {
     const activityId = currentOngoingActivityForDisplay?.id;
     // Si el ID de la actividad actual cambia y se están mostrando sugerencias,
@@ -951,23 +1094,38 @@ const PilotDashboard = () => {
     (route: string) => router.push(route as Href),
     [router]
   );
-    // Handler for navigating to preflight checklist
+  // Handler for navigating to preflight checklist
   const handleGoToPreflightChecklist = useCallback(
     (turbineId?: string, activityIdToStart?: string) => {
       if (activityIdToStart) {
         try {
-          router.push(`/pilot/preflight-checklist?turbineId=${turbineId || 'default'}&activityToStart=${activityIdToStart}` as Href);
+          router.push(
+            `/pilot/preflight-checklist?turbineId=${
+              turbineId || "default"
+            }&activityToStart=${activityIdToStart}` as Href
+          );
         } catch (error) {
-          console.error("Error al guardar actividad para iniciar después:", error);
-          router.push(`/pilot/preflight-checklist?turbineId=${turbineId || 'default'}` as Href);
+          console.error(
+            "Error al guardar actividad para iniciar después:",
+            error
+          );
+          router.push(
+            `/pilot/preflight-checklist?turbineId=${
+              turbineId || "default"
+            }` as Href
+          );
         }
       } else {
-        router.push(`/pilot/preflight-checklist?turbineId=${turbineId || 'default'}` as Href);
+        router.push(
+          `/pilot/preflight-checklist?turbineId=${
+            turbineId || "default"
+          }` as Href
+        );
       }
     },
     [router]
   );
-  
+
   const handleLogout = useCallback(
     () =>
       Alert.alert("Cerrar Sesión", "¿Estás seguro?", [
@@ -978,11 +1136,10 @@ const PilotDashboard = () => {
   );
 
   // Nueva función interna solo para forzar el actualStart al volver del checklist
-const forceStartActivityNow = useCallback((activityId: string) => {
-  setCurrentProject((prev) => {
-    const now = new Date().toISOString();
-    const updatedActivities = (prev.activities || []).map(
-      (act) =>
+  const forceStartActivityNow = useCallback((activityId: string) => {
+    setCurrentProject((prev) => {
+      const now = new Date().toISOString();
+      const updatedActivities = (prev.activities || []).map((act) =>
         act.id === activityId
           ? {
               ...act,
@@ -992,42 +1149,43 @@ const forceStartActivityNow = useCallback((activityId: string) => {
               lastStartedAt: now, // Campo dummy para forzar rerender
             }
           : act
-    );
-    return { ...prev, activities: updatedActivities } as Project;
-  });
-}, []);
+      );
+      return { ...prev, activities: updatedActivities } as Project;
+    });
+  }, []);
 
   const handleActivityAction = useCallback(
     (activityId: string, newStatusString: string, taskType?: string) => {
       const newStatus = (newStatusString?.toUpperCase().replace(" ", "_") ||
         "PENDIENTE") as Activity["status"];
       setCurrentProject((prev) => {
-        const updatedActivities = (prev.activities || []).map(
-          (act) =>
-            act.id === activityId
-              ? {
-                  ...act,
-                  status: newStatus,
-                  actualStart:
-                    newStatus === "EN_PROGRESO" && !act.actualStart
-                      ? new Date().toISOString()
-                      : act.actualStart,
-                  actualEnd:
-                    newStatus === "COMPLETADA"
-                      ? new Date().toISOString()
-                      : act.actualEnd,
-                  time:
-                    newStatus === "EN_PROGRESO"
-                      ? "Hoy - En curso"
-                      : newStatus === "COMPLETADA"
-                      ? "Hoy - Completada"
-                      : act.time,
-                }
-              : act
+        const updatedActivities = (prev.activities || []).map((act) =>
+          act.id === activityId
+            ? {
+                ...act,
+                status: newStatus,
+                actualStart:
+                  newStatus === "EN_PROGRESO" && !act.actualStart
+                    ? new Date().toISOString()
+                    : act.actualStart,
+                actualEnd:
+                  newStatus === "COMPLETADA"
+                    ? new Date().toISOString()
+                    : act.actualEnd,
+                time:
+                  newStatus === "EN_PROGRESO"
+                    ? "Hoy - En curso"
+                    : newStatus === "COMPLETADA"
+                    ? "Hoy - Completada"
+                    : act.time,
+              }
+            : act
         );
         return { ...prev, activities: updatedActivities };
       });
-    }, []);
+    },
+    []
+  );
 
   // Handler to finish the currently ongoing activity
   const handleFinishCurrentActivity = useCallback(() => {
@@ -1036,14 +1194,15 @@ const forceStartActivityNow = useCallback((activityId: string) => {
     }
   }, [currentOngoingActivityForDisplay, handleActivityAction]);
 
-
   const handleStartPendingActivity = useCallback(
     (activityId: string) => {
-      const activityToStart = activities.find(act => act.id === activityId);
+      const activityToStart = activities.find((act) => act.id === activityId);
 
       if (
         activityToStart &&
-        (activityToStart.type === "TURBINE_WORK" || activityToStart.name?.toLowerCase().includes("turbina") || activityToStart.type?.toLowerCase().includes("turbine")) &&
+        (activityToStart.type === "TURBINE_WORK" ||
+          activityToStart.name?.toLowerCase().includes("turbina") ||
+          activityToStart.type?.toLowerCase().includes("turbine")) &&
         activityToStart.turbineId
       ) {
         // Redirigir directo al checklist prevuelo para actividades de turbina, sin Alert
@@ -1053,24 +1212,30 @@ const forceStartActivityNow = useCallback((activityId: string) => {
 
       if (currentOngoingActivityForDisplay) {
         if (currentOngoingActivityForDisplay.id !== activityId) {
-           handleActivityAction(currentOngoingActivityForDisplay.id, "COMPLETADA");
+          handleActivityAction(
+            currentOngoingActivityForDisplay.id,
+            "COMPLETADA"
+          );
         }
       }
       handleActivityAction(activityId, "EN_PROGRESO");
-      setShowActivitySuggestions(false); 
+      setShowActivitySuggestions(false);
     },
-    [activities, currentOngoingActivityForDisplay, handleActivityAction, handleGoToPreflightChecklist, setShowActivitySuggestions]
+    [
+      activities,
+      currentOngoingActivityForDisplay,
+      handleActivityAction,
+      handleGoToPreflightChecklist,
+      setShowActivitySuggestions,
+    ]
   );
 
-  const handleDismissAlert = useCallback(
-    (alertId: string) => {
-      setAlerts((prev) => {
-        const updatedAlerts = prev.filter((a) => a.id !== alertId);
-        return updatedAlerts;
-      });
-    },
-    []
-  );
+  const handleDismissAlert = useCallback((alertId: string) => {
+    setAlerts((prev) => {
+      const updatedAlerts = prev.filter((a) => a.id !== alertId);
+      return updatedAlerts;
+    });
+  }, []);
   const toggleAlertsSection = useCallback(
     () => setIsAlertsSectionVisible((prev) => !prev),
     []
@@ -1079,23 +1244,24 @@ const forceStartActivityNow = useCallback((activityId: string) => {
     () => setIsNewActivityModalVisible(true),
     []
   );
-  
-  const handleOpenNewIncidentModal = useCallback( // Defined handleOpenNewIncidentModal
+
+  const handleOpenNewIncidentModal = useCallback(
+    // Defined handleOpenNewIncidentModal
     () => setIsNewIncidentModalVisible(true),
     []
   );
 
-  const toggleProjectDetails = useCallback( // Defined toggleProjectDetails
-    () => setIsProjectDetailsVisible(prev => !prev),
+  const toggleProjectDetails = useCallback(
+    // Defined toggleProjectDetails
+    () => setIsProjectDetailsVisible((prev) => !prev),
     []
   );
 
-
   const handleCreateQuickActivity = useCallback(
-    (activityData: any) => { 
+    (activityData: any) => {
       const isForNow = activityData.isForNow;
       const now = new Date();
-      const timeString = "Hoy"; 
+      const timeString = "Hoy";
       const newActivity: Activity = {
         id: `act-${Date.now()}`,
         type: activityData.type,
@@ -1118,7 +1284,7 @@ const forceStartActivityNow = useCallback((activityId: string) => {
         scheduledEnd: null,
         actualEnd: null,
       };
-      
+
       setCurrentProject((prev) => {
         let baseActivities = [...(prev.activities || [])];
         if (isForNow) {
@@ -1154,8 +1320,8 @@ const forceStartActivityNow = useCallback((activityId: string) => {
         }.`
       );
     },
-     [] // Depends on setCurrentProject, setIsNewActivityModalVisible, mockTurbines, activityTypes
-    );
+    [] // Depends on setCurrentProject, setIsNewActivityModalVisible, mockTurbines, activityTypes
+  );
 
   const getStatusStyling = useCallback((status: string) => {
     const normalizedStatus = (status?.toUpperCase().replace(" ", "_") ||
@@ -1192,13 +1358,13 @@ const forceStartActivityNow = useCallback((activityId: string) => {
     genericPendingActivities,
     unassignedTimeActivities,
     pastActivities,
-  ]);  
+  ]);
   const dashboardSections = useMemo(
     (): DashboardSectionItem[] => [
       { id: "welcome-header", type: "WELCOME_HEADER" },
-      { id: "project-summary", type: "PROJECT_SUMMARY_CARD" }, 
-      { id: "quickActions", type: "QUICK_ACTIONS_MENU_CARD" }, 
-      { id: "timeline", type: "ACTIVITY_TIMELINE" }, 
+      { id: "project-summary", type: "PROJECT_SUMMARY_CARD" },
+      { id: "quickActions", type: "QUICK_ACTIONS_MENU_CARD" },
+      { id: "timeline", type: "ACTIVITY_TIMELINE" },
     ],
     []
   );
@@ -1220,318 +1386,430 @@ const forceStartActivityNow = useCallback((activityId: string) => {
     );
   }, []);
 
+  const activityPauseReason = ""; // For storing pause reason input - removed setActivityPauseReason as it's not used
 
-const activityPauseReason = ''; // For storing pause reason input - removed setActivityPauseReason as it's not used
+  const handleStartJornada = useCallback(() => {
+    setIsNewActivityModalVisible(true);
+  }, [setIsNewActivityModalVisible]);
 
-const handleStartJornada = useCallback(() => {
-  setIsNewActivityModalVisible(true);
-}, [setIsNewActivityModalVisible]);
+  const handlePauseActivity = useCallback(
+    (reason: string) => {
+      if (!currentOngoingActivityForDisplay) return;
 
-const handlePauseActivity = useCallback((reason: string) => {
-  if (!currentOngoingActivityForDisplay) return;
-  
-  const newPauseState = { isPaused: true, reason, start: new Date().toISOString() };
-  setActivityPauseState(newPauseState);
-  
-  setCurrentProject(prev => {
-    const updatedProject = {
-      ...prev,
-      activities: (prev.activities || []).map(act =>
-        act.id === currentOngoingActivityForDisplay.id
-          ? {
-              ...act,
-              pauseHistory: [
-                ...(act.pauseHistory || []),
-                { reason, start: new Date().toISOString() }
-              ],
-            }
-          : act
-      ),
-    };
-    
-    return updatedProject;
-  });
-}, [currentOngoingActivityForDisplay, setActivityPauseState]);
+      const newPauseState = {
+        isPaused: true,
+        reason,
+        start: new Date().toISOString(),
+      };
+      setActivityPauseState(newPauseState);
 
-const resumeActivityAfterIncidentResolution = useCallback(() => {
-  if (!currentOngoingActivityForDisplay) return;
-  
-  const newPauseState = { isPaused: false };
-  setActivityPauseState(newPauseState);
-  // Clear current incident when resuming activity
-  setCurrentIncident(null);
-  
-  setCurrentProject(prev => {
-    const updatedProject = {
-      ...prev,
-      activities: (prev.activities || []).map(act =>
-        act.id === currentOngoingActivityForDisplay.id && act.pauseHistory?.length
-          ? {
-              ...act,
-              pauseHistory: act.pauseHistory.map((pause, idx, arr) =>
-                idx === arr.length - 1 && !pause.end
-                  ? { ...pause, end: new Date().toISOString() }
-                  : pause
-              ),
-            }
-          : act
-      ),
-    };
-    
-    return updatedProject;
-  });
-}, [currentOngoingActivityForDisplay, setActivityPauseState, setCurrentIncident, setCurrentProject]);
+      setCurrentProject((prev) => {
+        const updatedProject = {
+          ...prev,
+          activities: (prev.activities || []).map((act) =>
+            act.id === currentOngoingActivityForDisplay.id
+              ? {
+                  ...act,
+                  pauseHistory: [
+                    ...(act.pauseHistory || []),
+                    { reason, start: new Date().toISOString() },
+                  ],
+                }
+              : act
+          ),
+        };
 
-const handleResumeActivity = useCallback(() => {
-  if (!currentOngoingActivityForDisplay) return;
-  
-  // Check if there's a blocking incident
-  if (currentIncident && currentIncident.isBlocking) {
-    Alert.alert(
-      "⚠️ Incidente Bloqueante",
-      `No se puede reanudar la actividad mientras hay un incidente bloqueante sin resolver: "${currentIncident.label}"\n\n${currentIncident.blockingReason || 'Este incidente requiere resolución inmediata.'}`,
-      [
-        { text: "Marcar como Resuelto", onPress: () => {
-          setCurrentIncident(null);
-          // Continue with resume after resolving incident
-          resumeActivityAfterIncidentResolution();
-        }},
-        { text: "Cancelar", style: "cancel" }
-      ]
-    );
-    return;
-  }
-  
-  resumeActivityAfterIncidentResolution();
-}, [currentOngoingActivityForDisplay, currentIncident, resumeActivityAfterIncidentResolution, setCurrentIncident]);
+        return updatedProject;
+      });
+    },
+    [currentOngoingActivityForDisplay, setActivityPauseState]
+  );
 
-const handleCreateNewIncident = useCallback(
-  (incidentData: IncidentFormData) => {
-    const incidentTypeInfo = importedIncidentTypes.find(
-      (it) => it.id === incidentData.type
-    );
-    const newIncident: Incident = {
-      id: `inc-${Date.now()}`,
-      type: incidentData.type,
-      label: incidentTypeInfo?.label || "Desconocido",
-      description: incidentData.description,
-      timestamp: new Date().toISOString(),
-      icon:
-        (incidentTypeInfo?.icon as keyof typeof Ionicons.glyphMap) ||
-        "alert-circle-outline",
-      activityId: incidentData.activityId || currentOngoingActivityForDisplay?.id, // Associate with current activity
-      isBlocking: incidentData.isBlocking || false, // Set blocking status from form
-      blockingTimestamp: incidentData.isBlocking ? new Date().toISOString() : undefined,
-      blockingReason: incidentData.isBlocking ? "Marcado como bloqueante por el piloto" : undefined,
-    };
-    
-    // Set current incident state only if it's associated with the current activity
-    if (newIncident.activityId === currentOngoingActivityForDisplay?.id) {
-      setCurrentIncident(newIncident);
-      
-      // Pause current activity
-      const pauseReason = `Incidente: ${newIncident.label} - ${newIncident.description}`;
-      handlePauseActivity(pauseReason);
-    }
-    
+  const resumeActivityAfterIncidentResolution = useCallback(() => {
+    if (!currentOngoingActivityForDisplay) return;
+
+    const newPauseState = { isPaused: false };
+    setActivityPauseState(newPauseState);
+    // Clear current incident when resuming activity
+    setCurrentIncident(null);
+
     setCurrentProject((prev) => {
       const updatedProject = {
         ...prev,
-        incidents: [...(prev.incidents || []), newIncident],
+        activities: (prev.activities || []).map((act) =>
+          act.id === currentOngoingActivityForDisplay.id &&
+          act.pauseHistory?.length
+            ? {
+                ...act,
+                pauseHistory: act.pauseHistory.map((pause, idx, arr) =>
+                  idx === arr.length - 1 && !pause.end
+                    ? { ...pause, end: new Date().toISOString() }
+                    : pause
+                ),
+              }
+            : act
+        ),
       };
-      
+
       return updatedProject;
     });
-    setIsNewIncidentModalVisible(false);
-    Alert.alert(
-      "Incidencia Registrada",
-      `"${newIncident.label}" registrada. La actividad en curso ha sido pausada automáticamente.`
-    );
-  },
-  [currentOngoingActivityForDisplay, handlePauseActivity] // Updated dependencies
-);
+  }, [
+    currentOngoingActivityForDisplay,
+    setActivityPauseState,
+    setCurrentIncident,
+    setCurrentProject,
+  ]);
 
-const handleFinishActivity = useCallback(() => {
-  if (!currentOngoingActivityForDisplay) return;
-  
-  const activityId = currentOngoingActivityForDisplay.id;
-  
-  const newPauseState = { isPaused: false };
-  setActivityPauseState(newPauseState);
-  
-  handleActivityAction(activityId, "COMPLETADA");
-  
-  // If suggestions were visible when finishing, hide them.
-  if (showActivitySuggestions) {
-    setShowActivitySuggestions(false);
-  }
+  const handleResumeActivity = useCallback(() => {
+    if (!currentOngoingActivityForDisplay) return;
 
-  // Set termination type to completed
-  setActivityTerminationType('completed');
-
-  const pendingForToday = pendingTodayActivities.filter(act => act.id !== activityId);
-  const genericPendingToShow = genericPendingActivities.filter(act => act.id !== activityId);
-
-  if (pendingForToday.length > 0) {
-    setSuggestedActivities(pendingForToday.slice(0, 3)); 
-    setShowActivitySuggestions(true);
-  } else if (genericPendingToShow.length > 0) {
-    setSuggestedActivities(genericPendingToShow.slice(0, 3)); 
-    setShowActivitySuggestions(true);
-  } else {
-    setShowActivitySuggestions(false); 
-  }
-}, [currentOngoingActivityForDisplay, handleActivityAction, pendingTodayActivities, genericPendingActivities, setActivityPauseState, showActivitySuggestions, setShowActivitySuggestions, setActivityTerminationType]);
-
-const handleFinishActivityByBlockingIncident = useCallback((incidentId: string) => {
-  if (!currentOngoingActivityForDisplay) return;
-  
-  const activityId = currentOngoingActivityForDisplay.id;
-  
-  // Mark activity as terminated by blocking incident (not completed)
-  const newPauseState = { isPaused: false };
-  setActivityPauseState(newPauseState);
-  
-  // Update activity status to a special status for incident termination
-  setCurrentProject(prev => {
-    const updatedProject = {
-      ...prev,
-      activities: (prev.activities || []).map(act =>
-        act.id === activityId
-          ? {
-              ...act,
-              status: "TERMINADA_POR_INCIDENTE" as any, // Special status
-              actualEnd: new Date().toISOString(),
-              time: "Hoy - Terminada por incidente bloqueante",
-              incidentTerminationReason: `Terminada debido al incidente bloqueante: ${incidentId}`,
-            }
-          : act
-      ),
-    };
-    return updatedProject;
-  });
-    // Clear current incident
-  setCurrentIncident(null);
-  
-  // Set termination type to incident
-  setActivityTerminationType('incident');
-  
-  // Show suggestions for next activities
-  if (showActivitySuggestions) {
-    setShowActivitySuggestions(false);
-  }
-
-  const pendingForToday = pendingTodayActivities.filter(act => act.id !== activityId);
-  const genericPendingToShow = genericPendingActivities.filter(act => act.id !== activityId);
-
-  if (pendingForToday.length > 0) {
-    setSuggestedActivities(pendingForToday.slice(0, 3)); 
-    setShowActivitySuggestions(true);
-  } else if (genericPendingToShow.length > 0) {
-    setSuggestedActivities(genericPendingToShow.slice(0, 3)); 
-    setShowActivitySuggestions(true);
-  } else {
-    setShowActivitySuggestions(false); 
-  }
-  
-  Alert.alert(
-    "Actividad Terminada",
-    "La actividad ha sido terminada debido al incidente bloqueante. No se marca como completada.",
-    [{ text: "Entendido" }]
-  );
-}, [currentOngoingActivityForDisplay, pendingTodayActivities, genericPendingActivities, setActivityPauseState, setCurrentIncident, setCurrentProject, setShowActivitySuggestions, showActivitySuggestions, setActivityTerminationType]);
-
-const handleToggleIncidentBlocking = useCallback((incidentId: string, isBlocking: boolean) => {
-  if (!currentIncident || currentIncident.id !== incidentId) return;
-  
-  // Update the current incident's blocking status
-  const updatedIncident = {
-    ...currentIncident,
-    isBlocking: isBlocking,
-    blockingTimestamp: isBlocking ? new Date().toISOString() : undefined,
-    blockingReason: isBlocking ? "Marcado como bloqueante por el piloto después de la creación" : undefined,
-  };
-  
-  setCurrentIncident(updatedIncident);
-  
-  // Update the incident in the project's incidents array
-  setCurrentProject(prev => {
-    const updatedProject = {
-      ...prev,
-      incidents: (prev.incidents || []).map(incident =>
-        incident.id === incidentId
-          ? updatedIncident
-          : incident
-      ),
-    };
-    return updatedProject;
-  });
-  
-  Alert.alert(
-    isBlocking ? "Incidente Marcado como Bloqueante" : "Incidente Ya No Es Bloqueante",
-    isBlocking 
-      ? "El incidente ahora está bloqueando la actividad. Puedes terminar la actividad usando el botón correspondiente."
-      : "El incidente ya no está bloqueando la actividad.",
-    [{ text: "Entendido" }]
-  );
-}, [currentIncident, setCurrentIncident, setCurrentProject]);
-
-
-// Effect to handle activity start after returning from preflight checklist
-useEffect(() => {
-  const { activityToStartAfterPreflight, preflightCompletedForTurbine, turbineIdForActivityStart } = params;
-  console.log("[Dashboard Effect] Params received on screen focus/param change:", JSON.stringify(params));
-
-  if (activityToStartAfterPreflight && preflightCompletedForTurbine === 'true' && turbineIdForActivityStart) {
-    console.log(`[Dashboard Effect] Conditions MET. Preflight completed for turbine ${turbineIdForActivityStart}, attempting to start activity ${activityToStartAfterPreflight}`);
-    
-    const activityExists = activities.some(act => act.id === activityToStartAfterPreflight);
-    if (!activityExists) {
-      console.warn(`[Dashboard Effect] Activity ${activityToStartAfterPreflight} not found in current activities list after preflight.`);
-      // Clear the params to prevent re-triggering with stale data
-      const newParams = { ...params };
-      delete newParams.activityToStartAfterPreflight;
-      delete newParams.preflightCompletedForTurbine;
-      delete newParams.turbineIdForActivityStart;
-      // Only replace if params actually changed to avoid loop if currentPathname itself is a param
-      if (Object.keys(newParams).length < Object.keys(params).length) {
-        router.replace({ pathname: currentPathname, params: newParams } as any);
-      }
+    // Check if there's a blocking incident
+    if (currentIncident && currentIncident.isBlocking) {
+      Alert.alert(
+        "⚠️ Incidente Bloqueante",
+        `No se puede reanudar la actividad mientras hay un incidente bloqueante sin resolver: "${
+          currentIncident.label
+        }"\n\n${
+          currentIncident.blockingReason ||
+          "Este incidente requiere resolución inmediata."
+        }`,
+        [
+          {
+            text: "Marcar como Resuelto",
+            onPress: () => {
+              setCurrentIncident(null);
+              // Continue with resume after resolving incident
+              resumeActivityAfterIncidentResolution();
+            },
+          },
+          { text: "Cancelar", style: "cancel" },
+        ]
+      );
       return;
     }
 
-    if (currentOngoingActivityForDisplay && currentOngoingActivityForDisplay.id !== activityToStartAfterPreflight) {
-      console.log(`[Dashboard Effect] Completing current activity ${currentOngoingActivityForDisplay.id} before starting ${activityToStartAfterPreflight}`);
-      handleActivityAction(currentOngoingActivityForDisplay.id, "COMPLETADA");
-    }
-    
-    console.log(`[Dashboard Effect] Calling forceStartActivityNow for ${activityToStartAfterPreflight}`);
-    forceStartActivityNow(activityToStartAfterPreflight); // Forzar actualStart
-    
-    const updatedChecks = { ...completedPreflightChecks, [turbineIdForActivityStart]: true };
-    setCompletedPreflightChecks(updatedChecks);
-          
-    setShowActivitySuggestions(false);
+    resumeActivityAfterIncidentResolution();
+  }, [
+    currentOngoingActivityForDisplay,
+    currentIncident,
+    resumeActivityAfterIncidentResolution,
+    setCurrentIncident,
+  ]);
 
-    // Clear the params to prevent re-triggering
-    const finalParams = { ...params };
-    delete finalParams.activityToStartAfterPreflight;
-    delete finalParams.preflightCompletedForTurbine;
-    delete finalParams.turbineIdForActivityStart;
-    if (Object.keys(finalParams).length < Object.keys(params).length) {
-        router.replace({ pathname: currentPathname, params: finalParams } as any);
+  const handleCreateNewIncident = useCallback(
+    (incidentData: IncidentFormData) => {
+      const incidentTypeInfo = importedIncidentTypes.find(
+        (it) => it.id === incidentData.type
+      );
+      const newIncident: Incident = {
+        id: `inc-${Date.now()}`,
+        type: incidentData.type,
+        label: incidentTypeInfo?.label || "Desconocido",
+        description: incidentData.description,
+        timestamp: new Date().toISOString(),
+        icon:
+          (incidentTypeInfo?.icon as keyof typeof Ionicons.glyphMap) ||
+          "alert-circle-outline",
+        activityId:
+          incidentData.activityId || currentOngoingActivityForDisplay?.id, // Associate with current activity
+        isBlocking: incidentData.isBlocking || false, // Set blocking status from form
+        blockingTimestamp: incidentData.isBlocking
+          ? new Date().toISOString()
+          : undefined,
+        blockingReason: incidentData.isBlocking
+          ? "Marcado como bloqueante por el piloto"
+          : undefined,
+      };
+
+      // Set current incident state only if it's associated with the current activity
+      if (newIncident.activityId === currentOngoingActivityForDisplay?.id) {
+        setCurrentIncident(newIncident);
+
+        // Pause current activity
+        const pauseReason = `Incidente: ${newIncident.label} - ${newIncident.description}`;
+        handlePauseActivity(pauseReason);
+      }
+
+      setCurrentProject((prev) => {
+        const updatedProject = {
+          ...prev,
+          incidents: [...(prev.incidents || []), newIncident],
+        };
+
+        return updatedProject;
+      });
+      setIsNewIncidentModalVisible(false);
+      Alert.alert(
+        "Incidencia Registrada",
+        `"${newIncident.label}" registrada. La actividad en curso ha sido pausada automáticamente.`
+      );
+    },
+    [currentOngoingActivityForDisplay, handlePauseActivity] // Updated dependencies
+  );
+
+  const handleFinishActivity = useCallback(() => {
+    if (!currentOngoingActivityForDisplay) return;
+
+    const activityId = currentOngoingActivityForDisplay.id;
+
+    const newPauseState = { isPaused: false };
+    setActivityPauseState(newPauseState);
+
+    handleActivityAction(activityId, "COMPLETADA");
+
+    // If suggestions were visible when finishing, hide them.
+    if (showActivitySuggestions) {
+      setShowActivitySuggestions(false);
     }
-  } else {
-    // Log if some params are present but not all conditions are met
-    if (activityToStartAfterPreflight || preflightCompletedForTurbine || turbineIdForActivityStart) {
+
+    // Set termination type to completed
+    setActivityTerminationType("completed");
+
+    const pendingForToday = pendingTodayActivities.filter(
+      (act) => act.id !== activityId
+    );
+    const genericPendingToShow = genericPendingActivities.filter(
+      (act) => act.id !== activityId
+    );
+
+    if (pendingForToday.length > 0) {
+      setSuggestedActivities(pendingForToday.slice(0, 3));
+      setShowActivitySuggestions(true);
+    } else if (genericPendingToShow.length > 0) {
+      setSuggestedActivities(genericPendingToShow.slice(0, 3));
+      setShowActivitySuggestions(true);
+    } else {
+      setShowActivitySuggestions(false);
+    }
+  }, [
+    currentOngoingActivityForDisplay,
+    handleActivityAction,
+    pendingTodayActivities,
+    genericPendingActivities,
+    setActivityPauseState,
+    showActivitySuggestions,
+    setShowActivitySuggestions,
+    setActivityTerminationType,
+  ]);
+
+  const handleFinishActivityByBlockingIncident = useCallback(
+    (incidentId: string) => {
+      if (!currentOngoingActivityForDisplay) return;
+
+      const activityId = currentOngoingActivityForDisplay.id;
+
+      // Mark activity as terminated by blocking incident (not completed)
+      const newPauseState = { isPaused: false };
+      setActivityPauseState(newPauseState);
+
+      // Update activity status to a special status for incident termination
+      setCurrentProject((prev) => {
+        const updatedProject = {
+          ...prev,
+          activities: (prev.activities || []).map((act) =>
+            act.id === activityId
+              ? {
+                  ...act,
+                  status: "TERMINADA_POR_INCIDENTE" as any, // Special status
+                  actualEnd: new Date().toISOString(),
+                  time: "Hoy - Terminada por incidente bloqueante",
+                  incidentTerminationReason: `Terminada debido al incidente bloqueante: ${incidentId}`,
+                }
+              : act
+          ),
+        };
+        return updatedProject;
+      });
+      // Clear current incident
+      setCurrentIncident(null);
+
+      // Set termination type to incident
+      setActivityTerminationType("incident");
+
+      // Show suggestions for next activities
+      if (showActivitySuggestions) {
+        setShowActivitySuggestions(false);
+      }
+
+      const pendingForToday = pendingTodayActivities.filter(
+        (act) => act.id !== activityId
+      );
+      const genericPendingToShow = genericPendingActivities.filter(
+        (act) => act.id !== activityId
+      );
+
+      if (pendingForToday.length > 0) {
+        setSuggestedActivities(pendingForToday.slice(0, 3));
+        setShowActivitySuggestions(true);
+      } else if (genericPendingToShow.length > 0) {
+        setSuggestedActivities(genericPendingToShow.slice(0, 3));
+        setShowActivitySuggestions(true);
+      } else {
+        setShowActivitySuggestions(false);
+      }
+
+      Alert.alert(
+        "Actividad Terminada",
+        "La actividad ha sido terminada debido al incidente bloqueante. No se marca como completada.",
+        [{ text: "Entendido" }]
+      );
+    },
+    [
+      currentOngoingActivityForDisplay,
+      pendingTodayActivities,
+      genericPendingActivities,
+      setActivityPauseState,
+      setCurrentIncident,
+      setCurrentProject,
+      setShowActivitySuggestions,
+      showActivitySuggestions,
+      setActivityTerminationType,
+    ]
+  );
+
+  const handleToggleIncidentBlocking = useCallback(
+    (incidentId: string, isBlocking: boolean) => {
+      if (!currentIncident || currentIncident.id !== incidentId) return;
+
+      // Update the current incident's blocking status
+      const updatedIncident = {
+        ...currentIncident,
+        isBlocking: isBlocking,
+        blockingTimestamp: isBlocking ? new Date().toISOString() : undefined,
+        blockingReason: isBlocking
+          ? "Marcado como bloqueante por el piloto después de la creación"
+          : undefined,
+      };
+
+      setCurrentIncident(updatedIncident);
+
+      // Update the incident in the project's incidents array
+      setCurrentProject((prev) => {
+        const updatedProject = {
+          ...prev,
+          incidents: (prev.incidents || []).map((incident) =>
+            incident.id === incidentId ? updatedIncident : incident
+          ),
+        };
+        return updatedProject;
+      });
+
+      Alert.alert(
+        isBlocking
+          ? "Incidente Marcado como Bloqueante"
+          : "Incidente Ya No Es Bloqueante",
+        isBlocking
+          ? "El incidente ahora está bloqueando la actividad. Puedes terminar la actividad usando el botón correspondiente."
+          : "El incidente ya no está bloqueando la actividad.",
+        [{ text: "Entendido" }]
+      );
+    },
+    [currentIncident, setCurrentIncident, setCurrentProject]
+  );
+
+  // Effect to handle activity start after returning from preflight checklist
+  useEffect(() => {
+    const {
+      activityToStartAfterPreflight,
+      preflightCompletedForTurbine,
+      turbineIdForActivityStart,
+    } = params;
+    console.log(
+      "[Dashboard Effect] Params received on screen focus/param change:",
+      JSON.stringify(params)
+    );
+
+    if (
+      activityToStartAfterPreflight &&
+      preflightCompletedForTurbine === "true" &&
+      turbineIdForActivityStart
+    ) {
+      console.log(
+        `[Dashboard Effect] Conditions MET. Preflight completed for turbine ${turbineIdForActivityStart}, attempting to start activity ${activityToStartAfterPreflight}`
+      );
+
+      const activityExists = activities.some(
+        (act) => act.id === activityToStartAfterPreflight
+      );
+      if (!activityExists) {
+        console.warn(
+          `[Dashboard Effect] Activity ${activityToStartAfterPreflight} not found in current activities list after preflight.`
+        );
+        // Clear the params to prevent re-triggering with stale data
+        const newParams = { ...params };
+        delete newParams.activityToStartAfterPreflight;
+        delete newParams.preflightCompletedForTurbine;
+        delete newParams.turbineIdForActivityStart;
+        // Only replace if params actually changed to avoid loop if currentPathname itself is a param
+        if (Object.keys(newParams).length < Object.keys(params).length) {
+          router.replace({
+            pathname: currentPathname,
+            params: newParams,
+          } as any);
+        }
+        return;
+      }
+
+      if (
+        currentOngoingActivityForDisplay &&
+        currentOngoingActivityForDisplay.id !== activityToStartAfterPreflight
+      ) {
+        console.log(
+          `[Dashboard Effect] Completing current activity ${currentOngoingActivityForDisplay.id} before starting ${activityToStartAfterPreflight}`
+        );
+        handleActivityAction(currentOngoingActivityForDisplay.id, "COMPLETADA");
+      }
+
+      console.log(
+        `[Dashboard Effect] Calling forceStartActivityNow for ${activityToStartAfterPreflight}`
+      );
+      forceStartActivityNow(activityToStartAfterPreflight); // Forzar actualStart
+
+      const updatedChecks = {
+        ...completedPreflightChecks,
+        [turbineIdForActivityStart]: true,
+      };
+      setCompletedPreflightChecks(updatedChecks);
+
+      setShowActivitySuggestions(false);
+
+      // Clear the params to prevent re-triggering
+      const finalParams = { ...params };
+      delete finalParams.activityToStartAfterPreflight;
+      delete finalParams.preflightCompletedForTurbine;
+      delete finalParams.turbineIdForActivityStart;
+      if (Object.keys(finalParams).length < Object.keys(params).length) {
+        router.replace({
+          pathname: currentPathname,
+          params: finalParams,
+        } as any);
+      }
+    } else {
+      // Log if some params are present but not all conditions are met
+      if (
+        activityToStartAfterPreflight ||
+        preflightCompletedForTurbine ||
+        turbineIdForActivityStart
+      ) {
         console.log("[Dashboard Effect] Conditions NOT MET. Params received:", {
-            activityToStartAfterPreflight,
-            preflightCompletedForTurbine,
-            turbineIdForActivityStart
+          activityToStartAfterPreflight,
+          preflightCompletedForTurbine,
+          turbineIdForActivityStart,
         });
+      }
     }
-  }
-}, [params, activities, currentOngoingActivityForDisplay, handleActivityAction, router, completedPreflightChecks, setCompletedPreflightChecks, setShowActivitySuggestions, currentPathname, forceStartActivityNow]);
+  }, [
+    params,
+    activities,
+    currentOngoingActivityForDisplay,
+    handleActivityAction,
+    router,
+    completedPreflightChecks,
+    setCompletedPreflightChecks,
+    setShowActivitySuggestions,
+    currentPathname,
+    forceStartActivityNow,
+  ]);
 
   const renderDashboardSection = useCallback(
     ({ item }: { item: DashboardSectionItem }) => {
@@ -1540,11 +1818,12 @@ useEffect(() => {
           return (
             <WelcomeHeader
               pilotName={pilot.name}
-              currentDate={new Date().toLocaleDateString('es-ES', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric'              })}
+              currentDate={new Date().toLocaleDateString("es-ES", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
               weather={weather}
               weatherLoading={weatherLoading}
             />
@@ -1553,18 +1832,31 @@ useEffect(() => {
           return (
             <ProjectSummaryCard
               project={currentProject}
-              onPress={() => router.push("/pilot/activity-log?initialTab=project")}
+              onPress={() =>
+                router.push("/pilot/activity-log?initialTab=project")
+              }
             />
-          );        case "ACTIVITY_TIMELINE": {
+          );
+        case "ACTIVITY_TIMELINE": {
           // Create dynamic timeline based on actual activity data with improved spacing
           const timelineActivities: TimelineActivity[] = [];
-            // Add current ongoing activity if any
+          // Add current ongoing activity if any
           if (currentOngoingActivityForDisplay) {
-            const activityType = activityTypes.find(t => t.type === currentOngoingActivityForDisplay.type);
-            const isTurbineWork = currentOngoingActivityForDisplay.type === 'TURBINE_WORK' || 
-                                 currentOngoingActivityForDisplay.type?.toLowerCase().includes('turbine');
-              timelineActivities.push({
-              id: currentOngoingActivityForDisplay.id,              icon: getActivityIcon(activityType, currentOngoingActivityForDisplay, activityPauseState.isPaused),
+            const activityType = activityTypes.find(
+              (t) => t.type === currentOngoingActivityForDisplay.type
+            );
+            const isTurbineWork =
+              currentOngoingActivityForDisplay.type === "TURBINE_WORK" ||
+              currentOngoingActivityForDisplay.type
+                ?.toLowerCase()
+                .includes("turbine");
+            timelineActivities.push({
+              id: currentOngoingActivityForDisplay.id,
+              icon: getActivityIcon(
+                activityType,
+                currentOngoingActivityForDisplay,
+                activityPauseState.isPaused
+              ),
               title: currentOngoingActivityForDisplay.name,
               time: currentOngoingActivityForDisplay.time || "En curso",
               duration: undefined,
@@ -1573,86 +1865,143 @@ useEffect(() => {
               statusBg: activityPauseState.isPaused ? "#fee2e2" : "#dbeafe",
               isPaused: activityPauseState.isPaused,
               isTurbineWork: isTurbineWork,
-              turbineId: currentOngoingActivityForDisplay.turbineId || currentOngoingActivityForDisplay.id,
+              turbineId:
+                currentOngoingActivityForDisplay.turbineId ||
+                currentOngoingActivityForDisplay.id,
             });
           }
-            // Show all upcoming activities for today (removed slice limit)
-          const upcomingTodayActivities = pendingTodayActivities;          upcomingTodayActivities.forEach((activity, index) => {
-            const activityType = activityTypes.find(t => t.type === activity.type);
-            const isTurbineWork = activity.type === 'TURBINE_WORK' || 
-                                 activity.type?.toLowerCase().includes('turbine');
+          // Show all upcoming activities for today (removed slice limit)
+          const upcomingTodayActivities = pendingTodayActivities;
+          upcomingTodayActivities.forEach((activity, index) => {
+            const activityType = activityTypes.find(
+              (t) => t.type === activity.type
+            );
+            const isTurbineWork =
+              activity.type === "TURBINE_WORK" ||
+              activity.type?.toLowerCase().includes("turbine");
             // Enhanced icon assignment with more specific fallbacks
             let iconName: any = "briefcase-outline"; // Default fallback
             if (activityType?.icon) {
               // Convertir MaterialCommunityIcons a Ionicons equivalentes para consistencia
-              if (activityType.icon === 'wind-turbine') {
+              if (activityType.icon === "wind-turbine") {
                 iconName = "nuclear-outline"; // Usamos nuclear como icono para turbinas
-              } else if (activityType.icon === 'bus') {
+              } else if (activityType.icon === "bus") {
                 iconName = "car-outline";
-              } else if (activityType.icon === 'coffee') {
+              } else if (activityType.icon === "coffee") {
                 iconName = "cafe-outline";
-              } else if (activityType.icon === 'food') {
+              } else if (activityType.icon === "food") {
                 iconName = "restaurant-outline";
-              } else if (activityType.icon === 'weather-cloudy') {
+              } else if (activityType.icon === "weather-cloudy") {
                 iconName = "rainy-outline";
-              } else if (activityType.icon === 'dots-horizontal') {
+              } else if (activityType.icon === "dots-horizontal") {
                 iconName = "ellipsis-horizontal-outline";
-              } else if (activityType.icon !== 'briefcase') {
+              } else if (activityType.icon !== "briefcase") {
                 iconName = activityType.icon;
               }
             } else {
               // Enhanced fallback icons based on activity type patterns
-              const activityTypeLower = (activity.type || '').toLowerCase();
-              const activityNameLower = (activity.name || '').toLowerCase();
-              
+              const activityTypeLower = (activity.type || "").toLowerCase();
+              const activityNameLower = (activity.name || "").toLowerCase();
 
-              if (activityTypeLower.includes('turbine') || activityTypeLower.includes('trabajo_turbina') || 
-                  activityNameLower.includes('turbina') || activityNameLower.includes('aerogenerador')) {
+              if (
+                activityTypeLower.includes("turbine") ||
+                activityTypeLower.includes("trabajo_turbina") ||
+                activityNameLower.includes("turbina") ||
+                activityNameLower.includes("aerogenerador")
+              ) {
                 iconName = "nuclear-outline"; // Icono para trabajo en turbinas
-              } else if (activityTypeLower.includes('inspection') || activityTypeLower.includes('inspección') || 
-                  activityNameLower.includes('inspección') || activityNameLower.includes('revisar') ||
-                  activityNameLower.includes('inspeccionar')) {
+              } else if (
+                activityTypeLower.includes("inspection") ||
+                activityTypeLower.includes("inspección") ||
+                activityNameLower.includes("inspección") ||
+                activityNameLower.includes("revisar") ||
+                activityNameLower.includes("inspeccionar")
+              ) {
                 iconName = "search-outline";
-              } else if (activityTypeLower.includes('vuelo') || activityTypeLower.includes('flight') || 
-                        activityNameLower.includes('vuelo') || activityNameLower.includes('aéreo') ||
-                        activityNameLower.includes('dron') || activityNameLower.includes('drone')) {
+              } else if (
+                activityTypeLower.includes("vuelo") ||
+                activityTypeLower.includes("flight") ||
+                activityNameLower.includes("vuelo") ||
+                activityNameLower.includes("aéreo") ||
+                activityNameLower.includes("dron") ||
+                activityNameLower.includes("drone")
+              ) {
                 iconName = "airplane-outline";
-              } else if (activityTypeLower.includes('maintenance') || activityTypeLower.includes('mantenimiento') || 
-                        activityNameLower.includes('mantenimiento') || activityNameLower.includes('reparación') ||
-                        activityNameLower.includes('arreglo') || activityNameLower.includes('fix')) {
+              } else if (
+                activityTypeLower.includes("maintenance") ||
+                activityTypeLower.includes("mantenimiento") ||
+                activityNameLower.includes("mantenimiento") ||
+                activityNameLower.includes("reparación") ||
+                activityNameLower.includes("arreglo") ||
+                activityNameLower.includes("fix")
+              ) {
                 iconName = "construct-outline";
-              } else if (activityTypeLower.includes('transporte') || activityTypeLower.includes('movilizacion') || 
-                        activityTypeLower.includes('traslado') || 
-                        activityNameLower.includes('transporte') || activityNameLower.includes('mover') ||
-                        activityNameLower.includes('traslado') || activityNameLower.includes('viaje')) {
+              } else if (
+                activityTypeLower.includes("transporte") ||
+                activityTypeLower.includes("movilizacion") ||
+                activityTypeLower.includes("traslado") ||
+                activityNameLower.includes("transporte") ||
+                activityNameLower.includes("mover") ||
+                activityNameLower.includes("traslado") ||
+                activityNameLower.includes("viaje")
+              ) {
                 iconName = "car-outline";
-              } else if (activityTypeLower.includes('photo') || activityTypeLower.includes('fotografía') || 
-                        activityNameLower.includes('foto') || activityNameLower.includes('imagen')) {
+              } else if (
+                activityTypeLower.includes("photo") ||
+                activityTypeLower.includes("fotografía") ||
+                activityNameLower.includes("foto") ||
+                activityNameLower.includes("imagen")
+              ) {
                 iconName = "camera-outline";
-              } else if (activityTypeLower.includes('thermal') || activityTypeLower.includes('térmico') || 
-                        activityNameLower.includes('térmico') || activityNameLower.includes('termográfico') ||
-                        activityNameLower.includes('temperatura')) {
+              } else if (
+                activityTypeLower.includes("thermal") ||
+                activityTypeLower.includes("térmico") ||
+                activityNameLower.includes("térmico") ||
+                activityNameLower.includes("termográfico") ||
+                activityNameLower.includes("temperatura")
+              ) {
                 iconName = "thermometer-outline";
-              } else if (activityTypeLower.includes('comida') || activityTypeLower.includes('almuerzo') || 
-                        activityNameLower.includes('comida') || activityNameLower.includes('almuerzo') ||
-                        activityNameLower.includes('cena') || activityNameLower.includes('desayuno')) {
+              } else if (
+                activityTypeLower.includes("comida") ||
+                activityTypeLower.includes("almuerzo") ||
+                activityNameLower.includes("comida") ||
+                activityNameLower.includes("almuerzo") ||
+                activityNameLower.includes("cena") ||
+                activityNameLower.includes("desayuno")
+              ) {
                 iconName = "restaurant-outline";
-              } else if (activityTypeLower.includes('desmovilizacion') || activityTypeLower.includes('hotel') || 
-                        activityNameLower.includes('hotel') || activityNameLower.includes('desmovilización') ||
-                        activityNameLower.includes('hospedaje') || activityNameLower.includes('alojamiento')) {
+              } else if (
+                activityTypeLower.includes("desmovilizacion") ||
+                activityTypeLower.includes("hotel") ||
+                activityNameLower.includes("hotel") ||
+                activityNameLower.includes("desmovilización") ||
+                activityNameLower.includes("hospedaje") ||
+                activityNameLower.includes("alojamiento")
+              ) {
                 iconName = "home-outline";
-              } else if (activityTypeLower.includes('tiempo_muerto') || activityTypeLower.includes('espera') || 
-                        activityTypeLower.includes('break') || activityTypeLower.includes('pausa') ||
-                        activityNameLower.includes('espera') || activityNameLower.includes('tiempo muerto') ||
-                        activityNameLower.includes('descanso') || activityNameLower.includes('pausa')) {
+              } else if (
+                activityTypeLower.includes("tiempo_muerto") ||
+                activityTypeLower.includes("espera") ||
+                activityTypeLower.includes("break") ||
+                activityTypeLower.includes("pausa") ||
+                activityNameLower.includes("espera") ||
+                activityNameLower.includes("tiempo muerto") ||
+                activityNameLower.includes("descanso") ||
+                activityNameLower.includes("pausa")
+              ) {
                 iconName = "hourglass-outline";
               } else {
                 // Assign different icons based on index for variety
-                const fallbackIcons = ["clipboard-outline", "document-text-outline", "layers-outline", "folder-outline"];
+                const fallbackIcons = [
+                  "clipboard-outline",
+                  "document-text-outline",
+                  "layers-outline",
+                  "folder-outline",
+                ];
                 iconName = fallbackIcons[index % fallbackIcons.length];
               }
             }
-              timelineActivities.push({
+            timelineActivities.push({
               id: activity.id,
               icon: <Ionicons name={iconName} size={28} color="#f59e0b" />,
               title: activity.name,
@@ -1665,13 +2014,17 @@ useEffect(() => {
               turbineId: activity.turbineId || activity.id,
             });
           });
-          
+
           // Show all future activities (removed slice limit)
-          const futureActivities = genericPendingActivities;          futureActivities.forEach((activity, index) => {
-            const activityType = activityTypes.find(t => t.type === activity.type);
-            const isTurbineWork = activity.type === 'TURBINE_WORK' || 
-                                 activity.type?.toLowerCase().includes('turbine');
-            
+          const futureActivities = genericPendingActivities;
+          futureActivities.forEach((activity, index) => {
+            const activityType = activityTypes.find(
+              (t) => t.type === activity.type
+            );
+            const isTurbineWork =
+              activity.type === "TURBINE_WORK" ||
+              activity.type?.toLowerCase().includes("turbine");
+
             // Parse scheduled start to show better time info
             let timeDisplay = "Programada";
             if (activity.scheduledStart) {
@@ -1679,32 +2032,48 @@ useEffect(() => {
               const today = new Date();
               const tomorrow = new Date(today);
               tomorrow.setDate(today.getDate() + 1);
-              
+
               if (scheduledDate.toDateString() === tomorrow.toDateString()) {
-                timeDisplay = `Mañana, ${scheduledDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+                timeDisplay = `Mañana, ${scheduledDate.toLocaleTimeString(
+                  "es-ES",
+                  { hour: "2-digit", minute: "2-digit" }
+                )}`;
               } else if (scheduledDate > tomorrow) {
-                timeDisplay = scheduledDate.toLocaleDateString('es-ES', { 
-                  weekday: 'short', 
-                  month: 'short',
-                  day: 'numeric'
+                timeDisplay = scheduledDate.toLocaleDateString("es-ES", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
                 });
               }
-            }            // Enhanced future activity icon assignment
+            } // Enhanced future activity icon assignment
             let iconName: any = "calendar-outline"; // Default for future
             if (activityType?.icon) {
               // Convertir MaterialCommunityIcons a Ionicons equivalentes para consistencia
-              if (activityType.icon === 'wind-turbine') { iconName = "nuclear-outline"; }
-              else if (activityType.icon === 'bus') { iconName = "car-outline"; }
-              else if (activityType.icon === 'coffee') { iconName = "cafe-outline"; }
-              else if (activityType.icon === 'food') { iconName = "restaurant-outline"; }
-              else if (activityType.icon === 'weather-cloudy') { iconName = "rainy-outline"; }
-              else if (activityType.icon === 'dots-horizontal') { iconName = "ellipsis-horizontal-outline"; }
-              else if (activityType.icon !== 'briefcase') { iconName = activityType.icon; }
+              if (activityType.icon === "wind-turbine") {
+                iconName = "nuclear-outline";
+              } else if (activityType.icon === "bus") {
+                iconName = "car-outline";
+              } else if (activityType.icon === "coffee") {
+                iconName = "cafe-outline";
+              } else if (activityType.icon === "food") {
+                iconName = "restaurant-outline";
+              } else if (activityType.icon === "weather-cloudy") {
+                iconName = "rainy-outline";
+              } else if (activityType.icon === "dots-horizontal") {
+                iconName = "ellipsis-horizontal-outline";
+              } else if (activityType.icon !== "briefcase") {
+                iconName = activityType.icon;
+              }
             } else {
-              const activityTypeLower = (activity.type || '').toLowerCase();
-              const activityNameLower = (activity.name || '').toLowerCase();
+              const activityTypeLower = (activity.type || "").toLowerCase();
+              const activityNameLower = (activity.name || "").toLowerCase();
               // Add more specific fallbacks for future activities if needed
-              if (activityTypeLower.includes('turbine') || activityNameLower.includes('turbina')) { iconName = "nuclear-outline"; }
+              if (
+                activityTypeLower.includes("turbine") ||
+                activityNameLower.includes("turbina")
+              ) {
+                iconName = "nuclear-outline";
+              }
               // ... (otros fallbacks si son necesarios para actividades futuras)
             }
 
@@ -1720,27 +2089,34 @@ useEffect(() => {
               isTurbineWork: isTurbineWork,
               turbineId: activity.turbineId || activity.id,
             });
-          });          const renderTimelineContent = () => {
+          });
+          const renderTimelineContent = () => {
             // Always render ActivityTimeline - it will handle empty state internally
             return (
-              <ActivityTimeline 
+              <ActivityTimeline
                 activities={timelineActivities}
                 onViewHistory={() => handleNavigate("/pilot/activity-log")}
-                onItemPress={(item: TimelineActivity) => { 
+                onItemPress={(item: TimelineActivity) => {
                   if (item.isTurbineWork && item.turbineId) {
-                    router.push(`/pilot/turbines/${item.turbineId}` as Href); 
+                    router.push(`/pilot/turbines/${item.turbineId}` as Href);
                   } else {
                     console.log("Timeline item pressed:", item.id);
                   }
                 }}
-                onActionPress={(action: string, activityId: string, turbineId?: string) => {
-                  const activity = activities.find(act => act.id === activityId);
-                  const isTurbine = activity && (
-                    activity.type === "TURBINE_WORK" ||
-                    activity.type === "TURBINE_INSPECTION" ||
-                    activity.name?.toLowerCase().includes("turbina") ||
-                    activity.type?.toLowerCase().includes("turbine")
+                onActionPress={(
+                  action: string,
+                  activityId: string,
+                  turbineId?: string
+                ) => {
+                  const activity = activities.find(
+                    (act) => act.id === activityId
                   );
+                  const isTurbine =
+                    activity &&
+                    (activity.type === "TURBINE_WORK" ||
+                      activity.type === "TURBINE_INSPECTION" ||
+                      activity.name?.toLowerCase().includes("turbina") ||
+                      activity.type?.toLowerCase().includes("turbine"));
                   if (action === "start_pending" && isTurbine && turbineId) {
                     // Redirigir directo al checklist prevuelo para actividades de turbina
                     handleGoToPreflightChecklist(turbineId, activityId);
@@ -1756,7 +2132,8 @@ useEffect(() => {
                         { text: "Cancelar", style: "cancel" },
                         {
                           text: "Pausar",
-                          onPress: (reasonInput) => handlePauseActivity(reasonInput || "Pausa general"),
+                          onPress: (reasonInput) =>
+                            handlePauseActivity(reasonInput || "Pausa general"),
                         },
                       ],
                       "plain-text",
@@ -1774,7 +2151,9 @@ useEffect(() => {
             );
           };
           return (
-            <View style={{ marginTop: timelineActivities.length === 0 ? 2 : 10 }}>
+            <View
+              style={{ marginTop: timelineActivities.length === 0 ? 2 : 10 }}
+            >
               {renderTimelineContent()}
             </View>
           );
@@ -1812,20 +2191,25 @@ useEffect(() => {
               onDismissAlert={handleDismissAlert}
               showDismissAllButton={true}
             />
-          );        case "QUICK_ACTIONS_MENU_CARD":
+          );
+        case "QUICK_ACTIONS_MENU_CARD":
           return (
-            <>              {currentOngoingActivityForDisplay && (                <ActivityControl
+            <>
+              {currentOngoingActivityForDisplay && (
+                <ActivityControl
                   ongoingActivity={currentOngoingActivityForDisplay}
                   onStart={handleStartJornada} // This might need to be re-evaluated if "Jornada" is a specific activity type
-                  onPause={(reason) => { // Ensure reason is captured or prompted
-                     Alert.prompt(
+                  onPause={(reason) => {
+                    // Ensure reason is captured or prompted
+                    Alert.prompt(
                       "Pausar Actividad",
                       "Ingresa el motivo de la pausa (opcional):",
                       [
                         { text: "Cancelar", style: "cancel" },
                         {
                           text: "Pausar",
-                          onPress: (reasonInput) => handlePauseActivity(reasonInput || "Pausa general"),
+                          onPress: (reasonInput) =>
+                            handlePauseActivity(reasonInput || "Pausa general"),
                         },
                       ],
                       "plain-text",
@@ -1839,9 +2223,13 @@ useEffect(() => {
                   onIncidentCreate={() => setIsNewIncidentModalVisible(true)}
                   currentIncident={currentIncident}
                   onToggleIncidentBlocking={handleToggleIncidentBlocking}
-                  onFinishActivityByBlockingIncident={handleFinishActivityByBlockingIncident}
+                  onFinishActivityByBlockingIncident={
+                    handleFinishActivityByBlockingIncident
+                  }
                 />
-              )}              {showActivitySuggestions && (                <ActivitySuggestionsCard
+              )}
+              {showActivitySuggestions && (
+                <ActivitySuggestionsCard
                   activities={suggestedActivities}
                   terminationType={activityTerminationType}
                   onClose={() => {
@@ -1850,7 +2238,9 @@ useEffect(() => {
                   }}
                   onActivitySelect={(activityId, isTurbineActivity) => {
                     if (isTurbineActivity) {
-                      const activity = suggestedActivities.find(act => act.id === activityId);
+                      const activity = suggestedActivities.find(
+                        (act) => act.id === activityId
+                      );
                       if (activity) {
                         const turbineId = activity.turbineId || activity.id;
                         // Si se selecciona una actividad de turbina directamente, va al preflight CON activityId
@@ -1862,14 +2252,17 @@ useEffect(() => {
                       setShowActivitySuggestions(false);
                     }
                   }}
-                  onGoToPreflightChecklist={(turbineId: string, activityId: string) => { // Asegúrate que la firma coincida con la de ActivitySuggestionsCardProps
+                  onGoToPreflightChecklist={(
+                    turbineId: string,
+                    activityId: string
+                  ) => {
+                    // Asegúrate que la firma coincida con la de ActivitySuggestionsCardProps
                     // Ahora 'activityId' viene desde ActivitySuggestionsCard
-                    handleGoToPreflightChecklist(turbineId, activityId); 
+                    handleGoToPreflightChecklist(turbineId, activityId);
                     setShowActivitySuggestions(false);
                   }}
                 />
               )}
-              
               <QuickActionsMenuCard
                 onNavigate={handleNavigate}
                 onOpenNewActivity={handleOpenNewActivityModal}
@@ -1915,7 +2308,7 @@ useEffect(() => {
       }
     },
     [
-      currentProject, 
+      currentProject,
       currentDate,
       weather,
       weatherLoading,
@@ -1938,17 +2331,18 @@ useEffect(() => {
       memoizedActivityListsForDisplay,
       getStatusStyling,
       handleActivityAction,
-      handleCreateQuickActivity, 
+      handleCreateQuickActivity,
       isProjectDetailsVisible,
       toggleProjectDetails,
       handleDeleteActivity,
-      handleFinishCurrentActivity,      handleStartPendingActivity,
-      handleGoToPreflightChecklist, 
-      handlePauseActivity, 
-      handleResumeActivity, 
-      handleStartJornada, 
-      showActivitySuggestions, 
-      suggestedActivities, 
+      handleFinishCurrentActivity,
+      handleStartPendingActivity,
+      handleGoToPreflightChecklist,
+      handlePauseActivity,
+      handleResumeActivity,
+      handleStartJornada,
+      showActivitySuggestions,
+      suggestedActivities,
       setShowActivitySuggestions,
       handleToggleIncidentBlocking,
       handleFinishActivityByBlockingIncident,
@@ -1967,8 +2361,7 @@ useEffect(() => {
 
   return (
     <View style={styles.screenContainer}>
-      {" "}
-      <StatusBar backgroundColor="#1E3A8A" barStyle="light-content" />{" "}
+      <StatusBar backgroundColor="#1E3A8A" barStyle="light-content" />
       <FlatList
         data={dashboardSections}
         renderItem={renderDashboardSection}
@@ -1985,11 +2378,13 @@ useEffect(() => {
         isVisible={isNewActivityModalVisible}
         onClose={() => setIsNewActivityModalVisible(false)}
         onSubmit={handleCreateQuickActivity}
-      />      <IncidentFormModal
+      />
+      <IncidentFormModal
         isVisible={isNewIncidentModalVisible}
         onClose={() => setIsNewIncidentModalVisible(false)}
         onSubmit={handleCreateNewIncident}
-        activities={[...ongoingActivities, ...pendingTodayActivities].map( // Added ongoingActivities
+        activities={[...ongoingActivities, ...pendingTodayActivities].map(
+          // Added ongoingActivities
           (act) => ({
             id: act.id,
             name: act.name,
@@ -2002,8 +2397,9 @@ useEffect(() => {
 };
 
 // Welcome Header Styles - Subtle design inspired by profile
-const welcomeStyles = StyleSheet.create({  container: {
-    backgroundColor: '#fff',
+const welcomeStyles = StyleSheet.create({
+  container: {
+    backgroundColor: "#fff",
     width: "100%",
     maxWidth: 420,
     alignSelf: "center",
@@ -2011,125 +2407,132 @@ const welcomeStyles = StyleSheet.create({  container: {
     marginTop: 12,
     marginBottom: 10,
     borderRadius: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#f3f4f6',
-  },header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    borderColor: "#f3f4f6",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 12,
     minHeight: 70,
   },
   userSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
     minWidth: 0, // Permite que el texto se corte si es necesario
   },
   avatarContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: 16,
     flexShrink: 0,
-  },  avatar: {
+  },
+  avatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
   },
   statusIndicator: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 2,
     right: 2,
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: '#22c55e',
+    backgroundColor: "#22c55e",
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: "white",
   },
   userInfo: {
     flex: 1,
     minWidth: 0, // Permite que el texto se corte si es necesario
-  },  name: {
+  },
+  name: {
     fontSize: 18,
-    color: '#111827',
-    fontWeight: '800',
+    color: "#111827",
+    fontWeight: "800",
     marginBottom: 2,
     lineHeight: 22,
   },
   role: {
     fontSize: 13,
-    color: '#6b7280',
-    fontWeight: '600',
+    color: "#6b7280",
+    fontWeight: "600",
     lineHeight: 18,
-  },  rightSection: {
-    alignItems: 'flex-end',
+  },
+  rightSection: {
+    alignItems: "flex-end",
     gap: 6,
     flexShrink: 0,
     minWidth: 80,
-  },dateTimeSection: {
-    alignItems: 'flex-end',
+  },
+  dateTimeSection: {
+    alignItems: "flex-end",
     maxWidth: 120,
-  },  dateText: {
+  },
+  dateText: {
     fontSize: 11,
-    color: '#6b7280',
-    fontWeight: '500',
-    textTransform: 'capitalize',
+    color: "#6b7280",
+    fontWeight: "500",
+    textTransform: "capitalize",
     marginTop: 4,
     lineHeight: 14,
   },
   timeText: {
     fontSize: 14,
-    color: '#111827',
-    fontWeight: '700',
+    color: "#111827",
+    fontWeight: "700",
     marginTop: 2,
-    textAlign: 'right',
+    textAlign: "right",
     lineHeight: 16,
   },
   weatherSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: "#e2e8f0",
     maxWidth: 80,
-  },  weatherText: {
+  },
+  weatherText: {
     fontSize: 12,
-    color: '#6b7280',
-    fontWeight: '600',
+    color: "#6b7280",
+    fontWeight: "600",
     marginLeft: 4,
   },
   notificationButton: {
-    position: 'relative',
-    backgroundColor: '#f8fafc',
+    position: "relative",
+    backgroundColor: "#f8fafc",
     padding: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#e2e8f0",
+    alignItems: "center",
+    justifyContent: "center",
     width: 36,
     height: 36,
   },
   notificationBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 4,
     right: 4,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#ef4444',
+    backgroundColor: "#ef4444",
     borderWidth: 1,
-    borderColor: '#fff',
+    borderColor: "#fff",
     zIndex: 10,
   },
 });
@@ -2193,7 +2596,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-       shadowOpacity: 0.1,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -2237,7 +2640,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#374151",
     marginLeft: 8,
-  },  historyButton: {
+  },
+  historyButton: {
     marginTop: 16,
     backgroundColor: "#2563eb",
     borderRadius: 8,

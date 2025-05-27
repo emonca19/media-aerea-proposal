@@ -141,7 +141,7 @@ export default function CreateProjectScreen() {
               numberOfLines={4}
               textAlignVertical="top"
             />
-          </View>{" "}
+          </View>
           {/* Client Selection */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Cliente*</Text>
@@ -162,7 +162,7 @@ export default function CreateProjectScreen() {
               </View>
               <Ionicons name="chevron-down" size={20} color="#6b7280" />
             </TouchableOpacity>
-          </View>{" "}
+          </View>
           {/* Wind Park Selection */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Parque Eólico*</Text>
@@ -183,7 +183,7 @@ export default function CreateProjectScreen() {
               </View>
               <Ionicons name="chevron-down" size={20} color="#6b7280" />
             </TouchableOpacity>
-          </View>{" "}
+          </View>
           {/* Start Date */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Fecha de Inicio*</Text>
@@ -231,7 +231,7 @@ export default function CreateProjectScreen() {
           <View style={styles.footer}>
             <Text style={styles.footerText}>
               <Text>Los campos marcados con * son obligatorios</Text>
-            </Text>{" "}
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -264,7 +264,6 @@ export default function CreateProjectScreen() {
                 onPress={() => handleClientSelection(client.id)}
               >
                 <View style={styles.cardContent}>
-                  {" "}
                   <View style={styles.cardInfo}>
                     <Text style={styles.cardTitle}>{client.name}</Text>
                     <Text style={styles.cardDescription}>
@@ -315,7 +314,6 @@ export default function CreateProjectScreen() {
                 onPress={() => handleWindParkSelection(windPark.id)}
               >
                 <View style={styles.cardContent}>
-                  {" "}
                   <View style={styles.cardInfo}>
                     <Text style={styles.cardTitle}>{windPark.name}</Text>
                     <Text style={styles.cardDescription}>
@@ -334,7 +332,7 @@ export default function CreateProjectScreen() {
                 </View>
               </TouchableOpacity>
             ))}
-          </ScrollView>{" "}
+          </ScrollView>
         </View>
       </Modal>
 

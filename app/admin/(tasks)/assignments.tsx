@@ -462,7 +462,7 @@ export default function AssignmentsScreen() {
                   {dateValidationMessage}
                 </Text>
               </View>
-            )}{" "}
+            )}
             <View style={styles.durationContainer}>
               <View style={styles.durationDisplay}>
                 <MaterialIcons name="access-time" size={20} color="#6b7280" />

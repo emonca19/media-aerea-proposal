@@ -118,7 +118,7 @@ const ClientCard = React.memo(
             <Ionicons name="call-outline" size={16} color="#6b7280" />
             <Text style={styles.detailText}>{client.contactInfo.phone}</Text>
           </View>
-        </View>{" "}
+        </View>
         <View style={styles.statsSection}>
           <View style={styles.statItem}>
             <Ionicons name="briefcase-outline" size={16} color="#10b981" />
@@ -159,7 +159,7 @@ const FilterModal = React.memo(
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#6b7280" />
             </TouchableOpacity>
-          </View>{" "}
+          </View>
           <ScrollView style={styles.modalBody}>
             <View style={styles.filterSection}>
               <Text style={styles.filterSectionTitle}>

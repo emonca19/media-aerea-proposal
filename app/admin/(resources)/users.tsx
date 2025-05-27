@@ -325,7 +325,7 @@ const UsersScreen = () => {
             style={styles.filterModalContainer}
             onStartShouldSetResponder={() => true} // Prevents modal closing when pressing inside
           >
-            <Text style={styles.modalTitle}>Filtrar Usuarios</Text>{" "}
+            <Text style={styles.modalTitle}>Filtrar Usuarios</Text>
             <Text style={styles.modalLabel}>Estado:</Text>
             <View style={styles.filterOptionContainer}>
               {[

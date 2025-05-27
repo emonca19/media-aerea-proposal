@@ -11,7 +11,6 @@ export interface Activity extends BaseEntity {
   pilotId: string;
   droneId?: string;
   notes?: string;
-  customCode?: string; // Client-specific activity code
   orderIndex: number; // Order of the activity for the day (both planned and completed)
 }
 

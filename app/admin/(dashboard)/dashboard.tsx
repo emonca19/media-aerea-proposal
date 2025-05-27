@@ -1,4 +1,5 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -6,7 +7,9 @@ import React, { useState } from "react";
 import {
   Alert,
   Dimensions,
+  Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -19,7 +22,7 @@ import {
   mockDrones,
   mockIncidents,
   mockProjectProgress,
-  mockProjects
+  mockProjects,
 } from "../../../src/mocks";
 
 // Use light theme for web/mobile consistency
@@ -208,14 +211,14 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
     onPress={onPress}
     activeOpacity={0.9}
   >
-    
     <LinearGradient
       colors={gradientColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.overviewGradient, isLarge && styles.overviewGradientLarge]}
     >
-      <View style={styles.overviewContent}>        <View style={styles.overviewHeader}>
+      <View style={styles.overviewContent}>
+        <View style={styles.overviewHeader}>
           <View style={styles.overviewIconContainer}>
             <MaterialIcons name={icon} size={isLarge ? 20 : 18} color="white" />
           </View>
@@ -246,7 +249,8 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
             {subtitle && (
               <Text style={styles.overviewSubtitle}>{subtitle}</Text>
             )}
-          </View>          {isLarge && details && title !== "Proyectos Activos" && (
+          </View>
+          {isLarge && details && title !== "Proyectos Activos" && (
             <View style={styles.overviewDetails}>
               <View style={styles.detailItem}>
                 <MaterialIcons
@@ -280,25 +284,27 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
               </View>
             </View>
           )}
-        </View>        {/* Progress Bar for Proyectos Activos */}
-        {title === "Proyectos Activos" && details?.progressPercentage !== undefined && (
-          <View style={styles.progressContainer}>
-            <Text style={styles.progressLabel}>Progreso</Text>
-            <View style={styles.progressBarContainer}>
-              <View style={styles.progressBar}>
-                <View 
-                  style={[
-                    styles.progressFill, 
-                    { width: `${details.progressPercentage}%` }
-                  ]} 
-                />
+        </View>
+        {/* Progress Bar for Proyectos Activos */}
+        {title === "Proyectos Activos" &&
+          details?.progressPercentage !== undefined && (
+            <View style={styles.progressContainer}>
+              <Text style={styles.progressLabel}>Progreso</Text>
+              <View style={styles.progressBarContainer}>
+                <View style={styles.progressBar}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: `${details.progressPercentage}%` },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.progressText}>
+                  {details.progressPercentage}%
+                </Text>
               </View>
-              <Text style={styles.progressText}>
-                {details.progressPercentage}%
-              </Text>
             </View>
-          </View>
-        )}
+          )}
       </View>
     </LinearGradient>
   </TouchableOpacity>
@@ -474,6 +480,17 @@ export default function AdminDashboard() {
   const [selectedTimeframe, setSelectedTimeframe] = useState<
     "today" | "week" | "month"
   >("today");
+
+  // Reset StatusBar when this screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      StatusBar.setBarStyle("light-content", true);
+      if (Platform.OS === "android") {
+        StatusBar.setBackgroundColor("transparent", true);
+        StatusBar.setTranslucent(true);
+      }
+    }, [])
+  );
   // Calculate KPIs from mock data
   const activeProjects = mockProjects.filter(
     (p) => p.status === "ACTIVE"
@@ -503,7 +520,7 @@ export default function AdminDashboard() {
         month: "short",
         day: "numeric",
       })
-    : "N/A";  // Calculate today's activities from mock data
+    : "N/A"; // Calculate today's activities from mock data
   const today = new Date();
   const todayActivities = mockActivities.filter((activity) => {
     if (!activity.startTime) return false;
@@ -538,17 +555,20 @@ export default function AdminDashboard() {
   const activeProjectIds = mockProjects
     .filter((p) => p.status === "ACTIVE")
     .map((p) => p.id);
-  
+
   const activeProjectsProgress = mockProjectProgress.filter((progress) =>
     activeProjectIds.includes(progress.projectId)
   );
 
-  const averageCompletionPercentage = activeProjectsProgress.length > 0
-    ? Math.round(
-        activeProjectsProgress.reduce((sum, progress) => sum + progress.completionPercentage, 0) /
-        activeProjectsProgress.length
-      )
-    : 0;
+  const averageCompletionPercentage =
+    activeProjectsProgress.length > 0
+      ? Math.round(
+          activeProjectsProgress.reduce(
+            (sum, progress) => sum + progress.completionPercentage,
+            0
+          ) / activeProjectsProgress.length
+        )
+      : 0;
 
   // Generate alerts based on data analysis
   const generateAlerts = (): AlertItem[] => {
@@ -603,11 +623,12 @@ export default function AdminDashboard() {
     return alerts;
   };
   const alerts = generateAlerts();
-  
+
   // Calculate client data
   const totalClients = mockClients.length;
-  
-  const navigationCards = [    {
+
+  const navigationCards = [
+    {
       title: "Clientes",
       subtitle: `${totalClients} registrados`,
       icon: "business" as keyof typeof MaterialIcons.glyphMap,
@@ -636,67 +657,71 @@ export default function AdminDashboard() {
       color: currentTheme.success,
     },
   ];
-
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          
-          <View style={styles.headerTop}>
-            <Text style={styles.headerTitle}>Panel de Administración</Text>
-            <TouchableOpacity
-              style={styles.notificationButton}
-              onPress={() => router.push("/admin/notifications")}
-            >
-              <Ionicons
-                name="notifications-outline"
-                size={24}
-                color={currentTheme.text}
-              />
-              {alerts.length > 0 && <View style={styles.notificationBadge} />}
-            </TouchableOpacity>
+    <>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
+      />
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <View style={styles.headerTop}>
+              <Text style={styles.headerTitle}>Panel de Administración</Text>
+              <TouchableOpacity
+                style={styles.notificationButton}
+                onPress={() => router.push("/admin/(dashboard)/notifications")}
+              >
+                <Ionicons
+                  name="notifications-outline"
+                  size={24}
+                  color={currentTheme.text}
+                />
+                {alerts.length > 0 && <View style={styles.notificationBadge} />}
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.headerSubtitle}>
+              ¡Bienvenido de vuelta! Aquí tienes tu resumen de operaciones
+            </Text>
           </View>
-          <Text style={styles.headerSubtitle}>
-            ¡Bienvenido de vuelta! Aquí tienes tu resumen de operaciones
-          </Text>
         </View>
-      </View>
-      {/* Overview Section */}
-      <View style={styles.overviewSection}>
+        {/* Overview Section */}
+        <View style={styles.overviewSection}>
           <OverviewCard
-          title="Proyectos Activos"
-          value={activeProjects}
-          subtitle={`Ver mas`}
-          icon="assignment"
-          gradientColors={["#3b82f6", "#1e40af"]}
-          isLarge={true}
-          onPress={() => router.push("/admin/(projects)/projects")}
-          details={{
-            progressPercentage: averageCompletionPercentage,
-          }}
-        />
-        <View style={styles.overviewBottomRow}>
-          <OverviewCard
-            title="Fotos por Aprobar"
-            value="2"
-            subtitle="Pendientes"
-            icon="photo-camera"
-            gradientColors={["#1f2937", "#111827"]}
-            onPress={() => router.push("/admin/(tasks)/pictures")}
+            title="Proyectos Activos"
+            value={activeProjects}
+            subtitle={`Ver mas`}
+            icon="assignment"
+            gradientColors={["#3b82f6", "#1e40af"]}
+            isLarge={true}
+            onPress={() => router.push("/admin/(projects)/projects")}
+            details={{
+              progressPercentage: averageCompletionPercentage,
+            }}
           />
-          <OverviewCard
-            title="Rendimiento Operativo"
-            value="88%"
-            subtitle="Esta semana"
-            icon="trending-up"
-            gradientColors={["#10b981", "#059669"]}
-            onPress={() => router.push("/admin/(profile)/kpisdashboard")}
-          />
+          <View style={styles.overviewBottomRow}>
+            <OverviewCard
+              title="Fotos por Aprobar"
+              value="2"
+              subtitle="Pendientes"
+              icon="photo-camera"
+              gradientColors={["#1f2937", "#111827"]}
+              onPress={() => router.push("/admin/(tasks)/pictures")}
+            />
+            <OverviewCard
+              title="Rendimiento Operativo"
+              value="88%"
+              subtitle="Esta semana"
+              icon="trending-up"
+              gradientColors={["#10b981", "#059669"]}
+              onPress={() => router.push("/admin/(profile)/kpisdashboard")}
+            />
+          </View>
         </View>
-      </View>
-      {/* Time Filter */}
-      {/* <View style={styles.timeFilter}>
+        {/* Time Filter */}
+        {/* <View style={styles.timeFilter}>
         {(["today", "week", "month"] as const).map((period) => (
           <TouchableOpacity
             key={period}
@@ -721,8 +746,8 @@ export default function AdminDashboard() {
           </TouchableOpacity>
         ))}
       </View> */}
-      {/* KPI Cards */}
-      {/* <View style={styles.kpiSection}>
+        {/* KPI Cards */}
+        {/* <View style={styles.kpiSection}>
         <Text style={styles.sectionTitle}>
           Indicadores Clave de Rendimiento
         </Text>
@@ -760,45 +785,46 @@ export default function AdminDashboard() {
             onPress={() => router.push("/admin/dashboard")}
           />
         </View>
-      </View> */}      {/* Quick Navigation */}
-      <View style={styles.navigationSection}>
-        <Text style={styles.sectionTitle}>Navegación Rápida</Text>
-        <View style={styles.navigationGrid}>
-          {navigationCards.map((card, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.navigationCard}
-              onPress={() => router.push(card.route as any)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.navigationCardContent}>
-                <View style={styles.navigationIconContainer}>
-                  <MaterialIcons 
-                    name={card.icon} 
-                    size={22} 
-                    color={currentTheme.textSecondary} 
-                  />
+      </View> */}
+        {/* Quick Navigation */}
+        <View style={styles.navigationSection}>
+          <Text style={styles.sectionTitle}>Navegación Rápida</Text>
+          <View style={styles.navigationGrid}>
+            {navigationCards.map((card, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.navigationCard}
+                onPress={() => router.push(card.route as any)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.navigationCardContent}>
+                  <View style={styles.navigationIconContainer}>
+                    <MaterialIcons
+                      name={card.icon}
+                      size={22}
+                      color={currentTheme.textSecondary}
+                    />
+                  </View>
+                  <View style={styles.navigationTextContent}>
+                    <Text style={styles.navigationTitle}>{card.title}</Text>
+                    <Text style={styles.navigationSubtitle}>
+                      {card.subtitle}
+                    </Text>
+                  </View>
+                  <View style={styles.navigationArrow}>
+                    <MaterialIcons
+                      name="arrow-forward-ios"
+                      size={16}
+                      color={currentTheme.textSecondary}
+                    />
+                  </View>
                 </View>
-                <View style={styles.navigationTextContent}>
-                  <Text style={styles.navigationTitle}>{card.title}</Text>
-                  <Text style={styles.navigationSubtitle}>{card.subtitle}</Text>
-                </View>
-                <View style={styles.navigationArrow}>
-                  <MaterialIcons 
-                    name="arrow-forward-ios" 
-                    size={16} 
-                    color={currentTheme.textSecondary} 
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      </View>
-
-
-      {/* Alerts & Notifications */}
-      {/* {alerts.length > 0 && (
+        {/* Alerts & Notifications */}
+        {/* {alerts.length > 0 && (
         <View style={styles.alertsSection}>
           <View style={styles.alertsHeader}>
             <Text style={styles.sectionTitle}>Alertas y Notificaciones</Text>
@@ -812,9 +838,8 @@ export default function AdminDashboard() {
         </View>
       )}
        */}
-
-      {/* Notifications Section */}
-      {/* <View style={styles.notificationsSection}>
+        {/* Notifications Section */}
+        {/* <View style={styles.notificationsSection}>
         <View style={styles.notificationsHeader}>
           <Text style={styles.sectionTitle}>Notificaciones Recientes</Text>
           <TouchableOpacity onPress={() => router.push("/admin/notifications")}>
@@ -841,89 +866,104 @@ export default function AdminDashboard() {
             </Text>
           </View>
         )}
-      </View> */}      {/* Recent Activity Summary */}
-      <View style={styles.activitySection}>
-        <Text style={styles.sectionTitle}>Resumen de Hoy</Text>
-        <View style={styles.modernSummaryGrid}>
-          <View style={styles.modernSummaryCard}>
-            <View style={styles.modernCardContent}>
-              <View style={styles.modernIconWrapper}>
-                <MaterialIcons
-                  name="flight-takeoff"
-                  size={20}
-                  color="#3b82f6"
+      </View> */}
+        {/* Recent Activity Summary */}
+        <View style={styles.activitySection}>
+          <Text style={styles.sectionTitle}>Resumen de Hoy</Text>
+          <View style={styles.modernSummaryGrid}>
+            <View style={styles.modernSummaryCard}>
+              <View style={styles.modernCardContent}>
+                <View style={styles.modernIconWrapper}>
+                  <MaterialIcons
+                    name="flight-takeoff"
+                    size={20}
+                    color="#3b82f6"
+                  />
+                </View>
+                <View style={styles.modernTextContent}>
+                  <Text style={styles.modernValue}>{todayActivities}</Text>
+                  <Text style={styles.modernLabel}>Vuelos</Text>
+                </View>
+              </View>
+              <View style={styles.modernProgressBar}>
+                <View
+                  style={[
+                    styles.modernProgressFill,
+                    { width: "100%", backgroundColor: "#3b82f6" },
+                  ]}
                 />
               </View>
-              <View style={styles.modernTextContent}>
-                <Text style={styles.modernValue}>{todayActivities}</Text>
-                <Text style={styles.modernLabel}>Vuelos</Text>
-              </View>
-            </View>            <View style={styles.modernProgressBar}>
-              <View style={[styles.modernProgressFill, { width: '100%', backgroundColor: '#3b82f6' }]} />
             </View>
-          </View>
 
-          <View style={styles.modernSummaryCard}>
-            <View style={styles.modernCardContent}>
-              <View style={styles.modernIconWrapper}>
-                <MaterialIcons
-                  name="settings"
-                  size={20}
-                  color="#10b981"
+            <View style={styles.modernSummaryCard}>
+              <View style={styles.modernCardContent}>
+                <View style={styles.modernIconWrapper}>
+                  <MaterialIcons name="settings" size={20} color="#10b981" />
+                </View>
+                <View style={styles.modernTextContent}>
+                  <Text style={styles.modernValue}>{operationalDrones}</Text>
+                  <Text style={styles.modernLabel}>Drones</Text>
+                </View>
+              </View>
+              <View style={styles.modernProgressBar}>
+                <View
+                  style={[
+                    styles.modernProgressFill,
+                    { width: "100%", backgroundColor: "#10b981" },
+                  ]}
                 />
               </View>
-              <View style={styles.modernTextContent}>
-                <Text style={styles.modernValue}>{operationalDrones}</Text>
-                <Text style={styles.modernLabel}>Drones</Text>
-              </View>
             </View>
-            <View style={styles.modernProgressBar}>
-              <View style={[styles.modernProgressFill, { width: '100%', backgroundColor: '#10b981' }]} />
-            </View>
-          </View>
 
-          <View style={styles.modernSummaryCard}>
-            <View style={styles.modernCardContent}>
-              <View style={styles.modernIconWrapper}>
-                <MaterialIcons
-                  name="warning-amber"
-                  size={20}
-                  color="#f59e0b"
+            <View style={styles.modernSummaryCard}>
+              <View style={styles.modernCardContent}>
+                <View style={styles.modernIconWrapper}>
+                  <MaterialIcons
+                    name="warning-amber"
+                    size={20}
+                    color="#f59e0b"
+                  />
+                </View>
+                <View style={styles.modernTextContent}>
+                  <Text style={styles.modernValue}>{criticalIncidents}</Text>
+                  <Text style={styles.modernLabel}>Incidentes</Text>
+                </View>
+              </View>
+              <View style={styles.modernProgressBar}>
+                <View
+                  style={[
+                    styles.modernProgressFill,
+                    { width: "100%", backgroundColor: "#f59e0b" },
+                  ]}
                 />
               </View>
-              <View style={styles.modernTextContent}>
-                <Text style={styles.modernValue}>{criticalIncidents}</Text>
-                <Text style={styles.modernLabel}>Incidentes</Text>
-              </View>
             </View>
-            <View style={styles.modernProgressBar}>
-              <View style={[styles.modernProgressFill, { width: '100%', backgroundColor: '#f59e0b' }]} />
-            </View>
-          </View>
 
-          <View style={styles.modernSummaryCard}>
-            <View style={styles.modernCardContent}>
-              <View style={styles.modernIconWrapper}>
-                <MaterialIcons
-                  name="wind-power"
-                  size={20}
-                  color="#8b5cf6"
+            <View style={styles.modernSummaryCard}>
+              <View style={styles.modernCardContent}>
+                <View style={styles.modernIconWrapper}>
+                  <MaterialIcons name="wind-power" size={20} color="#8b5cf6" />
+                </View>
+                <View style={styles.modernTextContent}>
+                  <Text style={styles.modernValue}>{inspectedTurbines}</Text>
+                  <Text style={styles.modernLabel}>Turbinas</Text>
+                </View>
+              </View>
+              <View style={styles.modernProgressBar}>
+                <View
+                  style={[
+                    styles.modernProgressFill,
+                    { width: "100%", backgroundColor: "#8b5cf6" },
+                  ]}
                 />
               </View>
-              <View style={styles.modernTextContent}>
-                <Text style={styles.modernValue}>{inspectedTurbines}</Text>
-                <Text style={styles.modernLabel}>Turbinas</Text>
-              </View>
-            </View>
-            <View style={styles.modernProgressBar}>
-              <View style={[styles.modernProgressFill, { width: '100%', backgroundColor: '#8b5cf6' }]} />
             </View>
           </View>
         </View>
-      </View>
-      {/* Footer spacing */}
-      <View style={styles.footer} />
-    </ScrollView>
+        {/* Footer spacing */}
+        <View style={styles.footer} />
+      </ScrollView>
+    </>
   );
 }
 
@@ -934,7 +974,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: currentTheme.background,
-  },  header: {
+  },
+  header: {
     paddingHorizontal: currentTheme.dimensions.spacing.md,
     paddingTop: currentTheme.dimensions.spacing.md, // Minimal top padding
     paddingBottom: currentTheme.dimensions.spacing.md,
@@ -1053,11 +1094,13 @@ const styles = StyleSheet.create({
   },
   navigationSection: {
     marginBottom: currentTheme.dimensions.spacing.lg,
-  },  navigationGrid: {
+  },
+  navigationGrid: {
     flexDirection: "column",
     paddingHorizontal: currentTheme.dimensions.spacing.md,
     gap: currentTheme.dimensions.spacing.sm,
-  },navigationCard: {
+  },
+  navigationCard: {
     backgroundColor: currentTheme.card,
     borderRadius: currentTheme.dimensions.borderRadius.large,
     padding: 0,
@@ -1150,7 +1193,8 @@ const styles = StyleSheet.create({
   alertTime: {
     fontSize: currentTheme.dimensions.fontSize.xs,
     color: currentTheme.textSecondary,
-  },  activitySection: {
+  },
+  activitySection: {
     marginBottom: currentTheme.dimensions.spacing.lg,
     paddingHorizontal: currentTheme.dimensions.spacing.md,
   },
@@ -1199,7 +1243,8 @@ const styles = StyleSheet.create({
     fontSize: currentTheme.dimensions.fontSize.sm,
     fontWeight: "600",
     color: currentTheme.text,
-  },  summaryDescription: {
+  },
+  summaryDescription: {
     fontSize: currentTheme.dimensions.fontSize.xs,
     color: currentTheme.textSecondary,
     lineHeight: 16,
@@ -1362,7 +1407,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: currentTheme.dimensions.spacing.sm,
     width: "100%",
-  },  overviewGradient: {
+  },
+  overviewGradient: {
     borderRadius: currentTheme.dimensions.borderRadius.medium,
     padding: currentTheme.dimensions.spacing.md,
     minHeight: 100,
@@ -1374,7 +1420,8 @@ const styles = StyleSheet.create({
   },
   overviewContent: {
     flex: 1,
-  },  overviewHeader: {
+  },
+  overviewHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -1382,7 +1429,8 @@ const styles = StyleSheet.create({
   },
   overviewInfo: {
     flex: 1,
-  },  overviewIconContainer: {
+  },
+  overviewIconContainer: {
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -1394,7 +1442,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 2,
-  },  overviewValue: {
+  },
+  overviewValue: {
     fontSize: currentTheme.dimensions.fontSize.lg,
     fontWeight: "bold",
     color: "white",
@@ -1431,11 +1480,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-  },  detailText: {
+  },
+  detailText: {
     fontSize: currentTheme.dimensions.fontSize.xs,
     color: "rgba(255,255,255,0.9)",
     fontWeight: "500",
-  },  progressContainer: {
+  },
+  progressContainer: {
     position: "absolute",
     bottom: 12,
     right: 12,

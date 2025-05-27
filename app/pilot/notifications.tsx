@@ -348,7 +348,7 @@ const NotificationsScreen = () => {
                   color="#4A5568"
                 />
               </TouchableOpacity>
-            )}{" "}
+            )}
           </View>
         </View>
 

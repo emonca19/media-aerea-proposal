@@ -171,7 +171,7 @@ const CamerasScreen = () => {
             {item.manufacturer} {item.model}
           </Text>
           <Text style={styles.cameraSubtitle}>{item.name}</Text>
-        </View>{" "}
+        </View>
         <View
           style={[
             styles.statusBadge,
@@ -219,7 +219,7 @@ const CamerasScreen = () => {
         >
           <Ionicons name="create-outline" size={16} color="#fff" />
           <Text style={styles.actionBtnText}>Editar</Text>
-        </TouchableOpacity>{" "}
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => handleOpenStatusModal(item)}
           style={[styles.actionBtn, styles.statusBtn]}
@@ -248,7 +248,6 @@ const CamerasScreen = () => {
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        {" "}
         {/* Available Cameras Section */}
         <View style={styles.sectionContainer}>
           <TouchableOpacity
@@ -293,7 +292,7 @@ const CamerasScreen = () => {
               )}
             </>
           )}
-        </View>{" "}
+        </View>
         {/* In Use Cameras Section */}
         <View style={styles.sectionContainer}>
           <TouchableOpacity
@@ -334,7 +333,7 @@ const CamerasScreen = () => {
               )}
             </>
           )}
-        </View>{" "}
+        </View>
         {/* Maintenance Cameras Section */}
         <View style={styles.sectionContainer}>
           <TouchableOpacity
@@ -499,7 +498,7 @@ const CamerasScreen = () => {
                     Creado: {editingCamera.createdAt.toLocaleDateString()}
                   </Text>
                   <Text style={styles.infoText}>
-                    Última Actualización:{" "}
+                    Última Actualización:
                     {editingCamera.updatedAt.toLocaleDateString()}
                   </Text>
                 </View>
@@ -524,7 +523,7 @@ const CamerasScreen = () => {
                   </Text>
                 </TouchableOpacity>
               </View>
-            </ScrollView>{" "}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -545,7 +544,7 @@ const CamerasScreen = () => {
               <>
                 <Text style={styles.statusModalTitle}>Actualizar Estado</Text>
                 <Text style={styles.statusModalSubtitle}>
-                  {selectedCameraForStatusUpdate.manufacturer}{" "}
+                  {selectedCameraForStatusUpdate.manufacturer}
                   {selectedCameraForStatusUpdate.model}
                 </Text>
                 <Text style={styles.statusModalCameraName}>
