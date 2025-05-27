@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Redirect, Tabs } from "expo-router";
+import { Redirect, Tabs, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
   AccessibilityRole,
@@ -7,7 +7,11 @@ import {
   GestureResponderEvent,
   Platform,
   Pressable,
+  ScrollView,
   StyleProp,
+  Text,
+  useWindowDimensions,
+  View,
   ViewStyle,
 } from "react-native";
 import Animated, {
@@ -107,7 +111,282 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
   );
 };
 
+// Sidebar Navigation Item Component
+interface SidebarItemProps {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  isActive: boolean;
+  onPress: () => void;
+}
+
+const SidebarItem: React.FC<SidebarItemProps> = ({
+  label,
+  icon,
+  isActive,
+  onPress,
+}) => {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        {
+          flexDirection: "row",
+          alignItems: "center",
+          paddingVertical: 12,
+          paddingHorizontal: 16,
+          marginHorizontal: 8,
+          borderRadius: 8,
+          backgroundColor: isActive
+            ? "#9C46CE"
+            : pressed
+            ? "#f5f5f5"
+            : "transparent",
+        },
+      ]}
+    >
+      <Ionicons
+        name={
+          isActive
+            ? icon
+            : (`${icon}-outline` as keyof typeof Ionicons.glyphMap)
+        }
+        size={24}
+        color={isActive ? "#ffffff" : "#666666"}
+        style={{ marginRight: 12 }}
+      />
+      <Text
+        style={{
+          fontSize: 16,
+          fontWeight: isActive ? "600" : "400",
+          color: isActive ? "#ffffff" : "#333333",
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+};
+
+// Sidebar Component for Web
+const Sidebar: React.FC = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Debug the current pathname if needed
+  // console.log("Current pathname:", pathname);
+
+  const navigationItems = [
+    {
+      label: "Inicio",
+      icon: "home" as const,
+      path: "/admin/(dashboard)/dashboard",
+      segment: "dashboard",
+      patterns: ["/dashboard", "/(dashboard)"],
+    },
+    {
+      label: "Tareas",
+      icon: "checkbox" as const,
+      path: "/admin/(tasks)/assignments",
+      segment: "tasks",
+      patterns: ["/assignments", "/(tasks)"],
+    },
+    {
+      label: "Proyectos",
+      icon: "document-text" as const,
+      path: "/admin/(projects)",
+      segment: "projects",
+      patterns: ["/(projects)"],
+    },
+    {
+      label: "Recursos",
+      icon: "construct" as const,
+      path: "/admin/(resources)/users",
+      segment: "resources",
+      patterns: ["/users", "/(resources)"],
+      patternsWeb: ["/resources", "/(resources)"],
+    },
+    {
+      label: "Perfil",
+      icon: "person" as const,
+      path: "/admin/(profile)/profile",
+      segment: "profile",
+      patterns: ["/profile", "/(profile)"],
+    },
+  ];
+
+  return (
+    <View
+      style={{
+        width: 250,
+        backgroundColor: "#ffffff",
+        borderRightWidth: 1,
+        borderRightColor: "#e5e5e5",
+        paddingTop: 20,
+      }}
+    >
+      <ScrollView>
+        <View style={{ paddingBottom: 20 }}>
+          <View style={{ marginBottom: 0 }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                color: "#9C46CE",
+                paddingHorizontal: 16,
+                paddingBottom: 20,
+              }}
+            >
+              Admin Panel
+            </Text>
+          </View>
+          {navigationItems.map((item) => {
+            // Enhanced active state detection for complex navigation
+            let isActive = false;
+
+            // Check direct path match first
+            if (pathname === `/admin/${item.segment}`) {
+              isActive = true;
+            }
+            // Then check if pathname starts with any of the patterns
+            else {
+              // Check the exact path with segment
+              if (pathname.startsWith(`/admin/${item.segment}/`)) {
+                isActive = true;
+              }
+              // Check for path containing any of the pattern identifiers
+              else {
+                for (const pattern of item.patterns) {
+                  // Full path checks for both web and mobile formats
+                  if (
+                    pathname.includes(pattern) ||
+                    pathname.includes(`/admin${pattern}`) ||
+                    pathname.includes(`/admin/${item.segment}${pattern}`)
+                  ) {
+                    isActive = true;
+                    break;
+                  }
+                }
+              }
+            }
+
+            return (
+              <SidebarItem
+                key={item.path}
+                label={item.label}
+                icon={item.icon}
+                isActive={isActive}
+                onPress={() => router.push(item.path as any)}
+              />
+            );
+          })}
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
+
+// Custom Layout Component that switches between sidebar and tabs
+const ResponsiveAdminLayout: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { width } = useWindowDimensions();
+  const isWeb = Platform.OS === "web";
+  const isTablet = width >= 768; // Tablet breakpoint
+
+  if (isWeb || isTablet) {
+    // Show sidebar layout for web and tablets
+    return (
+      <View
+        style={{ flex: 1, flexDirection: "row", backgroundColor: "#ffffff" }}
+      >
+        <Sidebar />
+        <View style={{ flex: 1 }}>{children}</View>
+      </View>
+    );
+  }
+
+  // Show bottom tabs for mobile
+  return <>{children}</>;
+};
+
 export default function AdminLayout() {
+  const isWeb = Platform.OS === "web";
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768;
+
+  if (isWeb || isTablet) {
+    // Use sidebar layout for web and tablets
+    return (
+      <>
+        <StatusBar style="dark" backgroundColor="#FFFFFF" />
+        <ResponsiveAdminLayout>
+          <Tabs
+            screenOptions={{
+              headerShown: false,
+              tabBarStyle: { display: "none" }, // Hide tab bar on web/tablet
+            }}
+          >
+            {/* All the existing tab screens */}
+            <Tabs.Screen
+              name="index"
+              options={{ href: null }}
+              listeners={{
+                tabPress: (e: { preventDefault: () => void }) => {
+                  e.preventDefault();
+                  return <Redirect href="/admin/dashboard" />;
+                },
+              }}
+            />
+
+            <Tabs.Screen
+              name="(dashboard)"
+              options={{
+                title: "Inicio",
+                sceneStyle: { backgroundColor: "#ffffff" },
+              }}
+            />
+
+            <Tabs.Screen
+              name="(tasks)"
+              options={{
+                title: "Tareas",
+                sceneStyle: { backgroundColor: "#ffffff" },
+              }}
+            />
+
+            <Tabs.Screen
+              name="(projects)"
+              options={{
+                title: "Proyectos",
+                sceneStyle: { backgroundColor: "#ffffff" },
+              }}
+            />
+
+            <Tabs.Screen
+              name="(resources)"
+              options={{
+                title: "Recursos",
+                sceneStyle: { backgroundColor: "#ffffff" },
+              }}
+            />
+
+            <Tabs.Screen
+              name="(profile)"
+              options={{
+                title: "Perfil",
+                sceneStyle: { backgroundColor: "#ffffff" },
+              }}
+            />
+
+            <Tabs.Screen name="reports" options={{ href: null }} />
+            <Tabs.Screen name="turbine" options={{ href: null }} />
+          </Tabs>
+        </ResponsiveAdminLayout>
+      </>
+    );
+  }
+
+  // Use bottom tabs layout for mobile
   return (
     <>
       <StatusBar style="dark" backgroundColor="#FFFFFF" />
