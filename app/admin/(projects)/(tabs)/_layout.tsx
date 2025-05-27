@@ -71,29 +71,7 @@ export default function TabLayout() {
           sceneStyle: { backgroundColor: "#ffffff" },
         }}
       />
-      <MaterialTopTabs.Screen
-        name="parks"
-        options={{
-          tabBarLabel: ({
-            focused,
-            color,
-          }: {
-            focused: boolean;
-            color: string;
-          }) => (
-            <View style={styles.tabLabelContainer}>
-              <Ionicons
-                name="location-outline"
-                size={18}
-                color={color}
-                style={styles.tabIcon}
-              />
-              <Text style={[styles.tabBarLabelText, { color }]}>Parques</Text>
-            </View>
-          ),
-          sceneStyle: { backgroundColor: "#ffffff" },
-        }}
-      />
+      
     </MaterialTopTabs>
   );
 }

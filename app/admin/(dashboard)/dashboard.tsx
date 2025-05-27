@@ -205,7 +205,7 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
     onPress={onPress}
     activeOpacity={0.9}
   >
-    {" "}
+    
     <LinearGradient
       colors={gradientColors}
       start={{ x: 0, y: 0 }}
@@ -244,7 +244,7 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
             {subtitle && (
               <Text style={styles.overviewSubtitle}>{subtitle}</Text>
             )}
-          </View>{" "}
+          </View>
           {isLarge && details && (
             <View style={styles.overviewDetails}>
               <View style={styles.detailItem}>
@@ -428,7 +428,7 @@ const NotificationCard: React.FC<{ notification: NotificationItemData }> = ({
     >
       <View style={[styles.notificationIcon, { backgroundColor }]}>
         <Ionicons name={iconName} size={20} color={iconColor} />
-      </View>{" "}
+      </View>
       <View style={styles.notificationContent}>
         <Text style={styles.notificationTitle} numberOfLines={1}>
           {notification.title}
@@ -606,7 +606,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          {" "}
+          
           <View style={styles.headerTop}>
             <Text style={styles.headerTitle}>Panel de Administración</Text>
             <TouchableOpacity
@@ -625,10 +625,10 @@ export default function AdminDashboard() {
             ¡Bienvenido de vuelta! Aquí tienes tu resumen de operaciones
           </Text>
         </View>
-      </View>{" "}
+      </View>
       {/* Overview Section */}
       <View style={styles.overviewSection}>
-        {" "}
+        
         <OverviewCard
           title="Proyectos Activos"
           value={activeProjects}

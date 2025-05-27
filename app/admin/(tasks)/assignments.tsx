@@ -8,6 +8,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   Modal,
   Platform,
   ScrollView,
@@ -20,6 +21,7 @@ import {
 import {
   mockDroneAvailability,
   mockPilotAvailability,
+  mockPilotUsers,
   mockProjects,
   mockTurbines,
   mockWindParks,
@@ -27,13 +29,44 @@ import {
 import { ProjectAssignment } from "../../../src/types/assignments";
 import { Project } from "../../../src/types/projects";
 
+// Helper function to get pilot profile image
+const getPilotProfileImage = (pilotId: string) => {
+  const pilotUser = mockPilotUsers.find((user) => user.id === pilotId);
+  return pilotUser?.profileImage || null;
+};
+
+// Placeholder component for pilot images
+const PilotImagePlaceholder = () => (
+  <View style={styles.pilotImagePlaceholder}>
+    <Ionicons name="person" size={24} color="#9ca3af" />
+  </View>
+);
+
+// Pilot image component with error handling
+const PilotImage = ({ pilotId }: { pilotId: string }) => {
+  const [imageError, setImageError] = useState(false);
+  const imageUri = getPilotProfileImage(pilotId);
+
+  if (!imageUri || imageError) {
+    return <PilotImagePlaceholder />;
+  }
+
+  return (
+    <Image
+      source={{ uri: imageUri }}
+      style={styles.pilotImage}
+      onError={() => setImageError(true)}
+    />
+  );
+};
+
 export default function AssignmentsScreen() {
   const params = useLocalSearchParams();
   const preselectedProjectId = Array.isArray(params.projectId)
     ? params.projectId[0]
     : params.projectId;
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [selectedPilot, setSelectedPilot] = useState<string>("");
+  const [selectedPilots, setSelectedPilots] = useState<string[]>([]);
   const [selectedDrone, setSelectedDrone] = useState<string>("");
   const [estimatedStartDate, setEstimatedStartDate] = useState<Date | null>(
     null
@@ -46,6 +79,8 @@ export default function AssignmentsScreen() {
   const [showDronesModal, setShowDronesModal] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [dateValidationMessage, setDateValidationMessage] =
+    useState<string>("");
   useEffect(() => {
     if (preselectedProjectId) {
       const project = mockProjects.find((p) => p.id === preselectedProjectId);
@@ -54,16 +89,23 @@ export default function AssignmentsScreen() {
       }
     }
   }, [preselectedProjectId]);
-
   const availablePilots = mockPilotAvailability.filter(
     (pilot) => pilot.available
   );
   const availableDrones = mockDroneAvailability.filter(
     (drone) => drone.available && drone.status === "OPERATIONAL"
   );
+
   const handlePilotSelection = (pilotId: string) => {
-    setSelectedPilot(pilotId);
-    setShowPilotsModal(false);
+    setSelectedPilots((prev) => {
+      if (prev.includes(pilotId)) {
+        // Remove pilot if already selected
+        return prev.filter((id) => id !== pilotId);
+      } else {
+        // Add pilot if not selected
+        return [...prev, pilotId];
+      }
+    });
   };
   const handleDroneSelection = (droneId: string) => {
     setSelectedDrone(droneId);
@@ -72,24 +114,47 @@ export default function AssignmentsScreen() {
   const calculateDuration = (start: Date | null, end: Date | null) => {
     if (start && end) {
       const diffTime = Math.abs(end.getTime() - start.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
       setEstimatedDuration(diffDays);
     }
   };
-
   const handleStartDateChange = (event: any, selectedDate?: Date) => {
     setShowStartDatePicker(false);
     if (selectedDate) {
+      // Clear any previous validation message
+      setDateValidationMessage("");
+
+      // Validate that start date is not after end date
+      if (estimatedEndDate && selectedDate > estimatedEndDate) {
+        setDateValidationMessage(
+          "La fecha de inicio no puede ser posterior a la fecha de fin"
+        );
+        return;
+      }
       setEstimatedStartDate(selectedDate);
       calculateDuration(selectedDate, estimatedEndDate);
     }
   };
-
   const handleEndDateChange = (event: any, selectedDate?: Date) => {
     setShowEndDatePicker(false);
     if (selectedDate) {
+      // Clear any previous validation message
+      setDateValidationMessage("");
+
+      let newStartDate = estimatedStartDate;
+
+      // Validate that end date is not before start date
+      if (estimatedStartDate && selectedDate < estimatedStartDate) {
+        // Automatically adjust start date to be the same as end date
+        newStartDate = selectedDate;
+        setEstimatedStartDate(selectedDate);
+        setDateValidationMessage(
+          "La fecha de inicio se ajustó automáticamente para coincidir con la fecha de fin"
+        );
+      }
+
       setEstimatedEndDate(selectedDate);
-      calculateDuration(estimatedStartDate, selectedDate);
+      calculateDuration(newStartDate, selectedDate);
     }
   };
   const handleConfirmAssignment = () => {
@@ -97,8 +162,8 @@ export default function AssignmentsScreen() {
       Alert.alert("Error", "Debe seleccionar un proyecto");
       return;
     }
-    if (!selectedPilot) {
-      Alert.alert("Error", "Debe seleccionar un piloto");
+    if (selectedPilots.length === 0) {
+      Alert.alert("Error", "Debe seleccionar al menos un piloto");
       return;
     }
     if (!selectedDrone) {
@@ -112,7 +177,7 @@ export default function AssignmentsScreen() {
     const newAssignment: ProjectAssignment = {
       id: `assign_${Date.now()}`,
       projectId: selectedProject.id,
-      pilotIds: [selectedPilot],
+      pilotIds: selectedPilots,
       droneIds: [selectedDrone],
       turbineIds: [], // No specific turbines selected since they're now informational
       estimatedStartDate: estimatedStartDate,
@@ -137,7 +202,7 @@ export default function AssignmentsScreen() {
           onPress: () => {
             // Reset form
             setSelectedProject(null);
-            setSelectedPilot("");
+            setSelectedPilots([]);
             setSelectedDrone("");
             setEstimatedStartDate(null);
             setEstimatedEndDate(null);
@@ -151,7 +216,7 @@ export default function AssignmentsScreen() {
   const renderProjectSelector = () => (
     <View style={styles.section}>
       <View style={styles.sectionTitleContainer}>
-        <Ionicons name="document-text" size={24} color="#9C46CE" />
+        {/* <Ionicons name="document-text" size={24} color="#9C46CE" /> */}
         <Text style={styles.sectionTitle}>Proyecto</Text>
       </View>
       <TouchableOpacity
@@ -219,11 +284,11 @@ export default function AssignmentsScreen() {
   const renderAvailabilitySection = () => (
     <View style={styles.section}>
       <View style={styles.sectionTitleContainer}>
-        <MaterialCommunityIcons
+        {/* <MaterialCommunityIcons
           name="tools"
           size={24}
           color={selectedProject ? "#10b981" : "#9ca3af"}
-        />
+        /> */}
         <Text
           style={[
             styles.sectionTitle,
@@ -232,7 +297,7 @@ export default function AssignmentsScreen() {
             },
           ]}
         >
-          Disponibilidad de Recursos
+          Recursos
         </Text>
       </View>
 
@@ -255,22 +320,31 @@ export default function AssignmentsScreen() {
               <Text style={styles.subsectionTitle}>
                 Pilotos Disponibles ({availablePilots.length})
               </Text>
-            </View>
+            </View>{" "}
             <TouchableOpacity
               style={styles.resourceSelector}
               onPress={() => setShowPilotsModal(true)}
             >
               <View style={styles.resourceSelectorContent}>
-                {selectedPilot ? (
-                  <Text style={styles.resourceSelectedSingle}>
-                    {
-                      availablePilots.find((p) => p.pilotId === selectedPilot)
-                        ?.pilotName
-                    }
-                  </Text>
+                {selectedPilots.length > 0 ? (
+                  <View>
+                    {selectedPilots.length === 1 ? (
+                      <Text style={styles.resourceSelectedSingle}>
+                        {
+                          availablePilots.find(
+                            (p) => p.pilotId === selectedPilots[0]
+                          )?.pilotName
+                        }
+                      </Text>
+                    ) : (
+                      <Text style={styles.resourceSelectedMultiple}>
+                        {selectedPilots.length} pilotos seleccionados
+                      </Text>
+                    )}
+                  </View>
                 ) : (
                   <Text style={styles.placeholderText}>
-                    Seleccionar piloto...
+                    Seleccionar pilotos...
                   </Text>
                 )}
               </View>
@@ -316,22 +390,22 @@ export default function AssignmentsScreen() {
     </View>
   );
   const renderDurationAndDates = () => {
-    const hasResourcesSelected = selectedPilot && selectedDrone;
+    const hasResourcesSelected = selectedPilots.length > 0 && selectedDrone;
     return (
-      <View style={styles.section}>
+      <View style={styles.datesSection}>
         <View style={styles.sectionTitleContainer}>
-          <MaterialIcons
+          {/* <MaterialIcons
             name="schedule"
             size={24}
             color={hasResourcesSelected ? "#f59e0b" : "#9ca3af"}
-          />
+          /> */}
           <Text
             style={[
               styles.sectionTitle,
               { color: hasResourcesSelected ? "#1f2937" : "#9ca3af" },
             ]}
           >
-            Estimación de Duración y Fechas
+            Fechas
           </Text>
         </View>
 
@@ -343,12 +417,16 @@ export default function AssignmentsScreen() {
 
         {hasResourcesSelected && (
           <>
+            {" "}
             <View style={styles.dateRow}>
               <View style={styles.dateInput}>
-                <Text style={styles.inputLabel}>Fecha de Inicio</Text>
+                <Text style={styles.inputLabel}>Fecha de Inicio</Text>{" "}
                 <TouchableOpacity
                   style={styles.dateButton}
-                  onPress={() => setShowStartDatePicker(true)}
+                  onPress={() => {
+                    setDateValidationMessage(""); // Clear validation message
+                    setShowStartDatePicker(true);
+                  }}
                 >
                   <Text style={styles.dateButtonText}>
                     {estimatedStartDate
@@ -360,10 +438,13 @@ export default function AssignmentsScreen() {
               </View>
 
               <View style={styles.dateInput}>
-                <Text style={styles.inputLabel}>Fecha de Fin</Text>
+                <Text style={styles.inputLabel}>Fecha de Fin</Text>{" "}
                 <TouchableOpacity
                   style={styles.dateButton}
-                  onPress={() => setShowEndDatePicker(true)}
+                  onPress={() => {
+                    setDateValidationMessage(""); // Clear validation message
+                    setShowEndDatePicker(true);
+                  }}
                 >
                   <Text style={styles.dateButtonText}>
                     {estimatedEndDate
@@ -374,6 +455,15 @@ export default function AssignmentsScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+            {/* Date validation message */}
+            {dateValidationMessage && (
+              <View style={styles.validationMessageContainer}>
+                <Ionicons name="information-circle" size={16} color="#f59e0b" />
+                <Text style={styles.validationMessageText}>
+                  {dateValidationMessage}
+                </Text>
+              </View>
+            )}
             <View style={styles.durationContainer}>
               <Text style={styles.inputLabel}>Duración Estimada</Text>
               <View style={styles.durationDisplay}>
@@ -414,7 +504,7 @@ export default function AssignmentsScreen() {
                   <View style={styles.datePickerContainer}>
                     <Text style={styles.datePickerTitle}>
                       Seleccionar Fecha de Inicio
-                    </Text>
+                    </Text>{" "}
                     <input
                       type="date"
                       style={{
@@ -431,6 +521,10 @@ export default function AssignmentsScreen() {
                         handleStartDateChange(null, date);
                       }}
                       min={new Date().toISOString().split("T")[0]}
+                      max={
+                        estimatedEndDate?.toISOString().split("T")[0] ||
+                        undefined
+                      }
                     />
                     <TouchableOpacity
                       style={styles.datePickerCloseButton}
@@ -448,6 +542,7 @@ export default function AssignmentsScreen() {
                 display={Platform.OS === "ios" ? "spinner" : "default"}
                 onChange={handleStartDateChange}
                 minimumDate={new Date()}
+                maximumDate={estimatedEndDate || undefined}
               />
             )}
           </>
@@ -591,42 +686,69 @@ export default function AssignmentsScreen() {
               key={pilot.pilotId}
               style={[
                 styles.availabilityCard,
-                selectedPilot === pilot.pilotId && styles.selectedCard,
+                selectedPilots.includes(pilot.pilotId) && styles.selectedCard,
               ]}
               onPress={() => handlePilotSelection(pilot.pilotId)}
             >
-              <View style={styles.cardHeader}>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle}>{pilot.pilotName}</Text>
-                  <View style={styles.statusBadge}>
-                    <View
-                      style={[styles.statusDot, { backgroundColor: "#16a34a" }]}
-                    />
-                    <Text style={styles.statusText}>Disponible</Text>
+              {" "}
+              <View style={styles.pilotCardWithImage}>
+                <PilotImage pilotId={pilot.pilotId} />
+                <View style={styles.cardHeader}>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cardTitle}>{pilot.pilotName}</Text>
+                    <View style={styles.statusBadge}>
+                      <View
+                        style={[
+                          styles.statusDot,
+                          { backgroundColor: "#16a34a" },
+                        ]}
+                      />
+                      <Text style={styles.statusText}>Disponible</Text>
+                    </View>
+                  </View>
+                  <View style={styles.selectionIndicator}>
+                    {selectedPilots.includes(pilot.pilotId) && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={24}
+                        color="#10b981"
+                      />
+                    )}{" "}
                   </View>
                 </View>
-                <View style={styles.selectionIndicator}>
-                  {selectedPilot === pilot.pilotId && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={24}
-                      color="#10b981"
-                    />
-                  )}
-                </View>
               </View>
-              <Text style={styles.availabilityText}>
-                Próximas ventanas de disponibilidad:
-              </Text>
-              {pilot.availability.map((window, index) => (
-                <Text key={index} style={styles.availabilityWindow}>
-                  {window.startDate.toLocaleDateString()} - <Text></Text>
-                  {window.endDate.toLocaleDateString()}
-                </Text>
-              ))}
             </TouchableOpacity>
           ))}
         </ScrollView>
+        <View style={styles.modalFooter}>
+          <TouchableOpacity
+            style={[
+              styles.confirmSelectionButton,
+              selectedPilots.length === 0 &&
+                styles.confirmSelectionButtonDisabled,
+            ]}
+            onPress={() => setShowPilotsModal(false)}
+          >
+            <Ionicons
+              name="checkmark"
+              size={20}
+              color={selectedPilots.length > 0 ? "#ffffff" : "#9ca3af"}
+            />
+            <Text
+              style={[
+                styles.confirmSelectionButtonText,
+                selectedPilots.length === 0 &&
+                  styles.confirmSelectionButtonTextDisabled,
+              ]}
+            >
+              {selectedPilots.length === 0
+                ? "Seleccionar pilotos"
+                : `Confirmar ${selectedPilots.length} piloto${
+                    selectedPilots.length > 1 ? "s" : ""
+                  }`}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </Modal>
   );
@@ -658,9 +780,13 @@ export default function AssignmentsScreen() {
               ]}
               onPress={() => handleDroneSelection(drone.droneId)}
             >
+              {" "}
               <View style={styles.cardHeader}>
                 <View style={styles.cardInfo}>
                   <Text style={styles.cardTitle}>{drone.droneName}</Text>
+                  <Text style={styles.cardSubtitle}>
+                    S/N: {drone.serialNumber}
+                  </Text>
                   <View style={styles.statusBadge}>
                     <View
                       style={[styles.statusDot, { backgroundColor: "#16a34a" }]}
@@ -716,7 +842,7 @@ export default function AssignmentsScreen() {
             style={[
               styles.confirmButton,
               (!selectedProject ||
-                !selectedPilot ||
+                selectedPilots.length === 0 ||
                 !selectedDrone ||
                 !estimatedStartDate ||
                 !estimatedEndDate) &&
@@ -725,7 +851,7 @@ export default function AssignmentsScreen() {
             onPress={handleConfirmAssignment}
             disabled={
               !selectedProject ||
-              !selectedPilot ||
+              selectedPilots.length === 0 ||
               !selectedDrone ||
               !estimatedStartDate ||
               !estimatedEndDate
@@ -762,6 +888,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 16,
   },
+  datesSection: {
+    paddingHorizontal: 6,
+    paddingTop: 0,
+    paddingBottom: 16,
+  },
   turbinesSection: {
     paddingHorizontal: 6,
     paddingTop: 4,
@@ -771,7 +902,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     color: "#1f2937",
-    marginLeft: 8,
   },
   sectionTitleContainer: {
     flexDirection: "row",
@@ -801,7 +931,7 @@ const styles = StyleSheet.create({
   },
   projectSelector: {
     borderRadius: 8,
-    padding: 16,
+    padding: 12,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
@@ -826,7 +956,7 @@ const styles = StyleSheet.create({
   },
   availabilityCard: {
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: "#e5e7eb",
@@ -849,6 +979,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1f2937",
     marginBottom: 6,
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    fontWeight: "400",
+    color: "#6b7280",
+    marginBottom: 8,
   },
   statusBadge: {
     flexDirection: "row",
@@ -906,7 +1042,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderRadius: 8,
-    padding: 12,
+    padding: 10,
     fontSize: 16,
     color: "#1f2937",
     borderWidth: 1,
@@ -934,6 +1070,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#d1d5db",
+  },
+  dateButtonRestricted: {
+    borderColor: "#0ea5e9",
+    backgroundColor: "#f0f9ff",
+  },
+  restrictedLabel: {
+    fontSize: 12,
+    color: "#0369a1",
+    fontStyle: "italic",
   },
   dateButtonText: {
     fontSize: 16,
@@ -973,18 +1118,18 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: "#ffffff",
   },
   modalHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: Platform.OS === "ios" ? 60 : 40,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
     backgroundColor: "#ffffff",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
   modalTitle: {
     fontSize: 20,
@@ -996,11 +1141,11 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
   projectCard: {
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: "#e5e7eb",
@@ -1087,7 +1232,7 @@ const styles = StyleSheet.create({
   },
   resourceSelector: {
     borderRadius: 8,
-    padding: 16,
+    padding: 12,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
@@ -1117,6 +1262,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#1f2937",
+  },
+  resourceSelectedMultiple: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#10b981",
   },
   resourceBadge: {
     backgroundColor: "#9C46CE",
@@ -1217,5 +1367,55 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "500",
     color: "#475569",
+  },
+  pilotImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+  },
+  pilotImagePlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#f3f4f6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  pilotCardWithImage: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  validationMessageContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fef3c7",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#f59e0b",
+  },
+  validationMessageText: {
+    fontSize: 14,
+    color: "#92400e",
+    marginLeft: 8,
+    flex: 1,
+  },
+  dateHelpText: {
+    backgroundColor: "#f0f9ff",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#0ea5e9",
+  },
+  helpText: {
+    fontSize: 13,
+    color: "#0369a1",
+    textAlign: "center",
   },
 });

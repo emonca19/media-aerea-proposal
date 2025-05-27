@@ -292,7 +292,7 @@ export default function PicturesReviewScreen() {
             <Ionicons name="link-outline" size={16} color="#6b7280" />
             <Text style={styles.detailText}>Link de Drive disponible</Text>
           </View>
-        </View>{" "}
+        </View>
         {/* Indicadores de las nuevas métricas */}
         {review && (
           <View style={styles.qualityIndicators}>
@@ -422,7 +422,7 @@ export default function PicturesReviewScreen() {
         {review && (
           <View style={styles.reviewInfo}>
             <Text style={styles.reviewText}>
-              Revisado por {review.reviewedBy} el{" "}
+              Revisado por {review.reviewedBy} el
               {new Date(review.reviewedAt).toLocaleDateString("es-ES")}
             </Text>
           </View>
@@ -508,7 +508,7 @@ export default function PicturesReviewScreen() {
             <Text style={styles.emptyText}>No hay entregas para mostrar</Text>
           </View>
         }
-      />{" "}
+      />
       {/* Modal de revisión */}
       <Modal
         visible={reviewModalVisible}
@@ -543,19 +543,19 @@ export default function PicturesReviewScreen() {
                       Proyecto: {selectedSubmission.projectName}
                     </Text>
                     <Text style={styles.infoText}>
-                      Fecha:{" "}
+                      Fecha:
                       {new Date(
                         selectedSubmission.submissionDate
                       ).toLocaleDateString("es-ES")}
                     </Text>
                     <Text style={styles.infoText}>
-                      Turbinas:{" "}
+                      Turbinas:
                       {selectedSubmission.turbinesInspected.join(", ")}
                     </Text>
                     <Text style={styles.infoText}>
                       Link de Drive disponible
                     </Text>
-                  </View>{" "}
+                  </View>
                   {/* Evaluación de Rectitud de la pala */}
                   <View style={styles.evaluationSection}>
                     <Text style={styles.evaluationTitle}>
@@ -727,7 +727,7 @@ export default function PicturesReviewScreen() {
             </View>
           </View>
         </View>
-      </Modal>{" "}
+      </Modal>
       {/* Modal de rechazo con motivo */}
       <Modal
         visible={rejectionModalVisible}

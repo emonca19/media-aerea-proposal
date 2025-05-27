@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -410,7 +411,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: Constants.statusBarHeight,
     paddingBottom: 12,
     backgroundColor: "white",
     borderBottomWidth: 1,

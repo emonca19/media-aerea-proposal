@@ -27,6 +27,7 @@ export interface PilotAvailability {
 export interface DroneAvailability {
   droneId: string;
   droneName: string;
+  serialNumber: string;
   available: boolean;
   currentProject?: string;
   status: "OPERATIONAL" | "MAINTENANCE" | "OUT_OF_SERVICE";
