@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { mockPhotoSubmissions } from "../../../src/mocks/index";
+import { mockTurbines } from "../../../src/mocks/turbines";
 import { PhotoSubmissionStatus } from "../../../src/types/common";
 import {
   PhotoSubmission,
@@ -28,23 +29,22 @@ export default function PicturesReviewScreen() {
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
   const [rejectionModalVisible, setRejectionModalVisible] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
-
   // New evaluation metrics state
   const [bladeRectitude, setBladeRectitude] = useState<
-    "aceptable" | "posibles_problemas" | "errores_procesamiento"
-  >("aceptable");
+    "aceptable" | "posibles_problemas" | "errores_procesamiento" | undefined
+  >(undefined);
   const [captureDistance, setCaptureDistance] = useState<
-    "aceptable" | "posibles_conflictos"
-  >("aceptable");
+    "aceptable" | "posibles_conflictos" | undefined
+  >(undefined);
   const [exposure, setExposure] = useState<
-    "buena" | "muy_oscura" | "muy_brillante"
-  >("buena");
-  const [focus, setFocus] = useState<"bueno" | "regular" | "deficiente">(
-    "bueno"
-  );
+    "buena" | "muy_oscura" | "muy_brillante" | undefined
+  >(undefined);
+  const [focus, setFocus] = useState<
+    "bueno" | "regular" | "deficiente" | undefined
+  >(undefined);
   const [bladePosition, setBladePosition] = useState<
-    "correcta" | "parcialmente_correcta" | "incorrecta"
-  >("correcta");
+    "correcta" | "parcialmente_correcta" | "incorrecta" | undefined
+  >(undefined);
 
   const [filterStatus, setFilterStatus] = useState<
     "ALL" | "PENDING_REVIEW" | "APPROVED" | "REJECTED"
@@ -81,25 +81,40 @@ export default function PicturesReviewScreen() {
       setFocus(review.focus);
       setBladePosition(review.bladePosition);
     } else {
-      // Set default values for new review
-      setBladeRectitude("aceptable");
-      setCaptureDistance("aceptable");
-      setExposure("buena");
-      setFocus("bueno");
-      setBladePosition("correcta");
+      // Reset to undefined for new review (unselected state)
+      setBladeRectitude(undefined);
+      setCaptureDistance(undefined);
+      setExposure(undefined);
+      setFocus(undefined);
+      setBladePosition(undefined);
     }
     setReviewModalVisible(true);
   };
   const handleApproveSubmission = () => {
     if (!selectedSubmission) return;
 
+    // Validate that all evaluation categories are selected
+    if (
+      !bladeRectitude ||
+      !captureDistance ||
+      !exposure ||
+      !focus ||
+      !bladePosition
+    ) {
+      Alert.alert(
+        "Evaluación Incompleta",
+        "Debe evaluar todas las categorías antes de aprobar la entrega."
+      );
+      return;
+    }
+
     const review: PhotoSubmissionReview = {
       status: "APPROVED",
-      bladeRectitude,
-      captureDistance,
-      exposure,
-      focus,
-      bladePosition,
+      bladeRectitude: bladeRectitude!,
+      captureDistance: captureDistance!,
+      exposure: exposure!,
+      focus: focus!,
+      bladePosition: bladePosition!,
       reviewedBy: "Admin Usuario",
       reviewedAt: new Date(),
     };
@@ -124,13 +139,28 @@ export default function PicturesReviewScreen() {
       return;
     }
 
+    // Validate that all evaluation categories are selected
+    if (
+      !bladeRectitude ||
+      !captureDistance ||
+      !exposure ||
+      !focus ||
+      !bladePosition
+    ) {
+      Alert.alert(
+        "Evaluación Incompleta",
+        "Debe evaluar todas las categorías antes de rechazar la entrega."
+      );
+      return;
+    }
+
     const review: PhotoSubmissionReview = {
       status: "REJECTED",
-      bladeRectitude,
-      captureDistance,
-      exposure,
-      focus,
-      bladePosition,
+      bladeRectitude: bladeRectitude!,
+      captureDistance: captureDistance!,
+      exposure: exposure!,
+      focus: focus!,
+      bladePosition: bladePosition!,
       rejectionReason: rejectionReason.trim(),
       reviewedBy: "Admin Usuario",
       reviewedAt: new Date(),
@@ -188,6 +218,14 @@ export default function PicturesReviewScreen() {
         return status;
     }
   };
+  // Helper function to convert turbine IDs to names
+  const getTurbineNames = (turbineIds: string[]): string => {
+    const names = turbineIds.map((id) => {
+      const turbine = mockTurbines.find((t) => t.id === id);
+      return turbine ? turbine.name : id;
+    });
+    return names.join(", ");
+  };
 
   // Helper functions for new metrics
   const getMetricColor = (metric: string, value: string) => {
@@ -216,7 +254,6 @@ export default function PicturesReviewScreen() {
     }
     return "#6b7280";
   };
-
   const getMetricLabel = (metric: string, value: string) => {
     if (metric === "bladeRectitude") {
       if (value === "aceptable") return "Aceptable";
@@ -243,6 +280,33 @@ export default function PicturesReviewScreen() {
       return "Incorrecta";
     }
     return value;
+  };
+  const getMetricIcon = (metric: string, value: string) => {
+    if (metric === "bladeRectitude") {
+      if (value === "aceptable") return "checkmark-circle";
+      if (value === "posibles_problemas") return "warning";
+      return "close-circle";
+    }
+    if (metric === "captureDistance") {
+      if (value === "aceptable") return "checkmark-circle";
+      return "warning";
+    }
+    if (metric === "exposure") {
+      if (value === "buena") return "checkmark-circle";
+      if (value === "muy_oscura") return "moon";
+      return "sunny";
+    }
+    if (metric === "focus") {
+      if (value === "bueno") return "checkmark-circle";
+      if (value === "regular") return "warning";
+      return "close-circle";
+    }
+    if (metric === "bladePosition") {
+      if (value === "correcta") return "checkmark-circle";
+      if (value === "parcialmente_correcta") return "warning";
+      return "close-circle";
+    }
+    return "help-circle";
   };
   const renderSubmissionItem = ({ item }: { item: PhotoSubmission }) => {
     const status = getSubmissionStatus(item);
@@ -288,10 +352,7 @@ export default function PicturesReviewScreen() {
               {item.turbinesInspected.length} turbinas inspeccionadas
             </Text>
           </View>
-          <View style={styles.detailRow}>
-            <Ionicons name="link-outline" size={16} color="#6b7280" />
-            <Text style={styles.detailText}>Link de Drive disponible</Text>
-          </View>
+       
         </View>
         {/* Indicadores de las nuevas métricas */}
         {review && (
@@ -513,8 +574,7 @@ export default function PicturesReviewScreen() {
       <Modal
         visible={reviewModalVisible}
         animationType="slide"
-        presentationStyle="pageSheet"
-        transparent={true}
+        presentationStyle="fullScreen"
         onRequestClose={() => setReviewModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
@@ -532,29 +592,81 @@ export default function PicturesReviewScreen() {
             <ScrollView style={styles.modalContent}>
               {selectedSubmission && (
                 <>
+                  {" "}
                   <View style={styles.submissionInfo}>
                     <Text style={styles.infoTitle}>
                       Información de la Entrega
                     </Text>
-                    <Text style={styles.infoText}>
-                      Piloto: {selectedSubmission.pilotName}
-                    </Text>
-                    <Text style={styles.infoText}>
-                      Proyecto: {selectedSubmission.projectName}
-                    </Text>
-                    <Text style={styles.infoText}>
-                      Fecha:
-                      {new Date(
-                        selectedSubmission.submissionDate
-                      ).toLocaleDateString("es-ES")}
-                    </Text>
-                    <Text style={styles.infoText}>
-                      Turbinas:
-                      {selectedSubmission.turbinesInspected.join(", ")}
-                    </Text>
-                    <Text style={styles.infoText}>
-                      Link de Drive disponible
-                    </Text>
+
+                    <View style={styles.infoRow}>
+                      <Ionicons
+                        name="person-circle"
+                        size={20}
+                        color="#6366f1"
+                      />
+                      <View style={styles.infoContent}>
+                        <Text style={styles.infoLabel}>Piloto</Text>
+                        <Text style={styles.infoValue}>
+                          {selectedSubmission.pilotName}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.infoRow}>
+                      <Ionicons name="briefcase" size={20} color="#10b981" />
+                      <View style={styles.infoContent}>
+                        <Text style={styles.infoLabel}>Proyecto</Text>
+                        <Text style={styles.infoValue}>
+                          {selectedSubmission.projectName}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.infoRow}>
+                      <Ionicons name="calendar" size={20} color="#f59e0b" />
+                      <View style={styles.infoContent}>
+                        <Text style={styles.infoLabel}>Fecha de Entrega</Text>
+                        <Text style={styles.infoValue}>
+                          {new Date(
+                            selectedSubmission.submissionDate
+                          ).toLocaleDateString("es-ES", {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.infoRow}>
+                      <MaterialCommunityIcons
+                        name="wind-turbine"
+                        size={20}
+                        color="#8b5cf6"
+                      />
+                      <View style={styles.infoContent}>
+                        <Text style={styles.infoLabel}>
+                          Turbinas Inspeccionadas
+                        </Text>
+                        <Text style={styles.infoValue}>
+                          {getTurbineNames(
+                            selectedSubmission.turbinesInspected
+                          )}
+                        </Text>
+                        <Text style={styles.infoSubtext}>
+                          {selectedSubmission.turbinesInspected.length} turbina
+                          {selectedSubmission.turbinesInspected.length !== 1
+                            ? "s"
+                            : ""}{" "}
+                          en total
+                        </Text>
+                      </View>
+                    </View>
+
+                    
                   </View>
                   {/* Evaluación de Rectitud de la pala */}
                   <View style={styles.evaluationSection}>
@@ -563,9 +675,9 @@ export default function PicturesReviewScreen() {
                     </Text>
                     <View style={styles.metricOptionsContainer}>
                       {[
-                        "aceptable",
-                        "posibles_problemas",
                         "errores_procesamiento",
+                        "posibles_problemas",
+                        "aceptable",
                       ].map((option) => (
                         <TouchableOpacity
                           key={option}
@@ -573,18 +685,30 @@ export default function PicturesReviewScreen() {
                             styles.metricOption,
                             bladeRectitude === option &&
                               styles.metricOptionSelected,
+                            {
+                              backgroundColor:
+                                bladeRectitude === option
+                                  ? getMetricColor("bladeRectitude", option)
+                                  : "#ffffff",
+                              borderColor:
+                                bladeRectitude === option
+                                  ? getMetricColor("bladeRectitude", option)
+                                  : "#e5e7eb",
+                            },
                           ]}
                           onPress={() => setBladeRectitude(option as any)}
                         >
-                          <Text
-                            style={[
-                              styles.metricOptionText,
-                              bladeRectitude === option &&
-                                styles.metricOptionTextSelected,
-                            ]}
-                          >
-                            {getMetricLabel("bladeRectitude", option)}
-                          </Text>
+                          <Ionicons
+                            name={
+                              getMetricIcon("bladeRectitude", option) as any
+                            }
+                            size={20}
+                            color={
+                              bladeRectitude === option
+                                ? "#fff"
+                                : getMetricColor("bladeRectitude", option)
+                            }
+                          />
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -595,25 +719,37 @@ export default function PicturesReviewScreen() {
                       Distancia de captura de foto
                     </Text>
                     <View style={styles.metricOptionsContainer}>
-                      {["aceptable", "posibles_conflictos"].map((option) => (
+                      {["posibles_conflictos", "aceptable"].map((option) => (
                         <TouchableOpacity
                           key={option}
                           style={[
                             styles.metricOption,
                             captureDistance === option &&
                               styles.metricOptionSelected,
+                            {
+                              backgroundColor:
+                                captureDistance === option
+                                  ? getMetricColor("captureDistance", option)
+                                  : "#ffffff",
+                              borderColor:
+                                captureDistance === option
+                                  ? getMetricColor("captureDistance", option)
+                                  : "#e5e7eb",
+                            },
                           ]}
                           onPress={() => setCaptureDistance(option as any)}
                         >
-                          <Text
-                            style={[
-                              styles.metricOptionText,
-                              captureDistance === option &&
-                                styles.metricOptionTextSelected,
-                            ]}
-                          >
-                            {getMetricLabel("captureDistance", option)}
-                          </Text>
+                          <Ionicons
+                            name={
+                              getMetricIcon("captureDistance", option) as any
+                            }
+                            size={20}
+                            color={
+                              captureDistance === option
+                                ? "#fff"
+                                : getMetricColor("captureDistance", option)
+                            }
+                          />
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -622,7 +758,7 @@ export default function PicturesReviewScreen() {
                   <View style={styles.evaluationSection}>
                     <Text style={styles.evaluationTitle}>Exposición</Text>
                     <View style={styles.metricOptionsContainer}>
-                      {["buena", "muy_oscura", "muy_brillante"].map(
+                      {["muy_oscura", "muy_brillante", "buena"].map(
                         (option) => (
                           <TouchableOpacity
                             key={option}
@@ -630,18 +766,28 @@ export default function PicturesReviewScreen() {
                               styles.metricOption,
                               exposure === option &&
                                 styles.metricOptionSelected,
+                              {
+                                backgroundColor:
+                                  exposure === option
+                                    ? getMetricColor("exposure", option)
+                                    : "#ffffff",
+                                borderColor:
+                                  exposure === option
+                                    ? getMetricColor("exposure", option)
+                                    : "#e5e7eb",
+                              },
                             ]}
                             onPress={() => setExposure(option as any)}
                           >
-                            <Text
-                              style={[
-                                styles.metricOptionText,
-                                exposure === option &&
-                                  styles.metricOptionTextSelected,
-                              ]}
-                            >
-                              {getMetricLabel("exposure", option)}
-                            </Text>
+                            <Ionicons
+                              name={getMetricIcon("exposure", option) as any}
+                              size={20}
+                              color={
+                                exposure === option
+                                  ? "#fff"
+                                  : getMetricColor("exposure", option)
+                              }
+                            />
                           </TouchableOpacity>
                         )
                       )}
@@ -651,24 +797,34 @@ export default function PicturesReviewScreen() {
                   <View style={styles.evaluationSection}>
                     <Text style={styles.evaluationTitle}>Enfoque</Text>
                     <View style={styles.metricOptionsContainer}>
-                      {["bueno", "regular", "deficiente"].map((option) => (
+                      {["deficiente", "regular", "bueno"].map((option) => (
                         <TouchableOpacity
                           key={option}
                           style={[
                             styles.metricOption,
                             focus === option && styles.metricOptionSelected,
+                            {
+                              backgroundColor:
+                                focus === option
+                                  ? getMetricColor("focus", option)
+                                  : "#ffffff",
+                              borderColor:
+                                focus === option
+                                  ? getMetricColor("focus", option)
+                                  : "#e5e7eb",
+                            },
                           ]}
                           onPress={() => setFocus(option as any)}
                         >
-                          <Text
-                            style={[
-                              styles.metricOptionText,
-                              focus === option &&
-                                styles.metricOptionTextSelected,
-                            ]}
-                          >
-                            {getMetricLabel("focus", option)}
-                          </Text>
+                          <Ionicons
+                            name={getMetricIcon("focus", option) as any}
+                            size={18}
+                            color={
+                              focus === option
+                                ? "#fff"
+                                : getMetricColor("focus", option)
+                            }
+                          />
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -679,7 +835,7 @@ export default function PicturesReviewScreen() {
                       Posición alrededor de la pala
                     </Text>
                     <View style={styles.metricOptionsContainer}>
-                      {["correcta", "parcialmente_correcta", "incorrecta"].map(
+                      {["incorrecta", "parcialmente_correcta", "correcta"].map(
                         (option) => (
                           <TouchableOpacity
                             key={option}
@@ -687,23 +843,37 @@ export default function PicturesReviewScreen() {
                               styles.metricOption,
                               bladePosition === option &&
                                 styles.metricOptionSelected,
+                              {
+                                backgroundColor:
+                                  bladePosition === option
+                                    ? getMetricColor("bladePosition", option)
+                                    : "#ffffff",
+                                borderColor:
+                                  bladePosition === option
+                                    ? getMetricColor("bladePosition", option)
+                                    : "#e5e7eb",
+                              },
                             ]}
                             onPress={() => setBladePosition(option as any)}
                           >
-                            <Text
-                              style={[
-                                styles.metricOptionText,
-                                bladePosition === option &&
-                                  styles.metricOptionTextSelected,
-                              ]}
-                            >
-                              {getMetricLabel("bladePosition", option)}
-                            </Text>
+                            <Ionicons
+                              name={
+                                getMetricIcon("bladePosition", option) as any
+                              }
+                              size={18}
+                              color={
+                                bladePosition === option
+                                  ? "#fff"
+                                  : getMetricColor("bladePosition", option)
+                              }
+                            />
                           </TouchableOpacity>
                         )
                       )}
                     </View>
                   </View>
+                  {/* Spacer to separate evaluation sections from action buttons */}
+                  <View style={styles.modalActionsSpacer} />
                 </>
               )}
             </ScrollView>
@@ -733,11 +903,10 @@ export default function PicturesReviewScreen() {
         visible={rejectionModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
-        transparent={true}
         onRequestClose={() => setRejectionModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
+        <View style={styles.rejectionModalOverlay}>
+          <View style={styles.rejectionModalContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Motivo de Rechazo</Text>
               <TouchableOpacity
@@ -753,14 +922,13 @@ export default function PicturesReviewScreen() {
                 Especifique el motivo del rechazo. Esta información será enviada
                 al piloto.
               </Text>
-
               <TextInput
                 style={styles.rejectionInput}
                 placeholder="Ejemplo: Faltan fotos de las palas en turbina T-04, algunas imágenes están desenfocadas..."
                 value={rejectionReason}
                 onChangeText={setRejectionReason}
                 multiline
-                numberOfLines={4}
+                numberOfLines={6}
                 textAlignVertical="top"
               />
             </View>
@@ -939,27 +1107,40 @@ const styles = StyleSheet.create({
   metricOptionsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: 12,
+    marginTop: 8,
   },
   metricOption: {
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#ffffff",
     borderRadius: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderWidth: 2,
+    borderColor: "#e5e7eb",
     flex: 1,
     minWidth: "30%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   metricOptionSelected: {
-    backgroundColor: "#9C46CE",
     borderColor: "#9C46CE",
+    shadowColor: "#9C46CE",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   metricOptionText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#4b5563",
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#374151",
     textAlign: "center",
+    lineHeight: 18,
   },
   metricOptionTextSelected: {
     color: "#fff",
@@ -1045,23 +1226,11 @@ const styles = StyleSheet.create({
   }, // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
+    backgroundColor: "#fff",
   },
   modalContainer: {
+    flex: 1,
     backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "95%",
-    minHeight: "85%",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
   },
   modalHeader: {
     flexDirection: "row",
@@ -1070,6 +1239,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
+    backgroundColor: "#fff",
   },
   modalTitle: {
     fontSize: 20,
@@ -1080,14 +1250,16 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalContent: {
-    padding: 20,
     flex: 1,
+    padding: 20,
   },
   submissionInfo: {
     backgroundColor: "#f8fafc",
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
+    elevation: 2,
+    
   },
   infoTitle: {
     fontSize: 16,
@@ -1107,7 +1279,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#1f2937",
-    marginBottom: 12,
+    marginBottom: 6,
   },
   sliderContainer: {
     backgroundColor: "#f8fafc",
@@ -1153,17 +1325,67 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
-  scoreButtonText: {
+  scoreButtonText: { fontSize: 14, fontWeight: "500", color: "#4b5563" },
+  modalActionsSpacer: {
+    height: 24,
+    backgroundColor: "#fff",
+  },
+  // Info section styles
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  infoContent: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6b7280",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  infoValue: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#4b5563",
+    color: "#1f2937",
+    lineHeight: 20,
+  },
+  infoSubtext: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginTop: 2,
+  },
+  driveLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f9ff",
+    borderWidth: 1,
+    borderColor: "#3b82f6",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  driveLinkText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#3b82f6",
+    marginLeft: 4,
   },
   modalActions: {
     flexDirection: "row",
     padding: 20,
+    paddingBottom: 24,
     gap: 12,
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
+    backgroundColor: "#fff",
   },
   rejectButton: {
     flex: 1,
@@ -1209,7 +1431,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#1f2937",
     backgroundColor: "#fff",
-    minHeight: 120,
+    minHeight: 150,
   },
   cancelButton: {
     flex: 1,
@@ -1240,5 +1462,23 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#fff",
     marginLeft: 6,
+  },
+  // Rejection modal specific styles (bottom sheet)
+  rejectionModalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  rejectionModalContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "85%",
+    minHeight: 400,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
   },
 });

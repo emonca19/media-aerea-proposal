@@ -20,13 +20,9 @@ const SearchBar = React.memo(
   ({
     searchQuery,
     onSearchChange,
-    onFilterPress,
-    hasActiveFilters,
   }: {
     searchQuery: string;
     onSearchChange: (text: string) => void;
-    onFilterPress: () => void;
-    hasActiveFilters: boolean;
   }) => (
     <View style={styles.searchContainer}>
       <View style={styles.searchBar}>
@@ -44,24 +40,6 @@ const SearchBar = React.memo(
           </TouchableOpacity>
         )}
       </View>
-      <TouchableOpacity
-        style={[
-          styles.filterButton,
-          hasActiveFilters && styles.filterButtonActive,
-        ]}
-        onPress={onFilterPress}
-      >
-        <Ionicons
-          name="filter"
-          size={20}
-          color={hasActiveFilters ? "#ffffff" : "#6b7280"}
-        />
-        {hasActiveFilters && (
-          <View style={styles.filterBadge}>
-            <Text style={styles.filterBadgeText}>!</Text>
-          </View>
-        )}
-      </TouchableOpacity>
     </View>
   )
 );
@@ -74,12 +52,10 @@ const ClientCard = React.memo(
     client,
     onPress,
     onEdit,
-    onDelete,
   }: {
     client: Client;
     onPress: () => void;
     onEdit: () => void;
-    onDelete: () => void;
   }) => {
     const totalProjects = client.projects.length;
 
@@ -99,11 +75,12 @@ const ClientCard = React.memo(
             </Text>
           </View>
           <View style={styles.cardActions}>
-            <TouchableOpacity style={styles.actionButton} onPress={onEdit}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={onEdit}
+              activeOpacity={0.8}
+            >
               <Ionicons name="create" size={18} color="#9C46CE" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={onDelete}>
-              <Ionicons name="trash" size={18} color="#ef4444" />
             </TouchableOpacity>
           </View>
         </View>
@@ -134,87 +111,6 @@ const ClientCard = React.memo(
 
 ClientCard.displayName = "ClientCard";
 
-// Memoized Filter Modal Component
-const FilterModal = React.memo(
-  ({
-    isVisible,
-    onClose,
-    statusFilter,
-    onStatusFilterChange,
-    onClearAllFilters,
-  }: {
-    isVisible: boolean;
-    onClose: () => void;
-    statusFilter: string;
-    onStatusFilterChange: (status: string) => void;
-    onClearAllFilters: () => void;
-  }) => (
-    <Modal visible={isVisible} transparent animationType="slide">
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
-              <Text>Filtrar Clientes</Text>
-            </Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#6b7280" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView style={styles.modalBody}>
-            <View style={styles.filterSection}>
-              <Text style={styles.filterSectionTitle}>
-                <Text>Estado de Clientes</Text>
-              </Text>
-              <View style={styles.filterOptionsGrid}>
-                {["all"].map((status) => (
-                  <TouchableOpacity
-                    key={status}
-                    style={[
-                      styles.filterOption,
-                      statusFilter === status && styles.filterOptionActive,
-                    ]}
-                    onPress={() => onStatusFilterChange(status)}
-                  >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        statusFilter === status &&
-                          styles.filterOptionTextActive,
-                      ]}
-                    >
-                      {status === "all" && <Text>Todos los clientes</Text>}
-                    </Text>
-                    {statusFilter === status && (
-                      <Ionicons name="checkmark" size={20} color="#ffffff" />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </ScrollView>
-          <View style={styles.modalFooter}>
-            <TouchableOpacity
-              style={styles.clearButton}
-              onPress={onClearAllFilters}
-            >
-              <Text style={styles.clearButtonText}>
-                <Text>Limpiar</Text>
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.applyButton} onPress={onClose}>
-              <Text style={styles.applyButtonText}>
-                <Text>Aplicar</Text>
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  )
-);
-
-FilterModal.displayName = "FilterModal";
-
 // Client Form Modal Component
 const ClientFormModal = React.memo(
   ({
@@ -222,11 +118,13 @@ const ClientFormModal = React.memo(
     onClose,
     client,
     onSave,
+    onDelete,
   }: {
     isVisible: boolean;
     onClose: () => void;
     client?: Client;
     onSave: (clientData: Partial<Client>) => void;
+    onDelete?: (client: Client) => void;
   }) => {
     const [formData, setFormData] = useState({
       name: client?.name || "",
@@ -255,6 +153,26 @@ const ClientFormModal = React.memo(
       onClose();
     };
 
+    const handleDelete = () => {
+      if (client && onDelete) {
+        Alert.alert(
+          "Eliminar Cliente",
+          `¿Estás seguro de que deseas eliminar a ${client.name}?`,
+          [
+            { text: "Cancelar", style: "cancel" },
+            {
+              text: "Eliminar",
+              style: "destructive",
+              onPress: () => {
+                onDelete(client);
+                onClose();
+              },
+            },
+          ]
+        );
+      }
+    };
+
     return (
       <Modal visible={isVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -271,7 +189,6 @@ const ClientFormModal = React.memo(
                 <Ionicons name="close" size={24} color="#6b7280" />
               </TouchableOpacity>
             </View>
-
             <ScrollView style={styles.modalBody}>
               <View style={styles.formSection}>
                 <Text style={styles.inputLabel}>
@@ -336,8 +253,15 @@ const ClientFormModal = React.memo(
                 />
               </View>
             </ScrollView>
-
             <View style={styles.modalFooter}>
+              {client && onDelete && (
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDelete}
+                >
+                  <Ionicons name="trash" size={20} color="#ffffff" />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity style={styles.clearButton} onPress={onClose}>
                 <Text style={styles.clearButtonText}>
                   <Text>Cancelar</Text>
@@ -361,11 +285,8 @@ ClientFormModal.displayName = "ClientFormModal";
 export default function ClientsScreen() {
   const [clients, setClients] = useState<Client[]>(mockClients);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [showFilterModal, setShowFilterModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
-  const [editingClient, setEditingClient] = useState<Client | undefined>();
-  // Filter and search logic
+  const [editingClient, setEditingClient] = useState<Client | undefined>(); // Filter and search logic
   const filteredClients = useMemo(() => {
     let filtered = clients;
 
@@ -380,17 +301,8 @@ export default function ClientsScreen() {
       );
     }
 
-    // Status filter is simplified since we removed contracts
-    // Keep this section simple for future extension
-    if (statusFilter !== "all") {
-      // For now, just return all clients since we don't have contract filtering
-      // This can be extended in the future for other status types
-    }
-
     return filtered;
-  }, [clients, searchQuery, statusFilter]);
-
-  const hasActiveFilters = statusFilter !== "all";
+  }, [clients, searchQuery]);
 
   const handleCreateClient = () => {
     setEditingClient(undefined);
@@ -401,22 +313,8 @@ export default function ClientsScreen() {
     setEditingClient(client);
     setShowClientModal(true);
   };
-
   const handleDeleteClient = (client: Client) => {
-    Alert.alert(
-      "Eliminar Cliente",
-      `¿Estás seguro de que deseas eliminar a ${client.name}?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: () => {
-            setClients(clients.filter((c) => c.id !== client.id));
-          },
-        },
-      ]
-    );
+    setClients(clients.filter((c) => c.id !== client.id));
   };
 
   const handleSaveClient = (clientData: Partial<Client>) => {
@@ -444,13 +342,9 @@ export default function ClientsScreen() {
       setClients([...clients, newClient]);
     }
   };
-
   const handleClientPress = (client: Client) => {
     // Navigate to client detail screen (not implemented yet)
     Alert.alert("Detalle del Cliente", `Mostrar detalles de ${client.name}`);
-  };
-  const handleClearAllFilters = () => {
-    setStatusFilter("all");
   };
 
   const renderEmptyState = () => (
@@ -460,7 +354,7 @@ export default function ClientsScreen() {
         <Text>No hay clientes</Text>
       </Text>
       <Text style={styles.emptyDescription}>
-        {searchQuery || hasActiveFilters ? (
+        {searchQuery ? (
           <Text>
             No se encontraron clientes que coincidan con los criterios de
             búsqueda
@@ -478,7 +372,6 @@ export default function ClientsScreen() {
       client={item}
       onPress={() => handleClientPress(item)}
       onEdit={() => handleEditClient(item)}
-      onDelete={() => handleDeleteClient(item)}
     />
   );
 
@@ -497,27 +390,7 @@ export default function ClientsScreen() {
           ),
         }}
       />
-
-      <SearchBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onFilterPress={() => setShowFilterModal(true)}
-        hasActiveFilters={hasActiveFilters}
-      />
-
-      {hasActiveFilters && (
-        <View style={styles.activeFiltersContainer}>
-          <Text style={styles.activeFiltersText}>
-            <Text>Filtros activos</Text>
-          </Text>
-          <TouchableOpacity onPress={handleClearAllFilters}>
-            <Text style={styles.clearFiltersText}>
-              <Text>Limpiar todo</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
+      <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       <FlatList
         data={filteredClients}
         renderItem={renderClient}
@@ -529,22 +402,13 @@ export default function ClientsScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={renderEmptyState}
       />
-
-      <FilterModal
-        isVisible={showFilterModal}
-        onClose={() => setShowFilterModal(false)}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        onClearAllFilters={handleClearAllFilters}
-      />
-
       <ClientFormModal
         isVisible={showClientModal}
         onClose={() => setShowClientModal(false)}
         client={editingClient}
         onSave={handleSaveClient}
+        onDelete={handleDeleteClient}
       />
-
       {/* Floating Action Button */}
       <TouchableOpacity
         style={styles.fab}
@@ -573,7 +437,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
-    gap: 12,
   },
   searchBar: {
     flex: 1,
@@ -591,57 +454,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#111827",
-  },
-  filterButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: "#f9fafb",
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    position: "relative",
-  },
-  filterButtonActive: {
-    backgroundColor: "#9C46CE",
-    borderColor: "#9C46CE",
-  },
-  filterBadge: {
-    position: "absolute",
-    top: -2,
-    right: -2,
-    backgroundColor: "#ef4444",
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  filterBadgeText: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  activeFiltersContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: "#fef3c7",
-    borderBottomWidth: 1,
-    borderBottomColor: "#fbbf24",
-  },
-  activeFiltersText: {
-    fontSize: 14,
-    color: "#92400e",
-    fontWeight: "500",
-  },
-  clearFiltersText: {
-    fontSize: 14,
-    color: "#9C46CE",
-    fontWeight: "600",
   },
   listContainer: {
     padding: 16,
@@ -773,41 +585,6 @@ const styles = StyleSheet.create({
     padding: 20,
     maxHeight: 400,
   },
-  filterSection: {
-    marginBottom: 24,
-  },
-  filterSectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 12,
-  },
-  filterOptionsGrid: {
-    gap: 8,
-  },
-  filterOption: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#ffffff",
-  },
-  filterOptionActive: {
-    backgroundColor: "#9C46CE",
-    borderColor: "#9C46CE",
-  },
-  filterOptionText: {
-    fontSize: 16,
-    color: "#374151",
-    fontWeight: "500",
-  },
-  filterOptionTextActive: {
-    color: "#ffffff",
-  },
   modalFooter: {
     flexDirection: "row",
     paddingHorizontal: 20,
@@ -840,6 +617,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#ffffff",
     fontWeight: "600",
+  },
+  deleteButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#ef4444",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
   // Form Styles
   formSection: {

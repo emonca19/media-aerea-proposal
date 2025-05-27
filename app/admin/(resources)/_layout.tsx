@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import Constants from "expo-constants";
 import { withLayoutContext } from "expo-router";
@@ -32,8 +32,8 @@ export default function TabLayout() {
             color: string;
           }) => (
             <View style={styles.tabLabelContainer}>
-              <Ionicons
-                name="person-outline"
+              <MaterialCommunityIcons
+                name="account-outline"
                 size={18}
                 color={color}
                 style={styles.tabIcon}
@@ -42,7 +42,8 @@ export default function TabLayout() {
             </View>
           ),
         }}
-      />      <MaterialTopTabs.Screen
+      />
+      <MaterialTopTabs.Screen
         name="drones"
         options={{
           tabBarLabel: ({
@@ -53,8 +54,8 @@ export default function TabLayout() {
             color: string;
           }) => (
             <View style={styles.tabLabelContainer}>
-              <Ionicons
-                name="airplane-outline"
+              <MaterialCommunityIcons
+                name="drone"
                 size={18}
                 color={color}
                 style={styles.tabIcon}
@@ -75,7 +76,7 @@ export default function TabLayout() {
             color: string;
           }) => (
             <View style={styles.tabLabelContainer}>
-              <Ionicons
+              <MaterialCommunityIcons
                 name="camera-outline"
                 size={18}
                 color={color}
