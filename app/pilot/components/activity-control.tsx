@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { activityTypes } from './quick-register-activity-form';
 
 interface ActivityControlProps {
@@ -14,6 +14,8 @@ interface ActivityControlProps {
   currentPauseReason?: string;
   onIncidentCreate?: (incidentData: any) => void;
   currentIncident?: any | null;
+  onToggleIncidentBlocking?: (incidentId: string, isBlocking: boolean) => void;
+  onFinishActivityByBlockingIncident?: (incidentId: string) => void;
 }
 
 
@@ -27,7 +29,9 @@ export default function ActivityControl({
   isPaused,
   currentPauseReason,
   onIncidentCreate,
-  currentIncident
+  currentIncident,
+  onToggleIncidentBlocking,
+  onFinishActivityByBlockingIncident
 }: ActivityControlProps) {
   const [pauseStart, setPauseStart] = useState<number | null>(null);
   const [accumulated, setAccumulated] = useState(0); // tiempo acumulado antes de pausar
@@ -136,22 +140,48 @@ export default function ActivityControl({
               }
               return <Ionicons name="briefcase-outline" size={36} color="#4F6DF5" />;
             })()}
-          </View>
-          <Text style={styles.cardTitle} numberOfLines={2}>
+          </View>          <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">
             {ongoingActivity.description || ongoingActivity.type || 'Actividad en curso'}
           </Text>
-          {/* Nueva etiqueta y contador principal de actividad */}
-          <Text style={{ color: '#64748b', fontSize: 15, fontWeight: '500', textAlign: 'center', marginBottom: 0 }}>
+          {/* Si está en pausa, mostrar información de pausa debajo con texto más pequeño */}
+          {isPaused && pauseStart && (
+            <View style={{ alignItems: 'center', marginTop: 4, marginBottom: 8 }}>
+              {/* En pausa grande y contador que avanza */}
+              <Text style={{
+                color: '#f59e0b',
+                fontWeight: '700',
+                fontSize: 32,
+                textAlign: 'center',
+                marginBottom: 2,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}>En pausa</Text>
+              {/* Tiempo trabajado antes de la pausa, pequeño y ESTÁTICO */}
+              <Text style={{
+                fontSize: 40, // Increased from 14
+                color: '#f59e0b',
+                fontWeight: '600',
+                textAlign: 'center',
+                letterSpacing: 0.5,
+                marginTop: 2,
+              }}>
+                {formatDurationMs(currentTime - (pauseStart || currentTime))}
+              </Text>
+            </View>
+          )}          {/* Nueva etiqueta y contador principal de actividad, ahora debajo de la pausa */}
+          <Text style={{ color: '#64748b', fontSize: 12, fontWeight: '500', textAlign: 'center', marginBottom: 0 }}>
             Tiempo transcurrido
-          </Text>          <Text
+          </Text>
+          <Text
             style={{
-              fontSize: 48,
+              fontSize: 20, // Decreased from 36
               color: '#111',
               fontWeight: 'bold',
               textAlign: 'center',
               marginVertical: 10,
               letterSpacing: 2,
-            }}          >
+            }}
+          >
             {formatDurationMs(getElapsed())}
           </Text>
           {activityStartTime && (
@@ -165,40 +195,7 @@ export default function ActivityControl({
               Iniciada el: {activityStartTime}
             </Text>
           )}
-          {/* Si está en pausa, mostrar información de pausa debajo con texto más pequeño */}
-          {isPaused && pauseStart && (
-            <View style={{ alignItems: 'center', marginTop: 4, marginBottom: 8 }}>
-              <Text style={{
-                color: '#f59e0b',
-                fontWeight: '500',
-                fontSize: 12,
-                textAlign: 'center',
-                marginBottom: 2,
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-              }}>En pausa</Text>
-              <Text style={{
-                fontSize: 16,
-                color: '#f59e0b',
-                fontWeight: '600',
-                textAlign: 'center',
-                letterSpacing: 0.5,
-              }}>
-                {formatDurationMs(currentTime - pauseStart)}
-              </Text>
-              {currentPauseReason && (
-                <Text style={{
-                  fontSize: 11,
-                  color: '#9ca3af',
-                  textAlign: 'center',
-                  marginTop: 2,
-                  fontStyle: 'italic',
-                }}>
-                  Motivo: {currentPauseReason}
-                </Text>
-              )}
-            </View>
-          )}          {/* Botón principal: Terminar o Reanudar */}
+          {/* Botón principal: Terminar o Reanudar */}
           <View style={styles.cardActionsRow}>
             {!isPaused && (
               <LinearGradient
@@ -225,26 +222,55 @@ export default function ActivityControl({
               </LinearGradient>
             )}          </View>
         </>
-      )}      
-      {/* Current incident display when there's an incident */}
+      )}      {/* Current incident display when there's an incident */}
       {currentIncident && (
-        <View style={styles.currentIncidentDisplay}>
-          <View style={styles.incidentHeader}>
-            <Ionicons name="warning" size={20} color="#ef4444" style={{ marginRight: 8 }} />
-            <Text style={styles.incidentTitle}>Incidente Activo</Text>
+        <View style={styles.currentIncidentDisplay}>          <View style={styles.incidentHeader}>
+            <View style={styles.incidentHeaderLeft}>
+              <Ionicons name="warning" size={16} color="#ef4444" style={{ marginRight: 4 }} />
+              <Text style={styles.incidentTitle}>Incidente</Text>
+            </View>
+            {/* Stop button in top right corner */}
+            <TouchableOpacity
+              style={styles.stopButtonTopRight}
+              onPress={() => {
+                Alert.alert(
+                  "Terminar Actividad por Incidente Bloqueante",
+                  "¿Estás seguro de que quieres terminar la actividad debido a este incidente bloqueante? La actividad no se marcará como completada.",
+                  [
+                    {
+                      text: "Cancelar",
+                      style: "cancel"
+                    },
+                    {
+                      text: "Terminar Actividad",
+                      style: "destructive",
+                      onPress: () => {
+                        // Llamar función para terminar actividad por incidente bloqueante
+                        if (onFinishActivityByBlockingIncident) {
+                          onFinishActivityByBlockingIncident(currentIncident.id);
+                        }
+                      }
+                    }
+                  ]
+                );
+              }}            >
+              <Ionicons 
+                name="stop-circle" 
+                size={20} 
+                color="#dc2626" 
+              />
+            </TouchableOpacity>
           </View>
-          <Text style={styles.incidentType}>{currentIncident.label || currentIncident.type}</Text>
-          <Text style={styles.incidentDescription}>{currentIncident.description}</Text>
-          <Text style={styles.incidentTime}>
-            Reportado: {new Date(currentIncident.timestamp).toLocaleString('es-ES', {
-              day: '2-digit',
-              month: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+          <Text style={styles.incidentType} numberOfLines={1} ellipsizeMode="tail">
+            {currentIncident.label || currentIncident.type}
           </Text>
+          {currentIncident.description && (
+            <Text style={[styles.incidentDescription, {flexWrap: 'wrap'}]}>
+              {currentIncident.description}
+            </Text>
+          )}
         </View>
-      )}    </View>
+      )}</View>
   );
 }
 
@@ -337,7 +363,7 @@ const styles = StyleSheet.create({
   notesLabel: {
     fontSize: 14,
     fontWeight: 'bold',
-    marginTop: 15,
+    marginTop: 10,
     marginBottom: 5,
   },
   notesInput: {
@@ -530,7 +556,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 10,
     paddingHorizontal: 16,
-    marginTop: 12,
+    marginTop: 10,
     borderRadius: 8,
     backgroundColor: '#fef2f2',
     borderWidth: 1,
@@ -541,12 +567,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#ef4444',
     fontWeight: '600',
-  },
-  currentIncidentDisplay: {
+  },  currentIncidentDisplay: {
     backgroundColor: '#fef2f2',
-    borderRadius: 10,
-    padding: 16,
-    marginTop: 12,
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 10,
     borderWidth: 1,
     borderColor: '#fecaca',
     width: '100%',
@@ -554,31 +579,80 @@ const styles = StyleSheet.create({
   incidentHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  incidentHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   incidentTitle: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
     color: '#ef4444',
   },
   incidentType: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: '500',
     color: '#dc2626',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   incidentDescription: {
-    fontSize: 13,
+    fontSize: 11,
     color: '#7f1d1d',
-    marginBottom: 6,
-    lineHeight: 18,
-  },
-  incidentTime: {
+    lineHeight: 14,
+  },incidentTime: {
     fontSize: 12,
     color: '#991b1b',
     fontStyle: 'italic',
+  },  blockingControlsContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#fecaca',
   },
-  confirmPauseBtn: {
+  blockingControlsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#7f1d1d',
+    marginBottom: 12,
+  },
+  blockingToggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: 10,
+    padding: 12,
+  },
+  blockingToggleButtonActive: {
+    backgroundColor: '#dc2626',
+    borderColor: '#b91c1c',
+  },
+  blockingToggleTextContainer: {
+    flex: 1,
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  blockingToggleText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#dc2626',
+    marginBottom: 2,
+  },
+  blockingToggleTextActive: {
+    color: 'white',
+  },
+  blockingToggleSubtext: {
+    fontSize: 12,
+    color: '#7f1d1d',
+    lineHeight: 16,
+  },
+  blockingToggleSubtextActive: {
+    color: '#fecaca',
+  },  confirmPauseBtn: {
     backgroundColor: '#4F6DF5',
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -593,6 +667,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
+  },  blockingToggleButtonSmall: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  blockingToggleButtonSmallActive: {
+    backgroundColor: '#dc2626',
+    borderColor: '#b91c1c',
+  },  blockingToggleTextSmall: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#dc2626',
+  },  blockingToggleTextSmallActive: {
+    color: 'white',
+  },
+  terminateByIncidentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#dc2626',
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginTop: 8,
+    shadowColor: '#dc2626',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },  terminateByIncidentButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+  },  stopButtonTopRight: {
+    backgroundColor: 'transparent',
+    borderRadius: 20,
+    padding: 4,
   },
 });
 

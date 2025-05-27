@@ -7,15 +7,16 @@ interface ActivitySuggestionsCardProps {
   onActivitySelect: (activityId: string, isTurbineActivity: boolean) => void;
   onClose: () => void;
   onGoToPreflightChecklist?: (turbineId: string, activityId: string) => void; // Added activityId
+  terminationType?: 'completed' | 'incident'; // New prop to indicate how the activity ended
 }
 
 const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
   activities,
   onActivitySelect,
   onClose,
-  onGoToPreflightChecklist
-}) => {
-  // Determina si una actividad está relacionada con turbinas
+  onGoToPreflightChecklist,
+  terminationType = 'completed' // Default to completed for backward compatibility
+}) => {  // Determina si una actividad está relacionada con turbinas
   const isTurbineActivity = (activity: any) => {
     return (
       activity.type === 'TURBINE_WORK' || 
@@ -24,15 +25,34 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
       (activity.name || '').toLowerCase().includes('aerogenerador')
     );
   };
+  // Get the appropriate message based on termination type
+  const getHeaderInfo = () => {
+    if (terminationType === 'incident') {
+      return {
+        icon: 'warning' as const,
+        color: '#ef4444',
+        title: 'Actividad no exitosa',
+        subtitle: 'Actividades sugeridas:'
+      };
+    } else {
+      return {
+        icon: 'checkmark-circle' as const,
+        color: '#10b981',
+        title: 'Actividad completada',
+        subtitle: 'Próximas actividades:'
+      };
+    }
+  };
 
-  return (
-    <View style={styles.container}>
+  const headerInfo = getHeaderInfo();
+
+  return (    <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="checkmark-circle" size={24} color="#10b981" />
-        <Text style={styles.title}>Actividad completada</Text>
+        <Ionicons name={headerInfo.icon} size={24} color={headerInfo.color} />
+        <Text style={[styles.title, { color: headerInfo.color }]}>{headerInfo.title}</Text>
       </View>
 
-      <Text style={styles.subtitle}>Próximas actividades:</Text>
+      <Text style={styles.subtitle}>{headerInfo.subtitle}</Text>
 
       <View style={styles.activitiesContainer}>
         {activities.map((activity, index) => {
@@ -108,12 +128,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-  },
-  title: {
+  },  title: {
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 8,
-    color: '#10b981',
   },
   subtitle: {
     fontSize: 16,

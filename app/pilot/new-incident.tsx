@@ -1,7 +1,7 @@
 // app/pilot/new-incident.tsx
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -18,6 +18,7 @@ export interface IncidentFormData {
   type: string;        // ID del tipo de incidente (ej. 'INC_WEATHER')
   description: string;
   activityId?: string;
+  isBlocking?: boolean; // Whether the incident should block activity continuation
 }
 
 // Props opcionales para que se pueda usar como pantalla o como componente dentro de un modal
@@ -27,14 +28,11 @@ interface NewIncidentScreenProps {
 }
 
 export default function NewIncidentScreen({ onSubmit, activities = [] }: NewIncidentScreenProps) {
-  const router = useRouter();
-  
-  // Estados
+  const router = useRouter();  // Estados
   const [incidentTypeId, setIncidentTypeId] = useState<string>('');
   const [incidentDescription, setIncidentDescription] = useState('');
   const [selectedActivityId, setSelectedActivityId] = useState<string>('');
   const [currentTime] = useState(new Date());
-  const [isUrgent, setIsUrgent] = useState(true);
   
   // Formatear la hora actual
   const formatTime = (date: Date | null) => {
@@ -46,21 +44,15 @@ export default function NewIncidentScreen({ onSubmit, activities = [] }: NewInci
   const relevantActivities = activities.filter(act => 
     act.status === 'EN_PROGRESO' || act.status === 'PENDIENTE'
   );
-
   const handleSubmit = () => {
     if (!incidentTypeId) {
       Alert.alert("Campo Requerido", "Por favor, selecciona un tipo de incidente.");
       return;
     }
     
-    if (!incidentDescription.trim()) {
-      Alert.alert("Campo Requerido", "Por favor, ingresa una descripción para el incidente.");
-      return;
-    }
-    
     const incidentData: IncidentFormData = {
       type: incidentTypeId,
-      description: incidentDescription.trim(),
+      description: incidentDescription.trim() || "Sin descripción detallada",
       activityId: selectedActivityId || undefined,
     };
     
@@ -130,10 +122,7 @@ export default function NewIncidentScreen({ onSubmit, activities = [] }: NewInci
                 {incidentType.label}
               </Text>
             </TouchableOpacity>
-          ))}
-        </View>
-
-     
+          ))}        </View>
 
         {/* Selector de actividad asociada */}
         {relevantActivities.length > 0 && (
@@ -383,8 +372,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
-  },
-  submitButtonText: {
+  },  submitButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',

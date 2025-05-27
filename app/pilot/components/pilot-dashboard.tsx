@@ -500,6 +500,9 @@ interface Incident {
   timestamp: string;
   icon?: keyof typeof Ionicons.glyphMap;
   activityId?: string; // Optional field to associate incident with activity
+  isBlocking?: boolean; // Whether the incident is blocking activity continuation
+  blockingTimestamp?: string; // When the incident became blocking
+  blockingReason?: string; // Reason why it became blocking
 }
 interface ChecklistItem {
   id: string;
@@ -860,10 +863,10 @@ const PilotDashboard = () => {
     useState(false);
   const [isNewIncidentModalVisible, setIsNewIncidentModalVisible] =
     useState(false);
-  const [isProjectDetailsVisible, setIsProjectDetailsVisible] = useState(true); 
-  // Estado para el componente de sugerencias de actividades
+  const [isProjectDetailsVisible, setIsProjectDetailsVisible] = useState(true);   // Estado para el componente de sugerencias de actividades
   const [showActivitySuggestions, setShowActivitySuggestions] = useState(false);
   const [suggestedActivities, setSuggestedActivities] = useState<Activity[]>([]);
+  const [activityTerminationType, setActivityTerminationType] = useState<'completed' | 'incident'>('completed');
   // Estado para el incidente actual
   const [currentIncident, setCurrentIncident] = useState<Incident | null>(null);
   
@@ -1250,12 +1253,11 @@ const handlePauseActivity = useCallback((reason: string) => {
   });
 }, [currentOngoingActivityForDisplay, setActivityPauseState]);
 
-const handleResumeActivity = useCallback(() => {
+const resumeActivityAfterIncidentResolution = useCallback(() => {
   if (!currentOngoingActivityForDisplay) return;
   
   const newPauseState = { isPaused: false };
   setActivityPauseState(newPauseState);
-  
   // Clear current incident when resuming activity
   setCurrentIncident(null);
   
@@ -1278,7 +1280,30 @@ const handleResumeActivity = useCallback(() => {
     
     return updatedProject;
   });
-}, [currentOngoingActivityForDisplay, setActivityPauseState]);
+}, [currentOngoingActivityForDisplay, setActivityPauseState, setCurrentIncident, setCurrentProject]);
+
+const handleResumeActivity = useCallback(() => {
+  if (!currentOngoingActivityForDisplay) return;
+  
+  // Check if there's a blocking incident
+  if (currentIncident && currentIncident.isBlocking) {
+    Alert.alert(
+      "⚠️ Incidente Bloqueante",
+      `No se puede reanudar la actividad mientras hay un incidente bloqueante sin resolver: "${currentIncident.label}"\n\n${currentIncident.blockingReason || 'Este incidente requiere resolución inmediata.'}`,
+      [
+        { text: "Marcar como Resuelto", onPress: () => {
+          setCurrentIncident(null);
+          // Continue with resume after resolving incident
+          resumeActivityAfterIncidentResolution();
+        }},
+        { text: "Cancelar", style: "cancel" }
+      ]
+    );
+    return;
+  }
+  
+  resumeActivityAfterIncidentResolution();
+}, [currentOngoingActivityForDisplay, currentIncident, resumeActivityAfterIncidentResolution, setCurrentIncident]);
 
 const handleCreateNewIncident = useCallback(
   (incidentData: IncidentFormData) => {
@@ -1295,6 +1320,9 @@ const handleCreateNewIncident = useCallback(
         (incidentTypeInfo?.icon as keyof typeof Ionicons.glyphMap) ||
         "alert-circle-outline",
       activityId: incidentData.activityId || currentOngoingActivityForDisplay?.id, // Associate with current activity
+      isBlocking: incidentData.isBlocking || false, // Set blocking status from form
+      blockingTimestamp: incidentData.isBlocking ? new Date().toISOString() : undefined,
+      blockingReason: incidentData.isBlocking ? "Marcado como bloqueante por el piloto" : undefined,
     };
     
     // Set current incident state only if it's associated with the current activity
@@ -1338,6 +1366,9 @@ const handleFinishActivity = useCallback(() => {
     setShowActivitySuggestions(false);
   }
 
+  // Set termination type to completed
+  setActivityTerminationType('completed');
+
   const pendingForToday = pendingTodayActivities.filter(act => act.id !== activityId);
   const genericPendingToShow = genericPendingActivities.filter(act => act.id !== activityId);
 
@@ -1350,7 +1381,100 @@ const handleFinishActivity = useCallback(() => {
   } else {
     setShowActivitySuggestions(false); 
   }
-}, [currentOngoingActivityForDisplay, handleActivityAction, pendingTodayActivities, genericPendingActivities, setActivityPauseState, showActivitySuggestions, setShowActivitySuggestions]);
+}, [currentOngoingActivityForDisplay, handleActivityAction, pendingTodayActivities, genericPendingActivities, setActivityPauseState, showActivitySuggestions, setShowActivitySuggestions, setActivityTerminationType]);
+
+const handleFinishActivityByBlockingIncident = useCallback((incidentId: string) => {
+  if (!currentOngoingActivityForDisplay) return;
+  
+  const activityId = currentOngoingActivityForDisplay.id;
+  
+  // Mark activity as terminated by blocking incident (not completed)
+  const newPauseState = { isPaused: false };
+  setActivityPauseState(newPauseState);
+  
+  // Update activity status to a special status for incident termination
+  setCurrentProject(prev => {
+    const updatedProject = {
+      ...prev,
+      activities: (prev.activities || []).map(act =>
+        act.id === activityId
+          ? {
+              ...act,
+              status: "TERMINADA_POR_INCIDENTE" as any, // Special status
+              actualEnd: new Date().toISOString(),
+              time: "Hoy - Terminada por incidente bloqueante",
+              incidentTerminationReason: `Terminada debido al incidente bloqueante: ${incidentId}`,
+            }
+          : act
+      ),
+    };
+    return updatedProject;
+  });
+    // Clear current incident
+  setCurrentIncident(null);
+  
+  // Set termination type to incident
+  setActivityTerminationType('incident');
+  
+  // Show suggestions for next activities
+  if (showActivitySuggestions) {
+    setShowActivitySuggestions(false);
+  }
+
+  const pendingForToday = pendingTodayActivities.filter(act => act.id !== activityId);
+  const genericPendingToShow = genericPendingActivities.filter(act => act.id !== activityId);
+
+  if (pendingForToday.length > 0) {
+    setSuggestedActivities(pendingForToday.slice(0, 3)); 
+    setShowActivitySuggestions(true);
+  } else if (genericPendingToShow.length > 0) {
+    setSuggestedActivities(genericPendingToShow.slice(0, 3)); 
+    setShowActivitySuggestions(true);
+  } else {
+    setShowActivitySuggestions(false); 
+  }
+  
+  Alert.alert(
+    "Actividad Terminada",
+    "La actividad ha sido terminada debido al incidente bloqueante. No se marca como completada.",
+    [{ text: "Entendido" }]
+  );
+}, [currentOngoingActivityForDisplay, pendingTodayActivities, genericPendingActivities, setActivityPauseState, setCurrentIncident, setCurrentProject, setShowActivitySuggestions, showActivitySuggestions, setActivityTerminationType]);
+
+const handleToggleIncidentBlocking = useCallback((incidentId: string, isBlocking: boolean) => {
+  if (!currentIncident || currentIncident.id !== incidentId) return;
+  
+  // Update the current incident's blocking status
+  const updatedIncident = {
+    ...currentIncident,
+    isBlocking: isBlocking,
+    blockingTimestamp: isBlocking ? new Date().toISOString() : undefined,
+    blockingReason: isBlocking ? "Marcado como bloqueante por el piloto después de la creación" : undefined,
+  };
+  
+  setCurrentIncident(updatedIncident);
+  
+  // Update the incident in the project's incidents array
+  setCurrentProject(prev => {
+    const updatedProject = {
+      ...prev,
+      incidents: (prev.incidents || []).map(incident =>
+        incident.id === incidentId
+          ? updatedIncident
+          : incident
+      ),
+    };
+    return updatedProject;
+  });
+  
+  Alert.alert(
+    isBlocking ? "Incidente Marcado como Bloqueante" : "Incidente Ya No Es Bloqueante",
+    isBlocking 
+      ? "El incidente ahora está bloqueando la actividad. Puedes terminar la actividad usando el botón correspondiente."
+      : "El incidente ya no está bloqueando la actividad.",
+    [{ text: "Entendido" }]
+  );
+}, [currentIncident, setCurrentIncident, setCurrentProject]);
 
 
 // Effect to handle activity start after returning from preflight checklist
@@ -1690,8 +1814,7 @@ useEffect(() => {
             />
           );        case "QUICK_ACTIONS_MENU_CARD":
           return (
-            <>
-              {currentOngoingActivityForDisplay && (                <ActivityControl
+            <>              {currentOngoingActivityForDisplay && (                <ActivityControl
                   ongoingActivity={currentOngoingActivityForDisplay}
                   onStart={handleStartJornada} // This might need to be re-evaluated if "Jornada" is a specific activity type
                   onPause={(reason) => { // Ensure reason is captured or prompted
@@ -1715,10 +1838,12 @@ useEffect(() => {
                   currentPauseReason={activityPauseState.reason}
                   onIncidentCreate={() => setIsNewIncidentModalVisible(true)}
                   currentIncident={currentIncident}
+                  onToggleIncidentBlocking={handleToggleIncidentBlocking}
+                  onFinishActivityByBlockingIncident={handleFinishActivityByBlockingIncident}
                 />
-              )}
-              {showActivitySuggestions && (                <ActivitySuggestionsCard
+              )}              {showActivitySuggestions && (                <ActivitySuggestionsCard
                   activities={suggestedActivities}
+                  terminationType={activityTerminationType}
                   onClose={() => {
                     setShowActivitySuggestions(false);
                     console.log("Sugerencias cerradas por el usuario");
@@ -1817,15 +1942,16 @@ useEffect(() => {
       isProjectDetailsVisible,
       toggleProjectDetails,
       handleDeleteActivity,
-      handleFinishCurrentActivity, 
-      handleStartPendingActivity,
+      handleFinishCurrentActivity,      handleStartPendingActivity,
       handleGoToPreflightChecklist, 
       handlePauseActivity, 
       handleResumeActivity, 
       handleStartJornada, 
       showActivitySuggestions, 
       suggestedActivities, 
-      setShowActivitySuggestions, 
+      setShowActivitySuggestions,
+      handleToggleIncidentBlocking,
+      handleFinishActivityByBlockingIncident,
       // activityPauseReason is a constant, not needed in deps
     ]
   );

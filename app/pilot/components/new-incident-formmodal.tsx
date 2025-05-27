@@ -2,14 +2,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { incidentTypes } from './pilot-dashboard-data';
 
@@ -18,6 +18,7 @@ export interface IncidentFormData {
   type: string;        // ID del tipo de incidente (ej. 'INC_WEATHER')
   description: string;
   activityId?: string;
+  isBlocking?: boolean; // Whether the incident should block activity continuation
 }
 
 // Props del componente Modal
@@ -37,11 +38,9 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
   activities = [],
 }) => {
   // Usar los tipos de incidentes proporcionados o los importados por defecto
-  const typesToUse = providedIncidentTypes || incidentTypes;
-  // Estado inicial
+  const typesToUse = providedIncidentTypes || incidentTypes;  // Estado inicial
   const [incidentTypeId, setIncidentTypeId] = useState<string>('');
-  const [incidentDescription, setIncidentDescription] = useState('');
-  const [selectedActivityId, setSelectedActivityId] = useState<string>('');
+  const [incidentDescription, setIncidentDescription] = useState('');  const [selectedActivityId, setSelectedActivityId] = useState<string>('');
   const [currentTime] = useState(new Date());
   const [isUrgent, setIsUrgent] = useState(true);
   
@@ -49,9 +48,7 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
   const formatTime = (date: Date | null) => {
     if (!date) return '--:--';
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  // Efecto para resetear el formulario cuando el modal se abre/cierra
+  };  // Efecto para resetear el formulario cuando el modal se abre/cierra
   useEffect(() => {
     if (isVisible) {
       setIncidentTypeId('');
@@ -59,21 +56,15 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
       setSelectedActivityId('');
       setIsUrgent(true);
     }
-  }, [isVisible]);
-
-  const handleSubmit = () => {
+  }, [isVisible]);const handleSubmit = () => {
     if (!incidentTypeId) {
       Alert.alert("Campo Requerido", "Por favor, selecciona un tipo de incidente.");
-      return;
-    }
-    if (!incidentDescription.trim()) {
-      Alert.alert("Campo Requerido", "Por favor, ingresa una descripción para el incidente.");
       return;
     }
     
     onSubmit({
       type: incidentTypeId,
-      description: incidentDescription.trim(),
+      description: incidentDescription.trim() || "Sin descripción detallada",
       activityId: selectedActivityId || undefined,
     });
   };
@@ -153,8 +144,7 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
               >
                 <Ionicons name="information-circle" size={18} color={!isUrgent ? '#fff' : '#3b82f6'} />
                 <Text style={[styles.timeOptionText, !isUrgent && styles.timeOptionTextSelected]}>Informativo</Text>
-              </TouchableOpacity>
-            </View>
+              </TouchableOpacity>            </View>
 
             {/* Selector de actividad asociada */}
             {relevantActivities.length > 0 && (
@@ -428,8 +418,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
-  },
-  submitButtonText: {
+  },  submitButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',

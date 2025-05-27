@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons'; // MaterialCommunityIcons no se usa aquí directamente
 import { LinearGradient } from 'expo-linear-gradient';
-import { Stack } from 'expo-router';
+import { Stack } from 'expo-router'; // Asumiendo que Stack se usa si no es headerShown: false
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
@@ -23,6 +23,35 @@ import Animated, {
 
 const { width } = Dimensions.get('window');
 
+// Reutilizamos la paleta de PreflightChecklistScreen y añadimos específicos del chat
+const COLORS = {
+  background: '#f8fafc', // Pantalla general
+  cardBackground: '#ffffff', // Burbujas de admin, input container
+  
+  // Azules principales para el chat (pueden ser ligeramente diferentes al Preflight si se desea)
+  chatPrimaryGradientStart: '#4A90E2', // Azul más claro para gradiente
+  chatPrimaryGradientEnd: '#357ABD',   // Azul más oscuro para gradiente
+  chatUserBubble: '#2563eb',           // Azul para burbuja de usuario (piloto) - igual a COLORS.primary
+  
+  textWhite: '#ffffff',
+  textPrimary: '#1e293b',    // Texto oscuro principal
+  textSecondary: '#64748b',  // Texto gris secundario
+  textMuted: '#94a3b8',      // Placeholder, tiempo de mensaje
+  textSystem: '#4A90E2',     // Para mensajes de sistema
+
+  successGradientStart: '#34C759', // Verde para botón de enviar activo
+  successGradientEnd: '#2DB653',
+
+  disabledInput: '#E0E0E0',        // Para botón de enviar inactivo
+  disabledInputText: '#999999',
+  
+  typingIndicatorDot: '#4A90E2', // Color de los puntos de "escribiendo"
+
+  border: '#e5e7eb',          // Borde general ligero
+  borderLight: '#f1f5f9',
+};
+
+
 interface Message {
   id: string;
   text: string;
@@ -41,26 +70,16 @@ interface QuickReply {
   followUp?: QuickReply[];
 }
 
-// Respuestas rápidas predefinidas para pilotos
-const quickReplies: QuickReply[] = [
+// Respuestas rápidas predefinidas para pilotos (sin cambios en datos)
+const quickReplies: QuickReply[] = [ /* ... Tu data de quickReplies ... */ 
   {
     id: '1',
     text: 'Problemas con el Dron',
     icon: 'airplane',
     response: 'Entiendo que tienes problemas con el dron. ¿Podrías ser más específico sobre el tipo de problema? Te ayudo a resolverlo.',
     followUp: [
-      {
-        id: '1a',
-        text: 'No enciende',
-        icon: 'power',
-        response: 'Verificaremos el sistema de energía. Primero, confirma si la batería está completamente cargada y si los indicadores LED muestran alguna señal.'
-      },
-      {
-        id: '1b',
-        text: 'Pérdida de señal',
-        icon: 'wifi',
-        response: 'Para problemas de conectividad, verifica que estés dentro del rango operativo y que no haya interferencias electromagnéticas cercanas.'
-      }
+      { id: '1a', text: 'No enciende', icon: 'power', response: 'Verificaremos el sistema de energía. Primero, confirma si la batería está completamente cargada y si los indicadores LED muestran alguna señal.' },
+      { id: '1b', text: 'Pérdida de señal', icon: 'wifi', response: 'Para problemas de conectividad, verifica que estés dentro del rango operativo y que no haya interferencias electromagnéticas cercanas.'}
     ]
   },
   {
@@ -69,38 +88,19 @@ const quickReplies: QuickReply[] = [
     icon: 'cloud',
     response: 'Las condiciones meteorológicas son cruciales para las operaciones. ¿Qué condiciones específicas te preocupan?',
     followUp: [
-      {
-        id: '2a',
-        text: 'Viento fuerte',
-        icon: 'leaf',
-        response: 'Velocidades de viento superiores a 15 m/s requieren suspensión de vuelo. Consulta el pronóstico actualizado antes de cada misión.'
-      },
-      {
-        id: '2b',
-        text: 'Lluvia/Tormentas',
-        icon: 'rainy',
-        response: 'Operaciones suspendidas durante precipitaciones. Espera al menos 30 minutos después de que termine la lluvia antes de reanudar.'
-      }
+      { id: '2a', text: 'Viento fuerte', icon: 'leaf', response: 'Velocidades de viento superiores a 15 m/s requieren suspensión de vuelo. Consulta el pronóstico actualizado antes de cada misión.' },
+      { id: '2b', text: 'Lluvia/Tormentas', icon: 'rainy', response: 'Operaciones suspendidas durante precipitaciones. Espera al menos 30 minutos después de que termine la lluvia antes de reanudar.'}
     ]
   },
-  {
+  // ... resto de quickReplies
+    {
     id: '3',
     text: 'Emergencia',
     icon: 'warning',
     response: '🚨 PROTOCOLO DE EMERGENCIA ACTIVADO. Mantén la calma. ¿Cuál es la naturaleza de la emergencia?',
     followUp: [
-      {
-        id: '3a',
-        text: 'Dron fuera de control',
-        icon: 'alert-circle',
-        response: 'INMEDIATAMENTE: Activa el sistema RTH (Return to Home). Si no responde, prepárate para aterrizaje de emergencia en zona segura.'
-      },
-      {
-        id: '3b',
-        text: 'Lesión personal',
-        icon: 'medical',
-        response: 'Contactando servicios médicos de emergencia. Mantente en tu ubicación actual. ¿Puedes describirme la lesión?'
-      }
+      { id: '3a', text: 'Dron fuera de control', icon: 'alert-circle', response: 'INMEDIATAMENTE: Activa el sistema RTH (Return to Home). Si no responde, prepárate para aterrizaje de emergencia en zona segura.'},
+      { id: '3b', text: 'Lesión personal', icon: 'medical', response: 'Contactando servicios médicos de emergencia. Mantente en tu ubicación actual. ¿Puedes describirme la lesión?'}
     ]
   },
   {
@@ -109,18 +109,8 @@ const quickReplies: QuickReply[] = [
     icon: 'construct',
     response: 'Te ayudo con temas de equipamiento. ¿Qué componente necesita atención?',
     followUp: [
-      {
-        id: '4a',
-        text: 'Calibración de cámara',
-        icon: 'camera',
-        response: 'Para calibración óptima: 1) Estabiliza el gimbal, 2) Ejecuta calibración automática, 3) Verifica enfoque en punto infinito.'
-      },
-      {
-        id: '4b',
-        text: 'Mantenimiento preventivo',
-        icon: 'checkmark-circle',
-        response: 'Programa de mantenimiento: Revisión semanal de hélices, mensual de motores, y trimestral completa. ¿Cuándo fue tu última revisión?'
-      }
+      { id: '4a', text: 'Calibración de cámara', icon: 'camera', response: 'Para calibración óptima: 1) Estabiliza el gimbal, 2) Ejecuta calibración automática, 3) Verifica enfoque en punto infinito.'},
+      { id: '4b', text: 'Mantenimiento preventivo', icon: 'checkmark-circle', response: 'Programa de mantenimiento: Revisión semanal de hélices, mensual de motores, y trimestral completa. ¿Cuándo fue tu última revisión?'}
     ]
   },
   {
@@ -129,18 +119,8 @@ const quickReplies: QuickReply[] = [
     icon: 'time',
     response: 'Entiendo que necesitas modificar tu programación. ¿Qué ajustes requieres en tu cronograma de vuelo?',
     followUp: [
-      {
-        id: '5a',
-        text: 'Reprogramar misión',
-        icon: 'calendar',
-        response: 'Revisando disponibilidad de ventanas de vuelo. ¿Qué fecha y hora prefieres? Consideraremos condiciones meteorológicas.'
-      },
-      {
-        id: '5b',
-        text: 'Extensión de tiempo',
-        icon: 'timer',
-        response: 'Evaluando extensión solicitada. ¿Cuánto tiempo adicional necesitas? Verificaré conflictos con otras operaciones.'
-      }
+      { id: '5a', text: 'Reprogramar misión', icon: 'calendar', response: 'Revisando disponibilidad de ventanas de vuelo. ¿Qué fecha y hora prefieres? Consideraremos condiciones meteorológicas.'},
+      { id: '5b', text: 'Extensión de tiempo', icon: 'timer', response: 'Evaluando extensión solicitada. ¿Cuánto tiempo adicional necesitas? Verificaré conflictos con otras operaciones.'}
     ]
   },
   {
@@ -151,15 +131,16 @@ const quickReplies: QuickReply[] = [
   }
 ];
 
-const adminProfile = {
+
+const adminProfile = { /* ... Tu data de adminProfile ... */ 
   name: 'Ing. Carlos Mendoza',
   role: 'Administrador del Proyecto',
-  avatar: 'person-circle',
+  avatar: 'person-circle', // Usaremos este nombre de icono
   status: 'En línea'
 };
 
 export default function SupportChat() {
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>([ /* ... Tu mensaje inicial ... */ 
     {
       id: '1',
       text: '¡Hola! Soy el Ing. Carlos Mendoza, Administrador del Proyecto. Estoy aquí para ayudarte con cualquier consulta operativa, técnica o de emergencia. Utiliza las respuestas rápidas abajo o escribe tu pregunta directamente.',
@@ -169,7 +150,6 @@ export default function SupportChat() {
       type: 'system'
     }
   ]);
-  
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(true);
@@ -177,8 +157,7 @@ export default function SupportChat() {
   
   const flatListRef = useRef<FlatList>(null);
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
+  useEffect(() => { /* ... Tu useEffect ... */ 
     if (flatListRef.current && messages.length > 0) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
@@ -186,8 +165,7 @@ export default function SupportChat() {
     }
   }, [messages]);
 
-  // Simulated admin response with typing indicator
-  const simulateAdminResponse = useCallback((responseText: string, delay: number = 2000) => {
+  const simulateAdminResponse = useCallback((responseText: string, delay: number = 2000) => { /* ... Tu simulateAdminResponse ... */ 
     setIsTyping(true);
     setShowQuickReplies(false);
     
@@ -204,11 +182,11 @@ export default function SupportChat() {
       
       setMessages(prevMessages => [...prevMessages, adminReply]);
       setShowQuickReplies(true);
-      setActiveQuickReplies(quickReplies);
+      setActiveQuickReplies(quickReplies); // Reset to main quick replies
     }, delay);
   }, []);
 
-  const handleSendMessage = useCallback(() => {
+  const handleSendMessage = useCallback(() => { /* ... Tu handleSendMessage ... */ 
     if (inputText.trim().length === 0) return;
 
     const newMessage: Message = {
@@ -216,27 +194,24 @@ export default function SupportChat() {
       text: inputText.trim(),
       senderId: 'pilot',
       timestamp: new Date(),
-      senderName: 'Piloto',
+      senderName: 'Piloto', // Puedes obtener el nombre del piloto real si lo tienes
       type: 'text'
     };
 
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setInputText('');
 
-    // Simulate admin response for custom message
-    const responses = [
+    const responses = [ /* ... Tus respuestas simuladas ... */ 
       'Gracias por tu mensaje. Estoy revisando tu consulta y te responderé en breve.',
       'Entiendo tu situación. Permíteme verificar la información y te proporciono una solución.',
       'He recibido tu consulta. Coordinaré con el equipo técnico para darte la mejor respuesta.',
       'Tu mensaje es importante para nosotros. Estoy trabajando en una respuesta personalizada.'
     ];
-    
     const randomResponse = responses[Math.floor(Math.random() * responses.length)];
     simulateAdminResponse(randomResponse, Math.random() * 2000 + 1000);
   }, [inputText, simulateAdminResponse]);
 
-  const handleQuickReply = useCallback((reply: QuickReply) => {
-    // Add user's quick reply as a message
+  const handleQuickReply = useCallback((reply: QuickReply) => { /* ... Tu handleQuickReply ... */ 
     const userMessage: Message = {
       id: Date.now().toString(),
       text: reply.text,
@@ -247,19 +222,12 @@ export default function SupportChat() {
     };
 
     setMessages(prevMessages => [...prevMessages, userMessage]);
-
-    // Show admin response
     simulateAdminResponse(reply.response, 1500);
 
-    // Update quick replies if there are follow-ups
     if (reply.followUp && reply.followUp.length > 0) {
-      setTimeout(() => {
-        setActiveQuickReplies(reply.followUp!);
-      }, 3000);
+      setTimeout(() => setActiveQuickReplies(reply.followUp!), 2500); // Show follow-up sooner
     } else {
-      setTimeout(() => {
-        setActiveQuickReplies(quickReplies);
-      }, 3000);
+      setTimeout(() => setActiveQuickReplies(quickReplies), 2500); // Reset sooner
     }
   }, [simulateAdminResponse]);
 
@@ -272,41 +240,43 @@ export default function SupportChat() {
         entering={FadeInUp.delay(100)} 
         style={[
           styles.messageRow,
-          isUser ? styles.pilotRow : styles.adminRow
+          isUser ? styles.userMessageRow : styles.adminMessageRow,
+          isSystem && styles.systemMessageRow, // Center system messages
         ]}
       >
         {!isUser && !isSystem && (
-          <View style={styles.avatar}>
-            <Ionicons name="person-circle" size={32} color="#4A90E2" />
+          <View style={styles.avatarContainer}>
+            <Ionicons name={adminProfile.avatar as any} size={30} color={COLORS.chatPrimaryGradientStart} />
           </View>
         )}
         
         <View style={[
           styles.messageBubble,
-          isUser ? styles.userBubble : styles.adminBubble,
-          isSystem && styles.systemBubble
+          isUser ? styles.userMessageBubble : styles.adminMessageBubble,
+          isSystem && styles.systemMessageBubble
         ]}>
           <Text style={[
             styles.messageText,
-            isUser ? styles.userText : styles.adminText
+            isUser ? styles.userMessageText : styles.adminMessageText,
+            isSystem && styles.systemMessageText,
           ]}>
             {item.text}
           </Text>
           
-          <Text style={[
-            styles.messageTime,
-            isUser ? styles.userTime : styles.adminTime
-          ]}>
-            {item.timestamp.toLocaleTimeString('es-ES', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
-          </Text>
+          {!isSystem && ( // No mostrar tiempo para mensajes de sistema si no se desea
+            <Text style={[
+              styles.messageTimestamp,
+              isUser ? styles.userMessageTimestamp : styles.adminMessageTimestamp
+            ]}>
+              {item.timestamp.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          )}
         </View>
 
         {isUser && (
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={32} color="#34C759" />
+          <View style={styles.avatarContainer}>
+            {/* Puedes cambiar el icono del piloto o usar una imagen */}
+            <Ionicons name="person-outline" size={30} color={COLORS.successGradientStart} />
           </View>
         )}
       </Animated.View>
@@ -317,84 +287,86 @@ export default function SupportChat() {
     if (!isTyping) return null;
 
     return (
-      <Animated.View entering={FadeInUp} style={[styles.messageRow, styles.adminRow]}>
-        <View style={styles.avatar}>
-          <Ionicons name="person-circle" size={32} color="#4A90E2" />
+      <Animated.View entering={FadeInUp} style={[styles.messageRow, styles.adminMessageRow]}>
+        <View style={styles.avatarContainer}>
+          <Ionicons name={adminProfile.avatar as any} size={30} color={COLORS.chatPrimaryGradientStart} />
         </View>
         
-        <View style={[styles.messageBubble, styles.adminBubble, styles.typingBubble]}>
-          <View style={styles.typingIndicator}>
-            <View style={[styles.typingDot, { animationDelay: 0 }]} />
-            <View style={[styles.typingDot, { animationDelay: 200 }]} />
-            <View style={[styles.typingDot, { animationDelay: 400 }]} />
+        <View style={[styles.messageBubble, styles.adminMessageBubble, styles.typingBubble]}>
+          <View style={styles.typingIndicatorDots}>
+            <Animated.View style={[styles.typingDot, { transform: [{scale: FadeInUp.duration(300).delay(0).springify() }] }]} />
+            <Animated.View style={[styles.typingDot, { transform: [{scale: FadeInUp.duration(300).delay(150).springify() }] }]} />
+            <Animated.View style={[styles.typingDot, { transform: [{scale: FadeInUp.duration(300).delay(300).springify() }] }]} />
           </View>
-          <Text style={styles.typingText}>Admin escribiendo...</Text>
+          {/* <Text style={styles.typingInfoText}>Admin escribiendo...</Text> // Opcional */}
         </View>
       </Animated.View>
     );
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.screenContainer}>
       <Stack.Screen options={{ headerShown: false }} />
-      <StatusBar barStyle="light-content" backgroundColor="#4A90E2" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.chatPrimaryGradientStart} />
       
       <LinearGradient
-        colors={['#4A90E2', '#357ABD']}
-        style={styles.chatHeader}
+        colors={[COLORS.chatPrimaryGradientStart, COLORS.chatPrimaryGradientEnd]}
+        style={styles.chatHeaderContainer}
       >
-        <Animated.View entering={FadeInDown} style={styles.adminInfo}>
-          <View style={styles.adminAvatar}>
-            <Ionicons name="person-circle" size={48} color="white" />
+        <Animated.View entering={FadeInDown.duration(500)} style={styles.adminInfoContainer}>
+          <View style={styles.adminAvatarWrapper}>
+            <Ionicons name={adminProfile.avatar as any} size={42} color={COLORS.textWhite} />
           </View>
           
-          <View style={styles.adminDetails}>
-            <Text style={styles.adminName}>{adminProfile.name}</Text>
-            <Text style={styles.adminRole}>{adminProfile.role}</Text>
+          <View style={styles.adminTextDetails}>
+            <Text style={styles.adminDisplayName}>{adminProfile.name}</Text>
+            <Text style={styles.adminDisplayRole}>{adminProfile.role}</Text>
             
-            <View style={styles.statusContainer}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statusText}>{adminProfile.status}</Text>
+            <View style={styles.adminStatusIndicator}>
+              <View style={styles.onlineStatusDot} />
+              <Text style={styles.onlineStatusText}>{adminProfile.status}</Text>
             </View>
           </View>
         </Animated.View>
       </LinearGradient>
 
       <KeyboardAvoidingView 
-        style={styles.chatContainer}
+        style={styles.chatInteractionArea}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0} // Ajustar según sea necesario
       >
         <FlatList
           ref={flatListRef}
           data={messages}
           renderItem={renderMessage}
           keyExtractor={(item) => item.id}
-          style={styles.messagesList}
-          contentContainerStyle={styles.messagesContent}
+          style={styles.messageListContainer}
+          contentContainerStyle={styles.messageListContent}
           ListFooterComponent={renderTypingIndicator}
+          showsVerticalScrollIndicator={false}
         />
 
-        {showQuickReplies && (
-          <Animated.View entering={SlideInRight} style={styles.quickRepliesContainer}>
-            <Text style={styles.quickRepliesTitle}>Respuestas rápidas:</Text>
-            
+        {showQuickReplies && activeQuickReplies.length > 0 && (
+          <Animated.View entering={SlideInRight.duration(300)} style={styles.quickRepliesSection}>
+            <Text style={styles.quickRepliesHeaderTitle}>Sugerencias:</Text>
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.quickRepliesScroll}
+              contentContainerStyle={styles.quickRepliesScrollContainer}
             >
               {activeQuickReplies.map((reply) => (
                 <TouchableOpacity
                   key={reply.id}
                   onPress={() => handleQuickReply(reply)}
-                  style={styles.quickReplyButton}
+                  style={styles.quickReplyButtonWrapper}
                 >
                   <LinearGradient
-                    colors={['#5BA7F7', '#4A90E2']}
-                    style={styles.quickReplyGradient}
+                    colors={[COLORS.chatPrimaryGradientStart, COLORS.chatPrimaryGradientEnd]} // Mismo gradiente que el header
+                    style={styles.quickReplyButtonGradient}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} // Dirección del gradiente
                   >
-                    <Ionicons name={reply.icon} size={20} color="white" />
-                    <Text style={styles.quickReplyText}>{reply.text}</Text>
+                    <Ionicons name={reply.icon} size={18} color={COLORS.textWhite} style={{marginRight: 6}}/>
+                    <Text style={styles.quickReplyButtonText}>{reply.text}</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               ))}
@@ -402,31 +374,30 @@ export default function SupportChat() {
           </Animated.View>
         )}
 
-        <View style={styles.inputContainer}>
-          <View style={styles.inputWrapper}>
+        <View style={styles.chatInputArea}>
+          <View style={styles.chatInputWrapper}>
             <TextInput
-              style={styles.textInput}
+              style={styles.mainTextInput}
               value={inputText}
               onChangeText={setInputText}
-              placeholder="Escribe tu consulta aquí..."
-              placeholderTextColor="#999"
+              placeholder="Escribe un mensaje..."
+              placeholderTextColor={COLORS.textMuted}
               multiline
-              maxLength={500}
+              maxLength={500} // Opcional
             />
-            
             <TouchableOpacity
               onPress={handleSendMessage}
-              style={[styles.sendButton, inputText.trim() && styles.sendButtonActive]}
+              style={[styles.sendMessageButton, inputText.trim() && styles.sendMessageButtonActive]}
               disabled={!inputText.trim()}
             >
               <LinearGradient
-                colors={inputText.trim() ? ['#34C759', '#2DB653'] : ['#E0E0E0', '#CCCCCC']}
-                style={styles.sendButtonGradient}
+                colors={inputText.trim() ? [COLORS.successGradientStart, COLORS.successGradientEnd] : [COLORS.disabledInput, COLORS.disabledInput]}
+                style={styles.sendMessageButtonGradient}
               >
                 <Ionicons 
-                  name="send" 
+                  name="send-outline" // Cambiado a outline para consistencia
                   size={20} 
-                  color={inputText.trim() ? 'white' : '#999'} 
+                  color={inputText.trim() ? COLORS.textWhite : COLORS.disabledInputText} 
                 />
               </LinearGradient>
             </TouchableOpacity>
@@ -438,220 +409,275 @@ export default function SupportChat() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screenContainer: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: COLORS.background,
   },
-  chatHeader: {
-    paddingTop: StatusBar.currentHeight || 44,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
+  // --- Header ---
+  chatHeaderContainer: {
+    paddingTop: (StatusBar.currentHeight || 0) + 10, // Espacio para la barra de estado
+    paddingBottom: 12,
+    paddingHorizontal: 16,
+    borderBottomLeftRadius: 15, // Curvatura sutil
+    borderBottomRightRadius: 15,
+    elevation: 4, // Sombra para Android
+    shadowColor: '#000', // Sombra para iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  adminInfo: {
+  adminInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  adminAvatar: {
+  adminAvatarWrapper: {
     marginRight: 12,
+    // Opcional: añadir un borde o fondo si se quiere
+    // backgroundColor: 'rgba(255,255,255,0.2)',
+    // borderRadius: 25,
+    // padding: 2,
   },
-  adminDetails: {
+  adminTextDetails: {
     flex: 1,
   },
-  adminName: {
-    fontSize: 18,
+  adminDisplayName: {
+    fontSize: 17, // Ligeramente más pequeño para balance
     fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 2,
+    color: COLORS.textWhite,
   },
-  adminRole: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginBottom: 4,
+  adminDisplayRole: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginBottom: 3,
   },
-  statusContainer: {
+  adminStatusIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#34C759',
-    marginRight: 6,
+  onlineStatusDot: {
+    width: 7, // Más pequeño
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: COLORS.successGradientStart, // Verde brillante
+    marginRight: 5,
   },
-  statusText: {
+  onlineStatusText: {
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.8)',
   },
-  chatContainer: {
+
+  // --- Área de Chat (Mensajes y Entrada) ---
+  chatInteractionArea: {
     flex: 1,
   },
-  messagesList: {
+  messageListContainer: {
     flex: 1,
   },
-  messagesContent: {
-    padding: 16,
-    paddingBottom: 0,
+  messageListContent: {
+    paddingVertical: 12, // Espacio arriba y abajo de la lista de mensajes
+    paddingHorizontal: 12, // Espacio a los lados de los mensajes
   },
+
+  // --- Filas y Avatares de Mensajes ---
   messageRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginVertical: 4,
+    alignItems: 'flex-end', // Alinea burbuja y avatar abajo
+    marginVertical: 6, // Espacio vertical entre mensajes
   },
-  pilotRow: {
+  userMessageRow: {
     justifyContent: 'flex-end',
   },
-  adminRow: {
+  adminMessageRow: {
     justifyContent: 'flex-start',
   },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  systemMessageRow: { // Para centrar mensajes de sistema
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  avatarContainer: {
+    width: 32, // Tamaño de avatar
+    height: 32,
+    borderRadius: 16, // Círculo perfecto
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 8,
+    marginHorizontal: 6, // Espacio entre avatar y burbuja
+    // backgroundColor: COLORS.borderLight, // Fondo sutil para el avatar
   },
+
+  // --- Burbujas de Mensaje ---
   messageBubble: {
-    maxWidth: width * 0.7,
+    maxWidth: width * 0.75, // Ancho máximo de la burbuja
+    paddingHorizontal: 14, // Padding horizontal
+    paddingVertical: 10,   // Padding vertical
+    borderRadius: 18,      // Bordes redondeados
+    // Sombra sutil para todas las burbujas
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  userMessageBubble: {
+    backgroundColor: COLORS.chatUserBubble, // Azul definido
+    borderBottomRightRadius: 6, // Esquina distintiva
+  },
+  adminMessageBubble: {
+    backgroundColor: COLORS.cardBackground, // Blanco
+    borderBottomLeftRadius: 6, // Esquina distintiva
+    borderWidth: 1, // Borde sutil para burbujas blancas
+    borderColor: COLORS.borderLight,
+  },
+  systemMessageBubble: {
+    backgroundColor: COLORS.borderLight, // Fondo muy claro para sistema
+    borderColor: COLORS.border, // Borde un poco más oscuro
+    borderWidth: 1,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingVertical: 8,
+    borderRadius: 10, // Menos redondeado para sistema
+    maxWidth: width * 0.85, // Pueden ser más anchos
+    alignSelf: 'center', // Asegura que esté centrado
+  },
+  typingBubble: { // Burbuja para "escribiendo..."
+    paddingVertical: 12, // Un poco más de padding para los puntos
+  },
+
+  // --- Texto y Timestamp de Mensajes ---
+  messageText: {
+    fontSize: 15, // Tamaño de texto legible
+    lineHeight: 20, // Espaciado de línea
+  },
+  userMessageText: {
+    color: COLORS.textWhite,
+  },
+  adminMessageText: {
+    color: COLORS.textPrimary, // Texto oscuro en burbuja blanca
+  },
+  systemMessageText: {
+    color: COLORS.textSystem, // Color azul para texto de sistema
+    textAlign: 'center', // Centrar texto de sistema
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
+  messageTimestamp: {
+    fontSize: 10, // Pequeño
+    marginTop: 5, // Espacio sobre el texto
+    opacity: 0.8, // Ligeramente transparente
+  },
+  userMessageTimestamp: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'right',
+  },
+  adminMessageTimestamp: {
+    color: COLORS.textMuted, // Gris claro para timestamp de admin
+    textAlign: 'right',
+  },
+  
+  // --- Indicador de "Escribiendo" ---
+  typingIndicatorDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    // justifyContent: 'center', // Si quieres los puntos centrados
+    // marginBottom: 4, // Si tienes texto debajo
+  },
+  typingDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: COLORS.typingIndicatorDot, // Azul definido
+    marginHorizontal: 2.5, // Espacio entre puntos
+    // La animación se maneja con Reanimated en el componente
+  },
+  // typingInfoText: { // Opcional, si quieres "Admin escribiendo..."
+  //   fontSize: 11,
+  //   color: COLORS.textMuted,
+  //   fontStyle: 'italic',
+  //   textAlign: 'left', // Alineado con los puntos
+  //   marginLeft: 2, // Ligeramente indentado
+  // },
+
+  // --- Respuestas Rápidas ---
+  quickRepliesSection: {
+    paddingVertical: 12, // Menos padding vertical
+    backgroundColor: COLORS.cardBackground, // Fondo blanco
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border, // Borde sutil
+  },
+  quickRepliesHeaderTitle: {
+    fontSize: 13, // Más pequeño
+    fontWeight: '600',
+    color: COLORS.textSecondary, // Gris en lugar de azul
+    marginBottom: 8,
+    paddingHorizontal: 16, // Alinear con la lista de mensajes
+  },
+  quickRepliesScrollContainer: {
+    paddingHorizontal: 16, // Padding para el primer y último elemento
+    paddingVertical: 4, // Pequeño padding vertical para el scroll
+  },
+  quickReplyButtonWrapper: {
+    marginRight: 10, // Espacio entre botones
+    borderRadius: 18, // Redondeo del botón
+    overflow: 'hidden', // Para que el gradiente respete el borde
+    // Sombra sutil para los botones
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 3,
     elevation: 2,
   },
-  userBubble: {
-    backgroundColor: '#4A90E2',
-    borderBottomRightRadius: 8,
-  },
-  adminBubble: {
-    backgroundColor: 'white',
-    borderBottomLeftRadius: 8,
-  },
-  systemBubble: {
-    backgroundColor: '#F0F8FF',
-    borderColor: '#4A90E2',
-    borderWidth: 1,
-    marginHorizontal: 20,
-    maxWidth: width * 0.85,
-  },
-  typingBubble: {
-    paddingVertical: 16,
-  },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  userText: {
-    color: 'white',
-  },
-  adminText: {
-    color: '#333',
-  },
-  messageTime: {
-    fontSize: 11,
-    marginTop: 4,
-    opacity: 0.7,
-  },
-  userTime: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'right',
-  },
-  adminTime: {
-    color: '#666',
-  },
-  typingIndicator: {
+  quickReplyButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
+    paddingHorizontal: 14, // Padding interno del botón
+    paddingVertical: 9,    // Padding interno del botón
   },
-  typingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#4A90E2',
-    marginHorizontal: 2,
-    opacity: 0.4,
+  quickReplyButtonText: {
+    color: COLORS.textWhite,
+    fontSize: 13, // Un poco más pequeño
+    fontWeight: '500', // Ligeramente menos bold
+    // marginLeft: 6, // Ya se maneja con el marginRight del icono
   },
-  typingText: {
-    fontSize: 12,
-    color: '#666',
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-  quickRepliesContainer: {
-    paddingVertical: 16,
-    paddingLeft: 16,
-    backgroundColor: 'white',
+
+  // --- Área de Entrada de Texto ---
+  chatInputArea: {
+    backgroundColor: COLORS.cardBackground,
     borderTopWidth: 1,
-    borderTopColor: '#E8E8E8',
+    borderTopColor: COLORS.border,
+    paddingHorizontal: 12, // Menos padding horizontal
+    paddingTop: 8, // Menos padding arriba
+    paddingBottom: Platform.OS === 'ios' ? 20 : 8, // Más padding abajo en iOS por el "home indicator"
   },
-  quickRepliesTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4A90E2',
-    marginBottom: 12,
-    marginLeft: 4,
-  },
-  quickRepliesScroll: {
-    paddingRight: 16,
-  },
-  quickReplyButton: {
-    marginRight: 12,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  quickReplyGradient: {
+  chatInputWrapper: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    alignItems: 'flex-end', // Alinea el input y el botón abajo si el input es multilínea
+    backgroundColor: COLORS.background, // Gris muy claro para el input field
+    borderRadius: 22, // Más redondeado
+    paddingLeft: 16, // Padding izquierdo para el texto
+    paddingRight: 6, // Padding derecho para el botón
+    paddingVertical: Platform.OS === 'ios' ? 10 : 6, // Ajuste de padding vertical por plataforma
+    minHeight: 44, // Altura mínima
   },
-  quickReplyText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 8,
-  },
-  inputContainer: {
-    backgroundColor: 'white',
-    borderTopWidth: 1,
-    borderTopColor: '#E8E8E8',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  textInput: {
+  mainTextInput: {
     flex: 1,
-    fontSize: 16,
-    color: '#333',
-    maxHeight: 100,
-    paddingVertical: 8,
+    fontSize: 15,
+    color: COLORS.textPrimary,
+    maxHeight: 90, // Limitar altura si es multilínea
+    paddingTop: Platform.OS === 'ios' ? 0 : 2, // Ajuste fino para centrado vertical
+    paddingBottom: Platform.OS === 'ios' ? 0 : 2,
+    lineHeight: 18, // Para mejor legibilidad en multilínea
   },
-  sendButton: {
-    marginLeft: 12,
-    borderRadius: 20,
-    overflow: 'hidden',
+  sendMessageButton: {
+    marginLeft: 8, // Espacio entre input y botón
+    borderRadius: 18, // Botón circular
+    overflow: 'hidden', // Para el gradiente
+    // La transición de escala se maneja con el style `sendMessageButtonActive` en el componente
   },
-  sendButtonActive: {
-    transform: [{ scale: 1.05 }],
+  sendMessageButtonActive: {
+    // No es necesario aquí si la animación es solo transform
   },
-  sendButtonGradient: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  sendMessageButtonGradient: {
+    width: 36, // Botón más compacto
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
