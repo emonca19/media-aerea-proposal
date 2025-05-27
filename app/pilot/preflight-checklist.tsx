@@ -2,26 +2,25 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { CloseCircle, TickCircle } from 'iconsax-react-native';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  Image,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Platform,
-  FlatList,
+    Alert,
+    FlatList,
+    Image,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { mockActivities } from "../../src/mocks/activities";
 import { mockTurbines } from "../../src/mocks/turbines";
-import { Activity } from "../../src/types/activities";
-import { Turbine, TurbineStatus } from "../../src/types/turbines";
+import { TurbineStatus } from "../../src/types/turbines";
+import { setGlobalProjectData } from '../../src/utils/globalState';
+import { Storage } from '../../src/utils/storage';
 
 type MaterialCommunityIconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -116,13 +115,14 @@ const PreflightChecklistScreen = () => {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [mediaLibraryPermission, requestMediaLibraryPermission] = ImagePicker.useMediaLibraryPermissions();
     
-  const [currentActivityToStart, setCurrentActivityToStart] = useState<Activity | null>(null);
-  const [currentTurbine, setCurrentTurbine] = useState<Turbine | null>(null);
+  const [currentActivityToStart, setCurrentActivityToStart] = useState<any | null>(null);
+  const [currentTurbine, setCurrentTurbine] = useState<any | null>(null);
   const [isTurbineModalVisible, setIsTurbineModalVisible] = useState(false);
 
-  useEffect(() => { /* ... (useEffect logic remains the same) ... */ 
-    let determinedActivity: Activity | null = null;
-    let determinedTurbine: Turbine | null = null;
+  useEffect(() => {
+    let determinedActivity: any | null = null;
+    let determinedTurbine: any | null = null;
+    
     if (activityToStartIdFromRoute) {
       const foundActivity = mockActivities.find(act => act.id === activityToStartIdFromRoute);
       if (foundActivity) {
@@ -142,53 +142,85 @@ const PreflightChecklistScreen = () => {
         if (turbineFromParam) determinedTurbine = turbineFromParam;
       }
     } else if (turbineIdFromRoute) { 
-      const normalizedTurbineIdParam = turbineIdFromRoute.replace(/-/g, '_');
-      const turbineFromParam = mockTurbines.find(t => t.id === normalizedTurbineIdParam);
-      if (turbineFromParam) determinedTurbine = turbineFromParam;
+      // Create mock turbine object
+      determinedTurbine = {
+        id: turbineIdFromRoute,
+        name: `Turbina ${turbineIdFromRoute.replace(/[^0-9]/g, '')}`,
+        status: 'READY'
+      };
     }
+    
     setCurrentActivityToStart(determinedActivity);
     setCurrentTurbine(determinedTurbine);
   }, [turbineIdFromRoute, activityToStartIdFromRoute]);
   
-  const handleToggleItem = (id: string) => { /* ... (handleToggleItem logic remains the same) ... */ 
-    setPreflightChecklist(prev => {
-      const updated = prev.map(item =>
+  // Reset checklist when turbine changes
+  useEffect(() => {
+    console.log("Turbine changed, resetting checklist for:", turbineIdFromRoute);
+    // Reset all checklist items to unchecked
+    setPreflightChecklist(initialPreflightChecklist.map(item => ({
+      ...item,
+      checked: false,
+      notes: undefined,
+      photoUri: undefined
+    })));
+    // Reset general notes
+    setGeneralNotes('');
+  }, [turbineIdFromRoute]);
+
+  const handleToggleItem = (id: string) => {
+    setPreflightChecklist(prev =>
+      prev.map(item =>
         item.id === id ? { ...item, checked: !item.checked } : item
-      );
-      const toggledItem = updated.find(item => item.id === id);
-      if (toggledItem && toggledItem.checked && !expandedCategory.includes(toggledItem.category)) {
-        setExpandedCategory(prevExpanded => [...prevExpanded, toggledItem.category]);
-      }
-      return updated;
-    });
+      )
+    );
   };
 
   const handleOpenCameraForItem = async (itemId: string) => {
     if (!cameraPermission?.granted) {
-      const camPerm = await requestCameraPermission();
-      if (!camPerm.granted) { Alert.alert('Permiso Denegado', 'Se requiere permiso de cámara.'); return; }
+      const permission = await requestCameraPermission();
+      if (!permission.granted) {
+        Alert.alert('Permiso requerido', 'Se necesita acceso a la cámara para tomar fotos.');
+        return;
+      }
     }
+    
     if (!mediaLibraryPermission?.granted) {
-      const libPerm = await requestMediaLibraryPermission();
-      if (!libPerm.granted) { Alert.alert('Permiso Denegado', 'Se requiere permiso de la galería.'); return; }
+      const permission = await requestMediaLibraryPermission();
+      if (!permission.granted) {
+        Alert.alert('Permiso requerido', 'Se necesita acceso a la galería para guardar fotos.');
+        return;
+      }
     }
 
     try {
-      const result = await ImagePicker.launchCameraAsync({ 
-        mediaTypes: ImagePicker.MediaTypeOptions.Images, 
-        allowsEditing: false, 
-        quality: 0.8 
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
       });
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const uri = result.assets[0].uri;
-        setPreflightChecklist(prev => 
-          prev.map(item => item.id === itemId ? { ...item, photoUri: uri } : item)
+
+      if (!result.canceled && result.assets[0]) {
+        setPreflightChecklist(prev =>
+          prev.map(item =>
+            item.id === itemId ? { ...item, photoUri: result.assets[0].uri } : item
+          )
         );
       }
-    } catch (error) { console.error('Error opening camera:', error); Alert.alert('Error', 'No se pudo abrir la cámara.'); }
+    } catch (error) {
+      console.error('Error al tomar foto:', error);
+      Alert.alert('Error', 'No se pudo tomar la foto. Inténtalo de nuevo.');
+    }
   };
 
-  const toggleCategory = (category: Category) => { setExpandedCategory(prev => prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]);};
+  const toggleCategory = (category: Category) => {
+    setExpandedCategory(prev => 
+      prev.includes(category) 
+        ? prev.filter(c => c !== category) 
+        : [...prev, category]
+    );
+  };
   
   const areSeguridadPhotosComplete = () => {
     const seguridadItems = preflightChecklist.filter(item => item.category === CATEGORY_REQUIRING_ITEM_PHOTOS);
@@ -198,40 +230,121 @@ const PreflightChecklistScreen = () => {
   const handleSubmitPreflight = () => {
     if (!areSeguridadPhotosComplete()) {
       Alert.alert(
-        'Fotos Requeridas',
-        `Es obligatorio tomar una foto para cada ítem de la categoría "${CATEGORY_REQUIRING_ITEM_PHOTOS}" antes de continuar.`,
+        'Fotos requeridas',
+        'Debes tomar fotos de todos los elementos de seguridad antes de continuar.',
         [{ text: 'Entendido' }]
       );
-      if (!expandedCategory.includes(CATEGORY_REQUIRING_ITEM_PHOTOS)) {
-        toggleCategory(CATEGORY_REQUIRING_ITEM_PHOTOS);
-      }
       return;
     }
     submitChecklist();
   };
 
-  const submitChecklist = async () => { /* ... (submitChecklist navigation logic remains the same) ... */ 
+  const submitChecklist = async () => {
     const activityIdToPass = activityToStartIdFromRoute ?? currentActivityToStart?.id;
     const turbineIdToPass = currentTurbine?.id ? currentTurbine.id.replace(/-/g, '_') : undefined;
-    const navigationParams: Record<string, string | boolean | number | undefined> = { timestamp: Date.now() };
+    const isNewTurbineActivity = Array.isArray(params.isNewTurbineActivity) ? 
+      params.isNewTurbineActivity[0] === 'true' : 
+      params.isNewTurbineActivity === 'true';
+    
+    console.log("Submitting checklist with params:", {
+      activityIdToPass,
+      turbineIdToPass,
+      isNewTurbineActivity,
+      currentTurbineId: currentTurbine?.id
+    });
+    
+    const navigationParams: Record<string, string | boolean | number | undefined> = { 
+      timestamp: Date.now() 
+    };
+    
+    // Important: Use the exact parameter name expected by pilot-dashboard.tsx
     if (activityIdToPass) navigationParams.activityToStartAfterPreflight = activityIdToPass;
+    
     if (turbineIdToPass) {
       navigationParams.turbineIdForActivityStart = turbineIdToPass;
-      navigationParams.preflightCompletedForTurbine = true;
-    } else {
-      navigationParams.preflightCompletedForTurbine = false;
+      // Always mark preflight as completed when there's a turbine
+      navigationParams.preflightCompletedForTurbine = "true";
     }
-    if (!navigationParams.activityToStartAfterPreflight) delete navigationParams.activityToStartAfterPreflight;
-    if (!navigationParams.turbineIdForActivityStart) delete navigationParams.turbineIdForActivityStart;
+    
+    // Indicate that it's a new turbine activity if that's the case
+    if (isNewTurbineActivity) {
+      navigationParams.isNewTurbineActivity = "true";
+    }
+      // Store the new activity in storage so turbines-status can detect it
+    try {
+      if (isNewTurbineActivity && activityIdToPass && turbineIdToPass) {
+        const projectKey = 'pilot_dashboard_current_project';
+        const stored = await Storage.getItem(projectKey);
+        let project = stored ? JSON.parse(stored) : { activities: [] };
+        
+        // Create the new activity that will be started
+        const newActivity = {
+          id: activityIdToPass,
+          type: "TURBINE_WORK",
+          name: `Trabajo en ${currentTurbine?.name}`,
+          notes: `Inspección y trabajo en ${currentTurbine?.name}`,
+          status: "EN_PROGRESO",
+          time: "Hoy - En curso",
+          description: `Trabajo en turbina ${currentTurbine?.name}`,
+          turbineId: turbineIdToPass,
+          actualStart: new Date().toISOString(),
+          scheduledStart: new Date().toISOString(),
+          scheduledEnd: null,
+          actualEnd: null,
+        };
+        
+        // Add to activities array
+        project.activities = project.activities || [];
+        project.activities.unshift(newActivity);
+        
+        // Save back to storage
+        await Storage.setItem(projectKey, JSON.stringify(project));
+        console.log("Saved new turbine activity to storage:", newActivity);
+        
+        // Also update global data for React Native
+        setGlobalProjectData(project);
+      } else {
+        // For React Native, create and set the activity directly
+        if (isNewTurbineActivity && activityIdToPass && turbineIdToPass) {
+          const newActivity = {
+            id: activityIdToPass,
+            type: "TURBINE_WORK",
+            name: `Trabajo en ${currentTurbine?.name}`,
+            notes: `Inspección y trabajo en ${currentTurbine?.name}`,
+            status: "EN_PROGRESO",
+            time: "Hoy - En curso",
+            description: `Trabajo en turbina ${currentTurbine?.name}`,
+            turbineId: turbineIdToPass,
+            actualStart: new Date().toISOString(),
+            scheduledStart: new Date().toISOString(),
+            scheduledEnd: null,
+            actualEnd: null,
+          };
+          
+          // Update global data with new activity
+          const currentGlobalData = { activities: [newActivity] };
+          setGlobalProjectData(currentGlobalData);
+          console.log("Set new turbine activity to global data:", newActivity);
+        }
+      }
+    } catch (error) {
+      console.error("Error saving activity:", error);
+    }
+    
+    // Build the URL with parameters
     const queryParams = new URLSearchParams();
-    if (navigationParams.activityToStartAfterPreflight) queryParams.append('activityToStartAfterPreflight', String(navigationParams.activityToStartAfterPreflight));
-    if (navigationParams.turbineIdForActivityStart) queryParams.append('turbineIdForActivityStart', String(navigationParams.turbineIdForActivityStart));
-    if (typeof navigationParams.preflightCompletedForTurbine === 'boolean') queryParams.append('preflightCompletedForTurbine', String(navigationParams.preflightCompletedForTurbine));
+    Object.entries(navigationParams).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, String(value));
+      }
+    });
+    
     const dashboardUrl = `/pilot/dashboard${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    console.log("Navigating to:", dashboardUrl);
     router.push(dashboardUrl as any);
   };
   
-  const getCompletionPercentage = (category?: Category) => { /* ... */ 
+  const getCompletionPercentage = (category?: Category) => {
     const items = category ? preflightChecklist.filter(i => i.category === category) : preflightChecklist;
     if (items.length === 0) return 100;
     return Math.round((items.filter(i => i.checked).length / items.length) * 100);
@@ -239,7 +352,7 @@ const PreflightChecklistScreen = () => {
 
   const allGeneralItemsChecked = preflightChecklist.every(item => item.checked);
 
-  const getCategoryStatus = (category: Category) => { /* ... */ 
+  const getCategoryStatus = (category: Category) => {
     const items = preflightChecklist.filter(i => i.category === category);
     const checkedItems = items.filter(i => i.checked).length;
     const totalItems = items.length;
@@ -257,270 +370,232 @@ const PreflightChecklistScreen = () => {
   // Photos only from "Seguridad" items
   const seguridadItemPhotos = preflightChecklist
     .filter(item => item.category === CATEGORY_REQUIRING_ITEM_PHOTOS && item.photoUri)
-    .map(item => ({id: item.id, uri: item.photoUri!, itemName: item.item })); // Added itemName for context if needed
+    .map(item => ({id: item.id, uri: item.photoUri!, itemName: item.item }));
 
   return (
     <View style={styles.screenContainer}>
-      <Stack.Screen options={{ /* ... */ title: screenTitle, headerStyle: { backgroundColor: COLORS.cardBackground }, headerTintColor: COLORS.primary, headerTitleStyle: { fontWeight: '600', fontSize: 17, color: COLORS.textPrimary }, headerShadowVisible: false, headerBackTitleVisible: false,}}/>
+      <Stack.Screen options={{ 
+        title: screenTitle, 
+        headerStyle: { backgroundColor: COLORS.cardBackground }, 
+        headerTintColor: COLORS.primary, 
+        headerTitleStyle: { fontWeight: '600', fontSize: 17, color: COLORS.textPrimary }, 
+        headerShadowVisible: false, 
+        headerBackTitleVisible: false,
+      }}/>
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContentContainer}>
-        
-        {currentTurbine && ( /* ... (Turbine ContextualInfoCard JSX) ... */ 
-           <TouchableOpacity 
-            style={styles.contextualInfoCard}
-            onPress={() => setIsTurbineModalVisible(true)}
-            activeOpacity={0.7}
-          >
+        {/* Context info card */}
+        {currentTurbine && (
+          <View style={styles.contextualInfoCard}>
             <View style={styles.contextualInfoRow}>
-              <MaterialCommunityIcons name="wind-turbine" size={18} color={COLORS.textSecondary} style={styles.contextualInfoIcon} />
+              <Ionicons name="nuclear" size={18} color={COLORS.primary} style={styles.contextualInfoIcon} />
               <Text style={styles.contextualInfoLabel}>Turbina:</Text>
               <Text style={styles.contextualInfoValue}>{currentTurbine.name}</Text>
-              <Ionicons name="chevron-forward-outline" size={18} color={COLORS.textMuted} style={{marginLeft: 'auto'}}/>
             </View>
-          </TouchableOpacity>
+          </View>
         )}
 
+        {/* Summary Card */}
         <View style={styles.summaryCard}>
-          {/* ... (Summary Card content updated for Seguridad photo count) ... */}
           <View style={styles.summaryHeader}>
             <View style={styles.summaryIconWrapper}>
-              <MaterialCommunityIcons name="clipboard-check-multiple-outline" size={26} color={COLORS.primary} />
+              <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />
             </View>
-            <Text style={styles.summaryTitle}>
-              {currentTurbine ? 'Revisión de Turbina' : 'Verificación General'}
-            </Text>
+            <Text style={styles.summaryTitle}>Checklist Prevuelo</Text>
           </View>
+          
           <Text style={styles.summarySubtitle}>
-            {allGeneralItemsChecked && areSeguridadPhotosComplete()
-              ? "Todos los puntos verificados. ¡Listo para proceder!" 
-              : "Completa todos los puntos y fotos requeridas."}
+            Completa todos los elementos antes de iniciar el vuelo
           </Text>
 
           <View style={styles.overallProgressRow}>
-            <Text style={styles.overallProgressLabel}>Progreso Total</Text>
-            <Text style={[styles.overallProgressPercentage, allGeneralItemsChecked && { color: COLORS.success } ]}>
-              {getCompletionPercentage()}%
-            </Text>
-          </View>
-          <View style={styles.progressBarContainer}>
-            <View style={[ styles.progressBarFill, { width: `${getCompletionPercentage()}%` }, allGeneralItemsChecked && { backgroundColor: COLORS.success }]} />
+            <Text style={styles.overallProgressLabel}>Progreso General</Text>
+            <Text style={styles.overallProgressPercentage}>{getCompletionPercentage()}%</Text>
           </View>
           
+          <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBarFill, { width: `${getCompletionPercentage()}%` }]} />
+          </View>
+
           <View style={styles.summaryBadgesContainer}>
-            <View style={[styles.summaryBadge, allGeneralItemsChecked ? styles.summaryBadgeSuccess : styles.summaryBadgeWarning]}>
-                <MaterialCommunityIcons name={allGeneralItemsChecked ? "shield-check-outline" : "progress-alert"} size={14} color={allGeneralItemsChecked ? COLORS.success : COLORS.warning} />
-                <Text style={[styles.summaryBadgeText, allGeneralItemsChecked ? {color: COLORS.success} : {color: COLORS.warning}]}>
-                    {allGeneralItemsChecked ? "Checks Completos" : "Checks Pendientes"}
-                </Text>
-            </View>
-            <View style={[styles.summaryBadge, areSeguridadPhotosComplete() ? styles.summaryBadgeSuccess : styles.summaryBadgeDanger]}>
-                <MaterialCommunityIcons name={areSeguridadPhotosComplete() ? "camera-check-outline" : "camera-off-outline"} size={14} color={areSeguridadPhotosComplete() ? COLORS.success : COLORS.danger} />
-                <Text style={[styles.summaryBadgeText, areSeguridadPhotosComplete() ? {color: COLORS.success} : {color: COLORS.danger}]}>
-                    Seguridad: {seguridadPhotosTakenCount}/{totalSeguridadItems} fotos
-                </Text>
+            <View style={[styles.summaryBadge, styles.summaryBadgeWarning]}>
+              <Ionicons name="camera" size={12} color={COLORS.warning} />
+              <Text style={styles.summaryBadgeText}>
+                {seguridadPhotosTakenCount}/{totalSeguridadItems} Fotos
+              </Text>
             </View>
           </View>
         </View>
 
+        {/* Categories */}
         {CATEGORIES.map(category => {
           const categoryStatus = getCategoryStatus(category);
           const isExpanded = expandedCategory.includes(category);
-          const isSeguridad = category === CATEGORY_REQUIRING_ITEM_PHOTOS;
+          const categoryItems = preflightChecklist.filter(item => item.category === category);
+          const categoryPhotos = categoryItems.filter(item => !!item.photoUri);
           
-          const currentCategorySeguridadPhotos = isSeguridad ? 
-            preflightChecklist
-              .filter(item => item.category === CATEGORY_REQUIRING_ITEM_PHOTOS && item.photoUri)
-              .map(item => ({id: item.id, uri: item.photoUri!, itemName: item.item }))
-            : [];
-
-
           return (
             <View key={category} style={styles.categoryCard}>
-              <TouchableOpacity style={styles.categoryHeader} onPress={() => toggleCategory(category)} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.categoryHeader} onPress={() => toggleCategory(category)}>
                 <View style={styles.categoryTitleSection}>
-                  <View style={[ styles.categoryIconWrapper, categoryStatus.isComplete ? {backgroundColor: COLORS.successLight, borderColor: COLORS.success} : {backgroundColor: COLORS.primaryLight, borderColor: COLORS.primary} ]}>
-                    <MaterialCommunityIcons name={categoryIcons[category]} size={22} color={categoryStatus.isComplete ? COLORS.success : COLORS.primary} />
+                  <View style={[
+                    styles.categoryIconWrapper,
+                    { 
+                      backgroundColor: categoryStatus.isComplete ? COLORS.successLight : COLORS.primaryLight,
+                      borderColor: categoryStatus.isComplete ? COLORS.success : COLORS.primary,
+                    }
+                  ]}>
+                    <MaterialCommunityIcons 
+                      name={categoryIcons[category]} 
+                      size={20} 
+                      color={categoryStatus.isComplete ? COLORS.success : COLORS.primary} 
+                    />
                   </View>
-                  <View>
-                    <Text style={[ styles.categoryTitle, categoryStatus.isComplete && {color: COLORS.success} ]}>
-                      {category}
-                      {isSeguridad && <Text style={styles.requiredAsterisk}> *</Text>}
-                    </Text>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={styles.categoryTitle}>{category}</Text>
+                      {category === CATEGORY_REQUIRING_ITEM_PHOTOS && (
+                        <Text style={styles.requiredAsterisk}> *</Text>
+                      )}
+                    </View>
                     <Text style={styles.categorySubtitle}>
-                      {categoryStatus.checkedItems} de {categoryStatus.totalItems} verificados
-                      {isSeguridad && `, ${currentCategorySeguridadPhotos.length} fotos`}
+                      {categoryStatus.checkedItems}/{categoryStatus.totalItems} completados
                     </Text>
                   </View>
                 </View>
+                
                 <View style={styles.categoryActions}>
-                  {/* No camera button at category header level now */}
-                  <View style={[ styles.categoryPercentageBadge, categoryStatus.isComplete ? {backgroundColor: COLORS.successLight} : {backgroundColor: COLORS.primaryLight} ]}>
-                      <Text style={[ styles.categoryPercentageText, categoryStatus.isComplete ? {color: COLORS.success} : {color: COLORS.primary} ]}>
-                          {categoryStatus.percentage}%
-                      </Text>
+                  <View style={[
+                    styles.categoryPercentageBadge,
+                    categoryStatus.isComplete && styles.summaryBadgeSuccess
+                  ]}>
+                    <Text style={[
+                      styles.categoryPercentageText,
+                      categoryStatus.isComplete && { color: COLORS.success }
+                    ]}>
+                      {categoryStatus.percentage}%
+                    </Text>
                   </View>
-                  <MaterialCommunityIcons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color={COLORS.iconDefault} />
+                  
+                  <Ionicons 
+                    name={isExpanded ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={COLORS.textSecondary} 
+                  />
                 </View>
               </TouchableOpacity>
+
               {isExpanded && (
-                <View style={styles.checklistItemsContainer}>
-                  {preflightChecklist
-                    .filter(item => item.category === category)
-                    .map((item, index, arr) => (
-                      <View key={item.id} style={[ styles.checklistItem, index === arr.length - 1 && styles.checklistItemLast ]}>
+                <>
+                  <View style={styles.checklistItemsContainer}>
+                    {categoryItems.map((item, index) => (
+                      <View 
+                        key={item.id} 
+                        style={[
+                          styles.checklistItem,
+                          index === categoryItems.length - 1 && styles.checklistItemLast
+                        ]}
+                      >
                         <View style={styles.checklistItemMain}>
-                           <View style={[ styles.itemStatusIconWrapper, item.checked ? {backgroundColor: COLORS.successLight} : {backgroundColor: COLORS.dangerLight} ]}>
-                            {item.checked ? ( <TickCircle size={18} color={COLORS.success} variant="Bold" /> ) : ( <CloseCircle size={18} color={COLORS.danger} variant="Bold" /> )}
+                          <View style={[
+                            styles.itemStatusIconWrapper,
+                            { backgroundColor: item.checked ? COLORS.successLight : COLORS.borderLight }
+                          ]}>
+                            <Ionicons 
+                              name={item.checked ? "checkmark" : "ellipse-outline"} 
+                              size={16} 
+                              color={item.checked ? COLORS.success : COLORS.textMuted} 
+                            />
                           </View>
-                          <Text style={[ styles.itemText, item.checked && styles.itemTextChecked ]}>{item.item}</Text>
+                          <Text style={[
+                            styles.itemText,
+                            item.checked && styles.itemTextChecked
+                          ]}>
+                            {item.item}
+                          </Text>
                         </View>
+                        
                         <View style={styles.itemActionsContainer}>
-                          {isSeguridad && (
-                            <TouchableOpacity
+                          {item.category === CATEGORY_REQUIRING_ITEM_PHOTOS && (
+                            <TouchableOpacity 
+                              style={styles.itemActionButton}
                               onPress={() => handleOpenCameraForItem(item.id)}
-                              style={[styles.itemActionButton]}
                             >
-                              <MaterialCommunityIcons
-                                name="camera-outline"
-                                size={20}
-                                color={item.photoUri ? COLORS.success : COLORS.danger}
+                              <Ionicons 
+                                name={item.photoUri ? "camera" : "camera-outline"} 
+                                size={18} 
+                                color={item.photoUri ? COLORS.success : COLORS.textSecondary} 
                               />
                             </TouchableOpacity>
                           )}
+                          
                           <Switch
+                            style={styles.itemSwitch}
                             value={item.checked}
                             onValueChange={() => handleToggleItem(item.id)}
-                            trackColor={{ false: COLORS.border, true: COLORS.successLight }}
-                            thumbColor={item.checked ? COLORS.success : COLORS.cardBackground}
-                            ios_backgroundColor={COLORS.border}
-                            style={styles.itemSwitch}
+                            trackColor={{ false: COLORS.borderLight, true: COLORS.successLight }}
+                            thumbColor={item.checked ? COLORS.success : COLORS.textMuted}
                           />
                         </View>
                       </View>
                     ))}
-                    {/* Gallery for Seguridad photos, shown if expanded and photos exist */}
-                    {isSeguridad && currentCategorySeguridadPhotos.length > 0 && (
-                        <View style={styles.categoryGalleryContainer}>
-                            <Text style={styles.galleryTitle}>Fotos de {category}</Text>
-                            <FlatList
-                                horizontal
-                                data={currentCategorySeguridadPhotos}
-                                renderItem={({ item: photo }) => (
-                                    <TouchableOpacity onPress={() => Alert.alert("Foto de Seguridad", `Item: ${photo.itemName}`)}>
-                                        <Image source={{ uri: photo.uri }} style={styles.galleryThumbnail} />
-                                    </TouchableOpacity>
-                                )}
-                                keyExtractor={(photo) => photo.uri}
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={styles.galleryListContent}
-                            />
-                        </View>
-                    )}
-                </View>
+                  </View>
+
+                  {/* Category gallery for photos */}
+                  {category === CATEGORY_REQUIRING_ITEM_PHOTOS && categoryPhotos.length > 0 && (
+                    <View style={styles.categoryGalleryContainer}>
+                      <Text style={styles.galleryTitle}>Fotos tomadas ({categoryPhotos.length})</Text>
+                      <FlatList
+                        data={categoryPhotos}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.galleryListContent}
+                        keyExtractor={(item) => item.id}
+                        renderItem={({ item }) => (
+                          <Image source={{ uri: item.photoUri! }} style={styles.galleryThumbnail} />
+                        )}
+                      />
+                    </View>
+                  )}
+                </>
               )}
             </View>
           );
         })}
-        
+
+        {/* Notes Section */}
         <View style={styles.notesCard}>
-            {/* ... (NotesCard JSX remains the same) ... */}
-             <View style={styles.notesHeader}>
-                <Ionicons name="document-text-outline" size={20} color={COLORS.primary} style={{marginRight: 8}}/>
-                <Text style={styles.notesTitle}>{currentTurbine ? `Notas Adicionales para ${currentTurbine.name}` : 'Notas Generales'}</Text>
-            </View>
-            <TextInput
-                style={styles.notesInput}
-                multiline
-                placeholder={currentTurbine ? `Observaciones específicas...` : 'Añadir comentarios relevantes...'}
-                placeholderTextColor={COLORS.textMuted}
-                value={generalNotes}
-                onChangeText={setGeneralNotes}
-            />
+          <View style={styles.notesHeader}>
+            <Ionicons name="document-text" size={18} color={COLORS.textSecondary} style={{ marginRight: 8 }} />
+            <Text style={styles.notesTitle}>Notas Adicionales</Text>
+          </View>
+          <TextInput
+            style={styles.notesInput}
+            placeholder="Agregar observaciones o comentarios..."
+            value={generalNotes}
+            onChangeText={setGeneralNotes}
+            multiline
+            placeholderTextColor={COLORS.textMuted}
+          />
         </View>
-        
+
+        {/* Submit Button */}
         <TouchableOpacity
-          style={[ styles.submitButton, (!allGeneralItemsChecked || !areSeguridadPhotosComplete()) && styles.submitButtonDisabled ]}
+          style={[
+            styles.submitButton,
+            (!allGeneralItemsChecked || !areSeguridadPhotosComplete()) && styles.submitButtonDisabled
+          ]}
           onPress={handleSubmitPreflight}
           disabled={!allGeneralItemsChecked || !areSeguridadPhotosComplete()}
-          activeOpacity={0.8}
         >
-          {/* ... (SubmitButton JSX remains the same) ... */}
-          <MaterialCommunityIcons
-                name={(!allGeneralItemsChecked || !areSeguridadPhotosComplete()) ? "progress-clock" : "check-circle-outline"}
-                size={20}
-                color={COLORS.white}
-            />
-            <Text style={styles.submitButtonText}>
-                {(!allGeneralItemsChecked || !areSeguridadPhotosComplete()) ?
-                'Completar Checklist' :
-                (currentTurbine ? `Confirmar para ${currentTurbine.name}` : 'Finalizar Verificación')
-                }
-            </Text>
+          <Ionicons 
+            name="checkmark-circle" 
+            size={20} 
+            color={COLORS.white} 
+          />
+          <Text style={styles.submitButtonText}>Completar Checklist</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      {currentTurbine && ( <Modal animationType="slide" transparent={true} visible={isTurbineModalVisible} onRequestClose={() => setIsTurbineModalVisible(false)}>
-         {/* ... (Turbine Info Modal JSX remains the same) ... */}
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContentContainer}>
-              <View style={styles.modalHeader}>
-                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-                  {getTurbineStatusIcon(currentTurbine.status)}
-                  <Text style={styles.modalTitle}>{currentTurbine.name}</Text>
-                </View>
-                <TouchableOpacity onPress={() => setIsTurbineModalVisible(false)} style={styles.modalCloseButton}>
-                  <Ionicons name="close-circle" size={28} color={COLORS.textMuted} />
-                </TouchableOpacity>
-              </View>
-              
-              <View style={[styles.modalStatusBadge, { backgroundColor: getTurbineStatusColor(currentTurbine.status) }]}>
-                  <Text style={styles.modalStatusText}>
-                    {currentTurbine.status ? currentTurbine.status.replace('_', ' ') : 'DESCONOCIDO'}
-                  </Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Detalles de la Turbina</Text>
-                <View style={styles.modalDetailRow}>
-                  <Text style={styles.modalDetailLabel}>ID:</Text>
-                  <Text style={styles.modalDetailValue}>{currentTurbine.id}</Text>
-                </View>
-                <View style={styles.modalDetailRow}>
-                  <Text style={styles.modalDetailLabel}>Parque Eólico:</Text>
-                  <Text style={styles.modalDetailValue}>{currentTurbine.windParkId}</Text>
-                </View>
-                <View style={styles.modalDetailRow}>
-                  <Text style={styles.modalDetailLabel}>Modelo:</Text>
-                  <Text style={styles.modalDetailValue}>{currentTurbine.model || 'No especificado'}</Text>
-                </View>
-                <View style={styles.modalDetailRow}>
-                  <Text style={styles.modalDetailLabel}>Altura de Buje:</Text>
-                  <Text style={styles.modalDetailValue}>{currentTurbine.hubHeight ? `${currentTurbine.hubHeight}m` : 'N/A'}</Text>
-                </View>
-                 <View style={styles.modalDetailRow}>
-                  <Text style={styles.modalDetailLabel}>Diámetro de Rotor:</Text>
-                  <Text style={styles.modalDetailValue}>{currentTurbine.rotorDiameter ? `${currentTurbine.rotorDiameter}m` : 'N/A'}</Text>
-                </View>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Mantenimiento</Text>
-                <View style={styles.modalDetailRow}>
-                  <Text style={styles.modalDetailLabel}>Última Inspección:</Text>
-                  <Text style={styles.modalDetailValue}>
-                    {currentTurbine.lastInspection ? new Date(currentTurbine.lastInspection).toLocaleDateString() : 'N/A'}
-                  </Text>
-                </View>
-                <View style={styles.modalDetailRow}>
-                  <Text style={styles.modalDetailLabel}>Próxima Inspección:</Text>
-                  <Text style={styles.modalDetailValue}>
-                    {currentTurbine.nextInspection ? new Date(currentTurbine.nextInspection).toLocaleDateString() : 'N/A'}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-      </Modal>)}
     </View>
   );
 };

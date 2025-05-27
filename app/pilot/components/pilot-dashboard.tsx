@@ -41,7 +41,17 @@ import {
   incidentTypes as importedIncidentTypes,
   pilot,
   initialCurrentProject as projectDataFromImport,
-} from "./pilot-dashboard-data"; // Asegúrate que la ruta sea correcta
+} from "./pilot-dashboard-data";
+
+// Claves para almacenar datos en AsyncStorage
+// const STORAGE_KEYS = {
+//   CURRENT_PROJECT: 'pilot_dashboard_current_project',
+//   ALERTS: 'pilot_dashboard_alerts',
+//   ACTIVITY_PAUSE_STATE: 'pilot_dashboard_activity_pause',
+// };
+
+import { setGlobalProjectData } from '../../../src/utils/globalState';
+import { Storage } from '../../../src/utils/storage';
 
 // Función auxiliar para asignar iconos a las actividades
 const getActivityIcon = (
@@ -934,13 +944,6 @@ function NoActivitiesCard({
   );
 }
 
-// Claves para almacenar datos en AsyncStorage
-// const STORAGE_KEYS = {
-//   CURRENT_PROJECT: 'pilot_dashboard_current_project',
-//   ALERTS: 'pilot_dashboard_alerts',
-//   ACTIVITY_PAUSE_STATE: 'pilot_dashboard_activity_pause',
-// };
-
 const PilotDashboard = () => {
   console.log("PilotDashboard RENDERED - V5"); // Incremented version for clarity
   const router = useRouter();
@@ -1576,18 +1579,62 @@ const PilotDashboard = () => {
       return;
     }
 
-    // Proceed with normal finish logic
-    const newPauseState = { isPaused: false };
-    setActivityPauseState(newPauseState);
+    // Clear pause state immediately
+    setActivityPauseState({ isPaused: false });
 
-    handleActivityAction(activityId, "COMPLETADA");
+    // Clear current incident if any
+    setCurrentIncident(null);
 
+    // Mark activity as completed with proper timestamp
+    const completionTime = new Date().toISOString();
+    
+    setCurrentProject((prev) => {
+      const updatedActivities = (prev.activities || []).map((act) =>
+        act.id === activityId ? {
+          ...act,
+          status: "COMPLETADA" as Activity["status"],
+          actualEnd: completionTime,
+          time: "Hoy - Completada",
+          // Ensure we close any open pause periods
+          pauseHistory: (act.pauseHistory || []).map((pause, idx, arr) =>
+            idx === arr.length - 1 && !pause.end
+              ? { ...pause, end: completionTime }
+              : pause
+          ),
+        } : act
+      );
+        const updatedProject = { ...prev, activities: updatedActivities };
+      
+      // Save to storage immediately in a separate async operation
+      const saveToStorage = async () => {
+        try {
+          await Storage.setItem('pilot_dashboard_current_project', JSON.stringify(updatedProject));
+          console.log("Activity completed and saved to storage:", activityId);
+        } catch (error) {
+          console.error("Error saving completed activity to storage:", error);
+        }
+      };
+      saveToStorage();
+      
+      return updatedProject;
+    });
+
+    // Hide activity suggestions if showing
     if (showActivitySuggestions) {
       setShowActivitySuggestions(false);
     }
 
     setActivityTerminationType("completed");
 
+    // Show success message
+    setTimeout(() => {
+      Alert.alert(
+        "✅ Actividad Completada", 
+        `La actividad "${currentOngoingActivityForDisplay.name}" ha sido completada exitosamente.`
+      );
+    }, 200);
+
+    // Show suggestions for next activities
     const pendingForToday = pendingTodayActivities.filter(
       (act) => act.id !== activityId
     );
@@ -1595,24 +1642,27 @@ const PilotDashboard = () => {
       (act) => act.id !== activityId
     );
 
-    if (pendingForToday.length > 0) {
-      setSuggestedActivities(pendingForToday.slice(0, 3));
-      setShowActivitySuggestions(true);
-    } else if (genericPendingToShow.length > 0) {
-      setSuggestedActivities(genericPendingToShow.slice(0, 3));
-      setShowActivitySuggestions(true);
-    } else {
-      setShowActivitySuggestions(false);
-    }
+    setTimeout(() => {
+      if (pendingForToday.length > 0) {
+        setSuggestedActivities(pendingForToday.slice(0, 3));
+        setShowActivitySuggestions(true);
+      } else if (genericPendingToShow.length > 0) {
+        setSuggestedActivities(genericPendingToShow.slice(0, 3));
+        setShowActivitySuggestions(true);
+      } else {
+        setShowActivitySuggestions(false);
+      }
+    }, 1000); // Delay suggestions to allow completion message to be seen
   }, [
     currentOngoingActivityForDisplay,
-    handleActivityAction,
     pendingTodayActivities,
     genericPendingActivities,
     setActivityPauseState,
+    setCurrentIncident,
     showActivitySuggestions,
     setShowActivitySuggestions,
     setActivityTerminationType,
+    setSuggestedActivities,
     router,
     bladeInspectionStatus
   ]);
@@ -1636,34 +1686,194 @@ const PilotDashboard = () => {
     },
     []
   );
+  // Save project state to storage whenever it changes
+  useEffect(() => {
+    const saveProjectToStorage = async () => {
+      try {
+        await Storage.setItem('pilot_dashboard_current_project', JSON.stringify(currentProject));
+        console.log("Saved project to storage:", currentProject.name, "Activities:", currentProject.activities?.length);
+        
+        // Also set global data for React Native components
+        setGlobalProjectData(currentProject);
+      } catch (error) {
+        console.error("Error saving project to storage:", error);
+      }
+    };
+    
+    saveProjectToStorage();
+  }, [currentProject]);
+  // Load project state from storage on mount
+  useEffect(() => {
+    const loadStoredProject = async () => {
+      try {
+        const stored = await Storage.getItem('pilot_dashboard_current_project');
+        if (stored) {
+          const project = JSON.parse(stored);
+          setCurrentProject(project);
+          console.log("Loaded project from storage:", project.name, "Activities:", project.activities?.length);
+          // Set global data with loaded project
+          setGlobalProjectData(project);
+        } else {
+          // Set initial global data with current project if no stored data
+          setGlobalProjectData(currentProject);
+        }
+      } catch (error) {
+        console.error("Error loading project from storage:", error);
+        // Fallback to setting current project data
+        setGlobalProjectData(currentProject);
+      }
+    };
+    
+    loadStoredProject();
+  }, []);
 
   // Efecto para iniciar la actividad de turbina después del checklist prevuelo
   useEffect(() => {
-    const { activityToStartAfterPreflight, preflightCompletedForTurbine } = params;
-    if (
-      activityToStartAfterPreflight &&
-      preflightCompletedForTurbine === "true"
-    ) {
-      // Marcar la actividad como EN_PROGRESO si no lo está ya
-      setCurrentProject((prev) => {
-        const updatedActivities = (prev.activities || []).map((act) =>
-          act.id === activityToStartAfterPreflight && act.status !== "EN_PROGRESO"              ? {
+    const { 
+      activityToStartAfterPreflight, 
+      preflightCompletedForTurbine, 
+      turbineIdForActivityStart,
+      isNewTurbineActivity 
+    } = params;
+    
+    console.log("Dashboard checking preflight params:", { 
+      activityToStartAfterPreflight, 
+      preflightCompletedForTurbine,
+      turbineIdForActivityStart, 
+      isNewTurbineActivity,
+      allParams: params,
+      currentActivitiesCount: activities.length
+    });
+    
+    if (preflightCompletedForTurbine === "true" && turbineIdForActivityStart) {
+      if (activityToStartAfterPreflight) {
+        // Comprobar si es una actividad existente o una nueva
+        const existingActivity = activities.find(act => act.id === activityToStartAfterPreflight);
+        
+        if (existingActivity) {
+          console.log("Starting existing activity:", existingActivity.id);
+          // Si es una actividad existente, la marcamos como EN_PROGRESO
+          setCurrentProject((prev) => {
+            const updatedActivities = (prev.activities || []).map((act) =>
+              act.id === activityToStartAfterPreflight && act.status !== "EN_PROGRESO" ? {
                 ...act,
                 status: "EN_PROGRESO" as Activity["status"],
                 actualStart: new Date().toISOString(),
                 time: "Hoy - En curso",
-              }
-            : act
-        );
-        return { ...prev, activities: updatedActivities };
-      });
+              } : act
+            );
+            return { ...prev, activities: updatedActivities };
+          });
 
-      // Limpiar los parámetros de la URL para evitar reinicios infinitos
+          // Clear any pause state and show success message
+          setActivityPauseState({ isPaused: false });
+          
+          setTimeout(() => {
+            Alert.alert(
+              "✅ Actividad Iniciada", 
+              `Se ha iniciado la actividad: ${existingActivity.name}`
+            );
+          }, 500);
+        } else if (isNewTurbineActivity === "true") {
+          console.log("Creating new turbine activity:", activityToStartAfterPreflight);
+          
+          // Pause any currently ongoing activity first
+          setCurrentProject(prev => {
+            const currentOngoing = (prev.activities || []).find(act => act.status === "EN_PROGRESO");
+            let updatedActivities = prev.activities || [];
+            
+            if (currentOngoing) {
+              console.log("Pausing current ongoing activity:", currentOngoing.id);
+              updatedActivities = updatedActivities.map(act =>
+                act.id === currentOngoing.id ? {
+                  ...act,
+                  status: "COMPLETADA" as Activity["status"],
+                  actualEnd: new Date().toISOString(),
+                  time: "Hoy - Completada",
+                } : act
+              );
+            }
+            
+            return { ...prev, activities: updatedActivities };
+          });
+          
+          // Create new turbine activity
+          const now = new Date();
+          const turbineId = turbineIdForActivityStart;
+          
+          // Find turbine by ID with fallback for format differences
+          let turbine = mockTurbines.find(t => t.id === turbineId);
+          if (!turbine) {
+            // Try with underscore replacement
+            turbine = mockTurbines.find(t => t.id === turbineId.replace(/_/g, '-'));
+          }
+          if (!turbine) {
+            // Try with dash replacement
+            turbine = mockTurbines.find(t => t.id === turbineId.replace(/-/g, '_'));
+          }
+          
+          const turbineName = turbine?.name || `Turbina ${turbineIdForActivityStart.replace(/[_-]/g, '')}`;
+          
+          const newTurbineActivity: Activity = {
+            id: activityToStartAfterPreflight,
+            type: "TURBINE_WORK",
+            name: `Trabajo en ${turbineName}`,
+            notes: `Inspección y trabajo en ${turbineName}`,
+            status: "EN_PROGRESO",
+            time: "Hoy - En curso",
+            description: `Trabajo en turbina ${turbineName}`,
+            turbineId: turbineId,
+            actualStart: now.toISOString(),
+            scheduledStart: now.toISOString(),
+            scheduledEnd: null,
+            actualEnd: null,
+          };
+          
+          console.log("New activity created:", newTurbineActivity);
+          
+          // Add the new activity and ensure it's at the top
+          setCurrentProject(prev => {
+            const prevActivities = Array.isArray(prev.activities) ? prev.activities : [];
+              const updatedProject = {
+              ...prev,
+              activities: [newTurbineActivity, ...prevActivities]
+            };
+            
+            // Save to storage immediately in a separate async operation
+            const saveToStorage = async () => {
+              try {
+                await Storage.setItem('pilot_dashboard_current_project', JSON.stringify(updatedProject));
+                console.log("Immediately saved new turbine activity to storage");
+              } catch (error) {
+                console.error("Error saving to storage:", error);
+              }
+            };
+            saveToStorage();
+            
+            return updatedProject;
+          });
+          
+          // Clear any pause state
+          setActivityPauseState({ isPaused: false });
+          
+          // Show confirmation that activity started
+          setTimeout(() => {
+            Alert.alert(
+              "✅ Actividad Iniciada", 
+              `Se ha iniciado el trabajo en la turbina ${turbineName}`
+            );
+          }, 500);
+        }
+      }
+      
+      // Clear URL parameters to prevent infinite restarts
       const newParams = { ...params };
       delete newParams.activityToStartAfterPreflight;
       delete newParams.preflightCompletedForTurbine;
       delete newParams.turbineIdForActivityStart;
       delete newParams.timestamp;
+      delete newParams.isNewTurbineActivity;
+      
       if (Object.keys(newParams).length < Object.keys(params).length) {
         router.replace({
           pathname: currentPathname,
@@ -1671,7 +1881,7 @@ const PilotDashboard = () => {
         } as any);
       }
     }
-  }, [params, router, currentPathname]);
+  }, [params, router, currentPathname, activities, mockTurbines, setActivityPauseState]);
 
   // Effect para manejar la finalización de la inspección de aspas
   useEffect(() => {
@@ -1787,11 +1997,46 @@ const PilotDashboard = () => {
           {
             text: "Sí, finalizar",
             onPress: () => {
-              handleActivityAction(currentOngoingActivityForDisplay.id, "COMPLETADA");
+              const activityId = currentOngoingActivityForDisplay.id;
+              const completionTime = new Date().toISOString();
+              
+              // Mark activity as completed
+              setCurrentProject((prev) => {
+                const updatedActivities = (prev.activities || []).map((act) =>
+                  act.id === activityId ? {
+                    ...act,
+                    status: "COMPLETADA" as Activity["status"],
+                    actualEnd: completionTime,
+                    time: "Hoy - Completada (Por Incidente)",
+                    pauseHistory: (act.pauseHistory || []).map((pause, idx, arr) =>
+                      idx === arr.length - 1 && !pause.end
+                        ? { ...pause, end: completionTime }
+                        : pause
+                    ),
+                  } : act
+                );
+                  const updatedProject = { ...prev, activities: updatedActivities };
+                
+                // Save to storage immediately in a separate async operation
+                const saveToStorage = async () => {
+                  try {
+                    await Storage.setItem('pilot_dashboard_current_project', JSON.stringify(updatedProject));
+                    console.log("Activity completed by incident and saved to storage:", activityId);
+                  } catch (error) {
+                    console.error("Error saving activity completion to storage:", error);
+                  }
+                };
+                saveToStorage();
+                
+                return updatedProject;
+              });
+
+              // Clear states
               setCurrentIncident(null);
               setActivityPauseState({ isPaused: false });
-              Alert.alert("Actividad Finalizada", "La actividad se ha finalizado debido al incidente.");
               setShowActivitySuggestions(false);
+              
+              Alert.alert("Actividad Finalizada", "La actividad se ha finalizado debido al incidente.");
             },
           },
         ]
@@ -1801,7 +2046,7 @@ const PilotDashboard = () => {
     }
   }, [
     currentOngoingActivityForDisplay,
-    handleActivityAction,
+    setCurrentProject,
     setCurrentIncident,
     setActivityPauseState,
     setShowActivitySuggestions,
@@ -2077,7 +2322,7 @@ const PilotDashboard = () => {
               id: activity.id,
               icon: <Ionicons name={iconName} size={28} color="#6b7280" />, // Neutral color for future
               title: activity.name,
-              time: timeDisplay,
+                           time: timeDisplay,
               duration: undefined,
               statusColor: "#6b7280",
               statusLabel: "Futura",
@@ -2262,7 +2507,8 @@ const PilotDashboard = () => {
                     router.push(`/pilot/blade-inspection-detail?turbineId=${turbineId}&activityId=${currentOngoingActivityForDisplay.id}`);
                   }}
                 />
-              )}              <QuickActionsMenuCard
+              )}
+              <QuickActionsMenuCard
                 onNavigate={handleNavigate}
                 onOpenNewActivity={handleOpenNewActivityModal}
                 onOpenNewIncident={handleOpenNewIncidentModal}

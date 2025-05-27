@@ -1,20 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
-import { 
-  Alert, 
-  Animated, 
-  Image, 
-  Platform, 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
-  View,
-  ScrollView,
+import React, { useState } from 'react';
+import {
+  Alert,
+  FlatList,
+  Image,
   Modal,
-  FlatList
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 // Enhanced interfaces for Drive functionality
@@ -112,42 +109,19 @@ const projectMembers = [
 
 const ProjectInfoMenuEnhanced = () => {
   const router = useRouter();
-  const [hasNewPhotos, setHasNewPhotos] = useState(false);
   const [projectData, setProjectData] = useState<ProjectData>(mockProject);
   const [showDriveModal, setShowDriveModal] = useState(false);
   const [showTurbinesModal, setShowTurbinesModal] = useState(false);
-  
-  const scaleAnim = useRef(new Animated.Value(1)).current;
   
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
   };
-
-  const requestCameraPermissions = async () => {
-    if (Platform.OS !== 'web') {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permisos requeridos',
-          'Se necesitan permisos de galería para subir fotos.'
-        );
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const handlePhotoUpload = async () => {
-    const hasPermission = await requestCameraPermissions();
-    if (!hasPermission) return;
-    router.push('/pilot/confirm-photo-upload');
-  };
+  // Se eliminaron las funciones relacionadas con la subida de fotos
 
   const handleDriveInfo = () => {
     setShowDriveModal(true);
   };
-
   const handleTurbineToggle = (turbineId: string) => {
     setProjectData(prev => {
       const updatedTurbines = prev.turbines.map(turbine => {
@@ -156,7 +130,7 @@ const ProjectInfoMenuEnhanced = () => {
           return {
             ...turbine,
             isCompleted: newIsCompleted,
-            status: newIsCompleted ? 'COMPLETED' : 'PENDING'
+            status: newIsCompleted ? 'COMPLETED' as const : 'PENDING' as const
           };
         }
         return turbine;
@@ -373,25 +347,7 @@ const ProjectInfoMenuEnhanced = () => {
       </View>
     </Modal>
   );
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setHasNewPhotos(true);
-      Animated.sequence([
-        Animated.timing(scaleAnim, {
-          toValue: 1.1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [scaleAnim]);
+  // Ya no necesitamos el efecto para animaciones
 
   return (
     <ScrollView 
@@ -413,18 +369,15 @@ const ProjectInfoMenuEnhanced = () => {
             <Text style={componentStyles.projectClient}>{projectData.client}</Text>
             <Text style={componentStyles.projectDescription}>{projectData.description}</Text>
           </View>
-        </View>
-
-        {/* Quick Access Buttons */}
-        <View style={componentStyles.quickAccessContainer}>
-          <TouchableOpacity 
+        </View>        {/* Quick Access Buttons */}
+        <View style={componentStyles.quickAccessContainer}>          <TouchableOpacity 
             style={componentStyles.quickAccessButton}
-            onPress={() => setShowTurbinesModal(true)}
+            onPress={() => router.push('/pilot/turbines-status')}
           >
             <View style={componentStyles.quickAccessIconContainer}>
               <Ionicons name="nuclear-outline" size={20} color="#3b82f6" />
             </View>
-            <Text style={componentStyles.quickAccessButtonText}>Marcar Turbinas</Text>
+            <Text style={componentStyles.quickAccessButtonText}>Ver Turbinas</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -435,23 +388,6 @@ const ProjectInfoMenuEnhanced = () => {
               <Ionicons name="map-outline" size={20} color="#10b981" />
             </View>
             <Text style={componentStyles.quickAccessButtonText}>Mapa del Sitio</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[
-              componentStyles.quickAccessButton, 
-              hasNewPhotos && componentStyles.highlightedQuickAccessButton
-            ]}
-            onPress={handlePhotoUpload}
-          >
-            <Animated.View style={[
-              componentStyles.quickAccessIconContainer, 
-              { transform: [{ scale: hasNewPhotos ? scaleAnim : 1 }] }
-            ]}>
-              <Ionicons name="cloud-upload-outline" size={20} color="#f59e0b" />
-              {hasNewPhotos && <View style={componentStyles.quickAccessNotificationDot} />}
-            </Animated.View>
-            <Text style={componentStyles.quickAccessButtonText}>Subir Fotos</Text>
           </TouchableOpacity>
         </View>
 
