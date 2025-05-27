@@ -1,4 +1,5 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -18,7 +19,6 @@ import {
   mockIncidents,
   mockProjects
 } from "../../../src/mocks";
-import Constants from "expo-constants";
 
 // Use light theme for web/mobile consistency
 const currentTheme = theme.light;
@@ -890,13 +890,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: currentTheme.background,
-  },
-  header: {
+  },  header: {
     paddingHorizontal: currentTheme.dimensions.spacing.md,
-    paddingTop: Constants.statusBarHeight, // Reduced paddingTop
+    paddingTop: currentTheme.dimensions.spacing.md, // Minimal top padding
     paddingBottom: currentTheme.dimensions.spacing.md,
     marginHorizontal: currentTheme.dimensions.spacing.md,
-    marginTop: currentTheme.dimensions.spacing.lg,
+    marginTop: Constants.statusBarHeight + currentTheme.dimensions.spacing.xs, // Just enough space for status bar
     backgroundColor: currentTheme.card,
     borderRadius: currentTheme.dimensions.borderRadius.medium,
     marginBottom: currentTheme.dimensions.spacing.md,

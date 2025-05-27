@@ -173,14 +173,20 @@ export default function AdminKPIDashboard() {
 
   return (
     <View style={styles.container}>
-      
-      <Stack.Screen
+        <Stack.Screen
         options={{
           headerShown: true,
           title: "Indicadores Generales",
           headerStyle: { backgroundColor: "#1E3A8A" },
           headerTintColor: "#ffffff",
-          headerTitleStyle: { fontWeight: "600" },
+          headerTitleStyle: { fontWeight: "600" },          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.push("/admin/profile")}
+              style={[styles.headerButton, { flexDirection: 'row', alignItems: 'center' }]}
+            >
+              <Ionicons name="arrow-back" size={24} color="#ffffff" />
+            </TouchableOpacity>
+          ),
           headerRight: () => (
             <View style={styles.headerButtons}>
               <TouchableOpacity
@@ -486,10 +492,15 @@ const styles = StyleSheet.create({
   headerButtons: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  headerButton: {
+  },  headerButton: {
     padding: 8,
     marginLeft: 8,
+  },
+  backButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "500",
+    marginLeft: 4,
   },
   scrollView: {
     flex: 1,
