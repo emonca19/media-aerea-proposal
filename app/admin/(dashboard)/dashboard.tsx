@@ -639,7 +639,7 @@ export default function AdminDashboard() {
       title: "Reportes",
       subtitle: "Generar reportes de datos",
       icon: "analytics" as keyof typeof MaterialIcons.glyphMap,
-      route: "/admin/(profile)/report",
+      route: "/admin/reports",
       color: currentTheme.accent,
     },
     {
@@ -766,7 +766,7 @@ export default function AdminDashboard() {
             change="+5%"
             isPositive={true}
             icon="check-circle"
-            onPress={() => router.push("/admin/reports")}
+            onPress={() => router.push("/admin/reports?from=dashboard")}
           />
           <KPICard
             title="Inspecciones Diarias"

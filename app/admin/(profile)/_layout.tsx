@@ -15,12 +15,6 @@ export default function ProfileLayout() {
           headerShown: false,
         }}
       />
-      <Stack.Screen
-        name="report"
-        options={{
-          headerShown: false,
-        }}
-      />
     </Stack>
   );
 }
