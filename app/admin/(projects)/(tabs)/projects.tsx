@@ -184,9 +184,8 @@ export default function ProjectsScreen() {
       ),
     []
   );
-
   const statusFilters = useMemo(
-    () => ["All", "Active", "Paused", "Completed"],
+    () => ["All", "ACTIVE", "PAUSED", "COMPLETED"],
     []
   );
 
@@ -244,27 +243,25 @@ export default function ProjectsScreen() {
   const getProjectProgress = (projectId: string) => {
     return mockProjectProgress.find((p) => p.projectId === projectId);
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Active":
-        return "#10b981";
-      case "Paused":
-        return "#f59e0b";
-      case "Completed":
-        return "#6b7280";
+      case "ACTIVE":
+        return "#22c55e"; // Green for active projects
+      case "PAUSED":
+        return "#f59e0b"; // Amber/orange for paused projects
+      case "COMPLETED":
+        return "#3b82f6"; // Blue for completed projects
       default:
         return "#6b7280";
     }
   };
-
   const getStatusText = (status: string) => {
     switch (status) {
-      case "Active":
+      case "ACTIVE":
         return "Activo";
-      case "Paused":
+      case "PAUSED":
         return "Pausado";
-      case "Completed":
+      case "COMPLETED":
         return "Completado";
       default:
         return status;
@@ -353,7 +350,7 @@ export default function ProjectsScreen() {
                       width: `${progress.completionPercentage}%`,
                       backgroundColor:
                         progress.completionPercentage === 100
-                          ? "#10b981"
+                          ? "#22c55e"
                           : "#9C46CE",
                     },
                   ]}
