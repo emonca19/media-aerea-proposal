@@ -17,8 +17,8 @@ import {
   mockProjectProgress,
   mockProjects,
   mockWindParks,
-} from "../../../src/mocks";
-import { Project } from "../../../src/types/projects";
+} from "../../../../src/mocks";
+import { Project } from "../../../../src/types/projects";
 
 export default function ProjectsScreen() {
   const [searchQuery, setSearchQuery] = useState("");

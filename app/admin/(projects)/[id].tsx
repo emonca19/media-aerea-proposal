@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Stack, useLocalSearchParams, router } from "expo-router";
+import Constants from "expo-constants";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -11,13 +12,13 @@ import {
 } from "react-native";
 import {
   mockClients,
+  mockDrones,
+  mockPilotUsers,
+  mockProjectAssignments,
   mockProjectProgress,
   mockProjects,
-  mockWindParks,
   mockTurbines,
-  mockPilotUsers,
-  mockDrones,
-  mockProjectAssignments,
+  mockWindParks,
 } from "../../../src/mocks";
 
 type TabType = "general" | "parks" | "assignments" | "history";
@@ -33,7 +34,11 @@ export default function ProjectDetailsScreen() {
       <View style={styles.container}>
         <Stack.Screen options={{ title: "Proyecto no encontrado" }} />
         <View style={styles.errorContainer}>
-          <MaterialCommunityIcons name="alert-circle" size={64} color="#ef4444" />
+          <MaterialCommunityIcons
+            name="alert-circle"
+            size={64}
+            color="#ef4444"
+          />
           <Text style={styles.errorTitle}>Proyecto no encontrado</Text>
           <Text style={styles.errorDescription}>
             El proyecto solicitado no existe o ha sido eliminado.
@@ -91,19 +96,23 @@ export default function ProjectDetailsScreen() {
 
   const getTurbinesForProject = () => {
     // Get turbines from the wind park associated with this project
-    return mockTurbines.filter(turbine => turbine.windParkId === project.windParkId);
+    return mockTurbines.filter(
+      (turbine) => turbine.windParkId === project.windParkId
+    );
   };
   const getAssignmentsForProject = () => {
-    return mockProjectAssignments.filter(assignment => assignment.projectId === project.id);
+    return mockProjectAssignments.filter(
+      (assignment) => assignment.projectId === project.id
+    );
   };
 
   const getPilotName = (pilotId: string) => {
-    const pilot = mockPilotUsers.find(p => p.id === pilotId);
+    const pilot = mockPilotUsers.find((p) => p.id === pilotId);
     return pilot ? pilot.name : pilotId;
   };
 
   const getDroneName = (droneId: string) => {
-    const drone = mockDrones.find(d => d.id === droneId);
+    const drone = mockDrones.find((d) => d.id === droneId);
     return drone?.model || droneId;
   };
 
@@ -124,7 +133,10 @@ export default function ProjectDetailsScreen() {
     switch (activeTab) {
       case "general":
         return (
-          <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.tabContent}
+            showsVerticalScrollIndicator={false}
+          >
             {/* Project Status */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
@@ -135,7 +147,9 @@ export default function ProjectDetailsScreen() {
                     { backgroundColor: getStatusColor(project.status) },
                   ]}
                 >
-                  <Text style={styles.statusText}>{getStatusText(project.status)}</Text>
+                  <Text style={styles.statusText}>
+                    {getStatusText(project.status)}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -208,7 +222,8 @@ export default function ProjectDetailsScreen() {
                   </View>
                   <View style={styles.progressStats}>
                     <Text style={styles.progressStat}>
-                      {progress.turbinesInspected} de {progress.totalTurbines} turbinas inspeccionadas
+                      {progress.turbinesInspected} de {progress.totalTurbines}
+                      turbinas inspeccionadas
                     </Text>
                   </View>
                 </View>
@@ -227,7 +242,10 @@ export default function ProjectDetailsScreen() {
 
       case "parks":
         return (
-          <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.tabContent}
+            showsVerticalScrollIndicator={false}
+          >
             {/* Wind Park Information */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Parque Eólico Asociado</Text>
@@ -252,7 +270,9 @@ export default function ProjectDetailsScreen() {
                 Turbinas ({turbines.length})
               </Text>
               {turbines.length > 0 ? (
-                <View style={styles.turbinesList}>                  {turbines.map((turbine) => (
+                <View style={styles.turbinesList}>
+                  
+                  {turbines.map((turbine) => (
                     <View key={turbine.id} style={styles.turbineCard}>
                       <View style={styles.turbineHeader}>
                         <Text style={styles.turbineId}>{turbine.name}</Text>
@@ -286,12 +306,14 @@ export default function ProjectDetailsScreen() {
                       </View>
                       {turbine.position && (
                         <Text style={styles.turbineLocation}>
-                          Posición: X: {turbine.position.x}, Y: {turbine.position.y}
+                          Posición: X: {turbine.position.x}, Y:
+                          {turbine.position.y}
                         </Text>
                       )}
                       {turbine.lastInspection && (
                         <Text style={styles.turbineDate}>
-                          Última inspección: {turbine.lastInspection.toLocaleDateString()}
+                          Última inspección:
+                          {turbine.lastInspection.toLocaleDateString()}
                         </Text>
                       )}
                       {turbine.notes && (
@@ -318,13 +340,18 @@ export default function ProjectDetailsScreen() {
 
       case "assignments":
         return (
-          <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.tabContent}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
                 Asignaciones Activas ({assignments.length})
               </Text>
               {assignments.length > 0 ? (
-                <View style={styles.assignmentsList}>                  {assignments.map((assignment) => (
+                <View style={styles.assignmentsList}>
+                  
+                  {assignments.map((assignment) => (
                     <View key={assignment.id} style={styles.assignmentCard}>
                       <View style={styles.assignmentHeader}>
                         <Text style={styles.assignmentTitle}>
@@ -349,7 +376,10 @@ export default function ProjectDetailsScreen() {
                         <View style={styles.assignmentDetailRow}>
                           <Ionicons name="people" size={16} color="#6b7280" />
                           <Text style={styles.assignmentDetailText}>
-                            Pilotos: {assignment.pilotIds.map(id => getPilotName(id)).join(", ")}
+                            Pilotos:
+                            {assignment.pilotIds
+                              .map((id) => getPilotName(id))
+                              .join(", ")}
                           </Text>
                         </View>
                         <View style={styles.assignmentDetailRow}>
@@ -359,17 +389,24 @@ export default function ProjectDetailsScreen() {
                             color="#6b7280"
                           />
                           <Text style={styles.assignmentDetailText}>
-                            Drones: {assignment.droneIds.map(id => getDroneName(id)).join(", ")}
+                            Drones:
+                            {assignment.droneIds
+                              .map((id) => getDroneName(id))
+                              .join(", ")}
                           </Text>
                         </View>
                         <View style={styles.assignmentDetailRow}>
                           <Ionicons name="calendar" size={16} color="#6b7280" />
                           <Text style={styles.assignmentDetailText}>
-                            Inicio: {assignment.estimatedStartDate.toLocaleDateString("es-ES", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
+                            Inicio:
+                            {assignment.estimatedStartDate.toLocaleDateString(
+                              "es-ES",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )}
                           </Text>
                         </View>
                         <View style={styles.assignmentDetailRow}>
@@ -380,7 +417,11 @@ export default function ProjectDetailsScreen() {
                         </View>
                         {assignment.notes && (
                           <View style={styles.assignmentDetailRow}>
-                            <Ionicons name="document-text" size={16} color="#6b7280" />
+                            <Ionicons
+                              name="document-text"
+                              size={16}
+                              color="#6b7280"
+                            />
                             <Text style={styles.assignmentDetailText}>
                               {assignment.notes}
                             </Text>
@@ -417,7 +458,10 @@ export default function ProjectDetailsScreen() {
 
       case "history":
         return (
-          <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.tabContent}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Historial de Cambios</Text>
               <View style={styles.historyList}>
@@ -448,7 +492,9 @@ export default function ProjectDetailsScreen() {
                     <Ionicons name="person-add" size={16} color="#10b981" />
                   </View>
                   <View style={styles.historyContent}>
-                    <Text style={styles.historyTitle}>Asignación de recursos</Text>
+                    <Text style={styles.historyTitle}>
+                      Asignación de recursos
+                    </Text>
                     <Text style={styles.historyDescription}>
                       Se asignaron pilotos y drones al proyecto
                     </Text>
@@ -467,10 +513,16 @@ export default function ProjectDetailsScreen() {
                 {progress && progress.completionPercentage > 0 && (
                   <View style={styles.historyItem}>
                     <View style={styles.historyIcon}>
-                      <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={16}
+                        color="#10b981"
+                      />
                     </View>
                     <View style={styles.historyContent}>
-                      <Text style={styles.historyTitle}>Progreso actualizado</Text>
+                      <Text style={styles.historyTitle}>
+                        Progreso actualizado
+                      </Text>
                       <Text style={styles.historyDescription}>
                         Progreso del proyecto: {progress.completionPercentage}%
                       </Text>
@@ -519,10 +571,7 @@ export default function ProjectDetailsScreen() {
           {tabs.map((tab) => (
             <TouchableOpacity
               key={tab.key}
-              style={[
-                styles.tab,
-                activeTab === tab.key && styles.activeTab,
-              ]}
+              style={[styles.tab, activeTab === tab.key && styles.activeTab]}
               onPress={() => setActiveTab(tab.key as TabType)}
             >
               <Ionicons
@@ -553,6 +602,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9fafb",
+    paddingTop: Constants.statusBarHeight,
   },
   errorContainer: {
     flex: 1,
@@ -771,7 +821,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#ffffff",
     fontWeight: "600",
-  },  turbineLocation: {
+  },
+  turbineLocation: {
     fontSize: 14,
     color: "#6b7280",
   },

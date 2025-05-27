@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { mockClients, mockProjects } from "../../../src/mocks/index";
+import { mockClients, mockProjects } from "../../../../src/mocks/index";
 
 interface NewClient {
   name: string;
@@ -173,7 +173,8 @@ export default function ClientsScreen() {
               style={styles.projectCard}
               onPress={() => {
                 router.push({
-                  pathname: "/admin/projects" as "/admin/projects",
+                  pathname:
+                    "/admin/(projects)/[id]" as "/admin/(projects)/[id]",
                   params: { id: project.id },
                 });
               }}
@@ -185,7 +186,7 @@ export default function ClientsScreen() {
                 </View>
                 <View style={styles.projectInfoContainer}>
                   <Text style={styles.projectDate}>
-                    {new Date(project.startDate).toLocaleDateString()} - 
+                    {new Date(project.startDate).toLocaleDateString()} -
                     {new Date(project.endDate).toLocaleDateString()}
                   </Text>
                 </View>

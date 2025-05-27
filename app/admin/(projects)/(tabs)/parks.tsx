@@ -10,10 +10,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Card, StatusBadge } from "../../../src/components/common";
-import { SearchBar } from "../../../src/components/SearchBar";
-import { StatCard } from "../../../src/components/StatCard";
-import { mockWindParks, mockTurbines } from "../../../src/mocks/index";
+import { Card, StatusBadge } from "../../../../src/components/common";
+import { SearchBar } from "../../../../src/components/SearchBar";
+import { StatCard } from "../../../../src/components/StatCard";
+import { mockTurbines, mockWindParks } from "../../../../src/mocks/index";
 
 export default function ParksScreen() {
   const router = useRouter();
@@ -148,7 +148,10 @@ export default function ParksScreen() {
                   <View style={styles.stat}>
                     <Text style={styles.statLabel}>Turbinas Totales</Text>
                     <Text style={styles.statValue}>
-                      {mockTurbines.filter((t) => t.windParkId === park.id).length}
+                      {
+                        mockTurbines.filter((t) => t.windParkId === park.id)
+                          .length
+                      }
                     </Text>
                   </View>
                   <View style={styles.stat}>
@@ -156,7 +159,8 @@ export default function ParksScreen() {
                     <Text style={styles.statValue}>
                       {
                         mockTurbines.filter(
-                          (t) => t.windParkId === park.id && t.status === "APPROVED"
+                          (t) =>
+                            t.windParkId === park.id && t.status === "APPROVED"
                         ).length
                       }
                     </Text>
