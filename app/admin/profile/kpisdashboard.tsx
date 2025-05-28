@@ -502,7 +502,7 @@ export default function AdminKPIDashboard() {
           style={styles.enhancedCardsContainer}
         >
           <TouchableOpacity
-            onPress={() => router.push("/admin/reports")}
+            onPress={() => router.push("/admin/reports?from=kpis")}
             activeOpacity={0.85}
             style={styles.enhancedCardWrapper}
           >

@@ -651,7 +651,7 @@ export default function AdminDashboard() {
       title: "Tareas",
       subtitle: `${todayActivities} hoy`,
       icon: "schedule" as keyof typeof MaterialIcons.glyphMap,
-      route: "/admin/tasks/assignments",
+      route: "/admin/tasks/tabs/assignments",
       color: currentTheme.success,
     },
   ];
