@@ -1,10 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Stack } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { router } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  Dimensions,
-  FlatList,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,948 +12,473 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
-import Animated, {
-  FadeInDown,
-  FadeInUp,
-  interpolate,
-  SlideInRight,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming
-} from 'react-native-reanimated';
-
-const { width, height } = Dimensions.get('window');
-
-const COLORS = {
-  background: '#f8fafc',
-  cardBackground: '#ffffff',
-  
-  // Primary gradient colors
-  primaryGradientStart: '#4F46E5',  // Indigo-600
-  primaryGradientEnd: '#7C3AED',    // Violet-600
-  
-  // Message bubbles
-  userBubble: '#4F46E5',           // Indigo-600
-  adminBubble: '#ffffff',
-  systemBubble: '#E0E7FF',         // Indigo-100
-  
-  // Text colors
-  textWhite: '#ffffff',
-  textPrimary: '#1F2937',          // Gray-800
-  textSecondary: '#6B7280',        // Gray-500
-  textMuted: '#9CA3AF',            // Gray-400
-  textSystem: '#3730A3',           // Indigo-800
-
-  // Status colors
-  successGradientStart: '#10B981',  // Emerald-500
-  successGradientEnd: '#059669',    // Emerald-600
-  errorGradientStart: '#EF4444',    // Red-500
-  errorGradientEnd: '#DC2626',      // Red-600
-  
-  // UI elements
-  disabledInput: '#E5E7EB',        // Gray-200
-  disabledInputText: '#9CA3AF',    // Gray-400
-  typingIndicatorDot: '#818CF8',   // Indigo-400
-  border: '#E5E7EB',               // Gray-200
-  borderLight: '#F3F4F6',          // Gray-100
-  highlight: '#EDE9FE',            // Violet-100
-};
 
 interface Message {
   id: string;
   text: string;
-  senderId: string;
   timestamp: Date;
-  senderName: string;
-  type: 'text' | 'quick_reply' | 'system';
-  isTyping?: boolean;
+  isFromUser: boolean;
+  status: 'sending' | 'sent' | 'delivered' | 'read';
+  image?: any;
 }
 
-interface QuickReply {
-  id: string;
-  text: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  response: string;
-  followUp?: QuickReply[];
-}
-
-const quickReplies: QuickReply[] = [
-  {
-    id: '1',
-    text: 'Problemas con el Dron',
-    icon: 'airplane',
-    response: 'Entiendo que tienes problemas con el dron. ¿Podrías ser más específico sobre el tipo de problema? Te ayudo a resolverlo.',
-    followUp: [
-      { id: '1a', text: 'No enciende', icon: 'power', response: 'Verificaremos el sistema de energía. Primero, confirma si la batería está completamente cargada y si los indicadores LED muestran alguna señal.' },
-      { id: '1b', text: 'Pérdida de señal', icon: 'wifi', response: 'Para problemas de conectividad, verifica que estés dentro del rango operativo y que no haya interferencias electromagnéticas cercanas.'}
-    ]
-  },
-  {
-    id: '2',
-    text: 'Condiciones del Clima',
-    icon: 'cloud',
-    response: 'Las condiciones meteorológicas son cruciales para las operaciones. ¿Qué condiciones específicas te preocupan?',
-    followUp: [
-      { id: '2a', text: 'Viento fuerte', icon: 'leaf', response: 'Velocidades de viento superiores a 15 m/s requieren suspensión de vuelo. Consulta el pronóstico actualizado antes de cada misión.' },
-      { id: '2b', text: 'Lluvia/Tormentas', icon: 'rainy', response: 'Operaciones suspendidas durante precipitaciones. Espera al menos 30 minutos después de que termine la lluvia antes de reanudar.'}
-    ]
-  },
-  {
-    id: '3',
-    text: 'Emergencia',
-    icon: 'warning',
-    response: '🚨 PROTOCOLO DE EMERGENCIA ACTIVADO. Mantén la calma. ¿Cuál es la naturaleza de la emergencia?',
-    followUp: [
-      { id: '3a', text: 'Dron fuera de control', icon: 'alert-circle', response: 'INMEDIATAMENTE: Activa el sistema RTH (Return to Home). Si no responde, prepárate para aterrizaje de emergencia en zona segura.'},
-      { id: '3b', text: 'Lesión personal', icon: 'medical', response: 'Contactando servicios médicos de emergencia. Mantente en tu ubicación actual. ¿Puedes describirme la lesión?'}
-    ]
-  },
-  {
-    id: '4',
-    text: 'Equipos y Mantenimiento',
-    icon: 'construct',
-    response: 'Te ayudo con temas de equipamiento. ¿Qué componente necesita atención?',
-    followUp: [
-      { id: '4a', text: 'Calibración de cámara', icon: 'camera', response: 'Para calibración óptima: 1) Estabiliza el gimbal, 2) Ejecuta calibración automática, 3) Verifica enfoque en punto infinito.'},
-      { id: '4b', text: 'Mantenimiento preventivo', icon: 'checkmark-circle', response: 'Programa de mantenimiento: Revisión semanal de hélices, mensual de motores, y trimestral completa. ¿Cuándo fue tu última revisión?'}
-    ]
-  },
-  {
-    id: '5',
-    text: 'Cambios de Horario',
-    icon: 'time',
-    response: 'Entiendo que necesitas modificar tu programación. ¿Qué ajustes requieres en tu cronograma de vuelo?',
-    followUp: [
-      { id: '5a', text: 'Reprogramar misión', icon: 'calendar', response: 'Revisando disponibilidad de ventanas de vuelo. ¿Qué fecha y hora prefieres? Consideraremos condiciones meteorológicas.'},
-      { id: '5b', text: 'Extensión de tiempo', icon: 'timer', response: 'Evaluando extensión solicitada. ¿Cuánto tiempo adicional necesitas? Verificaré conflictos con otras operaciones.'}
-    ]
-  },
-  {
-    id: '6',
-    text: 'Consulta General',
-    icon: 'help-circle',
-    response: 'Estoy aquí para ayudarte con cualquier consulta. ¿En qué puedo asistirte hoy?'
-  }
-];
-
-const adminProfile = {
-  name: 'Ing. Carlos Mendoza',
-  role: 'Administrador del Proyecto',
-  avatar: 'person-circle',
-  status: 'En línea',
-  statusColor: COLORS.successGradientStart
-};
-
-export default function SupportChat() {
-  const [messages, setMessages] = useState<Message[]>([
+export default function SupportChat() {  const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: '¡Hola! Soy el Ing. Carlos Mendoza, Administrador del Proyecto. Estoy aquí para ayudarte con cualquier consulta operativa, técnica o de emergencia. Utiliza las respuestas rápidas abajo o escribe tu pregunta directamente.',
-      senderId: 'admin',
-      timestamp: new Date(),
-      senderName: adminProfile.name,
-      type: 'system'
-    }
-  ]);
-  const [inputText, setInputText] = useState('');
+      text: '¡Hola! Soy Carlos, el encargado del proyecto. ¿En qué puedo ayudarte hoy?',
+      timestamp: new Date(Date.now() - 300000),
+      isFromUser: false,
+      status: 'read',
+    },
+    {
+      id: '2',
+      text: 'Hola Carlos, tengo una duda sobre el cronograma de inspección de las turbinas del sector norte.',
+      timestamp: new Date(Date.now() - 240000),
+      isFromUser: true,
+      status: 'read',
+    },
+    {
+      id: '3',
+      text: 'Perfecto, te ayudo con eso. Las inspecciones del sector norte están programadas para esta semana. ¿Hay algún problema específico?',
+      timestamp: new Date(Date.now() - 180000),
+      isFromUser: false,
+      status: 'read',
+    },
+    {
+      id: '4',
+      text: 'Aquí tienes la imagen de la próxima turbina que necesita inspección. Es la unidad T-15 del sector norte. La inspección está programada para mañana a las 9:00 AM.',
+      timestamp: new Date(Date.now() - 120000),
+      isFromUser: false,
+      status: 'read',
+      image: require('../../assets/images/wind-turbine.jpg'),
+    },
+  ]);const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [showQuickReplies, setShowQuickReplies] = useState(true);
-  const [quickRepliesExpanded, setQuickRepliesExpanded] = useState(true);
-  const [activeQuickReplies, setActiveQuickReplies] = useState<QuickReply[]>(quickReplies);
-  const [isCalling, setIsCalling] = useState(false);
-  
-  const flatListRef = useRef<FlatList>(null);
-  
-  // Animations
-  const callAnimation = useSharedValue(0);
-  const typingAnimation = useSharedValue(0);
-  
-  useEffect(() => {
-    if (isCalling) {
-      callAnimation.value = withRepeat(
-        withTiming(1, { duration: 1000 }),
-        -1,
-        true
-      );
-    } else {
-      callAnimation.value = withTiming(0, { duration: 300 });
-    }
-  }, [isCalling, callAnimation]);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    if (isTyping) {
-      typingAnimation.value = withRepeat(
-        withTiming(1, { duration: 1000 }),
-        -1,
-        true
-      );
-    } else {
-      typingAnimation.value = 0;
-    }
-  }, [isTyping, typingAnimation]);
-
-  const callButtonAnimatedStyle = useAnimatedStyle(() => {
-    const scale = interpolate(callAnimation.value, [0, 1], [1, 1.1]);
-    const opacity = interpolate(callAnimation.value, [0, 1], [1, 0.8]);
-    
-    return {
-      transform: [{ scale }],
-      opacity,
-    };
-  });
-
-  const typingDotAnimatedStyle = useAnimatedStyle((index) => {
-    const delay = index * 200;
-    const opacity = interpolate(
-      typingAnimation.value,
-      [0, 0.5, 1],
-      [0.5, 1, 0.5],
-      {
-        extrapolateRight: 'clamp',
-      }
-    );
-    
-    const scale = interpolate(
-      typingAnimation.value,
-      [0, 0.5, 1],
-      [0.8, 1.2, 0.8],
-      {
-        extrapolateRight: 'clamp',
-      }
-    );
-    
-    return {
-      opacity,
-      transform: [{ scale }],
-    };
-  });
-
-  useEffect(() => {
-    if (flatListRef.current && messages.length > 0) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
+    scrollToBottom();
   }, [messages]);
 
-  const simulateAdminResponse = useCallback((responseText: string, delay: number = 2000) => {
-    setIsTyping(true);
-    setShowQuickReplies(false);
-    
+  const scrollToBottom = () => {
     setTimeout(() => {
-      setIsTyping(false);
-      const adminReply: Message = {
-        id: Date.now().toString(),
-        text: responseText,
-        senderId: 'admin',
-        timestamp: new Date(),
-        senderName: adminProfile.name,
-        type: 'text'
-      };
-      
-      setMessages(prevMessages => [...prevMessages, adminReply]);
-      setShowQuickReplies(true);
-      setActiveQuickReplies(quickReplies);
-    }, delay);
-  }, []);
-
-  const handleSendMessage = useCallback(() => {
-    if (inputText.trim().length === 0) return;
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };  const sendMessage = () => {
+    if (inputText.trim() === '') return;
 
     const newMessage: Message = {
       id: Date.now().toString(),
       text: inputText.trim(),
-      senderId: 'pilot',
       timestamp: new Date(),
-      senderName: 'Piloto',
-      type: 'text'
+      isFromUser: true,
+      status: 'sending',
     };
 
-    setMessages(prevMessages => [...prevMessages, newMessage]);
+    setMessages(prev => [...prev, newMessage]);
     setInputText('');
 
-    const responses = [
-      'Gracias por tu mensaje. Estoy revisando tu consulta y te responderé en breve.',
-      'Entiendo tu situación. Permíteme verificar la información y te proporciono una solución.',
-      'He recibido tu consulta. Coordinaré con el equipo técnico para darte la mejor respuesta.',
-      'Tu mensaje es importante para nosotros. Estoy trabajando en una respuesta personalizada.'
-    ];
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-    simulateAdminResponse(randomResponse, Math.random() * 2000 + 1000);
-  }, [inputText, simulateAdminResponse]);
-
-  const handleCall = useCallback(() => {
-    setIsCalling(true);
-    
-    // Simulate call duration (5 seconds)
+    // Simular envío del mensaje
     setTimeout(() => {
-      setIsCalling(false);
-      
-      // Add system message confirming the call
-      const callMessage: Message = {
-        id: Date.now().toString(),
-        text: '📞 Llamada realizada al Ing. Carlos Mendoza. Te contactará en breve para atender tu consulta de manera personalizada.',
-        senderId: 'system',
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === newMessage.id ? { ...msg, status: 'sent' } : msg
+        )
+      );
+    }, 1000);
+
+    // Simular respuesta automática
+    setTimeout(() => {
+      setIsTyping(true);
+    }, 2000);
+
+    setTimeout(() => {
+      setIsTyping(false);
+      const response: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Gracias por tu mensaje. Te responderé en breve con la información que necesitas.',
         timestamp: new Date(),
-        senderName: 'Sistema',
-        type: 'system'
+        isFromUser: false,
+        status: 'read',
       };
-      
-      setMessages(prevMessages => [...prevMessages, callMessage]);
-    }, 5000);
-  }, []);
-
-  const handleQuickReply = useCallback((reply: QuickReply) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: reply.text,
-      senderId: 'pilot',
-      timestamp: new Date(),
-      senderName: 'Piloto',
-      type: 'quick_reply'
-    };
-
-    setMessages(prevMessages => [...prevMessages, userMessage]);
-    simulateAdminResponse(reply.response, 1500);
-
-    if (reply.followUp && reply.followUp.length > 0) {
-      setTimeout(() => setActiveQuickReplies(reply.followUp!), 2500);
-    } else {
-      setTimeout(() => setActiveQuickReplies(quickReplies), 2500);
-    }
-  }, [simulateAdminResponse]);
-
-  const renderMessage = ({ item }: { item: Message }) => {
-    const isUser = item.senderId === 'pilot';
-    const isSystem = item.type === 'system';
-
-    return (
-      <Animated.View 
-        entering={FadeInUp.delay(100)} 
-        style={[
-          styles.messageRow,
-          isUser ? styles.userMessageRow : styles.adminMessageRow,
-          isSystem && styles.systemMessageRow,
-        ]}
-      >
-        {!isUser && !isSystem && (
-          <View style={styles.avatarContainer}>
-            <LinearGradient
-              colors={[COLORS.primaryGradientStart, COLORS.primaryGradientEnd]}
-              style={styles.avatarGradient}
-            >
-              <Ionicons name={adminProfile.avatar as any} size={22} color={COLORS.textWhite} />
-            </LinearGradient>
-          </View>
-        )}
-        
-        <View style={[
-          styles.messageBubble,
-          isUser ? styles.userMessageBubble : styles.adminMessageBubble,
-          isSystem && styles.systemMessageBubble
-        ]}>
-          {!isSystem && (
-            <Text style={[
-              styles.messageSender,
-              isUser ? styles.userMessageSender : styles.adminMessageSender
-            ]}>
-              {item.senderName}
-            </Text>
-          )}
-          
-          <Text style={[
-            styles.messageText,
-            isUser ? styles.userMessageText : styles.adminMessageText,
-            isSystem && styles.systemMessageText,
-          ]}>
-            {item.text}
-          </Text>
-          
-          {!isSystem && (
-            <Text style={[
-              styles.messageTimestamp,
-              isUser ? styles.userMessageTimestamp : styles.adminMessageTimestamp
-            ]}>
-              {item.timestamp.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-          )}
-        </View>
-
-        {isUser && (
-          <View style={styles.avatarContainer}>
-            <LinearGradient
-              colors={[COLORS.successGradientStart, COLORS.successGradientEnd]}
-              style={styles.avatarGradient}
-            >
-              <Ionicons name="person-outline" size={22} color={COLORS.textWhite} />
-            </LinearGradient>
-          </View>
-        )}
-      </Animated.View>
-    );
+      setMessages(prev => [...prev, response]);    }, 4000);
   };
 
-  const renderTypingIndicator = () => {
-    if (!isTyping) return null;
-
-    return (
-      <Animated.View entering={FadeInUp} style={[styles.messageRow, styles.adminMessageRow]}>
-        <View style={styles.avatarContainer}>
-          <LinearGradient
-            colors={[COLORS.primaryGradientStart, COLORS.primaryGradientEnd]}
-            style={styles.avatarGradient}
-          >
-            <Ionicons name={adminProfile.avatar as any} size={22} color={COLORS.textWhite} />
-          </LinearGradient>
-        </View>
-        
-        <View style={[styles.messageBubble, styles.adminMessageBubble, styles.typingBubble]}>
-          <Text style={[styles.messageSender, styles.adminMessageSender]}>
-            {adminProfile.name}
-          </Text>
-          
-          <View style={styles.typingIndicatorContainer}>
-            {[0, 1, 2].map((index) => (
-              <Animated.View 
-                key={index}
-                style={[
-                  styles.typingDot,
-                  typingDotAnimatedStyle(index)
-                ]}
-              />
-            ))}
-          </View>
-        </View>
-      </Animated.View>
-    );
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
-  return (
-    <View style={styles.screenContainer}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryGradientStart} />
+  const renderMessage = (message: Message) => (
+    <View
+      key={message.id}
+      style={[
+        styles.messageContainer,
+        message.isFromUser ? styles.userMessage : styles.otherMessage,
+      ]}
+    >
+      {message.isFromUser ? (
+        <LinearGradient
+          colors={['#2f4aa9', '#2f4aa9']}
+          style={styles.messageBubble}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}        >
+          <Text style={styles.userMessageText}>{message.text}</Text>
+          <View style={styles.messageFooter}>
+            <Text style={styles.userMessageTime}>
+              {formatTime(message.timestamp)}
+            </Text>
+            <View style={styles.messageStatus}>
+              {message.status === 'sending' && (
+                <Ionicons name="time-outline" size={12} color="rgba(255,255,255,0.7)" />
+              )}
+              {message.status === 'sent' && (
+                <Ionicons name="checkmark" size={12} color="rgba(255,255,255,0.7)" />
+              )}
+              {message.status === 'delivered' && (
+                <Ionicons name="checkmark-done" size={12} color="rgba(255,255,255,0.7)" />
+              )}
+              {message.status === 'read' && (
+                <Ionicons name="checkmark-done" size={12} color="#10b981" />
+              )}
+            </View>
+          </View>
+        </LinearGradient>      ) : (
+        <View style={[styles.messageBubble, styles.otherMessageBubble]}>
+          <Text style={styles.otherMessageText}>{message.text}</Text>
+          {message.image && (
+            <Image
+              source={message.image}
+              style={styles.messageImage}
+              resizeMode="cover"
+            />
+          )}
+          <Text style={styles.otherMessageTime}>
+            {formatTime(message.timestamp)}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+
+  return (    <KeyboardAvoidingView
+      style={styles.container}      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
+    ><StatusBar barStyle="light-content" backgroundColor="#7c3aed" />
       
-      {/* Header with admin info */}
+      {/* Header */}
       <LinearGradient
-        colors={[COLORS.primaryGradientStart, COLORS.primaryGradientEnd]}
-        style={styles.headerGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+        colors={['#620b97', '#c74afc']}
+        style={styles.header}
       >
-        <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.textWhite} />
+        <View style={styles.headerContent}>          <TouchableOpacity
+            onPress={() => router.push('/pilot/profile')}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           
-          <View style={styles.adminInfo}>
+          <View style={styles.contactInfo}>
             <View style={styles.avatarContainer}>
               <LinearGradient
-                colors={[COLORS.primaryGradientStart, COLORS.primaryGradientEnd]}
-                style={styles.avatarGradient}
+                colors={['#322da9', '#4743ad']}
+                style={styles.avatar}
               >
-                <Ionicons name={adminProfile.avatar as any} size={28} color={COLORS.textWhite} />
+                <Text style={styles.avatarText}>CM</Text>
               </LinearGradient>
+              <View style={styles.onlineIndicator} />
             </View>
             
-            <View style={styles.adminTextInfo}>
-              <Text style={styles.adminName}>{adminProfile.name}</Text>
-              <Text style={styles.adminRole}>{adminProfile.role}</Text>
+            <View style={styles.contactDetails}>
+              <Text style={styles.contactName}>Carlos Martínez</Text>
+              <Text style={styles.contactRole}>Encargado de Proyecto</Text>
+              <View style={styles.statusContainer}>
+                <View style={styles.onlineDot} />
+                <Text style={styles.onlineText}>En línea</Text>
+              </View>
             </View>
           </View>
           
-          <Animated.View style={[styles.callButtonContainer, callButtonAnimatedStyle]}>
-            <TouchableOpacity
-              onPress={handleCall}
-              style={styles.callButton}
-              disabled={isCalling}
-            >
-              <LinearGradient
-                colors={isCalling 
-                  ? [COLORS.errorGradientStart, COLORS.errorGradientEnd] 
-                  : [COLORS.successGradientStart, COLORS.successGradientEnd]}
-                style={styles.callButtonGradient}
-              >
-                <Ionicons 
-                  name={isCalling ? "call" : "call-outline"} 
-                  size={20} 
-                  color={COLORS.textWhite} 
-                />
-                {isCalling && (
-                  <Text style={styles.callingText}>Llamando...</Text>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
-          </Animated.View>
-        </View>
-        
-        <View style={styles.statusContainer}>
-          <View style={[styles.statusDot, { backgroundColor: adminProfile.statusColor }]} />
-          <Text style={styles.statusText}>{adminProfile.status}</Text>
+          <TouchableOpacity style={styles.menuButton}>
+            <Ionicons name="ellipsis-vertical" size={20} color="white" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
-      {/* Chat area */}
-      <KeyboardAvoidingView 
-        style={styles.chatContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      {/* Chat Messages */}
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.messagesContainer}
+        contentContainerStyle={styles.messagesContent}
+        showsVerticalScrollIndicator={false}
       >
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          style={styles.messageList}
-          contentContainerStyle={styles.messageListContent}
-          ListFooterComponent={renderTypingIndicator}
-          showsVerticalScrollIndicator={false}
-          keyboardDismissMode="interactive"
-        />
-
-        {/* Quick replies section */}
-        {showQuickReplies && activeQuickReplies.length > 0 && (
-          <Animated.View 
-            entering={SlideInRight.duration(300)} 
-            style={styles.quickRepliesContainer}
-          >
-            <TouchableOpacity
-              onPress={() => setQuickRepliesExpanded(!quickRepliesExpanded)}
-              style={styles.quickRepliesHeader}
-            >
-              <Text style={styles.quickRepliesTitle}>Respuestas rápidas</Text>
-              <Ionicons 
-                name={quickRepliesExpanded ? "chevron-up" : "chevron-down"} 
-                size={20} 
-                color={COLORS.textSecondary} 
-              />
-            </TouchableOpacity>
-            
-            {quickRepliesExpanded && (
-              <Animated.View entering={FadeInDown.duration(200)}>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.quickRepliesScroll}
-                >
-                  {activeQuickReplies.map((reply) => (
-                    <TouchableOpacity
-                      key={reply.id}
-                      onPress={() => handleQuickReply(reply)}
-                      style={styles.quickReplyButton}
-                    >
-                      <LinearGradient
-                        colors={[COLORS.primaryGradientStart, COLORS.primaryGradientEnd]}
-                        style={styles.quickReplyGradient}
-                        start={{ x: 0, y: 0 }} 
-                        end={{ x: 1, y: 1 }}
-                      >
-                        <Ionicons name={reply.icon} size={18} color={COLORS.textWhite} style={styles.quickReplyIcon}/>
-                        <Text style={styles.quickReplyText}>{reply.text}</Text>
-                      </LinearGradient>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </Animated.View>
-            )}
-          </Animated.View>
-        )}
-
-        {/* Input area */}
-        <View style={styles.inputContainer}>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.textInput}
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder="Escribe un mensaje..."
-              placeholderTextColor={COLORS.textMuted}
-              multiline
-              maxLength={500}
-            />
-            <TouchableOpacity
-              onPress={handleSendMessage}
-              style={styles.sendButton}
-              disabled={!inputText.trim()}
-            >
-              <LinearGradient
-                colors={inputText.trim() 
-                  ? [COLORS.primaryGradientStart, COLORS.primaryGradientEnd] 
-                  : [COLORS.disabledInput, COLORS.disabledInput]}
-                style={styles.sendButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Ionicons 
-                  name="send"
-                  size={20} 
-                  color={inputText.trim() ? COLORS.textWhite : COLORS.disabledInputText} 
-                />
-              </LinearGradient>
-            </TouchableOpacity>
+        {messages.map(renderMessage)}
+        
+        {isTyping && (
+          <View style={[styles.messageContainer, styles.otherMessage]}>
+            <View style={[styles.messageBubble, styles.otherMessageBubble, styles.typingBubble]}>
+              <View style={styles.typingIndicator}>
+                <View style={[styles.typingDot, { animationDelay: '0ms' }]} />
+                <View style={[styles.typingDot, { animationDelay: '200ms' }]} />
+                <View style={[styles.typingDot, { animationDelay: '400ms' }]} />
+              </View>
+            </View>
           </View>
+        )}
+      </ScrollView>      {/* Input Area */}
+      <View style={styles.inputContainer}>
+        <View style={styles.inputWrapper}>
+          <TextInput
+            style={styles.textInput}
+            value={inputText}
+            onChangeText={setInputText}
+            placeholder="Escribe tu mensaje..."
+            placeholderTextColor="#9ca3af"
+            multiline
+            maxLength={500}
+          />
+          
+          <TouchableOpacity style={styles.attachButton}>
+            <Ionicons name="attach" size={20} color="#6b7280" />
+          </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </View>
+        
+        <TouchableOpacity
+          style={[styles.sendButton, inputText.trim() ? styles.sendButtonActive : styles.sendButtonInactive]}
+          onPress={sendMessage}
+          disabled={!inputText.trim()}
+        >          <LinearGradient
+            colors={inputText.trim() ? ['#3b82f6', '#1d4ed8'] : ['#e5e7eb', '#d1d5db']}
+            style={styles.sendButtonGradient}
+          >
+            <Ionicons
+              name="send"
+              size={18}
+              color={inputText.trim() ? 'white' : '#9ca3af'}
+            />
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  screenContainer: {
+  container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  
-  // Header styles
-  headerGradient: {
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
-    paddingBottom: 16,
+    backgroundColor: '#f8fafc',
+  },  header: {
+    paddingTop: Platform.OS === 'ios' ? 8 : 20,
+    paddingBottom: 8,
     paddingHorizontal: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    marginTop: Platform.OS === 'ios' ? 10 : 8,
+    marginHorizontal: 8,
   },
-  
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
   },
-  
   backButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  contactInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 16,
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
-  
-  adminInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 12,
-  },
-  
-  adminTextInfo: {
-    marginLeft: 12,
-  },
-  
-  adminName: {
+  avatarText: {
+    color: 'white',
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.textWhite,
-    marginBottom: 2,
   },
-  
-  adminRole: {
+  onlineIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    backgroundColor: '#10b981',
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: 'white',
+  },
+  contactDetails: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  contactName: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  contactRole: {
+    color: 'rgba(255,255,255,0.8)',
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  
-  callButtonContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    overflow: 'hidden',
-  },
-  
-  callButton: {
-    flex: 1,
-  },
-  
-  callButtonGradient: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  
-  callingText: {
-    fontSize: 10,
-    color: COLORS.textWhite,
     marginTop: 2,
-    fontWeight: '500',
   },
-  
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
-  
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
+  onlineDot: {
+    width: 6,
+    height: 6,
+    backgroundColor: '#10b981',
+    borderRadius: 3,
+    marginRight: 4,
   },
-  
-  statusText: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '500',
+  onlineText: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 11,
   },
-  
-  // Chat container styles
-  chatContainer: {
+  menuButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  messagesContainer: {
     flex: 1,
   },
-  
-  messageList: {
-    flex: 1,
-  },
-  
-  messageListContent: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-  },
-  
-  // Message styles
-  messageRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginVertical: 8,
-  },
-  
-  userMessageRow: {
-    justifyContent: 'flex-end',
-  },
-  
-  adminMessageRow: {
-    justifyContent: 'flex-start',
-  },
-  
-  systemMessageRow: {
-    justifyContent: 'center',
-    marginVertical: 12,
-  },
-  
-  avatarContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 8,
-  },
-  
-  avatarGradient: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  
-  messageBubble: {
-    maxWidth: width * 0.75,
+  messagesContent: {
     padding: 16,
+    paddingBottom: 8,
+  },
+  messageContainer: {
+    marginBottom: 12,
+  },
+  userMessage: {
+    alignItems: 'flex-end',
+  },
+  otherMessage: {
+    alignItems: 'flex-start',
+  },
+  messageBubble: {
+    maxWidth: '80%',
+    padding: 12,
     borderRadius: 18,
+  },
+  otherMessageBubble: {
+    backgroundColor: 'white',
+    borderBottomLeftRadius: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 2,
     elevation: 2,
   },
-  
-  userMessageBubble: {
-    backgroundColor: COLORS.userBubble,
-    borderBottomRightRadius: 4,
-  },
-  
-  adminMessageBubble: {
-    backgroundColor: COLORS.adminBubble,
-    borderBottomLeftRadius: 4,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
-  },
-  
-  systemMessageBubble: {
-    backgroundColor: COLORS.systemBubble,
-    borderColor: 'rgba(79, 70, 229, 0.2)',
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 14,
-    maxWidth: width * 0.85,
-    alignSelf: 'center',
-  },
-  
-  typingBubble: {
-    paddingVertical: 12,
-  },
-  
-  messageSender: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  
-  userMessageSender: {
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  
-  adminMessageSender: {
-    color: COLORS.textSecondary,
-  },
-  
-  messageText: {
+  userMessageText: {
+    color: 'white',
     fontSize: 15,
     lineHeight: 20,
   },
-  
-  userMessageText: {
-    color: COLORS.textWhite,
+  otherMessageText: {
+    color: '#1f2937',
+    fontSize: 15,
+    lineHeight: 20,
   },
-  
-  adminMessageText: {
-    color: COLORS.textPrimary,
-  },
-  
-  systemMessageText: {
-    color: COLORS.textSystem,
-    textAlign: 'center',
-    fontSize: 14,
-  },
-  
-  messageTimestamp: {
-    fontSize: 10,
-    marginTop: 6,
-    opacity: 0.8,
-  },
-  
-  userMessageTimestamp: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'right',
-  },
-  
-  adminMessageTimestamp: {
-    color: COLORS.textMuted,
-    textAlign: 'right',
-  },
-  
-  typingIndicatorContainer: {
+  messageFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 4,
-  },
-  
-  typingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.typingIndicatorDot,
-    marginHorizontal: 3,
-  },
-  
-  // Quick replies styles
-  quickRepliesContainer: {
-    backgroundColor: COLORS.cardBackground,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    paddingBottom: 8,
-  },
-  
-  quickRepliesHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    marginTop: 6,
   },
-  
-  quickRepliesTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
+  userMessageTime: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 11,
   },
-  
-  quickRepliesScroll: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
+  otherMessageTime: {
+    color: '#9ca3af',
+    fontSize: 11,
+    marginTop: 4,
+  },  messageStatus: {
+    marginLeft: 6,
   },
-  
-  quickReplyButton: {
-    marginRight: 12,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  messageImage: {
+    width: 200,
+    height: 150,
+    borderRadius: 12,
+    marginTop: 8,
+    marginBottom: 4,
   },
-  
-  quickReplyGradient: {
+  typingBubble: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
   },
-  
-  quickReplyIcon: {
-    marginRight: 8,
+  typingDot: {
+    width: 6,
+    height: 6,
+    backgroundColor: '#9ca3af',
+    borderRadius: 3,
+    marginHorizontal: 2,
   },
-  
-  quickReplyText: {
-    color: COLORS.textWhite,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  
-  // Input area styles
   inputContainer: {
-    backgroundColor: COLORS.cardBackground,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
-  },
-  
-  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: COLORS.background,
-    borderRadius: 24,
-    paddingLeft: 16,
-    paddingRight: 8,
-    paddingVertical: 8,
-    minHeight: 52,
-    borderWidth: 1.5,
-    borderColor: COLORS.borderLight,
+    padding: 16,
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
-  
+  inputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
+  },
   textInput: {
     flex: 1,
     fontSize: 15,
-    color: COLORS.textPrimary,
-    maxHeight: 120,
-    paddingTop: Platform.OS === 'ios' ? 0 : 4,
-    paddingBottom: Platform.OS === 'ios' ? 0 : 4,
-    lineHeight: 20,
+    color: '#1f2937',
+    maxHeight: 100,
+    paddingVertical: 4,
   },
-  
+  attachButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
   sendButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginLeft: 8,
-    marginBottom: 4,
   },
-  
-  sendButtonGradient: {
-    flex: 1,
+  sendButtonActive: {},
+  sendButtonInactive: {},  sendButtonGradient: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
