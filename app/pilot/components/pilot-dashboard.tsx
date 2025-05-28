@@ -1306,28 +1306,16 @@ const PilotDashboard = () => {
     );
     const genericPendingToShow = genericPendingActivities.filter(
       (act) => act.id !== activityId
-    );
-
-    // Show smooth transition for activity suggestions
+    );    // Show immediate smooth transition for activity suggestions
     if (pendingForToday.length > 0 || genericPendingToShow.length > 0) {
-      // First hide current suggestions if any
-      if (showActivitySuggestions) {
-        setShowActivitySuggestions(false);
-      }
+      // Prepare new suggestions immediately
+      const newSuggestions = pendingForToday.length > 0 
+        ? pendingForToday.slice(0, 3) 
+        : genericPendingToShow.slice(0, 3);
       
-      // Set up new suggestions and show them with smooth animation
-      setTimeout(() => {
-        if (pendingForToday.length > 0) {
-          setSuggestedActivities(pendingForToday.slice(0, 3));
-        } else {
-          setSuggestedActivities(genericPendingToShow.slice(0, 3));
-        }
-        
-        // Show suggestions with a smooth fade in
-        setTimeout(() => {
-          setShowActivitySuggestions(true);
-        }, 100);
-      }, 300);
+      // Set both state values in the same call to prevent visual gaps
+      setSuggestedActivities(newSuggestions);
+      setShowActivitySuggestions(true);
     } else {
       // No suggestions to show, just hide any existing ones
       setShowActivitySuggestions(false);
@@ -1700,8 +1688,7 @@ const PilotDashboard = () => {
               
               // Set termination type to incident for suggestions
               setActivityTerminationType("incident");
-              
-              // Show suggestions for next activities after incident termination
+                // Show suggestions for next activities after incident termination
               const pendingForToday = pendingTodayActivities.filter(
                 (act) => act.id !== activityId
               );
@@ -1709,18 +1696,16 @@ const PilotDashboard = () => {
                 (act) => act.id !== activityId
               );
 
-              // Show activity suggestions with reduced delay for incident termination
-              setTimeout(() => {
-                if (pendingForToday.length > 0) {
-                  setSuggestedActivities(pendingForToday.slice(0, 3));
-                  setShowActivitySuggestions(true);
-                } else if (genericPendingToShow.length > 0) {
-                  setSuggestedActivities(genericPendingToShow.slice(0, 3));
-                  setShowActivitySuggestions(true);
-                } else {
-                  setShowActivitySuggestions(false);
-                }
-              }, 300); // Reduced from 1000ms to 300ms for faster suggestions
+              // Show activity suggestions immediately for smooth transition
+              if (pendingForToday.length > 0) {
+                setSuggestedActivities(pendingForToday.slice(0, 3));
+                setShowActivitySuggestions(true);
+              } else if (genericPendingToShow.length > 0) {
+                setSuggestedActivities(genericPendingToShow.slice(0, 3));
+                setShowActivitySuggestions(true);
+              } else {
+                setShowActivitySuggestions(false);
+              }
             },
           },
         ]
