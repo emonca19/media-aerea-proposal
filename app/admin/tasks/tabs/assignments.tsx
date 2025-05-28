@@ -180,7 +180,7 @@ export default function AssignmentListScreen() {
         style={styles.cardContainer}
         onPress={() => {
           // Navigate to assignment details
-          Alert.alert("Info", `Ver detalles de: ${project?.name}`);
+          router.push(`/admin/tasks/assignment/${assignment.id}`);
         }}
       >
         {/* Header */}
@@ -202,7 +202,41 @@ export default function AssignmentListScreen() {
           </View>
           <TouchableOpacity
             style={styles.optionsButton}
-            onPress={() => Alert.alert("Info", "Opciones de asignación")}
+            onPress={() =>
+              Alert.alert(
+                "Opciones de Asignación",
+                `Opciones para: ${project?.name || "Asignación"}`,
+                [
+                  {
+                    text: "Ver Detalles",
+                    onPress: () =>
+                      router.push(`/admin/tasks/assignment/${assignment.id}`),
+                  },
+                  {
+                    text: "Editar",
+                    onPress: () =>
+                      Alert.alert(
+                        "Editar Asignación",
+                        "La funcionalidad de edición estará disponible próximamente."
+                      ),
+                  },
+                  {
+                    text: "Eliminar",
+                    style: "destructive",
+                    onPress: () =>
+                      Alert.alert(
+                        "Eliminar Asignación",
+                        "¿Está seguro que desea eliminar esta asignación?",
+                        [
+                          { text: "Cancelar", style: "cancel" },
+                          { text: "Eliminar", style: "destructive" },
+                        ]
+                      ),
+                  },
+                  { text: "Cancelar", style: "cancel" },
+                ]
+              )
+            }
           >
             <Ionicons
               name="ellipsis-vertical"

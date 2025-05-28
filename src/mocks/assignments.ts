@@ -4,12 +4,21 @@ import {
   ProjectAssignment,
 } from "../types/assignments";
 
+export interface CameraAvailability {
+  cameraId: string;
+  cameraName: string;
+  model: string;
+  available: boolean;
+  status: "AVAILABLE" | "IN_USE" | "MAINTENANCE";
+}
+
 export const mockProjectAssignments: ProjectAssignment[] = [
   {
     id: "assign_001",
     projectId: "proj_001",
     pilotIds: ["pilot_001", "pilot_003"],
     droneIds: ["drone_001", "drone_003"],
+    cameraIds: ["camera_001"],
     turbineIds: ["turbine_001", "turbine_002", "turbine_003"],
     estimatedStartDate: new Date("2025-05-20"),
     estimatedEndDate: new Date("2025-06-15"),
@@ -24,6 +33,7 @@ export const mockProjectAssignments: ProjectAssignment[] = [
     projectId: "proj_002",
     pilotIds: ["pilot_002"],
     droneIds: ["drone_002"],
+    cameraIds: ["camera_003"],
     turbineIds: ["turbine_004", "turbine_005"],
     estimatedStartDate: new Date("2025-06-01"),
     estimatedEndDate: new Date("2025-06-20"),
@@ -38,6 +48,7 @@ export const mockProjectAssignments: ProjectAssignment[] = [
     projectId: "proj_003",
     pilotIds: ["pilot_004"],
     droneIds: ["drone_004"],
+    cameraIds: ["camera_007"],
     turbineIds: ["turbine_006", "turbine_007", "turbine_008", "turbine_009"],
     estimatedStartDate: new Date("2025-06-25"),
     estimatedEndDate: new Date("2025-07-10"),
@@ -154,5 +165,57 @@ export const mockDroneAvailability: DroneAvailability[] = [
     serialNumber: "EL+001234567",
     available: true,
     status: "OPERATIONAL",
+  },
+];
+
+export const mockCameraAvailability: CameraAvailability[] = [
+  {
+    cameraId: "camera_002",
+    cameraName: "DJI Zenmuse X7",
+    model: "Zenmuse X7",
+    available: true,
+    status: "AVAILABLE",
+  },
+  {
+    cameraId: "camera_004",
+    cameraName: "FLIR Vue TZ20-R",
+    model: "Vue TZ20-R",
+    available: true,
+    status: "AVAILABLE",
+  },
+  {
+    cameraId: "camera_006",
+    cameraName: "Sentera PHX",
+    model: "PHX",
+    available: true,
+    status: "AVAILABLE",
+  },
+  {
+    cameraId: "camera_001",
+    cameraName: "DJI Zenmuse H20T",
+    model: "Zenmuse H20T",
+    available: false,
+    status: "IN_USE",
+  },
+  {
+    cameraId: "camera_003",
+    cameraName: "DJI Zenmuse P1",
+    model: "Zenmuse P1",
+    available: false,
+    status: "IN_USE",
+  },
+  {
+    cameraId: "camera_007",
+    cameraName: "Insta360 Sphere",
+    model: "Sphere",
+    available: false,
+    status: "IN_USE",
+  },
+  {
+    cameraId: "camera_005",
+    cameraName: "DJI Zenmuse Z30",
+    model: "Zenmuse Z30",
+    available: false,
+    status: "MAINTENANCE",
   },
 ];

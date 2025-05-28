@@ -1,5 +1,6 @@
 export * from "./activities";
 export * from "./assignments";
+export * from "./cameras";
 export * from "./clients";
 export * from "./drones";
 export * from "./incidents";

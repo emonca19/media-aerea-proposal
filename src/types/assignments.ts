@@ -4,6 +4,7 @@ export interface ProjectAssignment extends BaseEntity {
   projectId: string;
   pilotIds: string[];
   droneIds: string[];
+  cameraIds: string[];
   turbineIds: string[];
   estimatedStartDate: Date;
   estimatedEndDate: Date;
