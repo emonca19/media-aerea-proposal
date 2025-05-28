@@ -1,6 +1,5 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -15,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { theme } from "../../../src/constants/theme";
 import {
   mockActivities,
@@ -479,15 +479,13 @@ const NotificationCard: React.FC<{ notification: NotificationItemData }> = ({
 export default function AdminDashboard() {
   const [selectedTimeframe, setSelectedTimeframe] = useState<
     "today" | "week" | "month"
-  >("today");
-
-  // Reset StatusBar when this screen comes into focus
+  >("today"); // Set StatusBar when this screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      StatusBar.setBarStyle("light-content", true);
+      StatusBar.setBarStyle("dark-content", true);
       if (Platform.OS === "android") {
-        StatusBar.setBackgroundColor("transparent", true);
-        StatusBar.setTranslucent(true);
+        StatusBar.setBackgroundColor("#ffffff", true);
+        StatusBar.setTranslucent(false);
       }
     }, [])
   );
@@ -658,11 +656,11 @@ export default function AdminDashboard() {
     },
   ];
   return (
-    <>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent
+        barStyle="dark-content"
+        backgroundColor="#ffffff"
+        translucent={false}
       />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
@@ -963,7 +961,7 @@ export default function AdminDashboard() {
         {/* Footer spacing */}
         <View style={styles.footer} />
       </ScrollView>
-    </>
+    </SafeAreaView>
   );
 }
 
@@ -971,16 +969,20 @@ const { width } = Dimensions.get("window");
 const isTablet = width > 768;
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
   container: {
     flex: 1,
     backgroundColor: currentTheme.background,
+    paddingTop: 10,
   },
   header: {
     paddingHorizontal: currentTheme.dimensions.spacing.md,
-    paddingTop: currentTheme.dimensions.spacing.md, // Minimal top padding
+    paddingTop: 12, // Consistent top padding
     paddingBottom: currentTheme.dimensions.spacing.md,
     marginHorizontal: currentTheme.dimensions.spacing.md,
-    marginTop: Constants.statusBarHeight + currentTheme.dimensions.spacing.xs, // Just enough space for status bar
     backgroundColor: currentTheme.card,
     borderRadius: currentTheme.dimensions.borderRadius.medium,
     marginBottom: currentTheme.dimensions.spacing.md,
@@ -1113,21 +1115,6 @@ const styles = StyleSheet.create({
     color: currentTheme.textSecondary,
     fontWeight: "500",
   },
-  alertsSection: {
-    marginBottom: currentTheme.dimensions.spacing.lg,
-    paddingHorizontal: currentTheme.dimensions.spacing.md,
-  },
-  alertsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: currentTheme.dimensions.spacing.md,
-  },
-  viewAllText: {
-    fontSize: currentTheme.dimensions.fontSize.sm,
-    color: currentTheme.primary,
-    fontWeight: "600",
-  },
   alertCard: {
     backgroundColor: currentTheme.card,
     borderRadius: currentTheme.dimensions.borderRadius.medium,
@@ -1162,76 +1149,6 @@ const styles = StyleSheet.create({
   activitySection: {
     marginBottom: currentTheme.dimensions.spacing.lg,
     paddingHorizontal: currentTheme.dimensions.spacing.md,
-  },
-  summaryGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: currentTheme.dimensions.spacing.sm,
-  },
-  summaryCard: {
-    backgroundColor: currentTheme.card,
-    borderRadius: currentTheme.dimensions.borderRadius.medium,
-    padding: currentTheme.dimensions.spacing.md,
-    borderWidth: 1,
-    borderColor: currentTheme.border,
-    width: isTablet ? "48%" : "100%",
-    marginBottom: currentTheme.dimensions.spacing.sm,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  summaryCardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: currentTheme.dimensions.spacing.sm,
-  },
-  summaryIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: currentTheme.dimensions.spacing.md,
-  },
-  summaryCardContent: {
-    flex: 1,
-  },
-  summaryValue: {
-    fontSize: currentTheme.dimensions.fontSize.xl,
-    fontWeight: "bold",
-    color: currentTheme.text,
-    marginBottom: 2,
-  },
-  summaryLabel: {
-    fontSize: currentTheme.dimensions.fontSize.sm,
-    fontWeight: "600",
-    color: currentTheme.text,
-  },
-  summaryDescription: {
-    fontSize: currentTheme.dimensions.fontSize.xs,
-    color: currentTheme.textSecondary,
-    lineHeight: 16,
-  },
-  // Modern Summary Styles
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: currentTheme.dimensions.spacing.md,
-  },
-  sectionBadge: {
-    backgroundColor: "#10b981",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  sectionBadgeText: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: "white",
-    textTransform: "uppercase",
   },
   modernSummaryGrid: {
     flexDirection: "row",
@@ -1330,27 +1247,6 @@ const styles = StyleSheet.create({
   },
   notificationAction: {
     padding: 8,
-  },
-  emptyNotifications: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: currentTheme.dimensions.spacing.md,
-  },
-  emptyNotificationsText: {
-    fontSize: currentTheme.dimensions.fontSize.sm,
-    color: currentTheme.textSecondary,
-    marginTop: 8,
-  },
-  notificationsSection: {
-    marginBottom: currentTheme.dimensions.spacing.lg,
-    paddingHorizontal: currentTheme.dimensions.spacing.md,
-  },
-  notificationsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: currentTheme.dimensions.spacing.md,
   },
   overviewSection: {
     marginBottom: currentTheme.dimensions.spacing.lg,

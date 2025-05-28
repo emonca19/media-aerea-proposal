@@ -1,19 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import Constants from "expo-constants";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
   Platform,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 declare global {
   interface Window {
@@ -221,13 +220,12 @@ export default function AdminNotificationsScreen() {
   const [notifications, setNotifications] = useState<NotificationItemData[]>(
     sortedNotificationsData
   );
-
   // Set StatusBar when this screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       StatusBar.setBarStyle("dark-content", true);
       if (Platform.OS === "android") {
-        StatusBar.setBackgroundColor("#f1f5f9", true);
+        StatusBar.setBackgroundColor("#ffffff", true);
         StatusBar.setTranslucent(false);
       }
     }, [])
@@ -355,9 +353,8 @@ export default function AdminNotificationsScreen() {
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
-
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar
         barStyle="dark-content"
         backgroundColor={styles.safeArea.backgroundColor}
@@ -424,7 +421,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: Constants.statusBarHeight,
+    paddingTop: 12, // Consistent padding without status bar height
     paddingBottom: 12,
     backgroundColor: "white",
     borderBottomWidth: 1,
