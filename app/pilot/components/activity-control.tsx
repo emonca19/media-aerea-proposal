@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { activityTypes } from './quick-register-activity-form';
 
 interface ActivityControlProps {
@@ -20,6 +20,7 @@ interface ActivityControlProps {
   requiresBladeInspection?: boolean;
   hasCompletedBladeInspection?: boolean;
   onGoToBladeInspection?: () => void;
+  bladeInspectionTimingData?: any[]; // New prop for timing data
 }
 
 
@@ -38,7 +39,8 @@ export default function ActivityControl({
   onFinishActivityByBlockingIncident,
   requiresBladeInspection = false,
   hasCompletedBladeInspection = false,
-  onGoToBladeInspection
+  onGoToBladeInspection,
+  bladeInspectionTimingData
 }: ActivityControlProps) {
   const [pauseStart, setPauseStart] = useState<number | null>(null);
   const [accumulated, setAccumulated] = useState(0); // tiempo acumulado antes de pausar
@@ -221,6 +223,28 @@ export default function ActivityControl({
                   Inspección de Aspas: {hasCompletedBladeInspection ? 'Completada' : 'Pendiente'}
                 </Text>
               </View>
+              
+              {/* Show blade timing data if available */}
+              {hasCompletedBladeInspection && bladeInspectionTimingData && bladeInspectionTimingData.length > 0 && (
+                <View style={styles.bladeTimingContainer}>
+                  <Text style={styles.bladeTimingTitle}>Tiempos de Inspección:</Text>
+                  {bladeInspectionTimingData.map((blade, index) => (
+                    <View key={index} style={styles.bladeTimingItem}>
+                      <Text style={styles.bladeTimingName}>{blade.bladeName || `Aspa ${blade.bladeNumber}`}</Text>
+                      <Text style={styles.bladeTimingTime}>
+                        {Math.floor(blade.inspectionTime / 60)}:{(blade.inspectionTime % 60).toString().padStart(2, '0')}
+                      </Text>
+                    </View>
+                  ))}
+                  <View style={styles.bladeTimingTotal}>
+                    <Text style={styles.bladeTimingTotalText}>
+                      Total: {Math.floor(bladeInspectionTimingData.reduce((sum, blade) => sum + blade.inspectionTime, 0) / 60)}:
+                      {(bladeInspectionTimingData.reduce((sum, blade) => sum + blade.inspectionTime, 0) % 60).toString().padStart(2, '0')}
+                    </Text>
+                  </View>
+                </View>
+              )}
+              
               {isInspectionPendingAndActionable && (
                 <TouchableOpacity 
                   style={styles.bladeInspectionButton}
@@ -231,7 +255,7 @@ export default function ActivityControl({
                 </TouchableOpacity>
               )}
             </View>
-          )}          {/* Botón principal: Terminar o Reanudar */}
+          )}{/* Botón principal: Terminar o Reanudar */}
           <View style={styles.cardActionsRow}>
             {!isPaused && (
               <>
@@ -825,12 +849,54 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignSelf: 'flex-start', 
     marginTop: 8, 
-  },
-  bladeInspectionButtonText: {
+  },  bladeInspectionButtonText: {
     fontSize: 13, 
     color: '#3b82f6', 
     fontWeight: '600',
     marginLeft: 4, 
+  },
+  bladeTimingContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#f0f9ff',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+  },
+  bladeTimingTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0284c7',
+    marginBottom: 6,
+  },
+  bladeTimingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  bladeTimingName: {
+    fontSize: 11,
+    color: '#0369a1',
+    flex: 1,
+  },
+  bladeTimingTime: {
+    fontSize: 11,
+    color: '#0369a1',
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  bladeTimingTotal: {
+    marginTop: 4,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: '#bae6fd',
+  },
+  bladeTimingTotalText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0284c7',
+    textAlign: 'center',
   },
 });
 

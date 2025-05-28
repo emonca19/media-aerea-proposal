@@ -974,8 +974,8 @@ const PilotDashboard = () => {
   }>({ isPaused: false });
   const [completedPreflightChecks, setCompletedPreflightChecks] = useState<
     Record<string, boolean>
-  >({});
-  const [bladeInspectionStatus, setBladeInspectionStatus] = useState<Record<string, boolean>>({});
+  >({});  const [bladeInspectionStatus, setBladeInspectionStatus] = useState<Record<string, boolean>>({});
+  const [bladeInspectionTimingData, setBladeInspectionTimingData] = useState<any[]>([]);
 
   // Inicializamos con datos por defecto, pero intentaremos cargar desde almacenamiento local
   const [currentProject, setCurrentProject] =
@@ -1882,18 +1882,29 @@ const PilotDashboard = () => {
       }
     }
   }, [params, router, currentPathname, activities, mockTurbines, setActivityPauseState]);
-
   // Effect para manejar la finalización de la inspección de aspas
   useEffect(() => {
     const {
       bladeInspectionCompleted,
       turbineId: completedTurbineId,
       activityId: completedActivityId,
-      keepActivityRunning
+      keepActivityRunning,
+      bladeTimingData: bladeTimingDataString
     } = params;
 
     if (bladeInspectionCompleted === 'true' && completedTurbineId && completedActivityId) {
       console.log(`[Dashboard Effect] Blade inspection completed for turbine ${completedTurbineId}`);
+      
+      // Extract and parse blade timing data
+      if (bladeTimingDataString) {
+        try {
+          const parsedTimingData = JSON.parse(bladeTimingDataString);
+          console.log('[Dashboard Effect] Parsed blade timing data:', parsedTimingData);
+          setBladeInspectionTimingData(parsedTimingData);
+        } catch (error) {
+          console.error('[Dashboard Effect] Failed to parse blade timing data:', error);
+        }
+      }
       
       // Mark the blade inspection as completed
       setBladeInspectionStatus(prev => ({
@@ -1947,9 +1958,7 @@ const PilotDashboard = () => {
             ? "La inspección de aspas ha sido completada exitosamente. Ya puede finalizar la actividad."
             : "La inspección de aspas y la actividad han sido completadas exitosamente."
         );
-      }, 500);
-
-      // Clear the params
+      }, 500);      // Clear the params
       const newParams = { ...params };
       delete newParams.bladeInspectionCompleted;
       delete newParams.turbineId;
@@ -1957,6 +1966,7 @@ const PilotDashboard = () => {
       delete newParams.timestamp;
       delete newParams.keepActivityRunning;
       delete newParams.showSuggestions;
+      delete newParams.bladeTimingData;
       
       if (Object.keys(newParams).length < Object.keys(params).length) {
         router.replace({
@@ -2499,13 +2509,13 @@ const PilotDashboard = () => {
                   onFinishActivityByBlockingIncident={handleFinishActivityByBlockingIncident}
                   // Pass turbine checklist props
                   requiresBladeInspection={isBladeInspectionRequired(currentOngoingActivityForDisplay)}
-                  hasCompletedBladeInspection={hasCompletedBladeInspection(currentOngoingActivityForDisplay.id)}
-                  onGoToBladeInspection={() => {
+                  hasCompletedBladeInspection={hasCompletedBladeInspection(currentOngoingActivityForDisplay.id)}                  onGoToBladeInspection={() => {
                     const turbineId = currentOngoingActivityForDisplay.turbineId || 
                                     currentOngoingActivityForDisplay.id.replace('turbine-', '') ||
                                     'default';
                     router.push(`/pilot/blade-inspection-detail?turbineId=${turbineId}&activityId=${currentOngoingActivityForDisplay.id}`);
                   }}
+                  bladeInspectionTimingData={bladeInspectionTimingData}
                 />
               )}
               <QuickActionsMenuCard

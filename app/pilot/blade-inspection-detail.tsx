@@ -23,39 +23,122 @@ const COLORS = {
 };
 
 interface BladeStatus {
-  id: string;  name: string; checked: boolean;  timestamp?: string;}
+  id: string;
+  name: string;
+  checked: boolean;
+  timestamp?: string;
+  startTime?: Date;
+  inspectionTime?: number; // tiempo en segundos
+  isActive?: boolean; // whether this blade is currently being inspected
+}
 
 const BladeInspectionDetail = () => {
   const params = useLocalSearchParams();
   const turbineId = params.turbineId as string;
   const activityId = params.activityId as string;
   
+  // Guardar la referencia a la turbina actual para detectar cambios
+  const [currentTurbineId, setCurrentTurbineId] = useState<string | null>(null);
+  
   const NUM_BLADES = 3;
-
   const [blades, setBlades] = useState<BladeStatus[]>(
     Array.from({ length: NUM_BLADES }, (_, i) => ({
-      id: `blade_${i + 1}`, name: `Aspa ${i + 1}`, checked: false,
+      id: `blade_${i + 1}`, 
+      name: `Aspa ${i + 1}`, 
+      checked: false,
+      isActive: false,
     }))
   );
-  
   const [currentBladeIndex, setCurrentBladeIndex] = useState(0);
   const [checkAnimation] = useState(new Animated.Value(0));
+  const [currentTime, setCurrentTime] = useState(new Date());
   const turbineRotation = useRef(new Animated.Value(0)).current;
+  // Timer para actualizar el tiempo cada segundo
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
 
+    return () => clearInterval(timer);
+  }, []);
+
+  // Efecto para detectar cambio de turbina y reiniciar aspas
+  useEffect(() => {
+    // Si es la primera carga o si cambió el ID de la turbina
+    if (currentTurbineId === null || currentTurbineId !== turbineId) {
+      console.log(`[BladeInspection] Turbina cambiada o primera carga: ${turbineId}`);
+      
+      // Reiniciar todas las aspas
+      setBlades(Array.from({ length: NUM_BLADES }, (_, i) => ({
+        id: `blade_${i + 1}`, 
+        name: `Aspa ${i + 1}`, 
+        checked: false,
+        isActive: false,
+      })));
+      
+      // Resetear el índice de la aspa actual
+      setCurrentBladeIndex(0);
+      
+      // Actualizar el ID de turbina actual
+      setCurrentTurbineId(turbineId);
+    }
+  }, [turbineId, currentTurbineId, NUM_BLADES]);
+  
   useEffect(() => {
     const targetRotationDegrees = -currentBladeIndex * (360 / NUM_BLADES);
     Animated.spring(turbineRotation, {
       toValue: targetRotationDegrees,
-      tension: 25, friction: 8, useNativeDriver: true, // Ajustar para una rotación más suave
+      tension: 25, friction: 8, useNativeDriver: true,
     }).start();
-  }, [currentBladeIndex, turbineRotation]);
-
-  const handleBladePress = (pressedBladeId: string, pressedBladeIndex: number) => {
+  }, [currentBladeIndex, turbineRotation]);  const handleBladePress = (pressedBladeId: string, pressedBladeIndex: number) => {
+    // Always allow navigation to other blades (even if one is active)
     setCurrentBladeIndex(pressedBladeIndex);
-    if (!blades[pressedBladeIndex].checked) {
-      setBlades(prev => prev.map(b => 
-        b.id === pressedBladeId ? { ...b, checked: true, timestamp: new Date().toISOString() } : b
+  };
+
+  const handleStartStopInspection = () => {
+    const currentBlade = blades[currentBladeIndex];
+    
+    // Check if any OTHER blade is currently active
+    const hasOtherActiveIncompleteBlade = blades.some(blade => 
+      blade.isActive && !blade.checked && blade.id !== currentBlade.id
+    );
+    
+    if (hasOtherActiveIncompleteBlade && !currentBlade.isActive) {
+      Alert.alert(
+        'Inspección en Progreso', 
+        'Debe completar la inspección actual antes de comenzar otra aspa.',
+        [{ text: 'Entendido' }]
+      );
+      return;
+    }
+
+    // If blade is not checked and not active, start the inspection
+    if (!currentBlade.checked && !currentBlade.isActive) {
+      const now = new Date();
+      setBlades(prev => prev.map((blade, index) => 
+        index === currentBladeIndex 
+          ? { ...blade, startTime: now, isActive: true }
+          : blade
       ));
+    }
+    // If blade is already active but not checked, complete it
+    else if (currentBlade.isActive && !currentBlade.checked) {
+      const now = new Date();
+      const startTime = currentBlade.startTime || now;
+      const inspectionTime = Math.round((now.getTime() - startTime.getTime()) / 1000);
+      
+      setBlades(prev => prev.map(b => 
+        b.id === currentBlade.id 
+          ? { 
+              ...b, 
+              checked: true, 
+              isActive: false,
+              timestamp: now.toISOString(),
+              inspectionTime
+            } 
+          : b
+      ));
+      
       checkAnimation.setValue(0);
       Animated.spring(checkAnimation, {
         toValue: 1, tension: 60, friction: 6, useNativeDriver: true,
@@ -63,24 +146,47 @@ const BladeInspectionDetail = () => {
     }
   };
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };  const getCurrentInspectionTime = () => {
+    const currentBlade = blades[currentBladeIndex];
+    if (currentBlade.checked && currentBlade.inspectionTime) {
+      return currentBlade.inspectionTime;
+    }
+    if (currentBlade.startTime && currentBlade.isActive && !currentBlade.checked) {
+      return Math.round((currentTime.getTime() - currentBlade.startTime.getTime()) / 1000);
+    }
+    return 0;
+  };
+
   const allBladesChecked = blades.every(blade => blade.checked);
   const checkedCount = blades.filter(blade => blade.checked).length;
-
   const handleFinishInspection = () => { 
     if (!allBladesChecked) {
       Alert.alert('Inspección Incompleta', 'Debe revisar todas las aspas antes de finalizar.', [{ text: 'Entendido' }]);
       return;
     }
     
+    // Prepare blade timing data to pass to activity control
+    const bladeTimingData = blades.map(blade => ({
+      bladeNumber: parseInt(blade.id.split('_')[1]),
+      bladeName: blade.name,
+      inspectionTime: blade.inspectionTime || 0,
+      timestamp: blade.timestamp
+    }));
+    
     // Directly navigate back to the dashboard without a confirmation alert
     router.replace({
-      pathname: '/pilot/dashboard', // Changed to /pilot/dashboard to match example and back button
+      pathname: '/pilot/dashboard',
       params: { 
         bladeInspectionCompleted: 'true', 
         turbineId, 
         activityId, 
         timestamp: Date.now().toString(),
-        keepActivityRunning: 'true' // Flag to keep activity running on the dashboard
+        keepActivityRunning: 'true',
+        bladeTimingData: JSON.stringify(bladeTimingData) // Pass timing data
       }
     });
   };
@@ -92,33 +198,22 @@ const BladeInspectionDetail = () => {
   };
   
   const checkIconScale = checkAnimation.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 1.3, 1]});
-  const checkIconOpacity = checkAnimation.interpolate({ inputRange: [0, 0.2, 1], outputRange: [0, 1, 1]});
-  return (
+  const checkIconOpacity = checkAnimation.interpolate({ inputRange: [0, 0.2, 1], outputRange: [0, 1, 1]});  return (
     <View style={styles.screenContainer}>
       <Stack.Screen options={{ headerShown: false }} />
       
-      {/* Header compacto con información esencial */}
-      <LinearGradient colors={[COLORS.primaryDark, COLORS.primary]} style={styles.compactHeader}>
-        <TouchableOpacity style={styles.headerBackButton} onPress={() => router.canGoBack() ? router.back() : router.replace('/pilot/dashboard')}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.textWhite} />
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Inspección de Aspas</Text>
-          <Text style={styles.headerSubtitle}>Turbina {turbineId?.replace('turbine-', 'T-') || 'Desconocida'}</Text>
-        </View>
-        <View style={styles.progressIndicator}>
-          <Text style={styles.progressText}>{checkedCount}/{blades.length}</Text>
-          <View style={styles.progressCircle}>
-            <Animated.View style={[styles.progressFill, { width: `${(checkedCount / blades.length) * 100}%` }]} />
-          </View>
-        </View>
-      </LinearGradient>
-
-      {/* Contenido principal sin scroll - todo visible */}
+      {/* Contenido principal */}
       <View style={styles.mainContent}>
         
-        {/* Visualizador de turbina más compacto */}
+        {/* Visualizador de turbina mejorado */}
         <View style={styles.turbineSection}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIconContainer}>
+              <MaterialCommunityIcons name="wind-turbine" size={24} color={COLORS.primary} />
+            </View>
+            <Text style={styles.sectionTitle}>Turbina {turbineId?.replace('turbine-', 'T-') || 'Desconocida'}</Text>
+          </View>
+          
           <View style={styles.turbineContainer}>
             <LinearGradient colors={COLORS.hubGradient} style={styles.compactHub}>
               <View style={styles.hubCenter}/>
@@ -128,7 +223,8 @@ const BladeInspectionDetail = () => {
               {blades.map((blade, index) => {
                 const baseBladeRotation = `${index * (360 / NUM_BLADES)}deg`; 
                 const isSelected = index === currentBladeIndex;
-                const isChecked = blade.checked;                let bladeColors: readonly string[] = COLORS.bladeDefault;
+                const isChecked = blade.checked;
+                let bladeColors: readonly string[] = COLORS.bladeDefault;
                 if (isChecked) bladeColors = COLORS.bladeChecked;
                 else if (isSelected) bladeColors = COLORS.bladeSelectedVisual;
                 
@@ -155,47 +251,86 @@ const BladeInspectionDetail = () => {
               })}
             </Animated.View>
           </View>
+          
+          {/* Estadísticas de progreso */}
+          <View style={styles.progressStats}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{checkedCount}</Text>
+              <Text style={styles.statLabel}>Completadas</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{blades.length - checkedCount}</Text>
+              <Text style={styles.statLabel}>Pendientes</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{Math.round((checkedCount / blades.length) * 100)}%</Text>
+              <Text style={styles.statLabel}>Progreso</Text>
+            </View>
+          </View>
         </View>
 
-        {/* Controles de navegación entre aspas - siempre visibles */}
-        <View style={styles.bladeNavigation}>
-          {blades.map((blade, index) => (
-            <TouchableOpacity 
-              key={blade.id}
-              style={[
-                styles.navButton,
-                index === currentBladeIndex && styles.navButtonActive,
-                blade.checked && styles.navButtonChecked
-              ]}
-              onPress={() => setCurrentBladeIndex(index)}
-              activeOpacity={0.7}
-            >              <MaterialCommunityIcons 
-                name="wind-turbine" 
-                size={24} 
-                color={blade.checked ? COLORS.success : (index === currentBladeIndex ? COLORS.textWhite : COLORS.textSecondary)} 
-              />
-              <Text style={[
-                styles.navButtonText,
-                index === currentBladeIndex && styles.navButtonTextActive,
-                blade.checked && styles.navButtonTextChecked
-              ]}>
-                {blade.name}
-              </Text>
-              {blade.checked && (
-                <View style={styles.checkBadge}>
-                  <Ionicons name="checkmark" size={12} color={COLORS.textWhite} />
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+        {/* Navegación entre aspas mejorada */}
+        <View style={styles.bladeNavigationCard}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIconContainer}>
+              <Ionicons name="list-outline" size={20} color={COLORS.primary} />
+            </View>
+            <Text style={styles.sectionTitle}>Seleccionar Aspa</Text>
+          </View>          <View style={styles.bladeNavigation}>
+            {blades.map((blade, index) => {
+              return (
+                <TouchableOpacity 
+                  key={blade.id}
+                  style={[
+                    styles.navButton,
+                    index === currentBladeIndex && styles.navButtonActive,
+                    blade.checked && styles.navButtonChecked,
+                    blade.isActive && !blade.checked && styles.navButtonInProgress,
+                  ]}
+                  onPress={() => handleBladePress(blade.id, index)}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons 
+                    name="wind-turbine" 
+                    size={24} 
+                    color={blade.checked ? COLORS.textWhite : 
+                          blade.isActive ? COLORS.textWhite :
+                          (index === currentBladeIndex ? COLORS.textWhite : COLORS.textSecondary)} 
+                  />
+                  <Text style={[
+                    styles.navButtonText,
+                    index === currentBladeIndex && styles.navButtonTextActive,
+                    blade.checked && styles.navButtonTextChecked,
+                    blade.isActive && !blade.checked && styles.navButtonTextInProgress,
+                  ]}>
+                    {blade.name}
+                  </Text>
+                  {blade.checked && (
+                    <View style={styles.checkBadge}>
+                      <Ionicons name="checkmark" size={12} color={COLORS.textWhite} />
+                    </View>
+                  )}
+                  {blade.isActive && !blade.checked && (
+                    <View style={styles.activeBadge}>
+                      <Ionicons name="timer" size={12} color={COLORS.textWhite} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
-        {/* Información del aspa actual */}
-        <View style={styles.currentBladeInfo}>
-          <View style={styles.bladeInfoHeader}>
-            <Text style={styles.bladeInfoTitle}>
-              {blades[currentBladeIndex].name} - 
-              {blades[currentBladeIndex].checked ? ' Revisada' : ' Pendiente'}
+        {/* Información del aspa actual con cronómetro */}
+        <View style={styles.currentBladeCard}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIconContainer}>
+              <Ionicons name="time-outline" size={20} color={COLORS.primary} />
+            </View>
+            <Text style={styles.sectionTitle}>
+              {blades[currentBladeIndex].name}
             </Text>
             {blades[currentBladeIndex].checked && (
               <View style={styles.completedBadge}>
@@ -203,20 +338,78 @@ const BladeInspectionDetail = () => {
                 <Text style={styles.completedText}>Completada</Text>
               </View>
             )}
+          </View>            {/* Cronómetro y tiempo de inspección */}
+          <View style={styles.timerSection}>
+            <View style={styles.timerDisplay}>
+              <Ionicons 
+                name={blades[currentBladeIndex].checked ? "checkmark-circle" : 
+                      blades[currentBladeIndex].isActive ? "timer-outline" : "play-circle-outline"} 
+                size={24} 
+                color={blades[currentBladeIndex].checked ? COLORS.success : 
+                       blades[currentBladeIndex].isActive ? COLORS.primary : COLORS.textMuted} 
+              />
+              <Text style={styles.timerText}>
+                {blades[currentBladeIndex].checked 
+                  ? `Completada en ${formatTime(blades[currentBladeIndex].inspectionTime || 0)}`
+                  : blades[currentBladeIndex].isActive
+                    ? `Tiempo: ${formatTime(getCurrentInspectionTime())}`
+                    : 'Listo para inspeccionar'
+                }
+              </Text>
+            </View>
+            
+            {blades[currentBladeIndex].checked && blades[currentBladeIndex].timestamp && (
+              <Text style={styles.timestampText}>
+                Finalizada: {new Date(blades[currentBladeIndex].timestamp!).toLocaleTimeString()}
+              </Text>
+            )}
+            
+            {/* Botón de iniciar/completar inspección */}
+            {!blades[currentBladeIndex].checked && (
+              <TouchableOpacity 
+                style={styles.markCompleteButton}
+                onPress={handleStartStopInspection}
+                activeOpacity={0.8}
+              >
+                <LinearGradient 
+                  colors={blades[currentBladeIndex].isActive ? [COLORS.success, '#047857'] : [COLORS.primary, COLORS.primaryDark]}
+                  style={styles.markCompleteGradient}
+                >
+                  <Ionicons 
+                    name={blades[currentBladeIndex].isActive ? "checkmark-circle" : "play-circle"} 
+                    size={18} 
+                    color={COLORS.textWhite} 
+                    style={{ marginRight: 8 }} 
+                  />
+                  <Text style={styles.markCompleteText}>
+                    {blades[currentBladeIndex].isActive ? 'Completar Inspección' : 'Iniciar Inspección'}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
           </View>
-          
-          {!blades[currentBladeIndex].checked && (
-            <TouchableOpacity 
-              style={styles.markCompleteButton} 
-              onPress={() => handleBladePress(blades[currentBladeIndex].id, currentBladeIndex)}
-              activeOpacity={0.8}
-            >
-              <LinearGradient colors={[COLORS.primary, COLORS.primaryDark]} style={styles.markCompleteGradient}>
-                <Ionicons name="checkmark-outline" size={20} color={COLORS.textWhite} style={{ marginRight: 8 }} />
-                <Text style={styles.markCompleteText}>Marcar como Revisada</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          )}
+          {/* Lista de todas las aspas con tiempos */}
+          <View style={styles.allBladesSection}>
+            <Text style={styles.allBladesSectionTitle}>Resumen de Inspección</Text>
+            {blades.map((blade, index) => (
+              <View key={blade.id} style={styles.bladeListItem}>
+                <View style={styles.bladeListInfo}>
+                  <Ionicons 
+                    name={blade.checked ? "checkmark-circle" : "ellipse-outline"} 
+                    size={20} 
+                    color={blade.checked ? COLORS.success : COLORS.textMuted} 
+                  />
+                  <Text style={styles.bladeListName}>{blade.name}</Text>
+                </View>
+                <Text style={styles.bladeListTime}>
+                  {blade.checked 
+                    ? formatTime(blade.inspectionTime || 0)
+                    : '--:--'
+                  }
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
       </View>
 
@@ -318,13 +511,34 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
 
-  // Sección de turbina compacta
+  // Secciones con header común
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    flex: 1,
+  },
+
+  // Sección de turbina
   turbineSection: {
     backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.border,
     shadowColor: COLORS.textPrimary,
@@ -339,6 +553,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   compactHub: {
     width: 50,
@@ -406,14 +622,40 @@ const styles = StyleSheet.create({
     padding: 6,
   },
 
-  // Navegación entre aspas
-  bladeNavigation: {
+  // Estadísticas de progreso
+  progressStats: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: COLORS.border,
+    marginHorizontal: 8,
+  },
+
+  // Navegación entre aspas
+  bladeNavigationCard: {
     backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
-    padding: 12,
+    padding: 16,
     marginBottom: 16,
-    justifyContent: 'space-around',
     borderWidth: 1,
     borderColor: COLORS.border,
     shadowColor: COLORS.textPrimary,
@@ -422,12 +664,16 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
+  bladeNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    gap: 8,
+  },
   navButton: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 8,
-    marginHorizontal: 4,
     borderRadius: 12,
     backgroundColor: COLORS.background,
     borderWidth: 1,
@@ -437,10 +683,13 @@ const styles = StyleSheet.create({
   navButtonActive: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primaryDark,
-  },
-  navButtonChecked: {
+  },  navButtonChecked: {
     backgroundColor: COLORS.success,
     borderColor: '#047857',
+  },
+  navButtonInProgress: {
+    backgroundColor: '#f59e0b',
+    borderColor: '#d97706',
   },
   navButtonText: {
     fontSize: 12,
@@ -455,7 +704,21 @@ const styles = StyleSheet.create({
   navButtonTextChecked: {
     color: COLORS.textWhite,
   },
+  navButtonTextInProgress: {
+    color: COLORS.textWhite,
+  },
   checkBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeBadge: {
     position: 'absolute',
     top: 4,
     right: 4,
@@ -468,7 +731,7 @@ const styles = StyleSheet.create({
   },
 
   // Información del aspa actual
-  currentBladeInfo: {
+  currentBladeCard: {
     backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
     padding: 16,
@@ -480,18 +743,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 3,
-  },
-  bladeInfoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  bladeInfoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    flex: 1,
   },
   completedBadge: {
     flexDirection: 'row',
@@ -507,9 +758,40 @@ const styles = StyleSheet.create({
     color: COLORS.success,
     marginLeft: 4,
   },
+
+  // Sección de cronómetro
+  timerSection: {
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+  timerDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  timerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginLeft: 12,
+  },
+  timestampText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+
+  // Botón de marcar completo
   markCompleteButton: {
     borderRadius: 12,
     overflow: 'hidden',
+    marginBottom: 16,
   },
   markCompleteGradient: {
     flexDirection: 'row',
@@ -522,6 +804,45 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.textWhite,
+  },
+
+  // Resumen de todas las aspas
+  allBladesSection: {
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+  allBladesSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    marginBottom: 12,
+  },
+  bladeListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderLight,
+  },
+  bladeListInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bladeListName: {
+    fontSize: 14,
+    color: COLORS.textPrimary,
+    marginLeft: 8,
+    fontWeight: '500',
+  },
+  bladeListTime: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 
   // Footer fijo
@@ -602,6 +923,11 @@ const styles = StyleSheet.create({
   mainActionButtonGradient: { display: 'none' },
   mainActionButtonDisabled: { display: 'none' },
   mainActionButtonText: { display: 'none' },
+
+  // Estilos que mantener pero no usar
+  currentBladeInfo: { display: 'none' },
+  bladeInfoHeader: { display: 'none' },
+  bladeInfoTitle: { display: 'none' },
 });
 
 export default BladeInspectionDetail;

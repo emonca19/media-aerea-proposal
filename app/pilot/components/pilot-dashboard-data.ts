@@ -5,7 +5,7 @@
 export const pilot = {
   id: 'P001',
   name: 'Juan Rodríguez',
-  role: 'Piloto Senior',
+  role: 'Piloto de Drones',
   licenseNumber: 'RPAS-1234',
   experience: '5 años',
   avatar: require('./../../../assets/images/pilot-avatar.jpg'),

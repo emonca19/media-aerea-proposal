@@ -3,7 +3,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Alert,
   FlatList,
   Image,
   Modal,
@@ -151,95 +150,217 @@ const ProjectInfoMenuEnhanced = () => {
       };
     });
     
-    Alert.alert(
-      "Estado actualizado",
-      "El progreso de las turbinas ha sido actualizado y se enviará al administrador."
-    );
+    // Removed Alert.alert confirmation
   };
 
   const submitTurbineProgress = () => {
     setShowTurbinesModal(false);
-    Alert.alert(
-      "¡Progreso enviado!",
-      `Se ha notificado al administrador ${projectData.adminResponsible} sobre el progreso actualizado: ${projectData.completedTurbines}/${projectData.totalTurbines} turbinas completadas.`
-    );
+    // Removed Alert.alert confirmation
   };
-
+  
   const renderDriveInfoModal = () => (
     <Modal
       animationType="slide"
       transparent={true}
       visible={showDriveModal}
       onRequestClose={() => setShowDriveModal(false)}
+      statusBarTranslucent={false}
     >
-      <View style={modalStyles.modalOverlay}>
-        <TouchableOpacity 
-          style={modalStyles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowDriveModal(false)}
-        >
-          <TouchableOpacity 
-            style={modalStyles.modalContent}
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
+      <View style={modalStyles.fullScreenContainer}>
+        <View style={modalStyles.modalOverlay}>
+          <View style={modalStyles.modalContent}>
             <ScrollView 
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ flexGrow: 1 }}
+              contentContainerStyle={modalStyles.scrollContentContainer}
+              style={modalStyles.scrollView}
+              bounces={true}
             >
               {/* Modal Header */}
               <View style={modalStyles.modalHeader}>
+                {/* Close button */}
+                <TouchableOpacity 
+                  style={modalStyles.closeButton}
+                  onPress={() => setShowDriveModal(false)}
+                >
+                  <Ionicons name="close" size={24} color="#6b7280" />
+                </TouchableOpacity>
+
                 <View style={modalStyles.modalIconContainer}>
                   <LinearGradient
                     colors={['#10b981', '#059669']}
                     style={modalStyles.modalIconGradient}
                   >
-                    <Ionicons name="cloud-outline" size={24} color="#fff" />
+                    <Ionicons name="cloud-outline" size={28} color="#fff" />
                   </LinearGradient>
                 </View>
-                <Text style={modalStyles.modalTitle}>Información de Google Drive</Text>
+                <Text style={modalStyles.modalTitle}>Google Drive del Proyecto</Text>
                 <Text style={modalStyles.modalSubtitle}>
-                  Este es el enlace de Google Drive configurado para el proyecto. Las fotos se organizan automáticamente en esta carpeta.
+                  Carpeta de almacenamiento.
                 </Text>
               </View>
 
               {/* Drive Info Display */}
               <View style={modalStyles.driveInfoContainer}>
-                <View style={modalStyles.driveInfoRow}>
-                  <Ionicons name="link" size={16} color="#6b7280" />
-                  <Text style={modalStyles.driveInfoLabel}>Enlace configurado:</Text>
+                <View style={modalStyles.driveInfoSection}>
+                  <View style={modalStyles.driveInfoRow}>
+                    <View style={modalStyles.driveInfoIconContainer}>
+                      <Ionicons name="link" size={18} color="#10b981" />
+                    </View>
+                    <View style={modalStyles.driveInfoTextContainer}>
+                      <Text style={modalStyles.driveInfoLabel}>Enlace configurado</Text>
+                      <Text style={modalStyles.driveInfoLink} numberOfLines={3}>
+                        {projectData.driveSubmission?.driveLink || 'No configurado'}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-                <Text style={modalStyles.driveInfoLink} numberOfLines={2}>
-                  {projectData.driveSubmission?.driveLink || 'No configurado'}
-                </Text>
                 
-                <View style={modalStyles.driveInfoRow}>
-                  <Ionicons name="calendar" size={16} color="#6b7280" />
-                  <Text style={modalStyles.driveInfoLabel}>Configurado el:</Text>
+                <View style={modalStyles.driveInfoDivider} />
+                
+                <View style={modalStyles.driveInfoSection}>
+                  <View style={modalStyles.driveInfoRow}>
+                    <View style={modalStyles.driveInfoIconContainer}>
+                      <Ionicons name="calendar" size={18} color="#10b981" />
+                    </View>
+                    <View style={modalStyles.driveInfoTextContainer}>
+                      <Text style={modalStyles.driveInfoLabel}>Fecha de configuración</Text>
+                      <Text style={modalStyles.driveInfoValue}>
+                        {projectData.driveSubmission?.submitDateTime.toLocaleDateString('es-ES', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        }) || 'N/A'}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-                <Text style={modalStyles.driveInfoValue}>
-                  {projectData.driveSubmission?.submitDateTime.toLocaleDateString('es-ES') || 'N/A'}
-                </Text>
 
-                <View style={modalStyles.driveInfoRow}>
-                  <Ionicons name="person" size={16} color="#6b7280" />
-                  <Text style={modalStyles.driveInfoLabel}>Administrador:</Text>
+                <View style={modalStyles.driveInfoDivider} />
+
+                <View style={modalStyles.driveInfoSection}>
+                  <View style={modalStyles.driveInfoRow}>
+                    <View style={modalStyles.driveInfoIconContainer}>
+                      <Ionicons name="person" size={18} color="#10b981" />
+                    </View>
+                    <View style={modalStyles.driveInfoTextContainer}>
+                      <Text style={modalStyles.driveInfoLabel}>Administrador responsable</Text>
+                      <Text style={modalStyles.driveInfoValue}>
+                        {projectData.adminResponsible}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-                <Text style={modalStyles.driveInfoValue}>
-                  {projectData.adminResponsible}
-                </Text>
               </View>
 
-              {/* Close Button */}
-              <TouchableOpacity 
-                style={modalStyles.closeButton}
-                onPress={() => setShowDriveModal(false)}
-              >
-                <Text style={modalStyles.closeButtonText}>Cerrar</Text>
-              </TouchableOpacity>
+              {/* Turbines Status Section */}
+              <View style={modalStyles.turbinesStatusContainer}>
+                <View style={modalStyles.turbinesStatusHeader}>
+                  <View style={modalStyles.turbinesStatusIconContainer}>
+                    <Ionicons name="nuclear-outline" size={20} color="#3b82f6" />
+                  </View>
+                  <Text style={modalStyles.turbinesStatusTitle}>Estado de las Turbinas</Text>
+                </View>
+
+                <View style={modalStyles.turbinesProgressCard}>
+                  <View style={modalStyles.turbinesProgressHeader}>
+                    <Text style={modalStyles.turbinesProgressText}>
+                      {projectData.completedTurbines} de {projectData.totalTurbines} completadas
+                    </Text>
+                    <View style={modalStyles.turbinesProgressBadge}>
+                      <LinearGradient
+                        colors={['#10b981', '#059669']}
+                        style={modalStyles.turbinesProgressBadgeGradient}
+                      >
+                        <Text style={modalStyles.turbinesProgressBadgeText}>
+                          {Math.round((projectData.completedTurbines / projectData.totalTurbines) * 100)}%
+                        </Text>
+                      </LinearGradient>
+                    </View>
+                  </View>
+                  
+                  <View style={modalStyles.turbinesProgressBarContainer}>
+                    <View style={modalStyles.turbinesProgressBar}>
+                      <LinearGradient
+                        colors={['#10b981', '#059669']}
+                        style={[
+                          modalStyles.turbinesProgressBarFill,
+                          { width: `${(projectData.completedTurbines / projectData.totalTurbines) * 100}%` }
+                        ]}
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={modalStyles.turbinesListContainer}>
+                  <View style={modalStyles.turbinesListHeader}>
+                    <View style={modalStyles.turbinesStatusItem}>
+                      <View style={[modalStyles.turbinesStatusDot, { backgroundColor: '#10b981' }]} />
+                      <Text style={modalStyles.turbinesStatusLabel}>
+                        Completadas ({projectData.turbines.filter(t => t.isCompleted).length})
+                      </Text>
+                    </View>
+                    <View style={modalStyles.turbinesStatusItem}>
+                      <View style={[modalStyles.turbinesStatusDot, { backgroundColor: '#f59e0b' }]} />
+                      <Text style={modalStyles.turbinesStatusLabel}>
+                        Pendientes ({projectData.turbines.filter(t => !t.isCompleted).length})
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={modalStyles.turbinesGrid}>
+                    {projectData.turbines.map((turbine) => (
+                      <TouchableOpacity 
+                        key={turbine.id} 
+                        style={[
+                          modalStyles.turbineGridItem,
+                          turbine.isCompleted && modalStyles.turbineGridItemCompleted
+                        ]}
+                        onPress={() => {
+                          setShowDriveModal(false);
+                          router.push({
+                            pathname: '/pilot/turbines-status',
+                            params: { 
+                              selectedTurbineId: turbine.id,
+                              fromModal: 'true' 
+                            }
+                          });
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <View style={modalStyles.turbineGridIconContainer}>
+                          {turbine.isCompleted ? (
+                            <LinearGradient
+                              colors={['#10b981', '#059669']}
+                              style={modalStyles.turbineIconGradientCompleted}
+                            >
+                              <Ionicons 
+                                name="checkmark-circle" 
+                                size={14} 
+                                color="#ffffff" 
+                              />
+                            </LinearGradient>
+                          ) : (
+                            <Ionicons 
+                              name="ellipse-outline" 
+                              size={14} 
+                              color="#d1d5db" 
+                            />
+                          )}
+                        </View>
+                        <Text style={[
+                          modalStyles.turbineGridName,
+                          turbine.isCompleted && modalStyles.turbineGridNameCompleted
+                        ]}>
+                          {turbine.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </View>
             </ScrollView>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </Modal>
   );
@@ -257,10 +378,8 @@ const ProjectInfoMenuEnhanced = () => {
           activeOpacity={1}
           onPress={() => setShowTurbinesModal(false)}
         >
-          <TouchableOpacity 
+          <View 
             style={[modalStyles.modalContent, { maxHeight: '80%' }]}
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <View style={modalStyles.modalHeader}>
@@ -276,14 +395,15 @@ const ProjectInfoMenuEnhanced = () => {
               <Text style={modalStyles.modalSubtitle}>
                 Selecciona las turbinas que has completado para actualizar el progreso del proyecto.
               </Text>
-            </View>
-
-            {/* Turbines List */}
+            </View>            {/* Turbines List */}
             <FlatList
               data={projectData.turbines}
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
               style={{ flex: 1, marginBottom: 20 }}
+              contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 10 }}
+              bounces={true}
+              alwaysBounceVertical={true}
               renderItem={({ item }) => (
                 <TouchableOpacity 
                   style={[
@@ -291,8 +411,29 @@ const ProjectInfoMenuEnhanced = () => {
                     item.isCompleted && modalStyles.turbineItemCompleted
                   ]}
                   onPress={() => handleTurbineToggle(item.id)}
+                  activeOpacity={0.8}
                 >
+                  {/* Enhanced shimmer effect for completed turbines */}
+                  {item.isCompleted && (
+                    <View style={modalStyles.turbineItemShimmer} />
+                  )}
+                  
                   <View style={modalStyles.turbineItemContent}>
+                    <View style={modalStyles.turbineIconSection}>
+                      {item.isCompleted ? (
+                        <LinearGradient
+                          colors={['#10b981', '#059669']}
+                          style={modalStyles.turbineCompletedIcon}
+                        >
+                          <Ionicons name="nuclear-outline" size={18} color="#ffffff" />
+                        </LinearGradient>
+                      ) : (
+                        <View style={modalStyles.turbinePendingIcon}>
+                          <Ionicons name="nuclear-outline" size={18} color="#9ca3af" />
+                        </View>
+                      )}
+                    </View>
+                    
                     <View style={modalStyles.turbineInfo}>
                       <Text style={[
                         modalStyles.turbineName,
@@ -306,7 +447,22 @@ const ProjectInfoMenuEnhanced = () => {
                       ]}>
                         Última inspección: {formatDate(item.lastInspection)}
                       </Text>
+                      
+                      {/* Status indicator */}
+                      <View style={modalStyles.turbineStatusRow}>
+                        <View style={[
+                          modalStyles.turbineStatusDot,
+                          { backgroundColor: item.isCompleted ? '#10b981' : '#f59e0b' }
+                        ]} />
+                        <Text style={[
+                          modalStyles.turbineStatusText,
+                          { color: item.isCompleted ? '#059669' : '#d97706' }
+                        ]}>
+                          {item.isCompleted ? 'Completada' : 'Pendiente'}
+                        </Text>
+                      </View>
                     </View>
+                    
                     <View style={[
                       modalStyles.turbineCheckbox,
                       item.isCompleted && modalStyles.turbineCheckboxCompleted
@@ -342,7 +498,7 @@ const ProjectInfoMenuEnhanced = () => {
                 </LinearGradient>
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
+          </View>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -370,7 +526,8 @@ const ProjectInfoMenuEnhanced = () => {
             <Text style={componentStyles.projectDescription}>{projectData.description}</Text>
           </View>
         </View>        {/* Quick Access Buttons */}
-        <View style={componentStyles.quickAccessContainer}>          <TouchableOpacity 
+        <View style={componentStyles.quickAccessContainer}>
+          <TouchableOpacity 
             style={componentStyles.quickAccessButton}
             onPress={() => router.push('/pilot/turbines-status')}
           >
@@ -389,43 +546,17 @@ const ProjectInfoMenuEnhanced = () => {
             </View>
             <Text style={componentStyles.quickAccessButtonText}>Mapa del Sitio</Text>
           </TouchableOpacity>
-        </View>
-
-        {/* Drive Management Section */}
-        <View style={componentStyles.driveSection}>
-          <View style={componentStyles.driveSectionHeader}>
-            <View style={componentStyles.driveIconContainer}>
-              <Ionicons name="cloud-outline" size={20} color="#3b82f6" />
-            </View>
-            <Text style={componentStyles.driveSectionTitle}>Google Drive</Text>
-            <TouchableOpacity 
-              style={componentStyles.driveActionButton}
-              onPress={handleDriveInfo}
-            >
-              <Ionicons name="information-circle-outline" size={18} color="#3b82f6" />
-            </TouchableOpacity>
-          </View>
           
-          {projectData.driveSubmission ? (
-            <View style={componentStyles.driveStatus}>
-              <View style={componentStyles.driveStatusInfo}>
-                <Ionicons name="checkmark-circle" size={16} color="#10b981" />
-                <Text style={componentStyles.driveStatusText}>
-                  Drive configurado el {projectData.driveSubmission.submitDateTime.toLocaleDateString()}
-                </Text>
-              </View>
-              <Text style={componentStyles.driveStatusDescription}>
-                Las fotos se están organizando automáticamente en la carpeta de Google Drive. Toca el ícono de información para ver detalles.
-              </Text>
+          <TouchableOpacity 
+            style={componentStyles.quickAccessButton}
+            onPress={handleDriveInfo}
+          >
+            <View style={componentStyles.quickAccessIconContainer}>
+              <Ionicons name="cloud-outline" size={20} color="#f59e0b" />
+              {projectData.driveSubmission && <View style={componentStyles.quickAccessNotificationDot} />}
             </View>
-          ) : (
-            <View style={componentStyles.driveNotConfigured}>
-              <Ionicons name="warning-outline" size={16} color="#f59e0b" />
-              <Text style={componentStyles.driveNotConfiguredText}>
-                Drive no configurado. Contacta al administrador para configurar la carpeta de Google Drive.
-              </Text>
-            </View>
-          )}
+            <Text style={componentStyles.quickAccessButtonText}>Drive</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Details Section */}
@@ -705,7 +836,7 @@ const componentStyles = StyleSheet.create({
     flex: 1,
   },
   detailsSection: {
-    marginTop: 16,
+    marginTop: -8,
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
@@ -804,8 +935,7 @@ const componentStyles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: 6,
-  },
-  progressInfo: {
+  },  progressInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -910,32 +1040,56 @@ const componentStyles = StyleSheet.create({
 });
 
 const modalStyles = StyleSheet.create({
-  modalOverlay: {
+  fullScreenContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingTop: 50,
   },
   modalContent: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    flex: 1,
     maxHeight: '90%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 8,
+    overflow: 'hidden',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContentContainer: {
+    paddingBottom: 20,
   },
   modalHeader: {
     alignItems: 'center',
-    marginBottom: 24,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 15,
+    backgroundColor: '#f8fafc',
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 15,
+    right: 15,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 1,
   },
   modalIconContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   modalIconGradient: {
     width: 56,
@@ -949,7 +1103,7 @@ const modalStyles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1f2937',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   modalSubtitle: {
     fontSize: 14,
@@ -958,134 +1112,216 @@ const modalStyles = StyleSheet.create({
     lineHeight: 20,
   },
   driveInfoContainer: {
-    backgroundColor: '#f9fafb',
+    margin: 16,
+    backgroundColor: '#ffffff',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    overflow: 'hidden',
+  },
+  driveInfoSection: {
+    padding: 16,
   },
   driveInfoRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  driveInfoIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f0fdf4',
     alignItems: 'center',
-    marginBottom: 8,
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  driveInfoTextContainer: {
+    flex: 1,
   },
   driveInfoLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 4,
+  },
+  driveInfoLink: {
+    fontSize: 12,
+    color: '#3b82f6',
+    lineHeight: 16,
+  },
+  driveInfoValue: {
+    fontSize: 13,
+    color: '#1f2937',
+    fontWeight: '500',
+  },
+  driveInfoDivider: {
+    height: 1,
+    backgroundColor: '#f3f4f6',
+    marginHorizontal: 16,
+  },
+  turbinesStatusContainer: {
+    marginHorizontal: 16,
+    marginBottom: 20,
+  },
+  turbinesStatusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  turbinesStatusIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  turbinesStatusTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  turbinesProgressCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  turbinesProgressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  turbinesProgressText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#374151',
-    marginLeft: 8,
+    flex: 1,
   },
-  driveInfoLink: {
-    fontSize: 13,
-    color: '#3b82f6',
-    marginBottom: 16,
-    lineHeight: 18,
-    textDecorationLine: 'underline',
+  turbinesProgressBadge: {
+    borderRadius: 16,
+    overflow: 'hidden',
   },
-  driveInfoValue: {
-    fontSize: 14,
-    color: '#1f2937',
-    marginBottom: 16,
+  turbinesProgressBadgeGradient: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  turbineItem: {
-    backgroundColor: '#f9fafb',
+  turbinesProgressBadgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  turbinesProgressBarContainer: {
+    marginTop: 6,
+  },
+  turbinesProgressBar: {
+    height: 6,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  turbinesProgressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  turbinesListContainer: {
+    backgroundColor: '#ffffff',
     borderRadius: 12,
-    marginBottom: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  turbinesListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  turbinesStatusItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  turbinesStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 4,
+  },
+  turbinesStatusLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#6b7280',
+  },
+  turbinesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  turbineGridItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    marginBottom: 4,
+    minWidth: 70,
   },
-  turbineItemCompleted: {
+  turbineGridItemCompleted: {
     backgroundColor: '#f0fdf4',
     borderColor: '#bbf7d0',
   },
-  turbineItemContent: {
-    flexDirection: 'row',
+  turbineGridIconContainer: {
+    marginRight: 4,
+  },
+  turbineIconGradientCompleted: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     alignItems: 'center',
-    padding: 16,
+    justifyContent: 'center',
   },
-  turbineInfo: {
-    flex: 1,
+  turbineGridName: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#6b7280',
   },
-  turbineName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 4,
-  },
-  turbineNameCompleted: {
+  turbineGridNameCompleted: {
     color: '#065f46',
-  },
-  turbineDate: {
-    fontSize: 13,
-    color: '#6b7280',
-  },
-  turbineDateCompleted: {
-    color: '#047857',
-  },
-  turbineCheckbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#d1d5db',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  turbineCheckboxCompleted: {
-    backgroundColor: '#10b981',
-    borderColor: '#10b981',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
     fontWeight: '600',
-    color: '#6b7280',
   },
-  submitButton: {
+  fixedButtonContainer: {
+    flexDirection: 'row',
+    padding: 16,
+    gap: 8,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  actionButton: {
     flex: 1,
     borderRadius: 12,
     overflow: 'hidden',
   },
-  submitButtonGradient: {
+  actionButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 6,
   },
-  submitButtonText: {
+  actionButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  closeButton: {
-    backgroundColor: '#3b82f6',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
+  // ...existing styles for other modals...
 });
 
 export default ProjectInfoMenuEnhanced;

@@ -1,876 +1,1370 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Stack } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Dimensions,
+  FlatList,
+  Image,
+  Modal,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View
 } from 'react-native';
-import Animated, {
-  FadeInDown,
-  FadeInUp,
-  SlideInUp // Cambiado desde SlideInRight para las barras
-} from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
-
-// Define some common colors for better consistency
-const COLORS = {
-  primary: '#1E3A8A', // Deep Blue
-  primaryLight: '#3B82F6', // Lighter Blue
-  secondary: '#10b981', // Green
-  secondaryDark: '#059669', // Darker Green
-  accentYellow: '#f59e0b',
-  accentRed: '#ef4444',
-  background: '#f0f4f8', // Light grayish-blue background
-  cardBackground: '#ffffff',
-  textPrimary: '#111827', // Darker text for titles
-  textSecondary: '#374151', // Medium text
-  textMuted: '#6b7280',   // Lighter text
-  textLight: '#ffffff',
-  lightGray: '#e5e7eb',
-  separator: '#f3f4f6',
-};
-
-export default function PilotStatistics() {
-  const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '12m'>('7d');
-
-  const pilotStats = {
-    overall: {
-      totalFlights: 248,
-      flightHours: '156h 42min',
-      inspectedTurbines: 18,
-      capturedPhotos: 1234,
-      efficiency: 94,
-      rank: 3,
-      totalPilots: 25,
-      achievements: 12
-    },
-    performance: {
-      avgTimePerTurbine: '42min',
-      avgPhotoUploadTime: '8min',
-      completionRate: 96,
-      qualityScore: 4.8,
-      safetyScore: 5.0,
-      punctuality: 98
-    },
-    incidents: {
-      total: 2,
-      resolved: 2,
-      pending: 0,
-      lastIncident: '15 días atrás',
-      safetyStreak: 45
-    }
-  };
-
-  const chartData = {
-    '7d': {
-      efficiency: [85, 88, 92, 96, 94, 97, 98],
-      flights: [3, 4, 5, 6, 4, 7, 5],
-      labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-    },
-    '30d': {
-      efficiency: [82, 85, 88, 90, 92, 94, 96],
-      flights: [15, 18, 22, 25, 20, 28, 24],
-      labels: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7']
-    },
-    '12m': {
-      efficiency: [78, 82, 85, 88, 90, 92, 94, 95, 96, 97, 96, 98],
-      flights: [45, 52, 58, 62, 68, 75, 72, 78, 82, 85, 88, 92],
-      labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'] // Labels más descriptivos
-    }
-  };
-
-  const turbineStats = [
-    { id: 'T001', name: 'Turbina A-01', inspections: 8, status: 'excellent', efficiency: 98 },
-    { id: 'T002', name: 'Turbina A-02', inspections: 6, status: 'good', efficiency: 94 },
-    { id: 'T003', name: 'Turbina B-12', inspections: 12, status: 'excellent', efficiency: 97 },
-    { id: 'T004', name: 'Turbina C-07', inspections: 4, status: 'average', efficiency: 89 },
-    { id: 'T005', name: 'Turbina D-15', inspections: 9, status: 'excellent', efficiency: 96 }
-  ];
-
-  const achievements = [
-    { id: 1, name: 'Piloto del Mes', icon: 'trophy-outline', color: COLORS.accentYellow, earned: true },
-    { id: 2, name: 'Racha Segura', icon: 'shield-checkmark-outline', color: COLORS.secondary, earned: true },
-    { id: 3, name: 'Max. Eficiencia', icon: 'speedometer-outline', color: COLORS.primaryLight, earned: true },
-    { id: 4, name: '100 Vuelos', icon: 'airplane-outline', color: '#8b5cf6', earned: true },
-    { id: 5, name: 'Mentor Experto', icon: 'school-outline', color: COLORS.accentRed, earned: false },
-    { id: 6, name: '1000 Fotos OK', icon: 'camera-outline', color: '#06b6d4', earned: true }
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'excellent': return COLORS.secondary;
-      case 'good': return COLORS.primaryLight;
-      case 'average': return COLORS.accentYellow;
-      default: return COLORS.textMuted;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'excellent': return 'Excelente';
-      case 'good': return 'Bueno';
-      case 'average': return 'Regular';
-      default: return 'N/A';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'excellent': return 'checkmark-circle-outline';
-      case 'good': return 'thumbs-up-outline';
-      case 'average': return 'alert-circle-outline';
-      default: return 'help-circle-outline';
-    }
-  };
-
-  const currentChartData = chartData[selectedPeriod];
-  const maxValue = Math.max(...currentChartData.efficiency, 0);
-
-  return (
-    <View style={styles.container}>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: "Estadísticas de Piloto",
-          headerStyle: { backgroundColor: COLORS.primary },
-          headerTintColor: COLORS.textLight,
-          headerTitleStyle: { fontWeight: 'bold', fontSize: 18 },
-          headerShadowVisible: false,
-        }}
-      />
-      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header Section with Simple Title */}
-        <Animated.View entering={FadeInUp.delay(100)} style={styles.headerSection}>
-          <Text style={styles.mainTitle}>Estadísticas de Piloto</Text>
-          
-          <View style={styles.rankBadgeSimple}>
-            <Ionicons name="ribbon-outline" size={20} color={COLORS.accentYellow} />
-            <Text style={styles.rankTextSimple}>Top #{pilotStats.overall.rank} de {pilotStats.overall.totalPilots} pilotos</Text>
-          </View>
-
-          <View style={styles.mainStatsRow}>
-            <View style={styles.mainStatItem}>
-              <Text style={styles.mainStatValue}>{pilotStats.overall.efficiency}%</Text>
-              <Text style={styles.mainStatLabel}>Eficiencia</Text>
-            </View>
-            <View style={styles.mainStatItem}>
-              <Text style={styles.mainStatValue}>{pilotStats.overall.totalFlights}</Text>
-              <Text style={styles.mainStatLabel}>Vuelos</Text>
-            </View>
-            <View style={styles.mainStatItem}>
-              <Text style={styles.mainStatValue}>{pilotStats.overall.flightHours}</Text>
-              <Text style={styles.mainStatLabel}>Horas</Text>
-            </View>
-            <View style={styles.mainStatItem}>
-              <Text style={styles.mainStatValue}>{pilotStats.incidents.safetyStreak}</Text>
-              <Text style={styles.mainStatLabel}>Días Seguros</Text>
-            </View>
-          </View>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(200)} style={styles.periodSelectorContainer}>
-          <Text style={styles.sectionTitle}>Rendimiento Periódico</Text>
-          <View style={styles.periodButtons}>
-            {(['7d', '30d', '12m'] as const).map((period) => (
-              <TouchableOpacity
-                key={period}
-                style={[
-                  styles.periodButton,
-                  selectedPeriod === period && styles.periodButtonActive
-                ]}
-                onPress={() => setSelectedPeriod(period)}
-              >
-                <Text style={[
-                  styles.periodButtonText,
-                  selectedPeriod === period && styles.periodButtonTextActive
-                ]}>
-                  {period === '7d' ? '7 Días' : period === '30d' ? '30 Días' : '12 Meses'}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Animated.View>        <Animated.View entering={FadeInDown.delay(300)} style={styles.card}>
-          <View style={styles.chartHeader}>
-            <Text style={styles.cardTitle}>Rendimiento de Eficiencia</Text>
-            <Text style={styles.chartSubtitle}>
-              {selectedPeriod === '7d' ? 'Últimos 7 días' : selectedPeriod === '30d' ? 'Últimas 4 semanas' : 'Últimos 12 meses'}
-            </Text>
-          </View>
-          
-          <View style={styles.chartContainer}>
-            <View style={styles.chartLegend}>
-              <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: COLORS.secondary }]} />
-                <Text style={styles.legendText}>Máximo rendimiento</Text>
-              </View>
-              <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: '#9ca3af' }]} />
-                <Text style={styles.legendText}>Rendimiento estándar</Text>
-              </View>
-            </View>
-            
-            <View style={styles.chart}>
-              {currentChartData.efficiency.map((value, index) => {
-                const barHeightPercent = maxValue > 0 ? (value / maxValue) * 100 : 0;
-                const isHighest = value === maxValue && maxValue > 0;
-                const valueIsVeryLow = barHeightPercent < 15;
-
-                return (
-                  <View key={index} style={styles.chartColumn}>
-                    <View style={styles.chartBarContainer}>
-                      <Text style={[
-                          styles.chartValue,
-                          isHighest && styles.chartValueHighest,
-                          valueIsVeryLow && !isHighest && styles.chartValueLow
-                        ]}>
-                        {value}%
-                      </Text>
-                      <Animated.View
-                        entering={SlideInUp.delay(450 + index * 70).duration(600)}
-                        style={[
-                          styles.chartBar,
-                          { height: `${barHeightPercent}%` },
-                          isHighest && styles.chartBarHighest,
-                        ]}
-                      >
-                        <LinearGradient
-                          colors={isHighest ? [COLORS.secondary, COLORS.secondaryDark] : [COLORS.primaryLight, '#6366f1']}
-                          style={styles.chartBarGradient}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 0, y: 1 }}
-                        />
-                      </Animated.View>
-                    </View>
-                    <Text style={styles.chartLabel}>{currentChartData.labels[index]}</Text>
-                  </View>
-                );
-              })}
-            </View>
-            
-            <View style={styles.chartStats}>
-              <View style={styles.chartStatItem}>
-                <Text style={styles.chartStatValue}>{Math.max(...currentChartData.efficiency)}%</Text>
-                <Text style={styles.chartStatLabel}>Máximo</Text>
-              </View>
-              <View style={styles.chartStatItem}>
-                <Text style={styles.chartStatValue}>{Math.round(currentChartData.efficiency.reduce((a, b) => a + b, 0) / currentChartData.efficiency.length)}%</Text>
-                <Text style={styles.chartStatLabel}>Promedio</Text>
-              </View>
-              <View style={styles.chartStatItem}>
-                <Text style={styles.chartStatValue}>{Math.min(...currentChartData.efficiency)}%</Text>
-                <Text style={styles.chartStatLabel}>Mínimo</Text>
-              </View>
-            </View>
-          </View>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(500)} style={styles.metricsGridContainer}>
-           <Text style={styles.sectionTitle}>Métricas Clave</Text>
-          <View style={styles.metricsGrid}>
-            {[
-              { icon: "time-outline", value: pilotStats.performance.avgTimePerTurbine, label: "Prom. Turbina", color: COLORS.primaryLight, bgColor: '#dbeafe' },
-              { icon: "checkmark-done-outline", value: `${pilotStats.performance.completionRate}%`, label: "Finalización", color: COLORS.secondary, bgColor: '#d1fae5' },
-              { icon: "star-outline", value: String(pilotStats.performance.qualityScore), label: "Calidad Fotos", color: COLORS.accentYellow, bgColor: '#fef3c7' },
-              { icon: "shield-checkmark-outline", value: String(pilotStats.performance.safetyScore), label: "Seguridad", color: COLORS.accentRed, bgColor: '#fecaca' },
-            ].map((metric, index) => (
-                <Animated.View
-                  key={index}
-                  style={styles.metricCard}
-                  entering={FadeInDown.delay(600 + index * 100)}
-                >
-                    <View style={[styles.metricIconContainer, { backgroundColor: metric.bgColor }]}>
-                    <Ionicons name={metric.icon as any} size={28} color={metric.color} />
-                    </View>
-                    <Text style={styles.metricValue}>{metric.value}</Text>
-                    <Text style={styles.metricLabel} numberOfLines={2}>{metric.label}</Text>
-                </Animated.View>
-            ))}
-          </View>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(700)} style={[styles.card, { marginTop: 0}]}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Estado de Seguridad</Text>
-            <View style={styles.safetyBadge}>
-              <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.secondaryDark} />
-              <Text style={styles.safetyBadgeText}>Impecable</Text>
-            </View>
-          </View>
-
-          <View style={styles.incidentsGrid}>
-            <View style={styles.incidentMetric}>
-              <Text style={styles.incidentValue}>{pilotStats.incidents.total}</Text>
-              <Text style={styles.incidentLabel}>Total Incidencias</Text>
-            </View>
-            <View style={styles.incidentMetric}>
-              <Text style={[styles.incidentValue, { color: COLORS.secondary }]}>{pilotStats.incidents.resolved}</Text>
-              <Text style={styles.incidentLabel}>Resueltas</Text>
-            </View>
-            <View style={styles.incidentMetric}>
-              <Text style={[styles.incidentValue, { color: COLORS.accentRed }]}>{pilotStats.incidents.pending}</Text>
-              <Text style={styles.incidentLabel}>Pendientes</Text>
-            </View>
-          </View>
-
-          <View style={styles.safetyStreak}>
-            <LinearGradient
-              colors={[COLORS.secondary, COLORS.secondaryDark]}
-              style={styles.streakBadge}
-              start={{x:0, y:0}} end={{x:1, y:0}}
-            >
-              <Ionicons name="flame-outline" size={22} color={COLORS.textLight} />
-              <Text style={styles.streakText}>{pilotStats.incidents.safetyStreak} días sin incidentes</Text>
-            </LinearGradient>
-          </View>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(800)} style={styles.card}>
-          <Text style={styles.cardTitle}>Turbinas Destacadas</Text>
-          {turbineStats.slice(0,3).map((turbine, index) => (
-            <Animated.View
-              key={turbine.id}
-              style={[styles.turbineItem, index === turbineStats.slice(0,3).length - 1 && styles.lastTurbineItem]}
-              entering={FadeInDown.delay(900 + index * 100)}
-            >
-              <View style={styles.turbineInfo}>
-                 <Ionicons name={getStatusIcon(turbine.status) as any} size={24} color={getStatusColor(turbine.status)} style={styles.turbineStatusIcon} />
-                <View style={styles.turbineDetails}>
-                  <Text style={styles.turbineName}>{turbine.name}</Text>
-                  <Text style={styles.turbineInspections}>{turbine.inspections} inspecciones</Text>
-                </View>
-              </View>
-              <View style={styles.turbineMetrics}>
-                <Text style={[styles.turbineEfficiency, { color: getStatusColor(turbine.status) }]}>
-                  {turbine.efficiency}%
-                </Text>
-                <Text style={styles.turbineStatusText}>{getStatusText(turbine.status)}</Text>
-              </View>
-            </Animated.View>
-          ))}
-           {turbineStats.length > 3 && (
-            <TouchableOpacity style={styles.seeAllButton}>
-              <Text style={styles.seeAllButtonText}>Ver Todas las Turbinas</Text>
-              <Ionicons name="chevron-forward-outline" size={16} color={COLORS.primaryLight} />
-            </TouchableOpacity>
-          )}
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(1000)} style={styles.card}>
-          <Text style={styles.cardTitle}>Logros Obtenidos</Text>
-          <View style={styles.achievementsGrid}>
-            {achievements.map((achievement, index) => (
-              <Animated.View
-                key={achievement.id}
-                style={[
-                  styles.achievementItem,
-                  !achievement.earned && styles.achievementLocked
-                ]}
-                entering={FadeInUp.delay(1100 + index * 100)} // Changed to FadeInUp for variety
-              >
-                <View style={[
-                  styles.achievementIconContainer,
-                  { backgroundColor: achievement.earned ? achievement.color : COLORS.lightGray }
-                ]}>
-                  <Ionicons
-                    name={achievement.icon as any}
-                    size={24}
-                    color={achievement.earned ? COLORS.textLight : COLORS.textMuted}
-                  />
-                </View>
-                <Text style={[
-                  styles.achievementName,
-                  !achievement.earned && styles.achievementNameLocked
-                ]} numberOfLines={2} ellipsizeMode="tail">
-                  {achievement.name}
-                </Text>
-                {achievement.earned && (
-                  <View style={styles.earnedBadge}>
-                    <Ionicons name="checkmark-outline" size={12} color={COLORS.secondaryDark} />
-                  </View>
-                )}
-              </Animated.View>
-            ))}
-          </View>
-        </Animated.View>
-
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
-    </View>
-  );
+// Enhanced interfaces for Drive functionality
+interface DriveSubmission {
+  id: string;
+  driveLink: string;
+  submitDateTime: Date;
+  status: 'active' | 'completed';
+  totalTurbines: number;
+  completedTurbines: number;
+  adminNotified: boolean;
 }
 
-const styles = StyleSheet.create({
-  container: {
+interface Turbine {
+  id: string;
+  name: string;
+  status: 'IN_PROGRESS' | 'COMPLETED' | 'PENDING';
+  lastInspection: string;
+  isCompleted: boolean;
+}
+
+interface ProjectData {
+  id: string;
+  name: string;
+  client: string;
+  description: string;
+  location: string;
+  totalTurbines: number;
+  completedTurbines: number;
+  progress: number;
+  startDate: string;
+  endDate: string;
+  contractId: string;
+  adminResponsible: string;
+  adminEmail: string;
+  driveSubmission?: DriveSubmission;
+  turbines: Turbine[];
+}
+
+// Enhanced project data with turbines for completion tracking
+const mockProject: ProjectData = {
+  id: 'proj-001',
+  name: 'Parque Eólico Sierra Norte',
+  client: 'Energía Renovable SA',
+  description: 'Inspección integral de aerogeneradores con tecnología de drones avanzada',
+  location: 'Sierra Norte, Estado de México',
+  totalTurbines: 7,
+  completedTurbines: 2,
+  progress: 29,
+  startDate: '2023-05-10',
+  endDate: '2023-06-20',
+  contractId: 'CON-2023-045',
+  adminResponsible: 'Ing. Carlos Mendez',
+  adminEmail: 'carlos.mendez@energiarenovable.com',
+  driveSubmission: {
+    id: 'drive-001',
+    driveLink: 'https://drive.google.com/drive/folders/1x2Y3z4A5b6C7d8E9f0G1h2I3j4K5l6M7',
+    submitDateTime: new Date('2024-01-14'),
+    status: 'active',
+    totalTurbines: 7,
+    completedTurbines: 2,
+    adminNotified: true
+  },
+  turbines: [
+    { id: '1', name: 'T-001', status: 'COMPLETED', lastInspection: '2023-05-15', isCompleted: true },
+    { id: '2', name: 'T-002', status: 'COMPLETED', lastInspection: '2023-05-16', isCompleted: true },
+    { id: '3', name: 'T-003', status: 'IN_PROGRESS', lastInspection: '2023-04-28', isCompleted: false },
+    { id: '4', name: 'T-004', status: 'PENDING', lastInspection: '2023-04-20', isCompleted: false },
+    { id: '5', name: 'T-005', status: 'PENDING', lastInspection: '2023-04-18', isCompleted: false },
+    { id: '6', name: 'T-006', status: 'PENDING', lastInspection: '2023-04-15', isCompleted: false },
+    { id: '7', name: 'T-007', status: 'PENDING', lastInspection: '2023-04-12', isCompleted: false },
+  ]
+};
+
+const projectMembers = [
+  {
+    id: 1,
+    name: 'Juan Pérez',
+    role: 'Piloto Líder',
+    avatar: require('./../../assets/images/pilot-avatar.jpg'),
+  },
+  {
+    id: 2,
+    name: 'Ana Torres',
+    role: 'Técnica de Mantenimiento',
+    avatar: require('./../../assets/images/wind-turbine-icon.png'),
+  },
+  {
+    id: 3,
+    name: 'Luis García',
+    role: 'Supervisor de Campo',
+    avatar: require('./../../assets/images/media-logo.png'),
+  },
+];
+
+const ProjectInfoMenuEnhanced = () => {
+  const router = useRouter();
+  const [projectData, setProjectData] = useState<ProjectData>(mockProject);
+  const [showDriveModal, setShowDriveModal] = useState(false);
+  const [showTurbinesModal, setShowTurbinesModal] = useState(false);
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const handleDriveInfo = () => {
+    setShowDriveModal(true);
+  };
+
+  const handleTurbineToggle = (turbineId: string) => {
+    setProjectData(prev => {
+      const updatedTurbines = prev.turbines.map(turbine => {
+        if (turbine.id === turbineId) {
+          const newIsCompleted = !turbine.isCompleted;
+          return {
+            ...turbine,
+            isCompleted: newIsCompleted,
+            status: newIsCompleted ? 'COMPLETED' as const : 'PENDING' as const
+          };
+        }
+        return turbine;
+      });
+
+      const completedCount = updatedTurbines.filter(t => t.isCompleted).length;
+      const progress = Math.round((completedCount / prev.totalTurbines) * 100);
+
+      return {
+        ...prev,
+        turbines: updatedTurbines,
+        completedTurbines: completedCount,
+        progress: progress,
+        driveSubmission: prev.driveSubmission ? {
+          ...prev.driveSubmission,
+          completedTurbines: completedCount
+        } : undefined
+      };
+    });
+  };
+
+  const submitTurbineProgress = () => {
+    setShowTurbinesModal(false);
+    // Potentially add API call here to submit progress
+    console.log("Progreso de turbinas enviado:", projectData.turbines.filter(t => t.isCompleted));
+  };
+
+  const renderDriveInfoModal = () => (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={showDriveModal}
+      onRequestClose={() => setShowDriveModal(false)}
+      statusBarTranslucent={false}
+    >
+      <View style={modalStyles.fullScreenContainer}>
+        <View style={modalStyles.modalOverlay}>
+          <View style={modalStyles.modalContent}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={modalStyles.scrollContentContainer}
+              style={modalStyles.scrollView}
+              bounces={false} // Changed to false for a cleaner look if content is short
+            >
+              {/* Modal Header */}
+              <View style={modalStyles.modalHeader}>
+                {/* Close button */}
+                <TouchableOpacity
+                  style={modalStyles.closeButton}
+                  onPress={() => setShowDriveModal(false)}
+                >
+                  <Ionicons name="close" size={24} color="#6b7280" />
+                </TouchableOpacity>
+
+                <View style={modalStyles.modalIconContainer}>
+                  <LinearGradient
+                    colors={['#10b981', '#059669']}
+                    style={modalStyles.modalIconGradient}
+                  >
+                    <Ionicons name="cloud-outline" size={28} color="#fff" />
+                  </LinearGradient>
+                </View>
+                <Text style={modalStyles.modalTitle}>Google Drive del Proyecto</Text>
+                <Text style={modalStyles.modalSubtitle}>
+                  Carpeta de almacenamiento.
+                </Text>
+              </View>
+
+              {/* Drive Info Display */}
+              <View style={modalStyles.driveInfoContainer}>
+                <View style={modalStyles.driveInfoSection}>
+                  <View style={modalStyles.driveInfoRow}>
+                    <View style={modalStyles.driveInfoIconContainer}>
+                      <Ionicons name="link" size={18} color="#10b981" />
+                    </View>
+                    <View style={modalStyles.driveInfoTextContainer}>
+                      <Text style={modalStyles.driveInfoLabel}>Enlace configurado</Text>
+                      <Text style={modalStyles.driveInfoLink} numberOfLines={3}>
+                        {projectData.driveSubmission?.driveLink || 'No configurado'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={modalStyles.driveInfoDivider} />
+
+                <View style={modalStyles.driveInfoSection}>
+                  <View style={modalStyles.driveInfoRow}>
+                    <View style={modalStyles.driveInfoIconContainer}>
+                      <Ionicons name="calendar" size={18} color="#10b981" />
+                    </View>
+                    <View style={modalStyles.driveInfoTextContainer}>
+                      <Text style={modalStyles.driveInfoLabel}>Fecha de configuración</Text>
+                      <Text style={modalStyles.driveInfoValue}>
+                        {projectData.driveSubmission?.submitDateTime.toLocaleDateString('es-ES', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        }) || 'N/A'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={modalStyles.driveInfoDivider} />
+
+                <View style={modalStyles.driveInfoSection}>
+                  <View style={modalStyles.driveInfoRow}>
+                    <View style={modalStyles.driveInfoIconContainer}>
+                      <Ionicons name="person" size={18} color="#10b981" />
+                    </View>
+                    <View style={modalStyles.driveInfoTextContainer}>
+                      <Text style={modalStyles.driveInfoLabel}>Administrador responsable</Text>
+                      <Text style={modalStyles.driveInfoValue}>
+                        {projectData.adminResponsible}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Turbines Status Section */}
+              <View style={modalStyles.turbinesStatusContainer}>
+                <View style={modalStyles.turbinesStatusHeader}>
+                  <View style={modalStyles.turbinesStatusIconContainer}>
+                    <Ionicons name="nuclear-outline" size={20} color="#3b82f6" />
+                  </View>
+                  <Text style={modalStyles.turbinesStatusTitle}>Estado de las Turbinas</Text>
+                </View>
+
+                <View style={modalStyles.turbinesProgressCard}>
+                  <View style={modalStyles.turbinesProgressHeader}>
+                    <Text style={modalStyles.turbinesProgressText}>
+                      {projectData.completedTurbines} de {projectData.totalTurbines} completadas
+                    </Text>
+                    <View style={modalStyles.turbinesProgressBadge}>
+                      <LinearGradient
+                        colors={['#10b981', '#059669']}
+                        style={modalStyles.turbinesProgressBadgeGradient}
+                      >
+                        <Text style={modalStyles.turbinesProgressBadgeText}>
+                          {Math.round((projectData.completedTurbines / projectData.totalTurbines) * 100)}%
+                        </Text>
+                      </LinearGradient>
+                    </View>
+                  </View>
+
+                  <View style={modalStyles.turbinesProgressBarContainer}>
+                    <View style={modalStyles.turbinesProgressBar}>
+                      <LinearGradient
+                        colors={['#10b981', '#059669']}
+                        style={[
+                          modalStyles.turbinesProgressBarFill,
+                          { width: `${(projectData.completedTurbines / projectData.totalTurbines) * 100}%` }
+                        ]}
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={modalStyles.turbinesListContainer}>
+                  <View style={modalStyles.turbinesListHeader}>
+                    <View style={modalStyles.turbinesStatusItem}>
+                      <View style={[modalStyles.turbinesStatusDot, { backgroundColor: '#10b981' }]} />
+                      <Text style={modalStyles.turbinesStatusLabel}>
+                        Completadas ({projectData.turbines.filter(t => t.isCompleted).length})
+                      </Text>
+                    </View>
+                    <View style={modalStyles.turbinesStatusItem}>
+                      <View style={[modalStyles.turbinesStatusDot, { backgroundColor: '#f59e0b' }]} />
+                      <Text style={modalStyles.turbinesStatusLabel}>
+                        Pendientes ({projectData.turbines.filter(t => !t.isCompleted).length})
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={modalStyles.turbinesGrid}>
+                    {projectData.turbines.map((turbine) => (
+                      <TouchableOpacity
+                        key={turbine.id}
+                        style={[
+                          modalStyles.turbineGridItem,
+                          turbine.isCompleted && modalStyles.turbineGridItemCompleted
+                        ]}
+                        onPress={() => {
+                          setShowDriveModal(false);
+                          router.push({
+                            pathname: '/pilot/turbines-status',
+                            params: {
+                              selectedTurbineId: turbine.id,
+                              fromModal: 'true'
+                            }
+                          });
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <View style={modalStyles.turbineGridIconContainer}>
+                          {turbine.isCompleted ? (
+                            <LinearGradient
+                              colors={['#10b981', '#059669']}
+                              style={modalStyles.turbineIconGradientCompleted}
+                            >
+                              <Ionicons
+                                name="checkmark-circle"
+                                size={14}
+                                color="#ffffff"
+                              />
+                            </LinearGradient>
+                          ) : (
+                            <Ionicons
+                              name="ellipse-outline"
+                              size={14}
+                              color="#d1d5db"
+                            />
+                          )}
+                        </View>
+                        <Text style={[
+                          modalStyles.turbineGridName,
+                          turbine.isCompleted && modalStyles.turbineGridNameCompleted
+                        ]}>
+                          {turbine.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const renderTurbinesModal = () => (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={showTurbinesModal}
+      onRequestClose={() => setShowTurbinesModal(false)}
+    >
+      <View style={modalStyles.modalOverlay}>
+        <TouchableOpacity
+          style={modalStyles.modalOverlayTouchable} // Renamed for clarity
+          activeOpacity={1}
+          onPress={() => setShowTurbinesModal(false)}
+        >
+          <View
+            style={[modalStyles.modalContent, { maxHeight: '80%' }]}
+            onStartShouldSetResponder={() => true} // Prevents touch from passing through to overlay
+          >
+            {/* Modal Header */}
+            <View style={modalStyles.modalHeader}>
+              <View style={modalStyles.modalIconContainer}>
+                <LinearGradient
+                  colors={['#3b82f6', '#1d4ed8']}
+                  style={modalStyles.modalIconGradient}
+                >
+                  <Ionicons name="nuclear-outline" size={24} color="#fff" />
+                </LinearGradient>
+              </View>
+              <Text style={modalStyles.modalTitle}>Marcar Turbinas Completadas</Text>
+              <Text style={modalStyles.modalSubtitle}>
+                Selecciona las turbinas que has completado para actualizar el progreso del proyecto.
+              </Text>
+            </View>
+            {/* Turbines List */}
+            <FlatList
+              data={projectData.turbines}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              style={{ flex: 1, marginBottom: 16 }} // Adjusted marginBottom
+              contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 10 }}
+              bounces={true}
+              alwaysBounceVertical={true}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    modalStyles.turbineItem,
+                    item.isCompleted && modalStyles.turbineItemCompleted
+                  ]}
+                  onPress={() => handleTurbineToggle(item.id)}
+                  activeOpacity={0.8}
+                >
+                  <View style={modalStyles.turbineItemContent}>
+                    <View style={modalStyles.turbineIconSection}>
+                      {item.isCompleted ? (
+                        <LinearGradient
+                          colors={['#10b981', '#059669']}
+                          style={modalStyles.turbineCompletedIcon}
+                        >
+                          <Ionicons name="nuclear-outline" size={18} color="#ffffff" />
+                        </LinearGradient>
+                      ) : (
+                        <View style={modalStyles.turbinePendingIcon}>
+                          <Ionicons name="nuclear-outline" size={18} color="#9ca3af" />
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={modalStyles.turbineInfo}>
+                      <Text style={[
+                        modalStyles.turbineName,
+                        item.isCompleted && modalStyles.turbineNameCompleted
+                      ]}>
+                        {item.name}
+                      </Text>
+                      <Text style={[
+                        modalStyles.turbineDate,
+                        item.isCompleted && modalStyles.turbineDateCompleted
+                      ]}>
+                        Última inspección: {formatDate(item.lastInspection)}
+                      </Text>
+
+                      {/* Status indicator */}
+                      <View style={modalStyles.turbineStatusRow}>
+                        <View style={[
+                          modalStyles.turbineStatusDot,
+                          { backgroundColor: item.isCompleted ? '#10b981' : '#f59e0b' }
+                        ]} />
+                        <Text style={[
+                          modalStyles.turbineStatusText,
+                          { color: item.isCompleted ? '#059669' : '#d97706' }
+                        ]}>
+                          {item.isCompleted ? 'Completada' : 'Pendiente'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={[
+                      modalStyles.turbineCheckbox,
+                      item.isCompleted && modalStyles.turbineCheckboxCompleted
+                    ]}>
+                      {item.isCompleted && (
+                        <Ionicons name="checkmark" size={16} color="#fff" />
+                      )}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+
+            {/* Action Buttons */}
+            <View style={modalStyles.actionButtons}>
+              <TouchableOpacity
+                style={modalStyles.cancelButton}
+                onPress={() => setShowTurbinesModal(false)}
+              >
+                <Text style={modalStyles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={modalStyles.submitButton}
+                onPress={submitTurbineProgress}
+              >
+                <LinearGradient
+                  colors={['#3b82f6', '#1d4ed8']}
+                  style={modalStyles.submitButtonGradient}
+                >
+                  <Ionicons name="send" size={18} color="#fff" />
+                  <Text style={modalStyles.submitButtonText}>Enviar Progreso</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  );
+
+  return (
+    <ScrollView
+      style={componentStyles.scrollContainer}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={componentStyles.scrollContent}
+    >
+      <View style={componentStyles.projectInfoCard}>
+        {/* Header with icon and project info */}
+        <View style={componentStyles.headerContainer}>
+          <LinearGradient
+            colors={['#a78bfa', '#8b5cf6']}
+            style={componentStyles.headerIconGradient}
+          >
+            <Ionicons name="briefcase-outline" size={28} color="#ffffff" />
+          </LinearGradient>
+          <View style={componentStyles.projectHeaderInfo}>
+            <Text style={componentStyles.projectTitle}>{projectData.name}</Text>
+            <Text style={componentStyles.projectClient}>{projectData.client}</Text>
+            <Text style={componentStyles.projectDescription}>{projectData.description}</Text>
+          </View>
+        </View>
+
+        {/* Quick Access Buttons */}
+        <View style={componentStyles.quickAccessContainer}>
+          <TouchableOpacity
+            style={componentStyles.quickAccessButton}
+            onPress={() => router.push('/pilot/turbines-status')}
+          >
+            <View style={componentStyles.quickAccessIconContainer}>
+              <Ionicons name="nuclear-outline" size={20} color="#3b82f6" />
+            </View>
+            <Text style={componentStyles.quickAccessButtonText}>Ver Turbinas</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={componentStyles.quickAccessButton}
+            onPress={() => router.push('/pilot/site-map')}
+          >
+            <View style={componentStyles.quickAccessIconContainer}>
+              <Ionicons name="map-outline" size={20} color="#10b981" />
+            </View>
+            <Text style={componentStyles.quickAccessButtonText}>Mapa del Sitio</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={componentStyles.quickAccessButton}
+            onPress={handleDriveInfo}
+          >
+            <View style={componentStyles.quickAccessIconContainer}>
+              <Ionicons name="cloud-outline" size={20} color="#f59e0b" />
+              {projectData.driveSubmission && <View style={componentStyles.quickAccessNotificationDot} />}
+            </View>
+            <Text style={componentStyles.quickAccessButtonText}>Drive</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Details Section */}
+        <View style={componentStyles.detailsSection}>
+          <View style={componentStyles.detailRow}>
+            <Ionicons name="business-outline" size={16} color="#6b7280" style={componentStyles.detailIcon} />
+            <Text style={componentStyles.detailLabel}>Cliente:</Text>
+            <Text style={componentStyles.detailValue}>{projectData.client}</Text>
+          </View>
+          <View style={componentStyles.detailRow}>
+            <Ionicons name="location-outline" size={16} color="#6b7280" style={componentStyles.detailIcon} />
+            <Text style={componentStyles.detailLabel}>Ubicación:</Text>
+            <Text style={componentStyles.detailValue}>{projectData.location}</Text>
+          </View>
+          <View style={componentStyles.detailRow}>
+            <Ionicons name="document-text-outline" size={16} color="#6b7280" style={componentStyles.detailIcon} />
+            <Text style={componentStyles.detailLabel}>Contrato:</Text>
+            <Text style={componentStyles.detailValue}>{projectData.contractId}</Text>
+          </View>
+          <View style={componentStyles.detailRow}>
+            <Ionicons name="calendar-outline" size={16} color="#6b7280" style={componentStyles.detailIcon} />
+            <Text style={componentStyles.detailLabel}>Fechas:</Text>
+            <Text style={componentStyles.detailValue}>
+              {formatDate(projectData.startDate)} - {formatDate(projectData.endDate)}
+            </Text>
+          </View>
+          <View style={componentStyles.detailRow}>
+            <Ionicons name="time-outline" size={16} color="#6b7280" style={componentStyles.detailIcon} />
+            <Text style={componentStyles.detailLabel}>Estado:</Text>
+            <View style={componentStyles.detailValueBadgeContainer}>
+              <View style={[componentStyles.statusBadgeSmall, componentStyles.statusBadgeSmallActive]}>
+                <Ionicons name="play-circle-outline" size={12} color="#ffffff" />
+                <Text style={componentStyles.statusBadgeTextSmall}>Activo</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Progress Section */}
+        <View style={componentStyles.progressSectionContainer}>
+          <View style={componentStyles.progressHeader}>
+            <Text style={componentStyles.progressLabel}>Progreso del Proyecto</Text>
+            <View style={componentStyles.progressStats}>
+              <Text style={componentStyles.progressNumber}>{projectData.completedTurbines}</Text>
+              <Text style={componentStyles.progressDivider}>/</Text>
+              <Text style={componentStyles.progressTotal}>{projectData.totalTurbines}</Text>
+              <Text style={componentStyles.progressUnit}>turbinas</Text>
+            </View>
+          </View>
+          <View style={componentStyles.progressBarBackground}>
+            <LinearGradient
+              colors={['#a78bfa', '#8b5cf6']}
+              style={[componentStyles.progressBarFill, { width: `${projectData.progress}%` }]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            />
+          </View>
+          <View style={componentStyles.progressInfo}>
+            <Text style={componentStyles.progressPercentText}>{projectData.progress}% completado</Text>
+            <View style={[componentStyles.statusBadge, componentStyles.statusBadgeActive]}>
+              <Ionicons name="checkmark-circle" size={12} color="#ffffff" />
+              <Text style={componentStyles.statusBadgeText}>En Progreso</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Members Section */}
+        <View style={componentStyles.membersCard}>
+          <View style={componentStyles.membersHeaderContainer}>
+            <LinearGradient
+              colors={['#f59e0b', '#d97706']}
+              style={componentStyles.membersHeaderIconContainer}
+            >
+              <Ionicons name="people-outline" size={16} color="#ffffff" />
+            </LinearGradient>
+            <Text style={componentStyles.membersTitle}>Equipo del Proyecto</Text>
+          </View>
+
+          {projectMembers.map((member, index) => (
+            <View key={member.id}>
+              <View style={componentStyles.memberRow}>
+                <View style={componentStyles.avatarContainer}>
+                  <Image source={member.avatar} style={componentStyles.avatarImage} />
+                </View>
+                <View style={componentStyles.memberInfo}>
+                  <Text style={componentStyles.memberName}>{member.name}</Text>
+                  <Text style={componentStyles.memberRole}>{member.role}</Text>
+                </View>
+                <TouchableOpacity style={componentStyles.contactButton}>
+                  <Ionicons name="chatbubble-outline" size={16} color="#3b82f6" />
+                </TouchableOpacity>
+              </View>
+              {index < projectMembers.length - 1 && <View style={componentStyles.memberSeparator} />}
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {renderDriveInfoModal()}
+      {renderTurbinesModal()}
+    </ScrollView>
+  );
+};
+
+const componentStyles = StyleSheet.create({
+  scrollContainer: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#f8fafc',
   },
-  scrollView: {
-    flex: 1,
-  },
-  card: {
-    backgroundColor: COLORS.cardBackground,
-    marginHorizontal: 16,
-    marginBottom: 20,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: COLORS.textSecondary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-  },  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-    marginBottom: 16,
-    paddingHorizontal: 4, // Small padding if it's directly in a container with margin
-  },
-  headerSection: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  mainTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  rankBadgeSimple: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.cardBackground,
+  scrollContent: {
+    paddingVertical: 20, // Increased padding
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginBottom: 24,
-    shadowColor: COLORS.textSecondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  rankTextSimple: {
-    color: COLORS.textSecondary,
-    fontSize: 15,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  mainStatsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 16,
+  projectInfoCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16, // Slightly more rounded
     padding: 20,
-    shadowColor: COLORS.textSecondary,
+    // marginHorizontal: 16, // Removed as scrollContent now has horizontal padding
+    marginBottom: 24, // Increased bottom margin
+    shadowColor: '#9ca3af', // Softer shadow
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
     elevation: 5,
   },
-  mainStatItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  mainStatValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    marginBottom: 6,
-  },
-  mainStatLabel: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  chartHeader: {
-    marginBottom: 20,
-  },
-  chartSubtitle: {
-    fontSize: 14,
-    color: COLORS.textMuted,
-    marginTop: 4,
-  },
-  chartContainer: {
-    marginTop: 8,
-  },
-  chartLegend: {
+  headerContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
-    gap: 24,
+    alignItems: 'flex-start', // Align to top for potentially longer descriptions
+    marginBottom: 24,
   },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 6,
-  },
-  legendText: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    fontWeight: '500',
-  },
-  chartStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.separator,
-  },
-  chartStatItem: {
-    alignItems: 'center',
-  },
-  chartStatValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-    marginBottom: 2,
-  },
-  chartStatLabel: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    fontWeight: '500',
-  },  periodSelectorContainer: {
-    marginHorizontal: 16,
-    marginBottom: 20,
-  },
-  periodButtons: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 12,
-    padding: 6,
-  },
-  periodButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  periodButtonActive: {
-    backgroundColor: COLORS.cardBackground,
-    shadowColor: COLORS.textSecondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  periodButtonText: {
-    fontSize: 14,
-    color: COLORS.textMuted,
-    fontWeight: '600',
-  },
-  periodButtonTextActive: {
-    color: COLORS.primary,
-    fontWeight: 'bold',
-  },
-  chart: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: 150, // Aumentada la altura para más espacio
-    paddingHorizontal: 0,
-    marginTop: 25, // Más espacio para los valores de arriba
-  },
-  chartColumn: {
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 2,
-  },
-  chartBarContainer: {
-    height: '100%', // Usa toda la altura disponible en chartColumn (después de la etiqueta)
-    width: '80%',
-    maxWidth: 28,
-    justifyContent: 'flex-end', // Las barras crecen desde abajo
-    position: 'relative', // Para posicionar el valor absoluto a la barra
-    // marginBottom: 8, // Ya no es necesario si chartColumn se encarga del espaciado con la etiqueta
-  },
-  chartBar: {
-    width: '100%',
-    borderTopLeftRadius: 6, // Redondeo más sutil
-    borderTopRightRadius: 6,
-    overflow: 'hidden',
-    minHeight: 4, // Barra mínima visible
-  },
-  chartBarGradient: {
-    flex: 1,
-  },
-  chartBarHighest: {
-    shadowColor: COLORS.secondary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  chartValue: {
-    position: 'absolute',
-    top: -22, // Posición inicial del valor encima de la barra
-    alignSelf: 'center',
-    fontSize: 11,
-    color: COLORS.textMuted,
-    fontWeight: '600',
-    backgroundColor: COLORS.cardBackground, // Para evitar solapamiento con gradiente de barra
-    paddingHorizontal: 2, // Pequeño padding si el fondo es visible
-    borderRadius: 2,
-  },
-  chartValueHighest: {
-    color: COLORS.secondaryDark,
-    fontWeight: 'bold',
-  },
-  chartValueLow: { // Estilo para valores en barras muy cortas
-    top: -25, // Un poco más arriba
-    color: COLORS.textSecondary, // Un poco más oscuro para contraste
-  },
-  chartLabel: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    fontWeight: '500',
-    marginTop: 8, // Espacio entre barra y etiqueta
-    textAlign: 'center',
-  },
-  metricsGridContainer: {
-    marginHorizontal: 16, // Contenedor principal con márgenes de pantalla
-    marginBottom: 20,
-  },
-  metricsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between', // Para el espacio entre las tarjetas
-    // No necesita marginHorizontal si el padre (metricsGridContainer) ya lo tiene
-  },
-  metricCard: {
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    // Calcula el ancho para dos columnas con un espacio de 12px entre ellas
-    // (AnchoTotalPantalla - MargenesDelContenedor(16*2) - EspacioEntreTarjetas) / NumeroColumnas
-    width: (width - (16 * 2) - 12) / 2,
-    marginBottom: 12,
-    shadowColor: COLORS.textSecondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-    minHeight: 150, // Para asegurar alturas consistentes
-  },
-  metricIconContainer: {
+  headerIconGradient: {
     width: 56,
     height: 56,
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginRight: 16,
   },
-  metricValue: {
-    fontSize: 22,
+  projectHeaderInfo: {
+    flex: 1,
+  },
+  projectTitle: {
+    fontSize: 22, // Slightly larger
     fontWeight: 'bold',
-    color: COLORS.textPrimary,
-    marginBottom: 4,
-  },
-  metricLabel: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  safetyBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#d1fae5',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  safetyBadgeText: {
-    fontSize: 13,
-    color: COLORS.secondaryDark,
-    fontWeight: 'bold',
-    marginLeft: 6,
-  },
-  incidentsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 24,
-    paddingTop: 8,
-  },
-  incidentMetric: {
-    alignItems: 'center',
-  },
-  incidentValue: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
+    color: '#1f2937',
     marginBottom: 6,
   },
-  incidentLabel: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    textAlign: 'center',
-    fontWeight: '500',
+  projectClient: {
+    fontSize: 15,
+    color: '#8b5cf6',
+    fontWeight: '600',
+    marginBottom: 8,
   },
-  safetyStreak: {
+  projectDescription: {
+    fontSize: 14,
+    color: '#4b5563', // Slightly lighter for description
+    lineHeight: 20,
+  },
+  quickAccessContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around', // Changed from space-between
+    marginBottom: 28, // Increased margin
+    gap: 10, // Retain some gap
+  },
+  quickAccessButton: {
+    // flex: 1, // Removed to allow natural width
+    flexDirection: 'column',
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'center',
+    paddingVertical: 12, // Reduced vertical padding for compactness
+    paddingHorizontal: 10,
+    borderRadius: 10, // Slightly more rounded
+    backgroundColor: '#f9fafb', // Lighter background
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    minWidth: 90, // Ensure a minimum width
   },
-  streakBadge: {
+  quickAccessIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#ffffff', // White background for icon
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },
+  quickAccessNotificationDot: {
+    position: 'absolute',
+    top: -2, // Adjusted position
+    right: -2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#ef4444',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  quickAccessButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#374151',
+    textAlign: 'center',
+  },
+  // Removed driveSection styles as they are specific to a layout not currently used on main screen
+  detailsSection: {
+    paddingTop: 20, // Increased padding
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    gap: 14, // Increased gap
+  },
+  detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+  },
+  detailIcon: {
+    marginRight: 12,
+    width: 20, // Slightly wider for icon
+    textAlign: 'center',
+    color: '#8b5cf6', // Use accent color for icons
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: '#4b5563',
+    fontWeight: '500',
+    width: 90, // Adjusted width
+  },
+  detailValue: {
+    fontSize: 14,
+    color: '#1f2937',
+    flex: 1,
+    fontWeight: '500',
+  },
+  detailValueBadgeContainer: { // New container for the status badge in details
+    flex: 1,
+    alignItems: 'flex-start', // Align badge to the start
+  },
+  statusBadgeSmall: { // For the "Activo" badge in details
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 16,
+    gap: 5,
   },
-  streakText: {
-    color: COLORS.textLight,
-    fontSize: 15,
+  statusBadgeSmallActive: {
+    backgroundColor: '#10b981', // Green for active
+  },
+  statusBadgeTextSmall: {
+    fontSize: 12,
+    color: '#ffffff',
     fontWeight: '600',
-    marginLeft: 10,
   },
-  turbineItem: {
+  progressSectionContainer: {
+    marginTop: 28, // Increased margin
+    width: '100%',
+  },
+  progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.separator,
+    width: '100%',
+    marginBottom: 12,
   },
-  lastTurbineItem: {
-    borderBottomWidth: 0,
+  progressLabel: {
+    fontSize: 16, // Slightly larger
+    color: '#374151',
+    fontWeight: '600',
   },
-  turbineInfo: {
+  progressStats: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  progressNumber: {
+    fontSize: 20, // Larger for emphasis
+    color: '#8b5cf6',
+    fontWeight: '700',
+  },
+  progressDivider: {
+    fontSize: 16,
+    color: '#9ca3af',
+    marginHorizontal: 3,
+    paddingBottom: 2,
+  },
+  progressTotal: {
+    fontSize: 16,
+    color: '#6b7280',
+    fontWeight: '500',
+    paddingBottom: 2,
+  },
+  progressUnit: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginLeft: 5,
+    paddingBottom: 2,
+  },
+  progressBarBackground: {
+    width: '100%',
+    height: 14, // Thicker bar
+    backgroundColor: '#e5e7eb',
+    borderRadius: 7,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 7,
+  },
+  progressInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 6,
+  },
+  progressPercentText: {
+    fontSize: 15, // Slightly larger
+    color: '#8b5cf6',
+    fontWeight: '700',
+  },
+  statusBadge: { // General status badge (e.g., "En Progreso")
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    paddingRight: 8, // Espacio para que no se pegue a los metrics
+    paddingHorizontal: 12, // More padding
+    paddingVertical: 6,
+    borderRadius: 18,
+    gap: 6,
   },
-  turbineStatusIcon: {
+  statusBadgeActive: {
+    backgroundColor: '#10b981',
+  },
+  statusBadgeText: {
+    fontSize: 13, // Slightly larger
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  membersCard: {
+    backgroundColor: '#ffffff', // Changed to white for consistency with main card
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 28, // Increased margin
+    borderWidth: 1,
+    borderColor: '#e5e7eb', // Softer border
+  },
+  membersHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    width: '100%',
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6'
+  },
+  membersHeaderIconContainer: {
+    width: 32, // Larger icon container
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
-  turbineDetails: {
+  membersTitle: {
+    fontSize: 17, // Slightly larger
+    fontWeight: '600',
+    color: '#1f2937',
+    flex: 1,
+  },
+  memberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    paddingVertical: 12,
+  },
+  memberSeparator: {
+    height: 1,
+    backgroundColor: '#f3f4f6', // Lighter separator
+  },
+  avatarContainer: {
+    width: 44, // Larger avatar
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#e5e7eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  memberInfo: {
+    flex: 1,
+    marginLeft: 16, // Increased margin
+  },
+  memberName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 3,
+  },
+  memberRole: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  contactButton: {
+    width: 40, // Larger button
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Darker overlay
+  },
+  modalOverlay: { // This is the main container for the modal, pushing it to bottom
+    flex: 1,
+    justifyContent: 'flex-end',
+    // paddingTop: 50, // Removed, let modalContent handle its height
+  },
+  modalOverlayTouchable: { // This is the touchable overlay for closing the modal
+    flex:1,
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24, // More rounded
+    borderTopRightRadius: 24,
+    // flex: 1, // Removed, maxHeight will control size
+    maxHeight: '90%', // Ensure it doesn't take full screen
+    overflow: 'hidden',
+    paddingTop: 8, // Small padding at the top of content, before header
+  },
+  scrollView: {
+    flexGrow: 0, // So it doesn't try to take all space if content is small
+  },
+  scrollContentContainer: {
+    paddingBottom: 30, // More space at the bottom for scroll
+  },
+  modalHeader: {
+    alignItems: 'center',
+    paddingTop: 16, // Adjusted padding
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+    backgroundColor: '#f8fafc', // Consistent with main screen cards
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    position: 'relative', // For close button positioning
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 36, // Larger touch area
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#e5e7eb',
+    borderWidth: 1,
+    zIndex: 10, // Ensure it's above other header content
+  },
+  modalIconContainer: {
+    marginBottom: 16,
+  },
+  modalIconGradient: {
+    width: 60, // Larger icon
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3, // Subtle shadow for icon
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  modalTitle: {
+    fontSize: 22, // Larger title
+    fontWeight: 'bold',
+    color: '#1f2937',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 15, // Slightly larger subtitle
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 10, // Ensure it doesn't stretch too wide
+  },
+  driveInfoContainer: {
+    marginHorizontal: 20, // Consistent margin
+    marginTop: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    overflow: 'hidden',
+  },
+  driveInfoSection: {
+    padding: 16,
+  },
+  driveInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  driveInfoIconContainer: {
+    width: 36, // Slightly larger
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f0fdf4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  driveInfoTextContainer: {
+    flex: 1,
+  },
+  driveInfoLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 4,
+  },
+  driveInfoLink: {
+    fontSize: 13, // Slightly larger
+    color: '#3b82f6',
+    lineHeight: 18,
+  },
+  driveInfoValue: {
+    fontSize: 14, // Slightly larger
+    color: '#1f2937',
+    fontWeight: '500',
+  },
+  driveInfoDivider: {
+    height: 1,
+    backgroundColor: '#f3f4f6',
+    marginHorizontal: 16,
+  },
+  turbinesStatusContainer: {
+    marginHorizontal: 20, // Consistent margin
+    marginTop: 16, // Added top margin
+    marginBottom: 20,
+  },
+  turbinesStatusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16, // Increased margin
+  },
+  turbinesStatusIconContainer: {
+    width: 32, // Larger
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  turbinesStatusTitle: {
+    fontSize: 17, // Larger
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  turbinesProgressCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  turbinesProgressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  turbinesProgressText: {
+    fontSize: 15, // Larger
+    fontWeight: '600',
+    color: '#374151',
+    flex: 1,
+  },
+  turbinesProgressBadge: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  turbinesProgressBadgeGradient: {
+    paddingHorizontal: 10, // More padding
+    paddingVertical: 5,
+  },
+  turbinesProgressBadgeText: {
+    fontSize: 13, // Larger
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  turbinesProgressBarContainer: {
+    marginTop: 8,
+  },
+  turbinesProgressBar: {
+    height: 8, // Thicker bar
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  turbinesProgressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  turbinesListContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  turbinesListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16, // Increased margin
+  },
+  turbinesStatusItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  turbinesStatusDot: {
+    width: 8, // Larger dot
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  turbinesStatusLabel: {
+    fontSize: 12, // Larger label
+    fontWeight: '500',
+    color: '#6b7280',
+  },
+  turbinesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8, // Increased gap
+  },
+  turbineGridItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    minWidth: 75, // Slightly wider
+  },
+  turbineGridItemCompleted: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+  },
+  turbineGridIconContainer: {
+    marginRight: 6,
+  },
+  turbineIconGradientCompleted: {
+    width: 18, // Larger icon
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  turbineGridName: {
+    fontSize: 12, // Larger name
+    fontWeight: '500',
+    color: '#6b7280',
+  },
+  turbineGridNameCompleted: {
+    color: '#065f46',
+    fontWeight: '600',
+  },
+  // Styles for Turbines Selection Modal (renderTurbinesModal)
+  turbineItem: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    marginBottom: 12,
+    padding: 12, // Reduced padding slightly for compactness
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#9ca3af',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  turbineItemCompleted: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+  },
+  turbineItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  turbineIconSection: {
+    marginRight: 12,
+  },
+  turbineCompletedIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  turbinePendingIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f3f4f6',
+    borderColor: '#e5e7eb',
+    borderWidth: 1,
+  },
+  turbineInfo: {
     flex: 1,
   },
   turbineName: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.textPrimary,
+    color: '#1f2937',
     marginBottom: 3,
   },
-  turbineInspections: {
+  turbineNameCompleted: {
+    color: '#059669',
+  },
+  turbineDate: {
     fontSize: 12,
-    color: COLORS.textMuted,
+    color: '#6b7280',
+    marginBottom: 5,
   },
-  turbineMetrics: {
-    alignItems: 'flex-end',
+  turbineDateCompleted: {
+    color: '#065f46',
   },
-  turbineEfficiency: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 3,
+  turbineStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
+  // Re-using turbinesStatusDot from above
   turbineStatusText: {
     fontSize: 12,
-    color: COLORS.textMuted,
     fontWeight: '500',
+    marginLeft: 4,
   },
-  seeAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    marginTop: 8,
-  },
-  seeAllButtonText: {
-    color: COLORS.primaryLight,
-    fontSize: 14,
-    fontWeight: '600',
-    marginRight: 4,
-  },
-  achievementsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    // Calcula el gap para que 3 items quepan con padding de tarjeta y márgenes de pantalla
-    // El ancho de cada item se encarga del espaciado principal.
-    // justifyContent: 'space-between', // Puede ayudar si los anchos son flexibles
-    gap: 12, // Usar gap para el espaciado es más moderno
-    marginTop: 8,
-  },
-  achievementItem: {
-    backgroundColor: COLORS.background,
+  turbineCheckbox: {
+    width: 24,
+    height: 24,
     borderRadius: 12,
-    padding: 12,
+    borderWidth: 2,
+    borderColor: '#d1d5db',
     alignItems: 'center',
-    // Ancho para 3 columnas: (AnchoPantalla - MargenesLateralesPantalla(16*2) - PaddingTarjeta(20*2) - GapsTotales(12*2)) / 3
-    width: (width - (16 * 2) - (20 * 2) - (12 * 2)) / 3,
-    minHeight: 110, // Aumentado para más espacio vertical
     justifyContent: 'center',
-    position: 'relative',
+    marginLeft: 12,
+  },
+  turbineCheckboxCompleted: {
+    backgroundColor: '#10b981',
+    borderColor: '#10b981',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingVertical: 16, // Added vertical padding
+    paddingBottom: 24, // More bottom padding for safe area
+    gap: 12,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  cancelButton: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 14, // Increased padding
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f3f4f6',
     borderWidth: 1,
-    borderColor: COLORS.lightGray,
+    borderColor: '#e5e7eb'
   },
-  achievementLocked: {
-    opacity: 0.6,
-  },
-  achievementIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  achievementName: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
+  cancelButtonText: {
+    color: '#374151',
+    fontSize: 15, // Slightly larger
     fontWeight: '600',
-    lineHeight: 14,
-    minHeight: 28, // Para 2 líneas
   },
-  achievementNameLocked: {
-    color: COLORS.textMuted,
+  submitButton: {
+    flex: 1.5, // Give submit button more width
+    borderRadius: 12,
+    overflow: 'hidden', // For gradient
   },
-  earnedBadge: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: '#d1fae5',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+  submitButtonGradient: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.secondary,
+    paddingVertical: 14, // Match cancel button
+    gap: 8,
   },
-  bottomSpacing: {
-    height: 40,
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 15, // Match cancel button
+    fontWeight: '600',
   },
 });
+
+export default ProjectInfoMenuEnhanced;

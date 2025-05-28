@@ -1,11 +1,71 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import useWeather from './../hooks/useWeather';
 import { pilot } from './components/pilot-dashboard-data';
 
 export default function PilotProfile() {
   const router = useRouter();
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [hasNotifications, setHasNotifications] = useState(
+    typeof window !== 'undefined' && !!window.__hasNotifications
+  );
+
+  const {
+    weather,
+    loading: weatherLoading,
+    error: weatherError,
+  } = useWeather();
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (typeof window !== 'undefined') {
+        setHasNotifications(!!window.__hasNotifications);
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("es-MX", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const getWeatherIcon = (condition: string) => {
+    const conditionLower = (condition || "").toLowerCase() || "";
+    if (
+      conditionLower.includes("sol") ||
+      conditionLower.includes("despejado")
+    ) {
+      return "sunny-outline";
+    } else if (
+      conditionLower.includes("nublado") ||
+      conditionLower.includes("nube")
+    ) {
+      return "partly-sunny-outline";
+    } else if (
+      conditionLower.includes("lluvia") ||
+      conditionLower.includes("lluvioso")
+    ) {
+      return "rainy-outline";
+    } else if (conditionLower.includes("viento")) {
+      return "leaf-outline";
+    }
+    return "cloud-outline";
+  };
+
   const handleLogout = () => {
     Alert.alert(
       'Cerrar Sesión',
@@ -27,26 +87,28 @@ export default function PilotProfile() {
       <StatusBar backgroundColor="#1E3A8A" barStyle="light-content" />
       
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header del perfil */}
-        <View style={styles.header}>
-          <View style={styles.avatarSection}>
-            <View style={styles.avatarContainer}>
-              <Image source={pilot.avatar} style={styles.avatar} />
-              <View style={styles.statusIndicator} />
-            </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.name}>{pilot.name}</Text>
-              <Text style={styles.role}>{pilot.role}</Text>
-              <View style={styles.experienceBadge}>
-                <Ionicons name="star" size={14} color="#f59e0b" />
-                <Text style={styles.experienceText}>{pilot.experience}</Text>
+        {/* Dashboard-style Header */}
+        <View style={styles.welcomeContainer}>
+          <View style={styles.header}>
+            <View style={styles.userSection}>
+              <View style={styles.avatarContainer}>
+                <Image source={pilot.avatar} style={styles.avatar} />
+                <View style={styles.statusIndicator} />
+              </View>
+              <View style={styles.userInfo}>
+                <Text style={styles.name}>{pilot.name}</Text>
+                <Text style={styles.role}>{pilot.role}</Text>
+                <Text style={styles.dateText}>
+                  {formatDate(currentDateTime)}
+                </Text>
               </View>
             </View>
+            <View style={styles.rightSection}>
+              <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
+                <Ionicons name="pencil" size={18} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
           </View>
-          
-          <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
-            <Ionicons name="pencil" size={18} color="#1E3A8A" />
-          </TouchableOpacity>
         </View>
 
         {/* Información personal */}
@@ -133,7 +195,7 @@ export default function PilotProfile() {
           </View>
         </View>
 
-       
+        {/* Configuración */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Configuración</Text>
           
@@ -217,79 +279,98 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  // Dashboard-style header styles
+  welcomeContainer: {
+    backgroundColor: "#fff",
+    width: "100%",
+    maxWidth: 382,
+    alignSelf: "center",
+    marginHorizontal: 16,
+    marginTop: 12,
     marginBottom: 16,
-    // Removed shadow and elevation for flat design
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
   },
-  avatarSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 10,
+    minHeight: 97,
+  },
+  userSection: {
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
+    minWidth: 0,
   },
   avatarContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: 16,
+    flexShrink: 0,
   },
   avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    borderWidth: 3,
-    borderColor: '#ffffff',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: "#e5e7eb",
   },
   statusIndicator: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 2,
     right: 2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#22c55e',
-    borderWidth: 3,
-    borderColor: '#ffffff',
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#22c55e",
+    borderWidth: 2,
+    borderColor: "white",
   },
-  profileInfo: {
+  userInfo: {
     flex: 1,
+    minWidth: 0,
   },
   name: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 4,
+    fontSize: 18,
+    color: "#111827",
+    fontWeight: "800",
+    marginBottom: 2,
+    lineHeight: 22,
   },
   role: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 8,
+    fontSize: 13,
+    color: "#6b7280",
+    fontWeight: "600",
+    lineHeight: 18,
   },
-  experienceBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fef3c7',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
+  dateText: {
+    fontSize: 11,
+    color: "#6b7280",
+    fontWeight: "500",
+    textTransform: "capitalize",
+    marginTop: 4,
+    lineHeight: 14,
   },
-  experienceText: {
-    fontSize: 12,
-    color: '#92400e',
-    marginLeft: 4,
-    fontWeight: '500',
+  rightSection: {
+    alignItems: "flex-end",
+    flexShrink: 0,
   },
   editButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#f8fafc",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
   card: {
     backgroundColor: '#ffffff',
@@ -297,7 +378,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 12,
     padding: 16,
-    // Removed shadow and elevation for flat design
   },
   cardTitle: {
     fontSize: 18,

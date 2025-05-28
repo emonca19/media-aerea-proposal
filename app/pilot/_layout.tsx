@@ -255,8 +255,9 @@ export default function PilotLayout() {
             <Tabs.Screen name="new-incident" options={{ href: null }} />
             <Tabs.Screen name="calendar" options={{ href: null }} />
             <Tabs.Screen name="site-map" options={{ href: null }} />
-            <Tabs.Screen name="turbines" options={{ href: null }} />
+            <Tabs.Screen name="turbines-status" options={{ href: null }} />
             <Tabs.Screen name="support-chat" options={{ href: null }} />
+             <Tabs.Screen name="turbines" options={{ href: null }} />
             <Tabs.Screen name="notifications" options={{ href: null }} />
             <Tabs.Screen name="components" options={{ href: null }} />
             <Tabs.Screen name="project-details" options={{ href: null }} />
