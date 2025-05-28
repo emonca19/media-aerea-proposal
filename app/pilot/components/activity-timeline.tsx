@@ -43,12 +43,15 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
       <View style={styles.headerRow}>
         <Text style={styles.title}>Línea de tiempo</Text>
         <Ionicons name="trending-up-outline" size={20} color="#22223b" />
-      </View>      <View style={styles.timelineContainer}>
+      </View>
+      <View style={styles.timelineContainer}>
         {activities.length > 0 ? (
           activities.map((activity, idx) => (
             <View key={activity.id} style={styles.timelineRow}>
-              {/* Línea vertical y círculo del icono */}            <View style={styles.timelineLineContainer}>
-                <View style={styles.timelineIconWrapper}>                <View 
+              {/* Línea vertical y círculo del icono */}
+            <View style={styles.timelineLineContainer}>
+                <View style={styles.timelineIconWrapper}>
+                <View 
                     style={[
                       styles.timelineIconCircle, 
                       { 

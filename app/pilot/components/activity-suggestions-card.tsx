@@ -73,7 +73,7 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
                 <Ionicons 
                   name={isTurbine ? "nuclear-outline" : "calendar-outline"} 
                   size={22} 
-                  color="#3b82f6" 
+                  color="#8b5cf6" // Changed to purple
                 />
                 <Text style={styles.activityName} numberOfLines={1} ellipsizeMode="tail">
                   {activity.name}
@@ -100,7 +100,8 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
             </TouchableOpacity>
           );
         })}
-      </View>      <TouchableOpacity 
+      </View>
+      <TouchableOpacity 
         style={styles.closeButton} 
         onPress={onClose} // Simplificado para llamar directamente a la función onClose
         activeOpacity={0.7}
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 8,
-    color: '#10b981',
+    color: '#8b5cf6', // Changed to purple
   },
   subtitle: {
     fontSize: 16,
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#8b5cf6', // Changed to purple
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
   preflightButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#dbeafe',
+    backgroundColor: '#f3e8ff', // Changed to purple background
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   preflightText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#0369a1',
+    color: '#8b5cf6', // Changed to purple
     marginLeft: 4,
   },
   startButton: {

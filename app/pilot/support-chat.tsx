@@ -175,7 +175,8 @@ export default function SupportChat() {  const [messages, setMessages] = useStat
         colors={['#620b97', '#c74afc']}
         style={styles.header}
       >
-        <View style={styles.headerContent}>          <TouchableOpacity
+        <View style={styles.headerContent}>
+          <TouchableOpacity
             onPress={() => router.push('/pilot/profile')}
             style={styles.backButton}
           >
@@ -251,7 +252,8 @@ export default function SupportChat() {  const [messages, setMessages] = useStat
           style={[styles.sendButton, inputText.trim() ? styles.sendButtonActive : styles.sendButtonInactive]}
           onPress={sendMessage}
           disabled={!inputText.trim()}
-        >          <LinearGradient
+        >
+          <LinearGradient
             colors={inputText.trim() ? ['#3b82f6', '#1d4ed8'] : ['#e5e7eb', '#d1d5db']}
             style={styles.sendButtonGradient}
           >

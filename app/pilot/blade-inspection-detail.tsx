@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Platform, Pressable, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const COLORS = {
   primary: '#3b82f6', primaryLight: '#dbeafe', primaryDark: '#2563eb',
@@ -202,8 +202,40 @@ const BladeInspectionDetail = () => {
     <View style={styles.screenContainer}>
       <Stack.Screen options={{ headerShown: false }} />
       
-      {/* Contenido principal */}
-      <View style={styles.mainContent}>
+      {/* Header with back button */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.headerBackButton}
+          onPress={() => {
+            // Navigate back to dashboard with activity still running
+            router.replace({
+              pathname: '/pilot/dashboard',
+              params: { 
+                turbineId, 
+                activityId, 
+                timestamp: Date.now().toString(),
+                keepActivityRunning: 'true'
+              }
+            });
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons 
+            name="arrow-back" 
+            size={24} 
+            color={COLORS.textPrimary} 
+          />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Inspección de Aspas</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+      
+      {/* Contenido principal con ScrollView */}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+      >
         
         {/* Visualizador de turbina mejorado */}
         <View style={styles.turbineSection}>
@@ -271,6 +303,32 @@ const BladeInspectionDetail = () => {
           </View>
         </View>
 
+        {/* Botón de iniciar/completar inspección - MOVED HERE */}
+        {!blades[currentBladeIndex].checked && (
+          <View style={styles.inspectionButtonCard}>
+            <TouchableOpacity 
+              style={styles.markCompleteButton}
+              onPress={handleStartStopInspection}
+              activeOpacity={0.8}
+            >
+              <LinearGradient 
+                colors={blades[currentBladeIndex].isActive ? [COLORS.success, '#047857'] : [COLORS.primary, COLORS.primaryDark]}
+                style={styles.markCompleteGradient}
+              >
+                <Ionicons 
+                  name={blades[currentBladeIndex].isActive ? "checkmark-circle" : "play-circle"} 
+                  size={18} 
+                  color={COLORS.textWhite} 
+                  style={{ marginRight: 8 }} 
+                />
+                <Text style={styles.markCompleteText}>
+                  {blades[currentBladeIndex].isActive ? 'Completar Inspección' : 'Iniciar Inspección'}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Navegación entre aspas mejorada */}
         <View style={styles.bladeNavigationCard}>
           <View style={styles.sectionHeader}>
@@ -278,7 +336,8 @@ const BladeInspectionDetail = () => {
               <Ionicons name="list-outline" size={20} color={COLORS.primary} />
             </View>
             <Text style={styles.sectionTitle}>Seleccionar Aspa</Text>
-          </View>          <View style={styles.bladeNavigation}>
+          </View>          
+          <View style={styles.bladeNavigation}>
             {blades.map((blade, index) => {
               return (
                 <TouchableOpacity 
@@ -338,56 +397,33 @@ const BladeInspectionDetail = () => {
                 <Text style={styles.completedText}>Completada</Text>
               </View>
             )}
-          </View>            {/* Cronómetro y tiempo de inspección */}
+          </View>            
+
+          {/* Cronómetro y tiempo de inspección */}
           <View style={styles.timerSection}>
-            <View style={styles.timerDisplay}>
-              <Ionicons 
-                name={blades[currentBladeIndex].checked ? "checkmark-circle" : 
-                      blades[currentBladeIndex].isActive ? "timer-outline" : "play-circle-outline"} 
-                size={24} 
-                color={blades[currentBladeIndex].checked ? COLORS.success : 
-                       blades[currentBladeIndex].isActive ? COLORS.primary : COLORS.textMuted} 
-              />
-              <Text style={styles.timerText}>
-                {blades[currentBladeIndex].checked 
-                  ? `Completada en ${formatTime(blades[currentBladeIndex].inspectionTime || 0)}`
-                  : blades[currentBladeIndex].isActive
-                    ? `Tiempo: ${formatTime(getCurrentInspectionTime())}`
-                    : 'Listo para inspeccionar'
-                }
-              </Text>
-            </View>
+            {(blades[currentBladeIndex].checked || blades[currentBladeIndex].isActive) && (
+              <View style={styles.timerDisplay}>
+                <Ionicons 
+                  name={blades[currentBladeIndex].checked ? "checkmark-circle" : "timer-outline"} 
+                  size={24} 
+                  color={blades[currentBladeIndex].checked ? COLORS.success : COLORS.primary} 
+                />
+                <Text style={styles.timerText}>
+                  {blades[currentBladeIndex].checked 
+                    ? `Completada en ${formatTime(blades[currentBladeIndex].inspectionTime || 0)}`
+                    : `Tiempo: ${formatTime(getCurrentInspectionTime())}`
+                  }
+                </Text>
+              </View>
+            )}
             
             {blades[currentBladeIndex].checked && blades[currentBladeIndex].timestamp && (
               <Text style={styles.timestampText}>
                 Finalizada: {new Date(blades[currentBladeIndex].timestamp!).toLocaleTimeString()}
               </Text>
             )}
-            
-            {/* Botón de iniciar/completar inspección */}
-            {!blades[currentBladeIndex].checked && (
-              <TouchableOpacity 
-                style={styles.markCompleteButton}
-                onPress={handleStartStopInspection}
-                activeOpacity={0.8}
-              >
-                <LinearGradient 
-                  colors={blades[currentBladeIndex].isActive ? [COLORS.success, '#047857'] : [COLORS.primary, COLORS.primaryDark]}
-                  style={styles.markCompleteGradient}
-                >
-                  <Ionicons 
-                    name={blades[currentBladeIndex].isActive ? "checkmark-circle" : "play-circle"} 
-                    size={18} 
-                    color={COLORS.textWhite} 
-                    style={{ marginRight: 8 }} 
-                  />
-                  <Text style={styles.markCompleteText}>
-                    {blades[currentBladeIndex].isActive ? 'Completar Inspección' : 'Iniciar Inspección'}
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
           </View>
+          
           {/* Lista de todas las aspas con tiempos */}
           <View style={styles.allBladesSection}>
             <Text style={styles.allBladesSectionTitle}>Resumen de Inspección</Text>
@@ -411,7 +447,10 @@ const BladeInspectionDetail = () => {
             ))}
           </View>
         </View>
-      </View>
+
+        {/* Espacio adicional para el footer fijo */}
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
 
       {/* Botón de finalizar - siempre visible */}
       <View style={styles.fixedFooter}>
@@ -421,20 +460,17 @@ const BladeInspectionDetail = () => {
           disabled={!allBladesChecked} 
           activeOpacity={0.8}
         >
-          <LinearGradient 
-            colors={allBladesChecked ? [COLORS.success, '#047857'] : [COLORS.textMuted, '#9ca3af']} 
-            style={styles.finishButtonGradient}
-          >
+          <View style={styles.finishButtonContent}>
             <Ionicons 
-              name={allBladesChecked ? 'flag' : 'hourglass-outline'} 
-              size={20} 
-              color={COLORS.textWhite} 
+              name={allBladesChecked ? 'checkmark-circle' : 'hourglass-outline'} 
+              size={18} 
+              color={allBladesChecked ? COLORS.textWhite : COLORS.textMuted} 
               style={{ marginRight: 8 }} 
             />
-            <Text style={styles.finishButtonText}>
+            <Text style={[styles.finishButtonText, !allBladesChecked && styles.finishButtonTextDisabled]}>
               {allBladesChecked ? 'Finalizar Inspección' : `Faltan ${NUM_BLADES - checkedCount} Aspa(s)`}
             </Text>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -445,6 +481,53 @@ const styles = StyleSheet.create({
   screenContainer: { 
     flex: 1, 
     backgroundColor: COLORS.background 
+  },
+
+  // Header styles
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 5 : StatusBar.currentHeight || 0 + 16,
+    paddingBottom: 16,
+    backgroundColor: COLORS.cardBackground,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  headerBackButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 40, // Same width as back button to center the title
+  },
+
+  // Scroll view styles
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  bottomSpacer: {
+    height: 80, // Reduced since we only have one button now
   },
   
   // Header compacto
@@ -460,27 +543,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  headerBackButton: {
-    padding: 8,
-    borderRadius: 20,
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.textWhite,
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    color: COLORS.primaryLight,
-    textAlign: 'center',
-    marginTop: 2,
-  },
+  headerTitleContainer: { display: 'none' },
+  mainHeaderTitle: { display: 'none' },
+  subHeaderTitle: { display: 'none' },
+  headerStatusBadge: { display: 'none' },
+  headerStatusText: { display: 'none' },
   progressIndicator: {
     alignItems: 'center',
   },
@@ -515,7 +582,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   sectionIconContainer: {
     width: 32,
@@ -554,7 +621,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     alignSelf: 'center',
-    marginBottom: 20,
+    marginBottom: -10, // Reduced from 20 to 12
   },
   compactHub: {
     width: 50,
@@ -791,7 +858,6 @@ const styles = StyleSheet.create({
   markCompleteButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    marginBottom: 16,
   },
   markCompleteGradient: {
     flexDirection: 'row',
@@ -804,6 +870,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.textWhite,
+  },
+
+  // Inspection button card - NEW STYLE
+  inspectionButtonCard: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: COLORS.textPrimary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
   },
 
   // Resumen de todas las aspas
@@ -847,9 +928,13 @@ const styles = StyleSheet.create({
 
   // Footer fijo
   fixedFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 16,
     paddingVertical: 16,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+    paddingBottom: Platform.OS === 'ios' ? 14 : 16,
     backgroundColor: COLORS.cardBackground,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
@@ -860,33 +945,44 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   finishButton: {
-    borderRadius: 14,
-    overflow: 'hidden',
+    borderRadius: 12,
+    backgroundColor: COLORS.success,
+    shadowColor: COLORS.success,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   finishButtonDisabled: {
-    opacity: 0.7,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: 'transparent',
+    elevation: 0,
   },
-  finishButtonGradient: {
+  finishButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   finishButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '600',
     color: COLORS.textWhite,
   },
+  finishButtonTextDisabled: {
+    color: COLORS.textMuted,
+  },
+
+  // Remove unused footer styles
+  footerButtonsContainer: { display: 'none' },
+  backButton: { display: 'none' },
+  backButtonText: { display: 'none' },
 
   // Estilos legacy (mantener para evitar errores)
   customHeader: { display: 'none' },
-  headerTitleContainer: { display: 'none' },
-  mainHeaderTitle: { display: 'none' },
-  subHeaderTitle: { display: 'none' },
-  headerStatusBadge: { display: 'none' },
-  headerStatusText: { display: 'none' },
-  contentScrollView: { display: 'none' },
-  contentScrollViewContent: { display: 'none' },
   mainProgressCard: { display: 'none' },
   mainProgressHeader: { display: 'none' },
   mainProgressLabel: { display: 'none' },

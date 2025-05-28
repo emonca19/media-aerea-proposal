@@ -313,7 +313,9 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
       animationType="slide"
       transparent={true}
       visible={isVisible}
-      onRequestClose={onClose}    >      <View style={styles.modalContainer}>
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <ScrollView 
             style={styles.scrollView} 

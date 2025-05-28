@@ -144,7 +144,8 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
               >
                 <Ionicons name="information-circle" size={18} color={!isUrgent ? '#fff' : '#3b82f6'} />
                 <Text style={[styles.timeOptionText, !isUrgent && styles.timeOptionTextSelected]}>Informativo</Text>
-              </TouchableOpacity>            </View>
+              </TouchableOpacity>
+            </View>
 
             {/* Selector de actividad asociada */}
             {relevantActivities.length > 0 && (

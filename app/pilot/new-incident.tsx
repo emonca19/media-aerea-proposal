@@ -84,7 +84,8 @@ export default function NewIncidentScreen({ onSubmit, activities = [] }: NewInci
           headerTintColor: '#ef4444',
           headerShadowVisible: false,
         }}
-      />      <ScrollView
+      />
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContentContainer}
         keyboardShouldPersistTaps="handled"

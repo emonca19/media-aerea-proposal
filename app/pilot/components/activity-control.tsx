@@ -151,9 +151,9 @@ export default function ActivityControl({
               if (found && found.icon) {
                 return <MaterialCommunityIcons name={found.icon as any} size={36} color="#4F6DF5" />;
               }
-              return <Ionicons name="briefcase-outline" size={36} color="#4F6DF5" />;
-            })()}
-          </View>          <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">
+              return <Ionicons name="briefcase-outline" size={36} color="#4F6DF5" />;            })()}
+          </View>
+          <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">
             {ongoingActivity.description || ongoingActivity.type || 'Actividad en curso'}
           </Text>
           {/* Si está en pausa, mostrar información de pausa debajo con texto más pequeño */}
@@ -250,7 +250,7 @@ export default function ActivityControl({
                   style={styles.bladeInspectionButton}
                   onPress={onGoToBladeInspection}
                 >
-                  <Ionicons name="search-outline" size={14} color="#3b82f6" style={{marginRight: 4}} />
+                  <Ionicons name="search-outline" size={14} color="#8b5cf6" style={{marginRight: 4}} />
                   <Text style={styles.bladeInspectionButtonText}>Inspeccionar Aspas</Text>
                 </TouchableOpacity>
               )}
@@ -325,11 +325,15 @@ export default function ActivityControl({
                   <Text style={styles.buttonText}>Reanudar</Text>
                 </TouchableOpacity>
               </LinearGradient>
-            )}          </View>
+            )}
+          </View>
         </>
-      )}      {/* Current incident display when there's an incident */}
+      )}
+
+      {/* Current incident display when there's an incident */}
       {currentIncident && (
-        <View style={styles.currentIncidentDisplay}>          <View style={styles.incidentHeader}>
+        <View style={styles.currentIncidentDisplay}>
+          <View style={styles.incidentHeader}>
             <View style={styles.incidentHeaderLeft}>
               <Ionicons name="warning" size={16} color="#ef4444" style={{ marginRight: 4 }} />
               <Text style={styles.incidentTitle}>Incidente</Text>
@@ -663,14 +667,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 10,
     borderRadius: 8,
-    backgroundColor: '#fef2f2',
+    backgroundColor: '#f3e8ff', // Changed to purple background
     borderWidth: 1,
-    borderColor: '#fecaca',
+    borderColor: '#e9d5ff', // Changed to purple border
     alignSelf: 'center',
   },
   incidentButtonText: {
     fontSize: 13,
-    color: '#ef4444',
+    color: '#8b5cf6', // Changed to purple
     fontWeight: '600',
   },  currentIncidentDisplay: {
     backgroundColor: '#fef2f2',
@@ -843,15 +847,16 @@ const styles = StyleSheet.create({
   bladeInspectionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#dbeafe', 
+    backgroundColor: '#f3e8ff', // Changed to purple background
     paddingHorizontal: 10, 
     paddingVertical: 6,    
     borderRadius: 6,
     alignSelf: 'flex-start', 
     marginTop: 8, 
-  },  bladeInspectionButtonText: {
+  },  
+  bladeInspectionButtonText: {
     fontSize: 13, 
-    color: '#3b82f6', 
+    color: '#8b5cf6', // Changed to purple
     fontWeight: '600',
     marginLeft: 4, 
   },

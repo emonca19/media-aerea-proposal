@@ -51,7 +51,9 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({
       onOpenNewActivity();
     }
   };  return (
-    <View style={[globalStyles.card_container, styles.quickActionsCard]}>      <View style={styles.actionsContainer}>        <LinearGradient
+    <View style={[globalStyles.card_container, styles.quickActionsCard]}>
+      <View style={styles.actionsContainer}>
+        <LinearGradient
           colors={["#10b981", "#059669"]}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={styles.gradientButtonPrimary}

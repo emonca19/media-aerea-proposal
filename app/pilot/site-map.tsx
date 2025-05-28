@@ -1051,7 +1051,8 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
             { !('power' in selectedItem) && !('battery' in selectedItem) && (
                 <Text style={styles.itemDetailPlaceholder}>Más detalles de la instalación aquí.</Text>
             )}
-          </View>          <TouchableOpacity 
+          </View>
+          <TouchableOpacity 
             style={styles.itemDetailButton}
             onPress={() => {
               if ('power' in selectedItem && flowType === 'inspection') {

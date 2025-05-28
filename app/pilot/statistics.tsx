@@ -1,11 +1,12 @@
 // filepath: c:\Users\elimo\GitHub\media-aerea-proposal\app\pilot\statistics.tsx
 import { MaterialIcons } from '@expo/vector-icons';
-import { Stack } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import { Stack, useRouter } from 'expo-router';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
   Dimensions,
+  Easing,
   ScrollView,
   StyleSheet,
   Text,
@@ -97,36 +98,106 @@ const CircularProgress = ({
   size = 80,
   strokeWidth = 8,
   color = '#3b82f6',
-  label
+  label,
+  animated = true
 }: {
   percentage: number;
   size?: number;
   strokeWidth?: number;
   color?: string;
   label: string;
+  animated?: boolean;
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circum = radius * 2 * Math.PI;
   const svgProgress = 100 - percentage;
+  
+  const animatedValue = useRef(new Animated.Value(0)).current;
+  const [displayedPercentage, setDisplayedPercentage] = useState(0);
+  const hasAnimatedRef = useRef(false);
+
+  useEffect(() => {
+    // Only animate once when the component mounts or when animated is explicitly toggled
+    if (animated && !hasAnimatedRef.current) {
+      setDisplayedPercentage(0);
+      animatedValue.setValue(0);
+      
+      Animated.timing(animatedValue, {
+        toValue: percentage,
+        duration: 1800,
+        useNativeDriver: false,
+        easing: Easing.out(Easing.cubic), // Add smoother easing
+      }).start(() => {
+        hasAnimatedRef.current = true; // Mark as having completed animation
+      });
+      
+      animatedValue.addListener(({ value }) => {
+        setDisplayedPercentage(Math.floor(value));
+      });
+      
+      return () => {
+        animatedValue.removeAllListeners();
+      };
+    } else if (!animated) {
+      // Reset if animation is turned off
+      setDisplayedPercentage(percentage);
+      hasAnimatedRef.current = false;
+    } else {
+      // If already animated, just show the final value
+      setDisplayedPercentage(percentage);
+    }
+  }, [animated]); // Only depend on animated prop, not percentage
+
+  // Update value when percentage changes without animation
+  useEffect(() => {
+    if (hasAnimatedRef.current || !animated) {
+      setDisplayedPercentage(percentage);
+      animatedValue.setValue(percentage);
+    }
+  }, [percentage]);
+
+  const animatedOffset = useMemo(() => {
+    if (!animated) return circum * svgProgress / 100;
+    return animatedValue.interpolate({
+      inputRange: [0, percentage],
+      outputRange: [circum, circum * svgProgress / 100],
+      extrapolate: 'clamp'
+    });
+  }, [circum, svgProgress, percentage, animated]);
 
   return (
     <View style={{ margin: 4, alignItems: 'center' }}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <Circle cx={size / 2} cy={size / 2} r={radius} fill="transparent" stroke="#e2e8f0" strokeWidth={strokeWidth} />
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="transparent"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circum}
-          strokeDashoffset={circum * svgProgress / 100}
-          strokeLinecap="round"
-          transform={`rotate(-90, ${size / 2}, ${size / 2})`}
-        />
+        {animated ? (
+          <AnimatedCircle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="transparent"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circum}
+            strokeDashoffset={animatedOffset}
+            strokeLinecap="round"
+            transform={`rotate(-90, ${size / 2}, ${size / 2})`}
+          />
+        ) : (
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="transparent"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circum}
+            strokeDashoffset={circum * svgProgress / 100}
+            strokeLinecap="round"
+            transform={`rotate(-90, ${size / 2}, ${size / 2})`}
+          />
+        )}
         <SvgText x={size / 2.7} y={size / 2 + 4} fontSize={size / 5} fontWeight="bold" fill={color} textAnchor="middle">
-          {percentage}%
+          {displayedPercentage}%
         </SvgText>
       </Svg>
       <Text style={{ fontSize: 12, color: '#64748b', marginTop: 8, fontWeight: '500', textAlign: 'center' }}>
@@ -137,10 +208,13 @@ const CircularProgress = ({
 };
 
 export default function StatisticsScreen() {
-  const insets = useSafeAreaInsets(); // insets can still be used if needed for other elements, but not for main container padding if header is opaque.
+  const insets = useSafeAreaInsets();
   const [selectedPeriod, setSelectedPeriod] = useState('week');
   const [isLoading, setIsLoading] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
+  const router = useRouter();
+  const [animateCircles, setAnimateCircles] = useState(true);
+  const animationCompletedRef = useRef(false);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -149,9 +223,21 @@ export default function StatisticsScreen() {
   };
 
   useEffect(() => {
+    // Initial fade animation
     Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }).start();
+    
+    // Only animate circles if not already animated
+    if (animationCompletedRef.current) {
+      setAnimateCircles(false);
+    } else {
+      setAnimateCircles(true);
+      // Set a timeout to mark animation as complete
+      setTimeout(() => {
+        animationCompletedRef.current = true;
+      }, 2000);
+    }
   }, [fadeAnim]);
-
+  
   const flightData = useMemo(() => {
     switch(selectedPeriod) {
       case 'month': return monthlyFlightData;
@@ -181,10 +267,28 @@ export default function StatisticsScreen() {
     setSelectedPeriod(period);
     setTimeout(() => setIsLoading(false), 500);
   };
-    return (
-    // Removed paddingTop from here, assuming Stack navigator handles safe area for header
+  
+  return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: 'Estadísticas de Rendimiento', headerStyle: { backgroundColor: '#f8fafc' }, headerShadowVisible: false }} />
+      {/* Fixed back button implementation */}
+      <Stack.Screen 
+        options={{ 
+          title: 'Estadísticas de Rendimiento', 
+          headerStyle: { backgroundColor: '#f8fafc' }, 
+          headerShadowVisible: false,
+          // Ensure back button is visible with proper style
+          headerLeft: () => (
+            <TouchableOpacity 
+              onPress={() => router.push('/pilot/profile')}
+              style={{ marginLeft: 5, padding: 8 }}
+            >
+              <View style={styles.backButtonContainer}>
+                <MaterialIcons name="arrow-back" size={24} color="#3b82f6" />
+              </View>
+            </TouchableOpacity>
+          )
+        }} 
+      />
 
       {/* Selector de período fijo en la parte superior */}
       <View style={{
@@ -251,9 +355,9 @@ export default function StatisticsScreen() {
           <View style={[styles.chartContainer, styles.progressContainer]}>
             <Text style={styles.progressTitle}>Rendimiento Técnico</Text>
             <View style={styles.progressRow}>
-              <CircularProgress percentage={currentMetrics.efficiency} color="#22c55e" label="Eficiencia de Vuelo" size={80}/>
-              <CircularProgress percentage={currentMetrics.safety} color="#3b82f6" label="Índice de Seguridad" size={80}/>
-              <CircularProgress percentage={currentMetrics.quality} color="#8b5cf6" label="Calidad de Entrega" size={80}/>
+              <CircularProgress percentage={currentMetrics.efficiency} color="#22c55e" label="Eficiencia de Vuelo" size={80} animated={animateCircles}/>
+              <CircularProgress percentage={currentMetrics.safety} color="#3b82f6" label="Índice de Seguridad" size={80} animated={animateCircles}/>
+              <CircularProgress percentage={currentMetrics.quality} color="#8b5cf6" label="Calidad de Entrega" size={80} animated={animateCircles}/>
             </View>
             <View style={styles.technicalMetrics}>
               <View style={styles.techMetricItem}>
@@ -337,6 +441,9 @@ export default function StatisticsScreen() {
   );
 }
 
+// Create animated Circle component
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' }, // Removed paddingTop: insets.top
   scrollContainer: {
@@ -391,4 +498,8 @@ const styles = StyleSheet.create({
   compactStatValue: { fontSize: 14, fontWeight: '700', color: '#1e293b', marginTop: 4 },
   compactStatLabel: { fontSize: 10, color: '#64748b', marginTop: 2, textAlign: 'center' },
   cardStyle: { backgroundColor: 'white', borderRadius: 16, padding: 20, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8 },
+  backButtonContainer: {
+    padding: 5,
+    borderRadius: 20,
+  },
 });

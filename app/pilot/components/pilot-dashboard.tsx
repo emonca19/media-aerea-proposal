@@ -157,7 +157,7 @@ function ProjectSummaryCard({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "EN_PROGRESO":
-        return "#3b82f6";
+        return "#rgb(16, 185, 129, 1)"; // Green
       case "COMPLETADO":
         return "#10b981";
       case "PAUSADO":
@@ -190,7 +190,7 @@ function ProjectSummaryCard({
           {/* Header compacto con información esencial */}
           <View style={projectSummaryStyles.headerRowCompact}>
             <View style={projectSummaryStyles.iconCircleCompact}>
-              <Ionicons name="business-outline" size={20} color="#3b82f6" />
+              <Ionicons name="business-outline" size={20} color="#8b5cf6" /> {/* Changed to purple */}
             </View>
             <View style={projectSummaryStyles.headerInfo}>
               <Text style={projectSummaryStyles.titleCompact}>
@@ -394,12 +394,12 @@ const projectSummaryStyles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#eff6ff",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#f3e8ff', // Changed to purple background
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 16,
     borderWidth: 2,
-    borderColor: "#dbeafe",
+    borderColor: '#e9d5ff', // Changed to purple border
   },
   headerInfo: {
     flex: 1,
@@ -510,12 +510,12 @@ const projectSummaryStyles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#eff6ff",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#f3e8ff', // Changed to purple background
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
     borderWidth: 1,
-    borderColor: "#dbeafe",
+    borderColor: '#e9d5ff', // Changed to purple border
   },
   titleCompact: {
     fontSize: 16,
@@ -782,20 +782,20 @@ function NoActivitiesCard({
           width: compact ? 48 : 72,
           height: compact ? 48 : 72,
           borderRadius: compact ? 24 : 36,
-          backgroundColor: "#f0f9ff",
-          alignItems: "center",
-          justifyContent: "center",
+          backgroundColor: '#f3e8ff', // Changed to purple background
+          alignItems: 'center',
+          justifyContent: 'center',
           marginBottom: compact ? 8 : 16,
           borderWidth: 2,
-          borderColor: "#bae6fd",
-          shadowColor: "#0ea5e9",
+          borderColor: '#e9d5ff', // Changed to purple border
+          shadowColor: '#8b5cf6', // Changed to purple shadow
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
           shadowRadius: 4,
           elevation: 2,
         }}
       >
-        <Ionicons name={iconName} size={compact ? 24 : 36} color="#0ea5e9" />
+        <Ionicons name={iconName} size={compact ? 24 : 36} color="#8b5cf6" /> {/* Changed to purple */}
       </View>
 
       {/* Enhanced message */}
@@ -823,11 +823,11 @@ function NoActivitiesCard({
         onActionPress && ( // Added !compact condition
           <TouchableOpacity
             style={{
-              backgroundColor: "#3b82f6",
+              backgroundColor: '#8b5cf6', // Changed to purple
               borderRadius: compact ? 8 : 12,
               paddingHorizontal: compact ? 14 : 20,
               paddingVertical: compact ? 8 : 12,
-              shadowColor: "#3b82f6",
+              shadowColor: '#8b5cf6', // Changed to purple shadow
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.2,
               shadowRadius: 4,
@@ -869,13 +869,13 @@ function NoActivitiesCard({
         >
           <TouchableOpacity
             style={{
-              backgroundColor: "#f8fafc",
+              backgroundColor: '#f3e8ff', // Changed to purple background
               borderRadius: compact ? 6 : 10,
               paddingHorizontal: compact ? 10 : 16,
               paddingVertical: compact ? 6 : 10,
               borderWidth: 1,
-              borderColor: "#e2e8f0",
-              shadowColor: "#64748b",
+              borderColor: '#e9d5ff', // Changed to purple border
+              shadowColor: '#8b5cf6', // Changed to purple shadow
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 0.05,
               shadowRadius: 2,
@@ -884,18 +884,18 @@ function NoActivitiesCard({
             onPress={onSecondaryActionPress}
             activeOpacity={0.7}
           >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons
                 name="nuclear-outline"
                 size={compact ? 12 : 16}
-                color="#64748b"
+                color="#8b5cf6" // Changed to purple
                 style={{ marginRight: compact ? 3 : 6 }}
               />
               <Text
                 style={{
-                  color: "#64748b",
+                  color: '#8b5cf6', // Changed to purple
                   fontSize: compact ? 11 : 13,
-                  fontWeight: "600",
+                  fontWeight: '600',
                 }}
               >
                 {secondaryActionText}
@@ -905,13 +905,13 @@ function NoActivitiesCard({
 
           <TouchableOpacity
             style={{
-              backgroundColor: "#f8fafc",
+              backgroundColor: '#f3e8ff', // Changed to purple background
               borderRadius: compact ? 6 : 10,
               paddingHorizontal: compact ? 10 : 16,
               paddingVertical: compact ? 6 : 10,
               borderWidth: 1,
-              borderColor: "#e2e8f0",
-              shadowColor: "#64748b",
+              borderColor: '#e9d5ff', // Changed to purple border
+              shadowColor: '#8b5cf6', // Changed to purple shadow
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 0.05,
               shadowRadius: 2,
@@ -920,18 +920,18 @@ function NoActivitiesCard({
             onPress={() => handleNavigate("/pilot/activities")}
             activeOpacity={0.7}
           >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons
                 name="list-outline"
                 size={compact ? 12 : 16}
-                color="#64748b"
+                color="#8b5cf6" // Changed to purple
                 style={{ marginRight: compact ? 3 : 6 }}
               />
               <Text
                 style={{
-                  color: "#64748b",
+                  color: '#8b5cf6', // Changed to purple
                   fontSize: compact ? 11 : 13,
-                  fontWeight: "600",
+                  fontWeight: '600',
                 }}
               >
                 Ver Todas
@@ -1626,14 +1626,7 @@ const PilotDashboard = () => {
 
     setActivityTerminationType("completed");
 
-    // Show success message
-    setTimeout(() => {
-      Alert.alert(
-        "✅ Actividad Completada", 
-        `La actividad "${currentOngoingActivityForDisplay.name}" ha sido completada exitosamente.`
-      );
-    }, 200);
-
+  
     // Show suggestions for next activities
     const pendingForToday = pendingTodayActivities.filter(
       (act) => act.id !== activityId
@@ -2416,7 +2409,7 @@ const PilotDashboard = () => {
               onPress={handleOpenNewActivityModal}
             >
               <LinearGradient
-                colors={["#2563eb", "#3b82f6"]}
+                colors={["#8b5cf6", "#7c3aed"]} // Changed to purple gradient
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.highlightedButton}
@@ -2670,13 +2663,13 @@ const welcomeStyles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 10,
     borderRadius: 16,
-    shadowColor: "#000",
+    shadowColor: '#000', // Changed back to original black shadow
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: "#f3f4f6",
+    borderColor: '#f3f4f6', // Changed back to original gray border
   },
   header: {
     flexDirection: "row",
@@ -2701,7 +2694,7 @@ const welcomeStyles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: "#e5e7eb",
+    borderColor: '#e5e7eb', // Changed back to original gray border
   },
   statusIndicator: {
     position: "absolute",
@@ -2758,31 +2751,31 @@ const welcomeStyles = StyleSheet.create({
     lineHeight: 16,
   },
   weatherSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f8fafc",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc', // Changed back to original gray background
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: '#e2e8f0', // Changed back to original gray border
     maxWidth: 80,
   },
   weatherText: {
     fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "600",
+    color: '#6b7280', // Changed back to original gray
+    fontWeight: '600',
     marginLeft: 4,
   },
   notificationButton: {
-    position: "relative",
-    backgroundColor: "#f8fafc",
+    position: 'relative',
+    backgroundColor: '#f8fafc', // Changed back to original gray background
     padding: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    alignItems: "center",
-    justifyContent: "center",
+    borderColor: '#e2e8f0', // Changed back to original gray border
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 36,
     height: 36,
   },
@@ -2801,20 +2794,20 @@ const welcomeStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  screenContainer: { flex: 1, backgroundColor: "#f0f2f5" },
+  screenContainer: { flex: 1, backgroundColor: '#f0f2f5' }, // Changed back to original gray background
   scrollableContent_contentContainer_main: {
     paddingBottom: 0,
     paddingHorizontal: 16,
   },
   highlightedButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#8b5cf6", // Changed to purple
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 15,
     borderRadius: 8,
     marginBottom: 16,
-    shadowColor: "#000",
+    shadowColor: "#8b5cf6", // Changed to purple shadow
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -2928,5 +2921,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
 
 export default PilotDashboard;

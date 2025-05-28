@@ -405,7 +405,8 @@ const TurbinesStatusScreen = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-      >        <View style={styles.turbinesGrid}>
+      >
+        <View style={styles.turbinesGrid}>
           {filteredTurbines.map((turbine) => (
             <TouchableOpacity
               key={turbine.id}
