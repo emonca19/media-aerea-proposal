@@ -336,7 +336,6 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
               {formatTime(currentTime)}
             </Text>
             
-            {/* SELECCIÓN DE TIPO DE ACTIVIDAD ("CUADRITOS") */}
             <Text style={styles.subtitle}>Tipo de Actividad</Text>
             <View style={styles.typeSelection}>
               {activityTypes.map(({ type, label, icon }) => (
@@ -363,7 +362,6 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
               ))}
             </View>
 
-            {/* SELECCIÓN DE TURBINA (SI EL TIPO ES 'TURBINE_WORK') */}
             {selectedType === 'TURBINE_WORK' && (
               <View style={styles.turbineSelection}>
                 <Text style={styles.subtitle}>Selecciona Turbina</Text>
@@ -402,7 +400,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                   ))}
                 </ScrollView>
               </View>
-            )}            {/* OPCIÓN PARA AHORA O MÁS TARDE */}
+            )}
             <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 12 }}>
               <TouchableOpacity
                 style={[styles.timeOptionButton, isForNow && styles.timeOptionButtonSelected]}
@@ -418,7 +416,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                 <Ionicons name="time-outline" size={18} color={!isForNow ? '#fff' : '#f59e0b'} />
                 <Text style={[styles.timeOptionText, !isForNow && styles.timeOptionTextSelected]}>Para más tarde</Text>
               </TouchableOpacity>
-            </View>            {/* CAMPO DE NOTAS - SOLO PARA MODO "PARA AHORA" */}
+            </View>
             {isForNow && (
               <View style={styles.notesSection}>
                 <Text style={styles.subtitle}>Notas (Opcional)</Text>
@@ -431,7 +429,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                   onChangeText={setNotes}
                 />
               </View>
-            )}            {/* BOTÓN AÑADIR A LISTA - Rediseñado */}
+            )}
             {!isForNow && (
               <View style={styles.addButtonContainer}>
                 <TouchableOpacity 
@@ -452,7 +450,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                   </View>
                 </TouchableOpacity>
               </View>
-            )}            {/* LISTA DE ACTIVIDADES PROGRAMADAS */}
+            )}
             {!isForNow && scheduledActivities.length > 0 && (
               <View style={styles.scheduledListContainer}>
                 <Text style={styles.subtitle}>Actividades Programadas ({scheduledActivities.length})</Text>
@@ -478,7 +476,6 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
               </View>
             )}
 
-            {/* BOTÓN PARA INICIAR ACTIVIDAD */}
             <TouchableOpacity
               style={styles.actionButton}
               onPress={handleSubmit}
