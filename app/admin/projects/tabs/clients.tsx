@@ -1,11 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
-  Modal,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -48,15 +46,7 @@ SearchBar.displayName = "SearchBar";
 
 // Memoized Client Card Component
 const ClientCard = React.memo(
-  ({
-    client,
-    onPress,
-    onEdit,
-  }: {
-    client: Client;
-    onPress: () => void;
-    onEdit: () => void;
-  }) => {
+  ({ client, onPress }: { client: Client; onPress: () => void }) => {
     const totalProjects = client.projects.length;
 
     return (
@@ -73,15 +63,6 @@ const ClientCard = React.memo(
             <Text style={styles.contactName} numberOfLines={1}>
               {client.contactInfo.name}
             </Text>
-          </View>
-          <View style={styles.cardActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={onEdit}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="create" size={18} color="#9C46CE" />
-            </TouchableOpacity>
           </View>
         </View>
         <View style={styles.clientDetails}>
@@ -111,182 +92,11 @@ const ClientCard = React.memo(
 
 ClientCard.displayName = "ClientCard";
 
-// Client Form Modal Component
-const ClientFormModal = React.memo(
-  ({
-    isVisible,
-    onClose,
-    client,
-    onSave,
-    onDelete,
-  }: {
-    isVisible: boolean;
-    onClose: () => void;
-    client?: Client;
-    onSave: (clientData: Partial<Client>) => void;
-    onDelete?: (client: Client) => void;
-  }) => {
-    const [formData, setFormData] = useState({
-      name: client?.name || "",
-      contactName: client?.contactInfo.name || "",
-      contactEmail: client?.contactInfo.email || "",
-      contactPhone: client?.contactInfo.phone || "",
-    });
-
-    const handleSave = () => {
-      if (!formData.name || !formData.contactName || !formData.contactEmail) {
-        Alert.alert(
-          "Error",
-          "Por favor completa todos los campos obligatorios"
-        );
-        return;
-      }
-
-      onSave({
-        name: formData.name,
-        contactInfo: {
-          name: formData.contactName,
-          email: formData.contactEmail,
-          phone: formData.contactPhone,
-        },
-      });
-      onClose();
-    };
-
-    const handleDelete = () => {
-      if (client && onDelete) {
-        Alert.alert(
-          "Eliminar Cliente",
-          `¿Estás seguro de que deseas eliminar a ${client.name}?`,
-          [
-            { text: "Cancelar", style: "cancel" },
-            {
-              text: "Eliminar",
-              style: "destructive",
-              onPress: () => {
-                onDelete(client);
-                onClose();
-              },
-            },
-          ]
-        );
-      }
-    };
-
-    return (
-      <Modal visible={isVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {client ? (
-                  <Text>Editar Cliente</Text>
-                ) : (
-                  <Text>Nuevo Cliente</Text>
-                )}
-              </Text>
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.modalBody}>
-              <View style={styles.formSection}>
-                <Text style={styles.inputLabel}>
-                  <Text>Nombre de la Empresa *</Text>
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.name}
-                  onChangeText={(text) =>
-                    setFormData({ ...formData, name: text })
-                  }
-                  placeholder="Ingresa el nombre de la empresa"
-                  placeholderTextColor="#9ca3af"
-                />
-              </View>
-
-              <View style={styles.formSection}>
-                <Text style={styles.inputLabel}>
-                  <Text>Nombre del Contacto *</Text>
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.contactName}
-                  onChangeText={(text) =>
-                    setFormData({ ...formData, contactName: text })
-                  }
-                  placeholder="Nombre de la persona de contacto"
-                  placeholderTextColor="#9ca3af"
-                />
-              </View>
-
-              <View style={styles.formSection}>
-                <Text style={styles.inputLabel}>
-                  <Text>Email *</Text>
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.contactEmail}
-                  onChangeText={(text) =>
-                    setFormData({ ...formData, contactEmail: text })
-                  }
-                  placeholder="correo@empresa.com"
-                  placeholderTextColor="#9ca3af"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-
-              <View style={styles.formSection}>
-                <Text style={styles.inputLabel}>
-                  <Text>Teléfono</Text>
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.contactPhone}
-                  onChangeText={(text) =>
-                    setFormData({ ...formData, contactPhone: text })
-                  }
-                  placeholder="+34-xxx-xxx-xxx"
-                  placeholderTextColor="#9ca3af"
-                  keyboardType="phone-pad"
-                />
-              </View>
-            </ScrollView>
-            <View style={styles.modalFooter}>
-              {client && onDelete && (
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={handleDelete}
-                >
-                  <Ionicons name="trash" size={20} color="#ffffff" />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity style={styles.clearButton} onPress={onClose}>
-                <Text style={styles.clearButtonText}>
-                  <Text>Cancelar</Text>
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.applyButton} onPress={handleSave}>
-                <Text style={styles.applyButtonText}>
-                  <Text>Guardar</Text>
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    );
-  }
-);
-
-ClientFormModal.displayName = "ClientFormModal";
-
 export default function ClientsScreen() {
-  const [clients, setClients] = useState<Client[]>(mockClients);
+  const [clients] = useState<Client[]>(mockClients);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showClientModal, setShowClientModal] = useState(false);
-  const [editingClient, setEditingClient] = useState<Client | undefined>(); // Filter and search logic
+
+  // Filter and search logic
   const filteredClients = useMemo(() => {
     let filtered = clients;
 
@@ -305,46 +115,13 @@ export default function ClientsScreen() {
   }, [clients, searchQuery]);
 
   const handleCreateClient = () => {
-    setEditingClient(undefined);
-    setShowClientModal(true);
+    // Navigate to create new client (can be implemented later)
+    Alert.alert("Crear Cliente", "Funcionalidad en desarrollo");
   };
 
-  const handleEditClient = (client: Client) => {
-    setEditingClient(client);
-    setShowClientModal(true);
-  };
-  const handleDeleteClient = (client: Client) => {
-    setClients(clients.filter((c) => c.id !== client.id));
-  };
-
-  const handleSaveClient = (clientData: Partial<Client>) => {
-    if (editingClient) {
-      // Update existing client
-      setClients(
-        clients.map((c) =>
-          c.id === editingClient.id
-            ? { ...c, ...clientData, updatedAt: new Date() }
-            : c
-        )
-      );
-    } else {
-      // Create new client
-      const newClient: Client = {
-        id: `client_${Date.now()}`,
-        ...(clientData as Omit<
-          Client,
-          "id" | "createdAt" | "updatedAt" | "projects"
-        >),
-        projects: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setClients([...clients, newClient]);
-    }
-  };
   const handleClientPress = (client: Client) => {
-    // Navigate to client detail screen (not implemented yet)
-    Alert.alert("Detalle del Cliente", `Mostrar detalles de ${client.name}`);
+    // Navigate to client detail screen
+    router.push(`/admin/projects/${client.id}`);
   };
 
   const renderEmptyState = () => (
@@ -367,12 +144,9 @@ export default function ClientsScreen() {
       </Text>
     </View>
   );
+
   const renderClient = ({ item }: { item: Client }) => (
-    <ClientCard
-      client={item}
-      onPress={() => handleClientPress(item)}
-      onEdit={() => handleEditClient(item)}
-    />
+    <ClientCard client={item} onPress={() => handleClientPress(item)} />
   );
 
   return (
@@ -401,13 +175,6 @@ export default function ClientsScreen() {
         ]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={renderEmptyState}
-      />
-      <ClientFormModal
-        isVisible={showClientModal}
-        onClose={() => setShowClientModal(false)}
-        client={editingClient}
-        onSave={handleSaveClient}
-        onDelete={handleDeleteClient}
       />
       {/* Floating Action Button */}
       <TouchableOpacity
@@ -494,15 +261,6 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     fontWeight: "500",
   },
-  cardActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  actionButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: "#f9fafb",
-  },
   clientDetails: {
     gap: 8,
     marginBottom: 12,
@@ -551,100 +309,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
     paddingHorizontal: 32,
-  },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#ffffff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "80%",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  modalBody: {
-    padding: 20,
-    maxHeight: 400,
-  },
-  modalFooter: {
-    flexDirection: "row",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-    gap: 12,
-  },
-  clearButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    alignItems: "center",
-  },
-  clearButtonText: {
-    fontSize: 16,
-    color: "#6b7280",
-    fontWeight: "600",
-  },
-  applyButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: "#9C46CE",
-    alignItems: "center",
-  },
-  applyButtonText: {
-    fontSize: 16,
-    color: "#ffffff",
-    fontWeight: "600",
-  },
-  deleteButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#ef4444",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  // Form Styles
-  formSection: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  input: {
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    backgroundColor: "#ffffff",
-    color: "#111827",
   },
   fab: {
     position: "absolute",

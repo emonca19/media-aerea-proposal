@@ -272,7 +272,7 @@ export default function ProjectsScreen() {
   };
   const handleProjectPress = (project: Project) => {
     router.push({
-      pathname: "/admin/projects/[id]",
+      pathname: "/admin/projects/[projectId]",
       params: { id: project.id },
     });
   };

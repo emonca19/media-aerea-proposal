@@ -5,6 +5,7 @@ import {
   AccessibilityRole,
   AccessibilityState,
   GestureResponderEvent,
+  Image, // Added Image import
   Platform,
   Pressable,
   ScrollView,
@@ -174,40 +175,39 @@ const Sidebar: React.FC = () => {
 
   // Debug the current pathname if needed
   // console.log("Current pathname:", pathname);
-
   const navigationItems = [
     {
       label: "Inicio",
       icon: "home" as const,
-      path: "/admin/(dashboard)/dashboard",
+      path: "/admin/dashboard",
       segment: "dashboard",
       patterns: ["/dashboard", "/(dashboard)"],
     },
     {
       label: "Tareas",
       icon: "checkbox" as const,
-      path: "/admin/(tasks)/assignments",
+      path: "/admin/tasks",
       segment: "tasks",
       patterns: ["/assignments", "/(tasks)", "/pictures"],
     },
     {
       label: "Proyectos",
       icon: "document-text" as const,
-      path: "/admin/(projects)",
+      path: "/admin/projects/tabs",
       segment: "projects",
-      patterns: ["/(projects)", "clients", "projects",],
+      patterns: ["/(projects)", "clients", "projects"],
     },
     {
       label: "Recursos",
       icon: "construct" as const,
-      path: "/admin/(resources)/users",
+      path: "/admin/resources",
       segment: "resources",
       patterns: ["/users", "/drones", "/cameras"],
     },
     {
       label: "Perfil",
       icon: "person" as const,
-      path: "/admin/(profile)/profile",
+      path: "/admin/profile",
       segment: "profile",
       patterns: ["/profile", "/(profile)", "/kpisdashboard"],
     },
@@ -225,18 +225,16 @@ const Sidebar: React.FC = () => {
     >
       <ScrollView>
         <View style={{ paddingBottom: 20 }}>
-          <View style={{ marginBottom: 0 }}>
-            <Text
+          <View style={{ marginBottom: 0, alignItems: "center" }}>
+            <Image
+              source={require("../../assets/images/media-logo-web.png")}
               style={{
-                fontSize: 20,
-                fontWeight: "bold",
-                color: "#9C46CE",
-                paddingHorizontal: 16,
-                paddingBottom: 20,
+                width: 180,
+                height: 50,
+                resizeMode: "contain",
+                marginBottom: 20,
               }}
-            >
-              Admin Panel
-            </Text>
+            />
           </View>
           {navigationItems.map((item) => {
             // Enhanced active state detection for complex navigation
@@ -341,6 +339,7 @@ export default function AdminLayout() {
               tabBarStyle: { display: "none" }, // Hide tab bar on web/tablet
             }}
           >
+            {" "}
             {/* All the existing tab screens */}
             <Tabs.Screen
               name="index"
@@ -352,7 +351,6 @@ export default function AdminLayout() {
                 },
               }}
             />
-
             <Tabs.Screen
               name="dashboard"
               options={{
@@ -360,7 +358,6 @@ export default function AdminLayout() {
                 sceneStyle: { backgroundColor: "#ffffff" },
               }}
             />
-
             <Tabs.Screen
               name="tasks"
               options={{
@@ -368,7 +365,6 @@ export default function AdminLayout() {
                 sceneStyle: { backgroundColor: "#ffffff" },
               }}
             />
-
             <Tabs.Screen
               name="projects"
               options={{
@@ -376,7 +372,6 @@ export default function AdminLayout() {
                 sceneStyle: { backgroundColor: "#ffffff" },
               }}
             />
-
             <Tabs.Screen
               name="resources"
               options={{
@@ -384,7 +379,6 @@ export default function AdminLayout() {
                 sceneStyle: { backgroundColor: "#ffffff" },
               }}
             />
-
             <Tabs.Screen
               name="profile"
               options={{
@@ -392,7 +386,6 @@ export default function AdminLayout() {
                 sceneStyle: { backgroundColor: "#ffffff" },
               }}
             />
-
             <Tabs.Screen name="reports" options={{ href: null }} />
             <Tabs.Screen name="turbine" options={{ href: null }} />
           </Tabs>
@@ -423,6 +416,7 @@ export default function AdminLayout() {
           ),
         }}
       >
+        {" "}
         {/* Redirección inicial */}
         <Tabs.Screen
           name="index"
@@ -434,7 +428,6 @@ export default function AdminLayout() {
             },
           }}
         />
-
         <Tabs.Screen
           name="dashboard"
           options={{
@@ -449,7 +442,6 @@ export default function AdminLayout() {
             ),
           }}
         />
-
         <Tabs.Screen
           name="tasks"
           options={{
@@ -464,7 +456,6 @@ export default function AdminLayout() {
             ),
           }}
         />
-
         <Tabs.Screen
           name="projects"
           options={{
@@ -479,7 +470,6 @@ export default function AdminLayout() {
             ),
           }}
         />
-
         <Tabs.Screen
           name="resources"
           options={{
@@ -494,7 +484,6 @@ export default function AdminLayout() {
             ),
           }}
         />
-
         <Tabs.Screen
           name="profile"
           options={{
@@ -509,7 +498,6 @@ export default function AdminLayout() {
             ),
           }}
         />
-
         {/* Screens to hide from tab bar */}
         <Tabs.Screen name="reports" options={{ href: null }} />
         <Tabs.Screen name="turbine" options={{ href: null }} />
