@@ -264,21 +264,13 @@ const UsersScreen = () => {
           style={styles.filterButton}
           onPress={() => setShowFilterModal(true)}
         >
-          <Ionicons name="options" size={20} color="#fff" />
-        </TouchableOpacity>
-      </View>
-      {/* Add Button */}
-      <View style={styles.addButtonContainer}>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddUser}>
-          <Ionicons name="add" size={20} color="#fff" />
-          <Text style={styles.addButtonText}>Nuevo Usuario</Text>
+          <Ionicons name="options" size={20} color="#fff" />{" "}
         </TouchableOpacity>
       </View>
       <ScrollView
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        
         {/* Active Users Section */}
         <View style={styles.sectionContainer}>
           <TouchableOpacity
@@ -343,7 +335,6 @@ const UsersScreen = () => {
               />
             </View>
           </TouchableOpacity>
-
           {inactiveUsersExpanded && (
             <View style={styles.cardsContainer}>
               {filteredUsers.filter((u) => !u.active).length > 0 ? (
@@ -359,9 +350,15 @@ const UsersScreen = () => {
                 </View>
               )}
             </View>
-          )}
+          )}{" "}
         </View>
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity style={styles.fab} onPress={handleAddUser}>
+        <Ionicons name="add" size={24} color="#fff" />
+      </TouchableOpacity>
+
       {/* Add/Edit Modal */}
       <Modal
         animationType="slide"
@@ -415,9 +412,11 @@ const UsersScreen = () => {
                       onPress={() => setSelectedRole(role)}
                     >
                       <Text
-                        style={selectedRole === role
+                        style={
+                          selectedRole === role
                             ? styles.statusOptionTextSelected
-                            : styles.statusOptionText}
+                            : styles.statusOptionText
+                        }
                       >
                         {getRoleDisplayText(role)}
                       </Text>
@@ -488,9 +487,11 @@ const UsersScreen = () => {
                     }
                   >
                     <Text
-                      style={activeFilter.active === item.value
+                      style={
+                        activeFilter.active === item.value
                           ? styles.statusOptionTextSelected
-                          : styles.statusOptionText}
+                          : styles.statusOptionText
+                      }
                     >
                       {item.label}
                     </Text>
@@ -514,9 +515,11 @@ const UsersScreen = () => {
                       }
                     >
                       <Text
-                        style={activeFilter.role === role
+                        style={
+                          activeFilter.role === role
                             ? styles.statusOptionTextSelected
-                            : styles.statusOptionText}
+                            : styles.statusOptionText
+                        }
                       >
                         {getRoleDisplayText(role)}
                       </Text>
@@ -602,30 +605,21 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  addButtonContainer: {
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: "transparent",
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
+  fab: {
+    position: "absolute",
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: "#9C46CE",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
+    right: 20,
+    bottom: 20,
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: "#9C46CE",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 6,
-  },
-  addButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
+    elevation: 8,
   },
   scrollContainer: {
     flex: 1,

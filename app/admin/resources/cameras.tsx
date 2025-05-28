@@ -236,13 +236,6 @@ const CamerasScreen = () => {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: "Cámaras" }} />
-      {/* Centered Add Button */}
-      <View style={styles.addButtonContainer}>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddCamera}>
-          <Ionicons name="add" size={20} color="#fff" />
-          <Text style={styles.addButtonText}>Nueva Cámara</Text>
-        </TouchableOpacity>
-      </View>
 
       <ScrollView
         style={styles.scrollContainer}
@@ -361,7 +354,6 @@ const CamerasScreen = () => {
               />
             </View>
           </TouchableOpacity>
-
           {expandedSections.maintenance && (
             <>
               {maintenanceCameras.length > 0 ? (
@@ -383,9 +375,21 @@ const CamerasScreen = () => {
                 </View>
               )}
             </>
-          )}
+          )}{" "}
         </View>
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => {
+          setIsNewCamera(true);
+          setModalVisible(true);
+        }}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={24} color="white" />
+      </TouchableOpacity>
 
       <Modal
         animationType="slide"
@@ -396,7 +400,8 @@ const CamerasScreen = () => {
           resetForm();
         }}
       >
-        <View style={styles.centeredView}><View style={styles.modalView}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
             <ScrollView style={{ width: "100%" }}>
               {/* Modal Header with title and close button */}
               <View style={styles.modalHeader}>
@@ -477,9 +482,11 @@ const CamerasScreen = () => {
                       onPress={() => setCurrentStatus(s)}
                     >
                       <Text
-                        style={currentStatus === s
+                        style={
+                          currentStatus === s
                             ? styles.statusOptionTextSelected
-                            : styles.statusOptionText}
+                            : styles.statusOptionText
+                        }
                       >
                         {getStatusDisplayText(s)}
                       </Text>
@@ -856,7 +863,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3B82F6",
   },
   statusBtn: {
-    backgroundColor: "#F59E0B",
+    backgroundColor: "#10B981",
   },
   actionBtnText: {
     color: "#FFFFFF",
@@ -905,7 +912,8 @@ const styles = StyleSheet.create({
     elevation: 12,
     width: "90%",
     maxHeight: "85%",
-  },  modalTitle: {
+  },
+  modalTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#1E293B",
@@ -982,7 +990,8 @@ const styles = StyleSheet.create({
     borderTopColor: "#eee",
     borderTopWidth: 1,
     paddingTop: 15,
-  },  modalButton: {
+  },
+  modalButton: {
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 10,
@@ -1139,6 +1148,22 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     fontSize: 16,
     fontWeight: "600",
+  },
+  fab: {
+    position: "absolute",
+    width: 56,
+    height: 56,
+    backgroundColor: "#9C46CE",
+    borderRadius: 28,
+    right: 20,
+    bottom: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#9C46CE",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });
 

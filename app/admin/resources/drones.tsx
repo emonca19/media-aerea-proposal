@@ -229,18 +229,9 @@ const DronesScreen = () => {
 
   const availableDrones = drones.filter((d) => d.status === "AVAILABLE");
   const inUseDrones = drones.filter((d) => d.status === "IN_USE");
-
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: "Drones" }} />
-
-      {/* Centered Add Button */}
-      <View style={styles.addButtonContainer}>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddDrone}>
-          <Ionicons name="add" size={20} color="#fff" />
-          <Text style={styles.addButtonText}>Nuevo Dron</Text>
-        </TouchableOpacity>
-      </View>
 
       <ScrollView
         style={styles.scrollContainer}
@@ -315,7 +306,6 @@ const DronesScreen = () => {
               />
             </View>
           </TouchableOpacity>
-
           {expandedSections.inUse && (
             <>
               {inUseDrones.length > 0 ? (
@@ -329,9 +319,14 @@ const DronesScreen = () => {
                 </View>
               )}
             </>
-          )}
+          )}{" "}
         </View>
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity style={styles.fab} onPress={handleAddDrone}>
+        <Ionicons name="add" size={24} color="#fff" />
+      </TouchableOpacity>
 
       {/* Add/Edit Modal */}
       <Modal
@@ -343,7 +338,8 @@ const DronesScreen = () => {
           resetForm();
         }}
       >
-        <View style={styles.centeredView}><View style={styles.modalView}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
             <ScrollView style={{ width: "100%" }}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
@@ -420,9 +416,11 @@ const DronesScreen = () => {
                     onPress={() => setCurrentStatus(s)}
                   >
                     <Text
-                      style={currentStatus === s
+                      style={
+                        currentStatus === s
                           ? styles.statusOptionTextSelected
-                          : styles.statusOptionText}
+                          : styles.statusOptionText
+                      }
                     >
                       {getStatusDisplayText(s)}
                     </Text>
@@ -597,30 +595,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
   },
-  addButtonContainer: {
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: "transparent",
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
+  fab: {
+    position: "absolute",
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: "#9C46CE",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
+    right: 20,
+    bottom: 20,
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: "#9C46CE",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 6,
-  },
-  addButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
+    elevation: 8,
   },
   scrollContainer: {
     flex: 1,
@@ -780,7 +769,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3B82F6",
   },
   statusBtn: {
-    backgroundColor: "#F59E0B",
+    backgroundColor: "#10B981",
   },
   actionBtnText: {
     color: "#FFFFFF",
@@ -829,7 +818,8 @@ const styles = StyleSheet.create({
     elevation: 12,
     width: "90%",
     maxHeight: "85%",
-  },  modalHeader: {
+  },
+  modalHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -907,7 +897,8 @@ const styles = StyleSheet.create({
     borderTopColor: "#eee",
     borderTopWidth: 1,
     paddingTop: 15,
-  },  modalButton: {
+  },
+  modalButton: {
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 10,
