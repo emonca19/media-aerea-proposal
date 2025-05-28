@@ -182,7 +182,7 @@ export default function AdminKPIDashboard() {
           headerTitleStyle: { fontWeight: "600" },
           headerLeft: () => (
             <TouchableOpacity
-              onPress={() => router.push("/admin/profile/kpisdashboard")}
+              onPress={() => router.push("/admin/profile")}
               style={[
                 styles.headerButton,
                 { flexDirection: "row", alignItems: "center" },
@@ -222,9 +222,6 @@ export default function AdminKPIDashboard() {
           >
             <View style={styles.headerContent}>
               <Text style={styles.headerTitle}>Resumen Operativo</Text>
-              <Text style={styles.headerSubtitle}>
-                Estado actual del sistema
-              </Text>
               <View style={styles.headerStats}>
                 <View style={styles.headerStat}>
                   <Text style={styles.headerStatValue}>
@@ -248,7 +245,6 @@ export default function AdminKPIDashboard() {
             </View>
           </LinearGradient>
         </Animated.View>
-
         {/* Project Progress Section */}
         <Animated.View entering={FadeInDown.delay(200)} style={styles.section}>
           <Text style={styles.sectionTitle}>Avance de Proyectos</Text>
@@ -265,46 +261,6 @@ export default function AdminKPIDashboard() {
               value={`${Math.round(kpiData.projects.averageProgress)}%`}
               color="#10b981"
             />
-          </View>
-
-          <View style={styles.progressCard}>
-            <Text style={styles.progressTitle}>Estado de Proyectos</Text>
-            <View style={styles.progressStats}>
-              <View style={styles.progressItem}>
-                <View
-                  style={[styles.progressDot, { backgroundColor: "#10b981" }]}
-                />
-                <Text style={styles.progressLabel}>Completados</Text>
-                <Text style={styles.progressValue}>
-                  {kpiData.projects.completed}
-                </Text>
-              </View>
-              <View style={styles.progressItem}>
-                <View
-                  style={[styles.progressDot, { backgroundColor: "#3b82f6" }]}
-                />
-                <Text style={styles.progressLabel}>Activos</Text>
-                <Text style={styles.progressValue}>
-                  {kpiData.projects.active}
-                </Text>
-              </View>
-              <View style={styles.progressItem}>
-                <View
-                  style={[styles.progressDot, { backgroundColor: "#ef4444" }]}
-                />
-                <Text style={styles.progressLabel}>Atrasados</Text>
-                <Text style={styles.progressValue}>
-                  {kpiData.projects.delayedProjects}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </Animated.View>
-
-        {/* Turbine Statistics */}
-        <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
-          <Text style={styles.sectionTitle}>Estadísticas de Turbinas</Text>
-          <View style={styles.statsGrid}>
             <StatCard
               icon="wind-power"
               title="Total Turbinas"
@@ -318,125 +274,97 @@ export default function AdminKPIDashboard() {
               color="#06b6d4"
             />
           </View>
-
-          <View style={styles.turbineProgress}>
-            <Text style={styles.progressTitle}>Estado de Inspecciones</Text>
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${
-                      (kpiData.turbines.inspected / kpiData.turbines.total) *
-                      100
-                    }%`,
-                    backgroundColor: "#10b981",
-                  },
-                ]}
-              />
-            </View>            <View style={styles.progressLabels}>
-              <Text style={styles.progressLabel}>
-                Inspeccionadas: {kpiData.turbines.inspected}/
-                {kpiData.turbines.total}
-              </Text>
-              <Text style={styles.progressPercentage}>
-                {Math.round(
-                  (kpiData.turbines.inspected / kpiData.turbines.total) * 100
-                )}
-                %
-              </Text>
-            </View>
-          </View>
         </Animated.View>
-
         {/* Individual Pilot Statistics */}
-        <Animated.View entering={FadeInDown.delay(400)} style={styles.section}>
-          <View style={styles.sectionHeaderWithButton}>
-            <Text style={styles.sectionTitle}>Estadísticas de Pilotos</Text>
-            <TouchableOpacity 
-              style={styles.viewDetailsButton}
-              onPress={() => router.push('/admin/profile/pilot-details')}
+        <Animated.View
+          entering={FadeInDown.delay(400)}
+          style={[styles.navigationSection, styles.blackCardWrapper]}
+        >
+          {" "}
+          <TouchableOpacity
+            onPress={() => router.push("/admin/profile/pilot-details")}
+            activeOpacity={0.8}
+            style={[styles.navigationCardWrapper, styles.blackCardWrapper]}
+          >
+            <LinearGradient
+              colors={["#111111", "#222222"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[
+                styles.navigationCard,
+                styles.blackCard,
+                styles.centeredCard,
+              ]}
             >
-              <Text style={styles.viewDetailsButtonText}>Ver Detalles</Text>
-              <Ionicons name="chevron-forward" size={16} color="#9C46CE" />
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.pilotOverviewCard}>
-            <View style={styles.overviewStats}>
-              <View style={styles.overviewStat}>
-                <MaterialIcons name="person" size={24} color="#3b82f6" />
-                <Text style={styles.overviewStatValue}>{kpiData.pilots.total}</Text>
-                <Text style={styles.overviewStatLabel}>Pilotos Totales</Text>
-              </View>
-              <View style={styles.overviewStat}>
-                <MaterialIcons name="flight-takeoff" size={24} color="#10b981" />
-                <Text style={styles.overviewStatValue}>
-                  {Math.round(kpiData.pilots.totalFlightHours)}h
+              <View style={styles.centeredCardContent}>
+                <View style={styles.centeredIconContainer}>
+                  <MaterialIcons name="people" size={40} color="white" />
+                </View>
+                <Text style={styles.navigationTitleWhite}>
+                  Estadísticas de Pilotos
                 </Text>
-                <Text style={styles.overviewStatLabel}>Horas de Vuelo</Text>
-              </View>
-              <View style={styles.overviewStat}>
-                <MaterialIcons name="trending-up" size={24} color="#f59e0b" />
-                <Text style={styles.overviewStatValue}>
-                  {Math.round(kpiData.pilots.averageEfficiency)}%
+                <Text style={styles.navigationSubtitleWhite}>
+                  Ver análisis detallado del rendimiento
                 </Text>
-                <Text style={styles.overviewStatLabel}>Eficiencia Media</Text>
               </View>
-            </View>
-            
-            <TouchableOpacity 
-              style={styles.fullDetailsButton}
-              onPress={() => router.push('/admin/profile/pilot-details')}
-            >
-              <Text style={styles.fullDetailsButtonText}>Ver Estadísticas Detalladas de Pilotos</Text>
-              <Ionicons name="analytics" size={20} color="#ffffff" />
-            </TouchableOpacity>
-          </View>
+              <View style={[styles.navigationArrow, styles.blackArrow]}>
+                <MaterialIcons
+                  name="arrow-forward"
+                  size={24}
+                  color="rgba(255, 255, 255, 0.8)"
+                />
+              </View>
+              <View style={styles.navigationOverlay} />
+            </LinearGradient>
+          </TouchableOpacity>
         </Animated.View>
 
         {/* Projects Statistics Section */}
-        <Animated.View entering={FadeInDown.delay(500)} style={styles.section}>
-          <View style={styles.sectionHeaderWithButton}>
-            <Text style={styles.sectionTitle}>Estadísticas de Proyectos</Text>
-            <TouchableOpacity 
-              style={styles.viewDetailsButton}
-              onPress={() => router.push('/admin/profile/project-details')}
+        <Animated.View
+          entering={FadeInDown.delay(500)}
+          style={[styles.navigationSection, styles.blackCardWrapper]}
+        >
+          {" "}
+          <TouchableOpacity
+            onPress={() => router.push("/admin/profile/project-details")}
+            activeOpacity={0.8}
+            style={[styles.navigationCardWrapper, styles.blackCardWrapper]}
+          >
+            <LinearGradient
+              colors={["#111111", "#222222"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[
+                styles.navigationCard,
+                styles.blackCard,
+                styles.centeredCard,
+              ]}
             >
-              <Text style={styles.viewDetailsButtonText}>Ver Detalles</Text>
-              <Ionicons name="chevron-forward" size={16} color="#9C46CE" />
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.projectOverviewCard}>
-            <View style={styles.overviewStats}>
-              <View style={styles.overviewStat}>
-                <MaterialIcons name="folder" size={24} color="#8b5cf6" />
-                <Text style={styles.overviewStatValue}>{kpiData.projects.total}</Text>
-                <Text style={styles.overviewStatLabel}>Proyectos Totales</Text>
-              </View>
-              <View style={styles.overviewStat}>
-                <MaterialIcons name="play-circle-fill" size={24} color="#10b981" />
-                <Text style={styles.overviewStatValue}>{kpiData.projects.active}</Text>
-                <Text style={styles.overviewStatLabel}>Activos</Text>
-              </View>
-              <View style={styles.overviewStat}>
-                <MaterialIcons name="check-circle" size={24} color="#3b82f6" />
-                <Text style={styles.overviewStatValue}>
-                  {Math.round(kpiData.projects.averageProgress)}%
+              <View style={styles.centeredCardContent}>
+                <View style={styles.centeredIconContainer}>
+                  <MaterialIcons name="analytics" size={40} color="white" />
+                </View>
+                <Text style={styles.navigationTitleWhite}>
+                  Estadísticas de Proyectos
                 </Text>
-                <Text style={styles.overviewStatLabel}>Progreso Medio</Text>
+                <Text style={styles.navigationSubtitleWhite}>
+                  Ver métricas y progreso de proyectos
+                </Text>
               </View>
-            </View>
-            
-            <TouchableOpacity 
-              style={styles.fullDetailsButton}
-              onPress={() => router.push('/admin/profile/project-details')}
-            >
-              <Text style={styles.fullDetailsButtonText}>Ver Estadísticas Detalladas de Proyectos</Text>
-              <Ionicons name="bar-chart" size={20} color="#ffffff" />
-            </TouchableOpacity>
-          </View>        </Animated.View>
+              <View style={[styles.navigationArrow, styles.blackArrow]}>
+                <MaterialIcons
+                  name="arrow-forward"
+                  size={24}
+                  color="rgba(255, 255, 255, 0.8)"
+                />
+              </View>
+              <View style={styles.navigationOverlay} />
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Add spacing between cards and Cuellos de Botella */}
+        <View style={{ height: 18 }} />
 
         {/* Operational Bottlenecks */}
         <Animated.View entering={FadeInDown.delay(900)} style={styles.section}>
@@ -563,6 +491,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
+    marginTop: 16,
   },
   headerStat: {
     alignItems: "center",
@@ -582,6 +511,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 24,
   },
+  navigationSection: {
+    marginHorizontal: 16,
+    marginBottom: 0,
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "600",
@@ -590,8 +523,10 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
     marginBottom: 16,
+    justifyContent: "space-between",
   },
   progressCard: {
     backgroundColor: "#ffffff",
@@ -662,7 +597,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#10b981",
-  },  pilotsGrid: {
+  },
+  pilotsGrid: {
     gap: 16,
   },
   pilotCardImproved: {
@@ -812,7 +748,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "500",
   },
-  
+
   // Projects Statistics Styles
   projectOverviewGrid: {
     gap: 16,
@@ -936,7 +872,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#6b7280",
     fontWeight: "500",
-  },  projectSummaryCard: {
+  },
+  projectSummaryCard: {
     backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 16,
@@ -955,7 +892,8 @@ const styles = StyleSheet.create({
     color: "#1f2937",
     marginBottom: 16,
     textAlign: "center",
-  },projectSummaryGrid: {
+  },
+  projectSummaryGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
@@ -1046,7 +984,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
-  
+
   // Existing styles continue...
   bottleneckCard: {
     backgroundColor: "#ffffff",
@@ -1106,10 +1044,11 @@ const styles = StyleSheet.create({
   impactText: {
     fontSize: 12,
     fontWeight: "600",
-  },  bottomSpacing: {
+  },
+  bottomSpacing: {
     height: 32,
   },
-  
+
   // Navigation overview card styles
   sectionHeaderWithButton: {
     flexDirection: "row",
@@ -1194,5 +1133,192 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontWeight: "600",
     marginRight: 8,
+  },
+  // Navigation card styles
+  navigationCardWrapper: {
+    marginBottom: 8,
+  },
+  navigationCard: {
+    borderRadius: 16,
+    padding: 16,
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    height: 110,
+    overflow: "hidden",
+  },
+  blackCardWrapper: {
+    // Remove extra margin if needed
+    marginBottom: 4,
+  },
+  blackCard: {
+    backgroundColor: "#111",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 0,
+    paddingBottom: 0,
+    height: 110,
+  },
+  centeredCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 110,
+    padding: 0,
+  },
+  centeredCardContent: {
+    flex: 1,
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 2,
+  },
+  centeredIconContainer: {
+    marginBottom: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navigationIconContainer: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 22,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  navigationIconMain: {
+    position: "absolute",
+    bottom: 16,
+    left: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 28,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  blackIconMain: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(255,255,255,0.15)",
+  },
+  navigationContent: {
+    position: "absolute",
+    bottom: 16,
+    left: 88,
+    right: 60,
+  },
+  navigationContentCentered: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 2,
+  },
+  navigationValue: {
+    fontSize: 32,
+    fontWeight: "900",
+    color: "white",
+    marginBottom: 4,
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  navigationTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.9)",
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    lineHeight: 16,
+    marginBottom: 2,
+  },
+  navigationTitleWhite: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  navigationSubtitle: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "rgba(255, 255, 255, 0.7)",
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    lineHeight: 14,
+  },
+  navigationSubtitleWhite: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "rgba(255,255,255,0.7)",
+    textAlign: "center",
+  },
+  navigationArrow: {
+    position: "absolute",
+    bottom: 16,
+    right: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  blackArrow: {
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderColor: "rgba(255,255,255,0.18)",
+  },
+  navigationOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  horizontalCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    height: 110,
+    padding: 0,
+  },
+  horizontalCardContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    zIndex: 2,
+    height: "100%",
+    paddingLeft: 12,
+  },
+  horizontalIconContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 18,
+    marginLeft: 4,
+  },
+  horizontalTextContainer: {
+    flex: 1,
+    justifyContent: "center",
   },
 });

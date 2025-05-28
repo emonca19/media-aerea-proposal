@@ -165,14 +165,13 @@ const PilotDetailsScreen = () => {
         <Text style={styles.efficiencyValue}>{pilot.stats?.dailyCompletionRatePercentage || 0}%</Text>
       </View>
     </Animated.View>
-  );
-
-  return (
-    <View style={styles.container}>      <Stack.Screen 
+  );  return (
+    <View style={styles.container}>
+      <Stack.Screen 
         options={{ 
-          title: "Estadísticas de Pilotos",          headerLeft: () => (
-            <TouchableOpacity 
-              onPress={() => router.push('/admin/(profile)/kpisdashboard')}
+          title: "Estadísticas de Pilotos",
+          headerLeft: () => (            <TouchableOpacity 
+              onPress={() => router.push('/admin/profile/kpisdashboard')}
               style={styles.backButton}
             >
               <Ionicons name="chevron-back" size={24} color="#9C46CE" />
@@ -273,18 +272,19 @@ const PilotDetailsScreen = () => {
               </Animated.View>
             ))}
           </View>
-        </Animated.View>
-      </ScrollView>
+        </Animated.View>      </ScrollView>
       {/* Floating Dashboard Button */}
       {/* Removed as per user request */}
     </View>
   );
 };
 
-const styles = StyleSheet.create({  container: {
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
-  },  backButton: {
+  },
+  backButton: {
     flexDirection: "row",
     alignItems: "center",
     padding: 8,

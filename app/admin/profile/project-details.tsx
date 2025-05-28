@@ -168,12 +168,12 @@ const ProjectDetailsScreen = () => {
         </TouchableOpacity>
       </Animated.View>
     );
-  };
-
-  return (
-    <View style={styles.container}>      <Stack.Screen 
+  };  return (
+    <View style={styles.container}>
+      <Stack.Screen 
         options={{ 
-          title: "Estadísticas de Proyectos",          headerLeft: () => (
+          title: "Estadísticas de Proyectos",
+          headerLeft: () => (
             <TouchableOpacity 
               onPress={() => router.back()}
               style={styles.backButton}
@@ -278,17 +278,18 @@ const ProjectDetailsScreen = () => {
             {projectStats.upcomingMilestones.map((milestone, index) => (
               <MilestoneCard key={index} milestone={milestone} index={index} />
             ))}
-          </View>
-        </Animated.View>
+          </View>        </Animated.View>
       </ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({  container: {
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
-  },  backButton: {
+  },
+  backButton: {
     flexDirection: "row",
     alignItems: "center",
     padding: 8,
