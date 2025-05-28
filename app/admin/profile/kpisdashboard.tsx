@@ -18,7 +18,7 @@ import { StatCard } from "../../../src/components/StatCard";
 import { mockPilotStats } from "../../../src/mocks/pilots";
 import { mockProjectReports } from "../../../src/mocks/reports";
 
-const { width } = Dimensions.get("window");
+/* const { width } = Dimensions.get("window"); */
 
 interface KPIData {
   projects: {
@@ -171,16 +171,15 @@ export default function AdminKPIDashboard() {
       </View>
     );
   }
-
   return (
     <View style={styles.container}>
       <Stack.Screen
         options={{
           headerShown: true,
           title: "Indicadores Generales",
-          headerStyle: { backgroundColor: "#1E3A8A" },
-          headerTintColor: "#ffffff",
-          headerTitleStyle: { fontWeight: "600" },
+          headerStyle: { backgroundColor: "#ffffff" },
+          headerTintColor: "#000000",
+          headerTitleStyle: { fontWeight: "600", color: "#000000" },
           headerLeft: () => (
             <TouchableOpacity
               onPress={() => router.push("/admin/profile/profile")}
@@ -189,24 +188,8 @@ export default function AdminKPIDashboard() {
                 { flexDirection: "row", alignItems: "center" },
               ]}
             >
-              <Ionicons name="arrow-back" size={24} color="#ffffff" />
+              <Ionicons name="arrow-back" size={24} color="#000000" />
             </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <View style={styles.headerButtons}>
-              <TouchableOpacity
-                onPress={() => router.push("/admin/reports?from=kpis")}
-                style={styles.headerButton}
-              >
-                <Ionicons name="document-text" size={24} color="#ffffff" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={loadKPIData}
-                style={styles.headerButton}
-              >
-                <Ionicons name="refresh" size={24} color="#ffffff" />
-              </TouchableOpacity>
-            </View>
           ),
         }}
       />
@@ -274,16 +257,15 @@ export default function AdminKPIDashboard() {
             />
           </View>
         </Animated.View>
+
         {/* Visual KPIs Dashboard - Chart Based */}
         <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
-          
           {/* Time Analytics - Effective vs Pause Time */}
           <View style={styles.visualKpiContainer}>
             <Text style={styles.kpiTitle}>
               Distribución de Tiempo Operativo
             </Text>
             <View style={styles.timeAnalyticsContainer}>
-              
               <BarChart
                 data={{
                   labels: ["Efectivo", "En Pausa"],
@@ -344,7 +326,6 @@ export default function AdminKPIDashboard() {
           <View style={styles.visualKpiContainer}>
             <Text style={styles.kpiTitle}>Motivos de Pausas Principales</Text>
             <View style={styles.pauseReasonsContainer}>
-              
               <PieChart
                 data={[
                   {
@@ -515,6 +496,60 @@ export default function AdminKPIDashboard() {
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
+        {/* Reports Card Section */}
+        <Animated.View
+          entering={FadeInDown.delay(850)}
+          style={styles.enhancedCardsContainer}
+        >
+          <TouchableOpacity
+            onPress={() => router.push("/admin/reports")}
+            activeOpacity={0.85}
+            style={styles.enhancedCardWrapper}
+          >
+            <LinearGradient
+              colors={["#8B5CF6", "#7C3AED", "#6D28D9"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.enhancedCard}
+            >
+              <View style={styles.enhancedCardContent}>
+                <View style={styles.enhancedIconWrapper}>
+                  <View style={styles.enhancedIconBackground}>
+                    <MaterialIcons
+                      name="assessment"
+                      size={28}
+                      color="#8B5CF6"
+                    />
+                  </View>
+                </View>
+                <View style={styles.enhancedTextContent}>
+                  <Text style={styles.enhancedCardTitle}>
+                    Reportes Detallados
+                  </Text>
+                  <Text style={styles.enhancedCardSubtitle}>
+                    Informes completos y análisis
+                  </Text>
+                  <View style={styles.enhancedCardMeta}>
+                    <Text style={styles.enhancedMetaText}>Disponibles</Text>
+                    <Text style={styles.enhancedMetaDot}>•</Text>
+                    <Text style={styles.enhancedMetaText}>
+                      Datos actualizados
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.enhancedArrowContainer}>
+                  <MaterialIcons
+                    name="arrow-forward"
+                    size={20}
+                    color="rgba(255, 255, 255, 0.9)"
+                  />
+                </View>
+              </View>
+              <View style={styles.enhancedCardGlow} />
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* Add spacing between cards and Cuellos de Botella */}
         <View style={{ height: 18 }} />
         {/* Operational Bottlenecks */}
@@ -595,22 +630,9 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     fontWeight: "500",
   },
-  refreshButton: {
-    padding: 8,
-  },
-  headerButtons: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
   headerButton: {
     padding: 8,
     marginLeft: 8,
-  },
-  backButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "500",
-    marginLeft: 4,
   },
   scrollView: {
     flex: 1,
@@ -631,11 +653,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#ffffff",
     marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
-    marginBottom: 24,
   },
   headerStats: {
     flexDirection: "row",
@@ -661,10 +678,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 24,
   },
-  navigationSection: {
-    marginHorizontal: 16,
-    marginBottom: 0,
-  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "600",
@@ -677,231 +690,6 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 16,
     justifyContent: "space-between",
-  },
-  progressCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  progressTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 16,
-  },
-  progressStats: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  progressItem: {
-    alignItems: "center",
-  },
-  progressDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginBottom: 8,
-  },
-  progressLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginBottom: 4,
-  },
-  progressValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1f2937",
-  },
-  turbineProgress: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 4,
-    marginBottom: 12,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 4,
-  },
-  progressLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  progressPercentage: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#10b981",
-  },
-  pilotsGrid: {
-    gap: 16,
-  },
-  pilotCardImproved: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: "#f1f5f9",
-  },
-  pilotCardHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 16,
-  },
-  pilotAvatarContainer: {
-    position: "relative",
-    marginRight: 16,
-  },
-  pilotAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  pilotAvatarText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  pilotStatusDot: {
-    position: "absolute",
-    top: -2,
-    right: -2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 3,
-    borderColor: "#ffffff",
-  },
-  pilotInfoImproved: {
-    flex: 1,
-    marginRight: 12,
-  },
-  pilotNameImproved: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#1f2937",
-    marginBottom: 4,
-  },
-  pilotStatsImproved: {
-    fontSize: 13,
-    color: "#6b7280",
-    marginBottom: 2,
-    fontWeight: "500",
-  },
-  pilotFlightTime: {
-    fontSize: 13,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
-  pilotEfficiencyBadgeImproved: {
-    backgroundColor: "#f0f9ff",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#3b82f6",
-    alignItems: "center",
-    minWidth: 60,
-  },
-  pilotEfficiencyNumber: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#3b82f6",
-    marginBottom: 2,
-  },
-  pilotEfficiencyLabel: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: "#3b82f6",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  pilotMetricsGrid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-    gap: 8,
-  },
-  metricCard: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-    padding: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  metricValue: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#1f2937",
-    marginTop: 4,
-    marginBottom: 2,
-  },
-  metricLabel: {
-    fontSize: 10,
-    color: "#6b7280",
-    textAlign: "center",
-    fontWeight: "500",
-  },
-  pilotProgressSection: {
-    marginTop: 4,
-  },
-  progressSectionTitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  pilotProgressBarImproved: {
-    height: 6,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 3,
-    marginBottom: 6,
-    overflow: "hidden",
-  },
-  pilotProgressFill: {
-    height: "100%",
-    borderRadius: 3,
-  },
-  pilotProgressText: {
-    fontSize: 11,
-    color: "#6b7280",
-    textAlign: "center",
-    fontWeight: "500",
-  },
-
-  // Projects Statistics Styles
-  projectOverviewGrid: {
-    gap: 16,
   },
   projectCard: {
     backgroundColor: "#ffffff",
@@ -916,115 +704,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f1f5f9",
   },
-  projectCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 16,
-  },
-  projectTitleSection: {
-    flex: 1,
-    marginRight: 12,
-  },
-  projectName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1f2937",
-    marginBottom: 4,
-    lineHeight: 20,
-  },
-  projectClient: {
-    fontSize: 13,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
-  projectStatusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  projectStatusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
-  },
-  projectStatusText: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "capitalize",
-  },
-  projectMetricsGrid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-    gap: 8,
-  },
-  projectMetricCard: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-    padding: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  projectMetricValue: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1f2937",
-    marginTop: 4,
-    marginBottom: 2,
-  },
-  projectMetricLabel: {
-    fontSize: 10,
-    color: "#6b7280",
-    textAlign: "center",
-    fontWeight: "500",
-  },
-  projectProgressSection: {
-    marginTop: 4,
-  },
-  projectProgressHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  projectProgressLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  projectProgressPercentage: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#1f2937",
-  },
-  projectProgressBarContainer: {
-    height: 6,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 3,
-    marginBottom: 6,
-    overflow: "hidden",
-  },
-  projectProgressBar: {
-    height: "100%",
-    borderRadius: 3,
-  },
-  projectProgressDetails: {
-    alignItems: "center",
-  },
-  projectProgressDetailText: {
-    fontSize: 11,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
   projectSummaryCard: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f8fafc",
     borderRadius: 16,
     padding: 16,
     marginTop: 8,
@@ -1036,34 +717,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f1f5f9",
   },
-  projectSummaryTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1f2937",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  projectSummaryGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: 8,
-    marginBottom: 20,
-  },
-  projectSummaryMetric: {
+  projectSummaryItem: {
     width: "48%",
-    backgroundColor: "#f8fafc",
-    padding: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    minHeight: 85,
-  },
-  projectSummaryIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
     backgroundColor: "#ffffff",
     justifyContent: "center",
     alignItems: "center",
@@ -1073,33 +728,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 2,
     elevation: 1,
-  },
-  projectSummaryValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1f2937",
-    marginBottom: 2,
-  },
-  projectSummaryLabel: {
-    fontSize: 11,
-    color: "#6b7280",
-    textAlign: "center",
-    fontWeight: "500",
-    lineHeight: 14,
-  },
-  projectTimelineSection: {
-    borderTopWidth: 1,
-    borderTopColor: "#f3f4f6",
-    paddingTop: 20,
-  },
-  projectTimelineTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 16,
-  },
-  projectTimelineContainer: {
-    gap: 12,
   },
   projectTimelineItem: {
     flexDirection: "row",
@@ -1112,30 +740,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e2e8f0",
   },
-  projectTimelineInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  projectTimelineName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 2,
-  },
-  projectTimelineStatus: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
-  projectTimelineProgress: {
-    alignItems: "flex-end",
-  },
-  projectTimelinePercentage: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  // Existing styles continue...
   bottleneckCard: {
     backgroundColor: "#ffffff",
     borderRadius: 16,
@@ -1198,30 +802,6 @@ const styles = StyleSheet.create({
   bottomSpacing: {
     height: 32,
   },
-
-  // Navigation overview card styles
-  sectionHeaderWithButton: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  viewDetailsButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: "#f8fafc",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  viewDetailsButtonText: {
-    fontSize: 12,
-    color: "#9C46CE",
-    fontWeight: "600",
-    marginRight: 4,
-  },
   pilotOverviewCard: {
     backgroundColor: "#ffffff",
     borderRadius: 16,
@@ -1246,48 +826,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f1f5f9",
   },
-  overviewStats: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 20,
-  },
-  overviewStat: {
-    alignItems: "center",
-    flex: 1,
-  },
-  overviewStatValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1f2937",
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  overviewStatLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  fullDetailsButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#9C46CE",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  fullDetailsButtonText: {
-    fontSize: 14,
-    color: "#ffffff",
-    fontWeight: "600",
-    marginRight: 8,
-  },
-  // Navigation card styles
-  navigationCardWrapper: {
-    marginBottom: 8,
-  },
   navigationCard: {
     borderRadius: 16,
     padding: 16,
@@ -1299,37 +837,6 @@ const styles = StyleSheet.create({
     elevation: 8,
     height: 110,
     overflow: "hidden",
-  },
-  blackCardWrapper: {
-    // Remove extra margin if needed
-    marginBottom: 4,
-  },
-  blackCard: {
-    backgroundColor: "#111",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 0,
-    paddingBottom: 0,
-    height: 110,
-  },
-  centeredCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    height: 110,
-    padding: 0,
-  },
-  centeredCardContent: {
-    flex: 1,
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 2,
-  },
-  centeredIconContainer: {
-    marginBottom: 8,
-    alignItems: "center",
-    justifyContent: "center",
   },
   navigationIconContainer: {
     position: "absolute",
@@ -1357,35 +864,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.2)",
   },
-  blackIconMain: {
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderColor: "rgba(255,255,255,0.15)",
-  },
-  navigationContent: {
-    position: "absolute",
-    bottom: 16,
-    left: 88,
-    right: 60,
-  },
-  navigationContentCentered: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 2,
-  },
-  navigationValue: {
-    fontSize: 32,
-    fontWeight: "900",
-    color: "white",
-    marginBottom: 4,
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
   navigationTitle: {
     fontSize: 14,
     fontWeight: "600",
@@ -1395,28 +873,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
     lineHeight: 16,
     marginBottom: 2,
-  },
-  navigationTitleWhite: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  navigationSubtitle: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "rgba(255, 255, 255, 0.7)",
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-    lineHeight: 14,
-  },
-  navigationSubtitleWhite: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.7)",
-    textAlign: "center",
   },
   navigationArrow: {
     position: "absolute",
@@ -1431,10 +887,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.2)",
   },
-  blackArrow: {
-    backgroundColor: "rgba(255,255,255,0.12)",
-    borderColor: "rgba(255,255,255,0.18)",
-  },
   navigationOverlay: {
     position: "absolute",
     top: 0,
@@ -1446,32 +898,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.1)",
   },
-  horizontalCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    height: 110,
-    padding: 0,
-  },
-  horizontalCardContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-    zIndex: 2,
-    height: "100%",
-    paddingLeft: 12,
-  },
-  horizontalIconContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 18,
-    marginLeft: 4,
-  },
-  horizontalTextContainer: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  // Visual KPI Styles
   visualKpiContainer: {
     backgroundColor: "white",
     borderRadius: 16,
@@ -1489,101 +915,6 @@ const styles = StyleSheet.create({
     color: "#1f2937",
     marginBottom: 16,
     textAlign: "center",
-  },
-  // Pie Chart Styles
-  pieChartContainer: {
-    alignItems: "center",
-  },
-  pieChart: {
-    width: 100,
-    height: 100,
-    position: "relative",
-    marginBottom: 16,
-  },
-  pieSegment: {
-    borderRadius: 50,
-  },
-  pieCenter: {
-    position: "absolute",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "white",
-    top: 20,
-    left: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  pieCenterText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1f2937",
-  },
-  pieCenterLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  pieLegend: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-  },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 6,
-  },
-  legendText: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  // Photo Quality Bar Chart Styles
-  photoQualityContainer: {
-    alignItems: "center",
-  },
-  photoQualityBars: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "center",
-    marginBottom: 20,
-    gap: 30,
-    height: 140,
-  },
-  photoBarGroup: {
-    alignItems: "center",
-    minWidth: 80,
-  },
-  photoBar: {
-    width: 40,
-    marginBottom: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  photoBarValue: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1f2937",
-    marginBottom: 4,
-  },
-  photoBarLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    textAlign: "center",
-    lineHeight: 16,
-  },
-  photoQualityStats: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    gap: 16,
   },
   qualityStatCard: {
     flex: 1,
@@ -1605,7 +936,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#6b7280",
     textAlign: "center",
-  }, // Time Analytics Styles
+  },
+  photoQualityStats: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    gap: 16,
+  },
   timeAnalyticsContainer: {
     alignItems: "center",
     width: "100%",
@@ -1639,7 +976,6 @@ const styles = StyleSheet.create({
     color: "#1f2937",
     textAlign: "center",
   },
-  // Pause Reasons Styles
   pauseReasonsContainer: {
     alignItems: "center",
     width: "100%",
@@ -1660,199 +996,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: "500",
   },
-  // Gauge Styles
-  gaugeContainer: {
-    alignItems: "center",
-  },
-  gauge: {
-    width: 120,
-    height: 60,
-    position: "relative",
-    marginBottom: 8,
-  },
-  gaugeBackground: {
-    width: 120,
-    height: 60,
-    borderTopLeftRadius: 60,
-    borderTopRightRadius: 60,
-    backgroundColor: "#e5e7eb",
-    overflow: "hidden",
-  },
-  gaugeFill: {
-    position: "absolute",
-    width: 120,
-    height: 60,
-    borderTopLeftRadius: 60,
-    borderTopRightRadius: 60,
-    backgroundColor: "#3b82f6",
-    transformOrigin: "bottom center",
-  },
-  gaugeCenter: {
-    position: "absolute",
-    bottom: -10,
-    left: "50%",
-    transform: [{ translateX: -25 }],
-    alignItems: "center",
-  },
-  gaugeValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1f2937",
-  },
-  gaugeLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  gaugeLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: 120,
-    marginBottom: 8,
-  },
-  gaugeStartLabel: {
-    fontSize: 10,
-    color: "#6b7280",
-  },
-  gaugeEndLabel: {
-    fontSize: 10,
-    color: "#6b7280",
-  },
-  efficiencyBadge: {
-    backgroundColor: "#dbeafe",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  efficiencyText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#2563eb",
-  },
-  // Bar Chart Styles
-  barChartContainer: {
-    alignItems: "center",
-  },
-  barChart: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-around",
-    width: "100%",
-    height: 100,
-    marginBottom: 16,
-  },
-  barGroup: {
-    alignItems: "center",
-  },
-  bar: {
-    width: 20,
-    borderRadius: 10,
-    marginBottom: 4,
-  },
-  barLabel: {
-    fontSize: 10,
-    color: "#6b7280",
-  },
-  chartLegend: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
-  },
-  // Turbine Grid Styles
-  turbineGridContainer: {
-    alignItems: "center",
-  },
-  turbineGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 8,
-    marginBottom: 16,
-    maxWidth: 200,
-  },
-  turbineIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  progressInfo: {
-    alignItems: "center",
-    width: "100%",
-  },
-  progressText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 8,
-  },
-  progressTimeline: {
-    flexDirection: "row",
-    width: "80%",
-    height: 4,
-    borderRadius: 2,
-    overflow: "hidden",
-  },
-  timelineCompleted: {
-    flex: 5,
-    backgroundColor: "#10b981",
-  },
-  timelineRemaining: {
-    flex: 5,
-    backgroundColor: "#e5e7eb",
-  },
-  // Line Chart Styles
-  lineChartContainer: {
-    alignItems: "center",
-  },
-  lineChart: {
-    width: 200,
-    height: 100,
-    position: "relative",
-    marginBottom: 16,
-  },
-  chartGrid: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-  },
-  gridLine: {
-    height: 1,
-    backgroundColor: "#f3f4f6",
-    marginBottom: 19,
-  },
-  lineChartData: {
-    position: "relative",
-    width: "100%",
-    height: "100%",
-  },
-  dataPoint: {
-    position: "absolute",
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#ef4444",
-  },
-  linePath: {
-    position: "absolute",
-    backgroundColor: "#ef4444",
-  },
-  chartInfo: {
-    alignItems: "center",
-  },
-  trendText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#10b981",
-    marginBottom: 4,
-  },
-  currentValue: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#1f2937",
-  },
-
-  // Enhanced Navigation Cards Styles
   enhancedCardsContainer: {
     marginHorizontal: 16,
     marginBottom: 20,

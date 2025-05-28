@@ -264,7 +264,7 @@ const UsersScreen = () => {
           style={styles.filterButton}
           onPress={() => setShowFilterModal(true)}
         >
-          <Ionicons name="options" size={20} color="#fff" />{" "}
+          <Ionicons name="options" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
       <ScrollView
@@ -350,7 +350,7 @@ const UsersScreen = () => {
                 </View>
               )}
             </View>
-          )}{" "}
+          )}
         </View>
       </ScrollView>
 

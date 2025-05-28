@@ -201,13 +201,13 @@ const DronesScreen = () => {
           <Text style={styles.detailText}>
             N/S: {item.serialNumber || "N/A"}
           </Text>
-        </View>{" "}
+        </View>
         {item.assignedTo && (
           <View style={styles.detailRow}>
             <Ionicons name="person-outline" size={16} color="#666" />
             <Text style={styles.detailText}>Asignado a: {item.assignedTo}</Text>
           </View>
-        )}{" "}
+        )}
         <View style={styles.detailRow}>
           <Ionicons
             name={item.hasCamera ? "camera-outline" : "ban-outline"}
@@ -448,7 +448,7 @@ const DronesScreen = () => {
                       {getStatusDisplayText(s)}
                     </Text>
                   </TouchableOpacity>
-                ))}{" "}
+                ))}
               </View>
 
               <Text style={styles.label}>Cámara Incluida*</Text>
