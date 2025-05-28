@@ -194,7 +194,6 @@ export default function AdminKPIDashboard() {
           ),
           headerRight: () => (
             <View style={styles.headerButtons}>
-              {" "}
               <TouchableOpacity
                 onPress={() => router.push("/admin/reports?from=kpis")}
                 style={styles.headerButton}
@@ -274,17 +273,17 @@ export default function AdminKPIDashboard() {
               color="#06b6d4"
             />
           </View>
-        </Animated.View>{" "}
+        </Animated.View>
         {/* Visual KPIs Dashboard - Chart Based */}
         <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
-          {" "}
+          
           {/* Time Analytics - Effective vs Pause Time */}
           <View style={styles.visualKpiContainer}>
             <Text style={styles.kpiTitle}>
               Distribución de Tiempo Operativo
             </Text>
             <View style={styles.timeAnalyticsContainer}>
-              {" "}
+              
               <BarChart
                 data={{
                   labels: ["Efectivo", "En Pausa"],
@@ -345,7 +344,7 @@ export default function AdminKPIDashboard() {
           <View style={styles.visualKpiContainer}>
             <Text style={styles.kpiTitle}>Motivos de Pausas Principales</Text>
             <View style={styles.pauseReasonsContainer}>
-              {" "}
+              
               <PieChart
                 data={[
                   {
@@ -390,7 +389,7 @@ export default function AdminKPIDashboard() {
                 backgroundColor="transparent"
                 paddingLeft="15"
                 absolute
-              />{" "}
+              />
               <View style={styles.pauseInsight}>
                 <MaterialIcons name="info-outline" size={16} color="#3b82f6" />
                 <Text style={styles.pauseInsightText}>
@@ -416,7 +415,7 @@ export default function AdminKPIDashboard() {
             </View>
           </View>
         </Animated.View>
-        {/* End Project KPIs Graphical Section */}{" "}
+        {/* End Project KPIs Graphical Section */}
         {/* Enhanced Navigation Cards */}
         <Animated.View
           entering={FadeInDown.delay(400)}

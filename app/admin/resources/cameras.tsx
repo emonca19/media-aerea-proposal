@@ -396,7 +396,7 @@ const CamerasScreen = () => {
           resetForm();
         }}
       >
-        <View style={styles.centeredView}>          <View style={styles.modalView}>
+        <View style={styles.centeredView}><View style={styles.modalView}>
             <ScrollView style={{ width: "100%" }}>
               {/* Modal Header with title and close button */}
               <View style={styles.modalHeader}>
@@ -477,11 +477,9 @@ const CamerasScreen = () => {
                       onPress={() => setCurrentStatus(s)}
                     >
                       <Text
-                        style={[
-                          currentStatus === s
+                        style={currentStatus === s
                             ? styles.statusOptionTextSelected
-                            : styles.statusOptionText,
-                        ]}
+                            : styles.statusOptionText}
                       >
                         {getStatusDisplayText(s)}
                       </Text>
@@ -666,22 +664,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#1E293B",
-    letterSpacing: -0.3,
   },
   addButtonContainer: {
     alignItems: "center",

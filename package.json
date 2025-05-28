@@ -64,6 +64,8 @@
     "babel-preset-expo": "13.0.0",
     "eslint": "^9.27.0",
     "eslint-config-expo": "~9.2.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-native": "^5.0.0",
     "metro-react-native-babel-preset": "^0.77.0",
     "typescript": "~5.8.3"
   },

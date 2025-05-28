@@ -7,7 +7,6 @@ export default function TasksLayout() {
         headerShown: false,
       }}
     >
-      {" "}
       <Stack.Screen
         name="tabs"
         options={{
@@ -24,10 +23,9 @@ export default function TasksLayout() {
         name="assignment-details"
         options={{
           headerShown: false,
-          presentation: "card", // This gives a nice slide animation
+          presentation: "card",
         }}
       />
-      {/* Future stacked screens can be added here */}
     </Stack>
   );
 }

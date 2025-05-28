@@ -278,7 +278,7 @@ const UsersScreen = () => {
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        {" "}
+        
         {/* Active Users Section */}
         <View style={styles.sectionContainer}>
           <TouchableOpacity
@@ -361,7 +361,7 @@ const UsersScreen = () => {
             </View>
           )}
         </View>
-      </ScrollView>{" "}
+      </ScrollView>
       {/* Add/Edit Modal */}
       <Modal
         animationType="slide"
@@ -415,11 +415,9 @@ const UsersScreen = () => {
                       onPress={() => setSelectedRole(role)}
                     >
                       <Text
-                        style={[
-                          selectedRole === role
+                        style={selectedRole === role
                             ? styles.statusOptionTextSelected
-                            : styles.statusOptionText,
-                        ]}
+                            : styles.statusOptionText}
                       >
                         {getRoleDisplayText(role)}
                       </Text>
@@ -447,7 +445,7 @@ const UsersScreen = () => {
             </ScrollView>
           </View>
         </View>
-      </Modal>{" "}
+      </Modal>
       {/* Filter Modal */}
       <Modal
         animationType="fade"
@@ -490,11 +488,9 @@ const UsersScreen = () => {
                     }
                   >
                     <Text
-                      style={[
-                        activeFilter.active === item.value
+                      style={activeFilter.active === item.value
                           ? styles.statusOptionTextSelected
-                          : styles.statusOptionText,
-                      ]}
+                          : styles.statusOptionText}
                     >
                       {item.label}
                     </Text>
@@ -518,11 +514,9 @@ const UsersScreen = () => {
                       }
                     >
                       <Text
-                        style={[
-                          activeFilter.role === role
+                        style={activeFilter.role === role
                             ? styles.statusOptionTextSelected
-                            : styles.statusOptionText,
-                        ]}
+                            : styles.statusOptionText}
                       >
                         {getRoleDisplayText(role)}
                       </Text>

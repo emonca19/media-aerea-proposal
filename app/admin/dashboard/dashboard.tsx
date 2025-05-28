@@ -708,7 +708,7 @@ export default function AdminDashboard() {
               subtitle="Pendientes"
               icon="photo-camera"
               gradientColors={["#1f2937", "#111827"]}
-              onPress={() => router.push("/admin/tasks/pictures")}
+              onPress={() => router.push("/admin/tasks/tabs/pictures")}
             />
             <OverviewCard
               title="Rendimiento Operativo"
@@ -1022,47 +1022,12 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: currentTheme.error,
   },
-  timeFilter: {
-    flexDirection: "row",
-    marginHorizontal: currentTheme.dimensions.spacing.md,
-    marginBottom: currentTheme.dimensions.spacing.lg,
-    backgroundColor: currentTheme.card,
-    borderRadius: currentTheme.dimensions.borderRadius.medium,
-    padding: 4,
-  },
-  timeFilterButton: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: currentTheme.dimensions.borderRadius.small,
-    alignItems: "center",
-  },
-  timeFilterButtonActive: {
-    backgroundColor: currentTheme.primary,
-  },
-  timeFilterText: {
-    fontSize: currentTheme.dimensions.fontSize.sm,
-    color: currentTheme.textSecondary,
-    fontWeight: "500",
-  },
-  timeFilterTextActive: {
-    color: "white",
-  },
-  kpiSection: {
-    marginBottom: currentTheme.dimensions.spacing.lg,
-  },
   sectionTitle: {
     fontSize: currentTheme.dimensions.fontSize.lg,
     fontWeight: "bold",
     color: currentTheme.text,
     marginHorizontal: currentTheme.dimensions.spacing.md,
     marginBottom: currentTheme.dimensions.spacing.md,
-  },
-  kpiGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: currentTheme.dimensions.spacing.md,
-    gap: currentTheme.dimensions.spacing.sm,
   },
   kpiCard: {
     backgroundColor: currentTheme.card,

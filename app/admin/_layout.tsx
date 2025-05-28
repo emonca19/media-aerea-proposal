@@ -339,7 +339,6 @@ export default function AdminLayout() {
               tabBarStyle: { display: "none" }, // Hide tab bar on web/tablet
             }}
           >
-            {" "}
             {/* All the existing tab screens */}
             <Tabs.Screen
               name="index"
@@ -416,7 +415,6 @@ export default function AdminLayout() {
           ),
         }}
       >
-        {" "}
         {/* Redirección inicial */}
         <Tabs.Screen
           name="index"

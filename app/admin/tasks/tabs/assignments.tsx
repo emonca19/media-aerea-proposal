@@ -220,7 +220,7 @@ export default function AssignmentListScreen() {
             color={colors.text.secondary}
           />
           <Text style={styles.dateText}>
-            {formatDate(assignment.estimatedStartDate)} -{" "}
+            {formatDate(assignment.estimatedStartDate)} -
             {formatDate(assignment.estimatedEndDate)}
           </Text>
           <Text style={styles.durationText}>
@@ -228,7 +228,6 @@ export default function AssignmentListScreen() {
           </Text>
         </View>
 
-        {/* Resources */}
         <View style={styles.resourcesRow}>
           <View style={styles.resourceItem}>
             <Ionicons
@@ -299,7 +298,6 @@ export default function AssignmentListScreen() {
         </View>
 
         <ScrollView style={styles.modalContent}>
-          {/* Filter Type */}
           <View style={styles.filterSection}>
             <Text style={styles.filterSectionTitle}>Tipo de Asignación</Text>
             {(["all", "active", "upcoming", "urgent"] as FilterType[]).map(
@@ -520,7 +518,7 @@ export default function AssignmentListScreen() {
         ) : (
           filteredAssignments.map(renderAssignmentCard)
         )}
-      </ScrollView>{" "}
+      </ScrollView>
       {/* Floating Action Button */}
       <TouchableOpacity
         style={styles.fab}

@@ -591,7 +591,6 @@ export default function PicturesReviewScreen() {
             <ScrollView style={styles.modalContent}>
               {selectedSubmission && (
                 <>
-                  {" "}
                   <View style={styles.submissionInfo}>
                     <Text style={styles.infoTitle}>
                       Información de la Entrega

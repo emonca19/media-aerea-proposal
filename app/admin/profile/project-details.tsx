@@ -31,7 +31,9 @@ function getPeriodRange(period: Period) {
 
 const ProjectDetailsScreen = () => {
   const router = useRouter();
-  const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month" | "year">("month");
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    "week" | "month" | "year"
+  >("month");
 
   // Get date range for selected period
   const { start: periodStart, end: periodEnd } = getPeriodRange(selectedPeriod);
@@ -44,47 +46,96 @@ const ProjectDetailsScreen = () => {
   }
 
   // Filter projects by startDate in the period
-  const filteredProjects = mockProjects.filter((p: any) => inPeriod(p.startDate));
+  const filteredProjects = mockProjects.filter((p: any) =>
+    inPeriod(p.startDate)
+  );
 
   // Calculate stats based on filtered projects
   const projectStats = {
     totalProjects: filteredProjects.length,
-    activeProjects: filteredProjects.filter((p: any) => p.status === "ACTIVE").length,
-    completedProjects: filteredProjects.filter((p: any) => p.status === "COMPLETED").length,
+    activeProjects: filteredProjects.filter((p: any) => p.status === "ACTIVE")
+      .length,
+    completedProjects: filteredProjects.filter(
+      (p: any) => p.status === "COMPLETED"
+    ).length,
     delayedProjects: filteredProjects.filter((p: any) => {
       const today = new Date();
       return p.endDate < today && p.status !== "COMPLETED";
     }).length,
-    averageProgress: filteredProjects.length > 0 ? filteredProjects.reduce((sum: number, p: any) => {
-      const total = new Date(p.endDate).getTime() - new Date(p.startDate).getTime();
-      const elapsed = Date.now() - new Date(p.startDate).getTime();
-      return sum + Math.min((elapsed / total) * 100, 100);
-    }, 0) / filteredProjects.length : 0,
+    averageProgress:
+      filteredProjects.length > 0
+        ? filteredProjects.reduce((sum: number, p: any) => {
+            const total =
+              new Date(p.endDate).getTime() - new Date(p.startDate).getTime();
+            const elapsed = Date.now() - new Date(p.startDate).getTime();
+            return sum + Math.min((elapsed / total) * 100, 100);
+          }, 0) / filteredProjects.length
+        : 0,
     recentProjects: filteredProjects
-      .sort((a: any, b: any) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+      .sort(
+        (a: any, b: any) =>
+          new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+      )
       .slice(0, 5),
     upcomingMilestones: [
-      { project: "Parque Eólico Valle Verde", milestone: "Fase 2 Inspección", dueDate: "En 3 días", priority: "high", date: "2025-05-30" },
-      { project: "Renovación Turbinas Norte", milestone: "Revisión Técnica", dueDate: "En 5 días", priority: "medium", date: "2025-06-01" },
-      { project: "Mantenimiento Costa Este", milestone: "Informe Final", dueDate: "En 1 semana", priority: "low", date: "2025-06-03" },
-      { project: "Instalación Nuevas Turbinas", milestone: "Pruebas de Funcionamiento", dueDate: "En 10 días", priority: "high", date: "2025-06-08" },
+      {
+        project: "Parque Eólico Valle Verde",
+        milestone: "Fase 2 Inspección",
+        dueDate: "En 3 días",
+        priority: "high",
+        date: "2025-05-30",
+      },
+      {
+        project: "Renovación Turbinas Norte",
+        milestone: "Revisión Técnica",
+        dueDate: "En 5 días",
+        priority: "medium",
+        date: "2025-06-01",
+      },
+      {
+        project: "Mantenimiento Costa Este",
+        milestone: "Informe Final",
+        dueDate: "En 1 semana",
+        priority: "low",
+        date: "2025-06-03",
+      },
+      {
+        project: "Instalación Nuevas Turbinas",
+        milestone: "Pruebas de Funcionamiento",
+        dueDate: "En 10 días",
+        priority: "high",
+        date: "2025-06-08",
+      },
     ].filter((m) => inPeriod(m.date)),
   };
 
   const StatCard = ({ title, value, icon, color, trend, subtitle }: any) => (
-    <Animated.View entering={FadeInDown.delay(100)} style={[styles.statCard, { borderLeftColor: color }]}>
+    <Animated.View
+      entering={FadeInDown.delay(100)}
+      style={[styles.statCard, { borderLeftColor: color }]}
+    >
       <View style={styles.statCardHeader}>
         <View style={[styles.statIcon, { backgroundColor: `${color}20` }]}>
           <Ionicons name={icon} size={24} color={color} />
         </View>
         {trend && (
-          <View style={[styles.trendBadge, { backgroundColor: trend > 0 ? "#10B98120" : "#EF444420" }]}>
-            <Ionicons 
-              name={trend > 0 ? "trending-up" : "trending-down"} 
-              size={16} 
-              color={trend > 0 ? "#10B981" : "#EF4444"} 
+          <View
+            style={[
+              styles.trendBadge,
+              { backgroundColor: trend > 0 ? "#10B98120" : "#EF444420" },
+            ]}
+          >
+            <Ionicons
+              name={trend > 0 ? "trending-up" : "trending-down"}
+              size={16}
+              color={trend > 0 ? "#10B981" : "#EF4444"}
             />
-            <Text style={[styles.trendText, { color: trend > 0 ? "#10B981" : "#EF4444" }]}>
+            <Text
+              style={[
+                styles.trendText,
+                { color: trend > 0 ? "#10B981" : "#EF4444" },
+              ]}
+            >
               {Math.abs(trend)}%
             </Text>
           </View>
@@ -95,69 +146,109 @@ const ProjectDetailsScreen = () => {
       {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
     </Animated.View>
   );
-  const ProjectCard = ({ project, index }: { project: any, index: number }) => {
+  const ProjectCard = ({ project, index }: { project: any; index: number }) => {
     const progress = Math.min(
-      ((Date.now() - new Date(project.startDate).getTime()) / 
-       (new Date(project.endDate).getTime() - new Date(project.startDate).getTime())) * 100, 
+      ((Date.now() - new Date(project.startDate).getTime()) /
+        (new Date(project.endDate).getTime() -
+          new Date(project.startDate).getTime())) *
+        100,
       100
     );
-    
+
     const statusColors: { [key: string]: string } = {
       ACTIVE: "#10B981",
-      COMPLETED: "#3B82F6", 
+      COMPLETED: "#3B82F6",
       PENDING: "#F59E0B",
-      CANCELLED: "#EF4444"
+      CANCELLED: "#EF4444",
     };
 
     return (
-      <Animated.View entering={FadeInDown.delay(200 + index * 50)} style={styles.projectCard}>
+      <Animated.View
+        entering={FadeInDown.delay(200 + index * 50)}
+        style={styles.projectCard}
+      >
         <View style={styles.projectHeader}>
-          <Text style={styles.projectName} numberOfLines={1}>{project.name}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: `${statusColors[project.status]}20` }]}>
-            <Text style={[styles.statusText, { color: statusColors[project.status] }]}>
+          <Text style={styles.projectName} numberOfLines={1}>
+            {project.name}
+          </Text>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: `${statusColors[project.status]}20` },
+            ]}
+          >
+            <Text
+              style={[
+                styles.statusText,
+                { color: statusColors[project.status] },
+              ]}
+            >
               {project.status}
             </Text>
           </View>
         </View>
-        
-        <Text style={styles.projectDescription} numberOfLines={2}>{project.description}</Text>
-        
+
+        <Text style={styles.projectDescription} numberOfLines={2}>
+          {project.description}
+        </Text>
+
         <View style={styles.projectDetails}>
           <View style={styles.projectInfo}>
             <Ionicons name="calendar" size={14} color="#64748B" />
             <Text style={styles.projectInfoText}>
-              {new Date(project.startDate).toLocaleDateString("es-ES")} - {new Date(project.endDate).toLocaleDateString("es-ES")}
+              {new Date(project.startDate).toLocaleDateString("es-ES")} -{" "}
+              {new Date(project.endDate).toLocaleDateString("es-ES")}
             </Text>
-          </View>          <View style={styles.projectInfo}>
+          </View>
+          <View style={styles.projectInfo}>
             <Ionicons name="location" size={14} color="#64748B" />
             <Text style={styles.projectInfoText}>{project.windParkId}</Text>
           </View>
         </View>
 
         <View style={styles.progressSection}>
-          <Text style={styles.progressLabel}>Progreso: {Math.round(progress)}%</Text>
+          <Text style={styles.progressLabel}>
+            Progreso: {Math.round(progress)}%
+          </Text>
           <View style={styles.progressBar}>
-            <View 
-              style={[styles.progressFill, { 
-                width: `${progress}%`, 
-                backgroundColor: statusColors[project.status] 
-              }]} 
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  width: `${progress}%`,
+                  backgroundColor: statusColors[project.status],
+                },
+              ]}
             />
           </View>
         </View>
       </Animated.View>
     );
   };
-  const MilestoneCard = ({ milestone, index }: { milestone: any, index: number }) => {
+  const MilestoneCard = ({
+    milestone,
+    index,
+  }: {
+    milestone: any;
+    index: number;
+  }) => {
     const priorityColors: { [key: string]: string } = {
       high: "#EF4444",
-      medium: "#F59E0B", 
-      low: "#10B981"
+      medium: "#F59E0B",
+      low: "#10B981",
     };
 
     return (
-      <Animated.View entering={FadeInDown.delay(300 + index * 50)} style={styles.milestoneCard}>
-        <View style={[styles.priorityIndicator, { backgroundColor: priorityColors[milestone.priority] }]} />
+      <Animated.View
+        entering={FadeInDown.delay(300 + index * 50)}
+        style={styles.milestoneCard}
+      >
+        <View
+          style={[
+            styles.priorityIndicator,
+            { backgroundColor: priorityColors[milestone.priority] },
+          ]}
+        />
         <View style={styles.milestoneContent}>
           <Text style={styles.milestoneProject}>{milestone.project}</Text>
           <Text style={styles.milestoneName}>{milestone.milestone}</Text>
@@ -168,13 +259,14 @@ const ProjectDetailsScreen = () => {
         </TouchableOpacity>
       </Animated.View>
     );
-  };  return (
+  };
+  return (
     <View style={styles.container}>
-      <Stack.Screen 
-        options={{ 
+      <Stack.Screen
+        options={{
           title: "Estadísticas de Proyectos",
           headerLeft: () => (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => router.back()}
               style={styles.backButton}
             >
@@ -182,26 +274,38 @@ const ProjectDetailsScreen = () => {
               <Text style={styles.backButtonText}>Atrás</Text>
             </TouchableOpacity>
           ),
-        }} 
+        }}
       />
 
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Period Selection */}
-        <Animated.View entering={FadeInDown.delay(50)} style={styles.periodSelector}>
+        <Animated.View
+          entering={FadeInDown.delay(50)}
+          style={styles.periodSelector}
+        >
           {(["week", "month", "year"] as const).map((period) => (
             <TouchableOpacity
               key={period}
               style={[
                 styles.periodButton,
-                selectedPeriod === period && styles.periodButtonActive
+                selectedPeriod === period && styles.periodButtonActive,
               ]}
               onPress={() => setSelectedPeriod(period)}
             >
-              <Text style={[
-                styles.periodButtonText,
-                selectedPeriod === period && styles.periodButtonTextActive
-              ]}>
-                {period === "week" ? "Semana" : period === "month" ? "Mes" : "Año"}
+              <Text
+                style={[
+                  styles.periodButtonText,
+                  selectedPeriod === period && styles.periodButtonTextActive,
+                ]}
+              >
+                {period === "week"
+                  ? "Semana"
+                  : period === "month"
+                  ? "Mes"
+                  : "Año"}
               </Text>
             </TouchableOpacity>
           ))}
@@ -229,7 +333,8 @@ const ProjectDetailsScreen = () => {
             icon="checkmark-circle"
             color="#3B82F6"
             trend={5}
-          />          <StatCard
+          />
+          <StatCard
             title="Progreso Promedio"
             value={`${Math.round(projectStats.averageProgress)}%`}
             icon="analytics"
@@ -239,19 +344,33 @@ const ProjectDetailsScreen = () => {
         </View>
 
         {/* Progress Overview */}
-        <Animated.View entering={FadeInDown.delay(200)} style={styles.progressOverview}>
+        <Animated.View
+          entering={FadeInDown.delay(200)}
+          style={styles.progressOverview}
+        >
           <Text style={styles.sectionTitle}>Resumen de Progreso</Text>
           <View style={styles.progressStats}>
             <View style={styles.progressStat}>
-              <Text style={styles.progressStatValue}>{Math.round(projectStats.averageProgress)}%</Text>
+              <Text style={styles.progressStatValue}>
+                {Math.round(projectStats.averageProgress)}%
+              </Text>
               <Text style={styles.progressStatLabel}>Progreso Promedio</Text>
             </View>
             <View style={styles.progressStat}>
-              <Text style={styles.progressStatValue}>{projectStats.delayedProjects}</Text>
+              <Text style={styles.progressStatValue}>
+                {projectStats.delayedProjects}
+              </Text>
               <Text style={styles.progressStatLabel}>Proyectos Atrasados</Text>
             </View>
             <View style={styles.progressStat}>
-              <Text style={styles.progressStatValue}>{Math.round((projectStats.completedProjects / projectStats.totalProjects) * 100)}%</Text>
+              <Text style={styles.progressStatValue}>
+                {Math.round(
+                  (projectStats.completedProjects /
+                    projectStats.totalProjects) *
+                    100
+                )}
+                %
+              </Text>
               <Text style={styles.progressStatLabel}>Tasa de Finalización</Text>
             </View>
           </View>
@@ -260,8 +379,10 @@ const ProjectDetailsScreen = () => {
         {/* Recent Projects */}
         <Animated.View entering={FadeInDown.delay(250)} style={styles.section}>
           <Text style={styles.sectionTitle}>Proyectos Recientes</Text>
-          <Text style={styles.sectionSubtitle}>Últimos proyectos iniciados</Text>
-          
+          <Text style={styles.sectionSubtitle}>
+            Últimos proyectos iniciados
+          </Text>
+
           <View style={styles.projectsContainer}>
             {projectStats.recentProjects.map((project, index) => (
               <ProjectCard key={project.id} project={project} index={index} />
@@ -273,12 +394,12 @@ const ProjectDetailsScreen = () => {
         <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
           <Text style={styles.sectionTitle}>Próximos Hitos</Text>
           <Text style={styles.sectionSubtitle}>Fechas límite importantes</Text>
-          
           <View style={styles.milestonesContainer}>
             {projectStats.upcomingMilestones.map((milestone, index) => (
               <MilestoneCard key={index} milestone={milestone} index={index} />
             ))}
-          </View>        </Animated.View>
+          </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );

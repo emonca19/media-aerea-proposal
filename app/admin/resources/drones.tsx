@@ -343,7 +343,7 @@ const DronesScreen = () => {
           resetForm();
         }}
       >
-        <View style={styles.centeredView}>          <View style={styles.modalView}>
+        <View style={styles.centeredView}><View style={styles.modalView}>
             <ScrollView style={{ width: "100%" }}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
@@ -420,11 +420,9 @@ const DronesScreen = () => {
                     onPress={() => setCurrentStatus(s)}
                   >
                     <Text
-                      style={[
-                        currentStatus === s
+                      style={currentStatus === s
                           ? styles.statusOptionTextSelected
-                          : styles.statusOptionText,
-                      ]}
+                          : styles.statusOptionText}
                     >
                       {getStatusDisplayText(s)}
                     </Text>

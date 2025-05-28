@@ -29,20 +29,17 @@ import {
 import { ProjectAssignment } from "../../../../src/types/assignments";
 import { Project } from "../../../../src/types/projects";
 
-// Helper function to get pilot profile image
 const getPilotProfileImage = (pilotId: string) => {
   const pilotUser = mockPilotUsers.find((user) => user.id === pilotId);
   return pilotUser?.profileImage || null;
 };
 
-// Placeholder component for pilot images
 const PilotImagePlaceholder = () => (
   <View style={styles.pilotImagePlaceholder}>
     <Ionicons name="person" size={24} color="#9ca3af" />
   </View>
 );
 
-// Pilot image component with error handling
 const PilotImage = ({ pilotId }: { pilotId: string }) => {
   const [imageError, setImageError] = useState(false);
   const imageUri = getPilotProfileImage(pilotId);
@@ -99,10 +96,8 @@ export default function AssignmentsScreen() {
   const handlePilotSelection = (pilotId: string) => {
     setSelectedPilots((prev) => {
       if (prev.includes(pilotId)) {
-        // Remove pilot if already selected
         return prev.filter((id) => id !== pilotId);
       } else {
-        // Add pilot if not selected
         return [...prev, pilotId];
       }
     });
@@ -121,10 +116,8 @@ export default function AssignmentsScreen() {
   const handleStartDateChange = (event: any, selectedDate?: Date) => {
     setShowStartDatePicker(false);
     if (selectedDate) {
-      // Clear any previous validation message
       setDateValidationMessage("");
 
-      // Validate that start date is not after end date
       if (estimatedEndDate && selectedDate > estimatedEndDate) {
         setDateValidationMessage(
           "La fecha de inicio no puede ser posterior a la fecha de fin"
@@ -138,14 +131,11 @@ export default function AssignmentsScreen() {
   const handleEndDateChange = (event: any, selectedDate?: Date) => {
     setShowEndDatePicker(false);
     if (selectedDate) {
-      // Clear any previous validation message
       setDateValidationMessage("");
 
       let newStartDate = estimatedStartDate;
 
-      // Validate that end date is not before start date
       if (estimatedStartDate && selectedDate < estimatedStartDate) {
-        // Automatically adjust start date to be the same as end date
         newStartDate = selectedDate;
         setEstimatedStartDate(selectedDate);
         setDateValidationMessage(
@@ -179,17 +169,16 @@ export default function AssignmentsScreen() {
       projectId: selectedProject.id,
       pilotIds: selectedPilots,
       droneIds: [selectedDrone],
-      turbineIds: [], // No specific turbines selected since they're now informational
+      turbineIds: [],
       estimatedStartDate: estimatedStartDate,
       estimatedEndDate: estimatedEndDate,
       estimatedDuration: estimatedDuration,
-      assignedBy: "admin_001", // Current admin user
+      assignedBy: "admin_001",
       notes,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    // In a real app, this would be sent to the server
     console.log("New assignment created:", newAssignment);
 
     Alert.alert(
@@ -199,7 +188,6 @@ export default function AssignmentsScreen() {
         {
           text: "OK",
           onPress: () => {
-            // Reset form
             setSelectedProject(null);
             setSelectedPilots([]);
             setSelectedDrone("");
@@ -215,7 +203,6 @@ export default function AssignmentsScreen() {
   const renderProjectSelector = () => (
     <View style={styles.section}>
       <View style={styles.sectionTitleContainer}>
-        {/* <Ionicons name="document-text" size={24} color="#9C46CE" /> */}
         <Text style={styles.sectionTitle}>Proyecto</Text>
       </View>
       <TouchableOpacity
@@ -239,7 +226,6 @@ export default function AssignmentsScreen() {
     </View>
   );
   const renderTurbinesSection = () => {
-    // Get all turbines for the selected project
     const projectWindPark = selectedProject
       ? mockWindParks.find((p) => p.projectId === selectedProject.id)
       : null;
@@ -308,7 +294,6 @@ export default function AssignmentsScreen() {
 
       {selectedProject && (
         <>
-          {/* Pilots Selector */}
           <View style={styles.subsection}>
             <View style={styles.subsectionTitleContainer}>
               <MaterialCommunityIcons
@@ -353,7 +338,6 @@ export default function AssignmentsScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Drones Selector */}
           <View style={styles.subsection}>
             <View style={styles.subsectionTitleContainer}>
               <MaterialCommunityIcons name="drone" size={18} color="#10b981" />
@@ -393,11 +377,6 @@ export default function AssignmentsScreen() {
     return (
       <View style={styles.datesSection}>
         <View style={styles.sectionTitleContainer}>
-          {/* <MaterialIcons
-            name="schedule"
-            size={24}
-            color={hasResourcesSelected ? "#f59e0b" : "#9ca3af"}
-          /> */}
           <Text
             style={[
               styles.sectionTitle,
@@ -422,7 +401,7 @@ export default function AssignmentsScreen() {
                 <TouchableOpacity
                   style={styles.dateButton}
                   onPress={() => {
-                    setDateValidationMessage(""); // Clear validation message
+                    setDateValidationMessage("");
                     setShowStartDatePicker(true);
                   }}
                 >
@@ -440,7 +419,7 @@ export default function AssignmentsScreen() {
                 <TouchableOpacity
                   style={styles.dateButton}
                   onPress={() => {
-                    setDateValidationMessage(""); // Clear validation message
+                    setDateValidationMessage("");
                     setShowEndDatePicker(true);
                   }}
                 >
@@ -453,7 +432,6 @@ export default function AssignmentsScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-            {/* Date validation message */}
             {dateValidationMessage && (
               <View style={styles.validationMessageContainer}>
                 <Ionicons name="information-circle" size={16} color="#f59e0b" />
@@ -466,7 +444,7 @@ export default function AssignmentsScreen() {
               <View style={styles.durationDisplay}>
                 <MaterialIcons name="access-time" size={20} color="#6b7280" />
                 <Text style={styles.durationLabel}>
-                  <Text>Duración: </Text>
+                  <Text>Duración:</Text>
                   <Text
                     style={[
                       styles.durationText,
@@ -494,8 +472,6 @@ export default function AssignmentsScreen() {
             </View>
           </>
         )}
-
-        {/* Date Pickers */}
         {showStartDatePicker && (
           <>
             {Platform.OS === "web" ? (
@@ -510,7 +486,6 @@ export default function AssignmentsScreen() {
                     <Text style={styles.datePickerTitle}>
                       Seleccionar Fecha de Inicio
                     </Text>
-                    <Text> </Text>
                     <input
                       type="date"
                       style={{
@@ -840,7 +815,7 @@ export default function AssignmentsScreen() {
         {renderProjectSelector()}
         {renderTurbinesSection()}
         {renderAvailabilitySection()}
-        {renderDurationAndDates()}{" "}
+        {renderDurationAndDates()}
         <View style={styles.finalSection}>
           <TouchableOpacity
             style={[
@@ -880,9 +855,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-  },
-  gradient: {
-    flex: 1,
   },
   content: {
     flex: 1,
@@ -1013,23 +985,6 @@ const styles = StyleSheet.create({
   selectionIndicator: {
     marginLeft: 12,
   },
-  availabilityText: {
-    fontSize: 14,
-    color: "#6b7280",
-    marginBottom: 8,
-    fontWeight: "500",
-  },
-  availabilityWindow: {
-    fontSize: 13,
-    color: "#374151",
-    fontWeight: "400",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginBottom: 4,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
   dateRow: {
     flexDirection: "row",
     gap: 12,
@@ -1080,15 +1035,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#d1d5db",
   },
-  dateButtonRestricted: {
-    borderColor: "#0ea5e9",
-    backgroundColor: "#f0f9ff",
-  },
-  restrictedLabel: {
-    fontSize: 12,
-    color: "#0369a1",
-    fontStyle: "italic",
-  },
   dateButtonText: {
     fontSize: 16,
     color: "#374151",
@@ -1128,7 +1074,6 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: "#ffffff",
-    // Responsive width constraints for web/tablet
     maxWidth: Platform.OS === "web" ? 800 : "100%",
     alignSelf: Platform.OS === "web" ? "center" : "stretch",
   },
@@ -1339,7 +1284,6 @@ const styles = StyleSheet.create({
   confirmSelectionButtonTextDisabled: {
     color: "#9ca3af",
   },
-  // New styles for turbines information display
   turbinesInfoText: {
     fontSize: 14,
     color: "#64748b",

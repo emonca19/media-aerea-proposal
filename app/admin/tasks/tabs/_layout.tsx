@@ -17,11 +17,11 @@ export default function TabLayout() {
         tabBarIndicatorStyle: styles.tabBarIndicator,
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabBarLabel,
-        tabBarPressColor: "transparent", // Add this line to remove ripple effect on Android
-        tabBarPressOpacity: 1, // Add this line to remove opacity change on iOS
+        tabBarPressColor: "transparent",
+        tabBarPressOpacity: 1,
       }}
     >
-      {" "}
+      
       <MaterialTopTabs.Screen
         name="assignments"
         options={{
@@ -38,7 +38,7 @@ export default function TabLayout() {
                 size={18}
                 color={color}
                 style={styles.tabIcon}
-              />{" "}
+              />
               <Text style={[styles.tabBarLabelText, { color }]}>
                 Asignaciones
               </Text>
@@ -63,7 +63,7 @@ export default function TabLayout() {
                 size={18}
                 color={color}
                 style={styles.tabIcon}
-              />{" "}
+              />
               <Text style={[styles.tabBarLabelText, { color }]}>Fotos</Text>
             </View>
           ),
@@ -77,11 +77,11 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: "#ffffff",
-    paddingTop: Constants.statusBarHeight, // Reduced paddingTop
+    paddingTop: Constants.statusBarHeight,
   },
   tabBarLabel: {
-    fontSize: 15, // Increased font size
-    fontWeight: "700", // Increased font weight
+    fontSize: 15,
+    fontWeight: "700",
   },
   tabBarLabelText: {
     fontSize: 14,

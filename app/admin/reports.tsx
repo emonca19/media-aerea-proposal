@@ -105,14 +105,14 @@ const statusOptions = [
 export default function ReportsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  
+
   // Smart back navigation function
   const handleBack = () => {
     const from = params.from as string;
-    
-    if (from === 'kpis') {
+
+    if (from === "kpis") {
       router.push("/admin/profile/kpisdashboard");
-    } else if (from === 'dashboard') {
+    } else if (from === "dashboard") {
       router.push("/admin/dashboard/dashboard");
     } else {
       // Default fallback - try router.back() first
@@ -184,7 +184,7 @@ export default function ReportsScreen() {
       ...prev,
       selectedProjects: prev.selectedProjects.includes(projectId)
         ? prev.selectedProjects.filter((id) => id !== projectId)
-        : [...prev.selectedProjects, projectId]
+        : [...prev.selectedProjects, projectId],
     }));
   }, []);
 
@@ -193,7 +193,7 @@ export default function ReportsScreen() {
       ...prev,
       selectedPilots: prev.selectedPilots.includes(pilotId)
         ? prev.selectedPilots.filter((id) => id !== pilotId)
-        : [...prev.selectedPilots, pilotId]
+        : [...prev.selectedPilots, pilotId],
     }));
   }, []);
 
@@ -202,7 +202,7 @@ export default function ReportsScreen() {
       ...prev,
       selectedClients: prev.selectedClients.includes(clientId)
         ? prev.selectedClients.filter((id) => id !== clientId)
-        : [...prev.selectedClients, clientId]
+        : [...prev.selectedClients, clientId],
     }));
   }, []);
 
@@ -211,7 +211,7 @@ export default function ReportsScreen() {
       ...prev,
       selectedWindParks: prev.selectedWindParks.includes(parkId)
         ? prev.selectedWindParks.filter((id) => id !== parkId)
-        : [...prev.selectedWindParks, parkId]
+        : [...prev.selectedWindParks, parkId],
     }));
   }, []);
 
@@ -220,17 +220,20 @@ export default function ReportsScreen() {
       ...prev,
       statusFilter: prev.statusFilter.includes(status)
         ? prev.statusFilter.filter((s) => s !== status)
-        : [...prev.statusFilter, status]
+        : [...prev.statusFilter, status],
     }));
   }, []);
 
-  const getFilterCounts = React.useMemo(() => ({
-    projects: filters.selectedProjects.length || mockProjects.length,
-    pilots: filters.selectedPilots.length || mockPilotUsers.length,
-    clients: filters.selectedClients.length || mockClients.length,
-    windParks: filters.selectedWindParks.length || mockWindParks.length,
-    turbines: filters.selectedTurbines.length || mockTurbines.length,
-  }), [filters]);
+  const getFilterCounts = React.useMemo(
+    () => ({
+      projects: filters.selectedProjects.length || mockProjects.length,
+      pilots: filters.selectedPilots.length || mockPilotUsers.length,
+      clients: filters.selectedClients.length || mockClients.length,
+      windParks: filters.selectedWindParks.length || mockWindParks.length,
+      turbines: filters.selectedTurbines.length || mockTurbines.length,
+    }),
+    [filters]
+  );
   const FilterModal = React.memo(() => (
     <Modal
       visible={showFilters}
@@ -297,7 +300,7 @@ export default function ReportsScreen() {
               ))}
             </View>
           </View>
-          
+
           {/* Date Range */}
           <View style={styles.filterSection}>
             <Text style={styles.filterSectionTitle}>Rango de Fechas</Text>
@@ -317,7 +320,7 @@ export default function ReportsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          
+
           {/* Project Selection */}
           <View style={styles.filterSection}>
             <Text style={styles.filterSectionTitle}>
@@ -347,7 +350,7 @@ export default function ReportsScreen() {
               ))}
             </View>
           </View>
-          
+
           {/* Pilot Selection */}
           <View style={styles.filterSection}>
             <Text style={styles.filterSectionTitle}>
@@ -377,7 +380,7 @@ export default function ReportsScreen() {
               ))}
             </View>
           </View>
-          
+
           {/* Client Selection */}
           <View style={styles.filterSection}>
             <Text style={styles.filterSectionTitle}>
@@ -407,7 +410,7 @@ export default function ReportsScreen() {
               ))}
             </View>
           </View>
-          
+
           {/* Wind Parks Selection */}
           <View style={styles.filterSection}>
             <Text style={styles.filterSectionTitle}>
@@ -437,7 +440,7 @@ export default function ReportsScreen() {
               ))}
             </View>
           </View>
-          
+
           {/* Status Filter */}
           <View style={styles.filterSection}>
             <Text style={styles.filterSectionTitle}>Estado de Turbinas</Text>
@@ -501,6 +504,8 @@ export default function ReportsScreen() {
     </Modal>
   ));
 
+  FilterModal.displayName = "FilterModal";
+
   return (
     <>
       <Stack.Screen
@@ -512,9 +517,11 @@ export default function ReportsScreen() {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-      >        {/* Header */}
+      >
+        {/* Header */}
         <Animated.View entering={FadeInUp.delay(100)} style={styles.header}>
-          <View style={styles.headerTop}>            <TouchableOpacity 
+          <View style={styles.headerTop}>
+            <TouchableOpacity
               style={styles.backButton}
               onPress={handleBack}
               activeOpacity={0.7}
@@ -577,7 +584,7 @@ export default function ReportsScreen() {
               </Animated.View>
             ))}
           </View>
-        </Animated.View>        {/* Recent Reports */}
+        </Animated.View>
         <Animated.View
           entering={FadeInDown.delay(800)}
           style={styles.recentSection}
@@ -588,7 +595,7 @@ export default function ReportsScreen() {
               <Text style={styles.sectionCount}>{mockReports.length}</Text>
             </View>
           </View>
-          
+
           <View style={styles.recentReports}>
             {mockReports.slice(0, 3).map((report, index) => (
               <Animated.View
@@ -599,10 +606,14 @@ export default function ReportsScreen() {
                 <TouchableOpacity activeOpacity={0.9}>
                   <LinearGradient
                     colors={[
-                      report.type === "PROJECT" ? '#fafbff' : 
-                      report.type === "PILOT" ? '#f0fdfa' : 
-                      report.type === "CLIENT" ? '#fffbeb' : '#faf5ff',
-                      '#ffffff'
+                      report.type === "PROJECT"
+                        ? "#fafbff"
+                        : report.type === "PILOT"
+                        ? "#f0fdfa"
+                        : report.type === "CLIENT"
+                        ? "#fffbeb"
+                        : "#faf5ff",
+                      "#ffffff",
                     ]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
@@ -610,18 +621,26 @@ export default function ReportsScreen() {
                   >
                     {/* Background Pattern */}
                     <View style={styles.cardPattern} />
-                    
+
                     {/* Header with enhanced icon and info */}
                     <View style={styles.recentReportHeader}>
                       <View style={styles.iconContainer}>
                         <LinearGradient
                           colors={[
-                            report.type === "PROJECT" ? '#3b82f6' : 
-                            report.type === "PILOT" ? '#10b981' : 
-                            report.type === "CLIENT" ? '#f59e0b' : '#8b5cf6',
-                            report.type === "PROJECT" ? '#1d4ed8' : 
-                            report.type === "PILOT" ? '#059669' : 
-                            report.type === "CLIENT" ? '#d97706' : '#7c3aed'
+                            report.type === "PROJECT"
+                              ? "#3b82f6"
+                              : report.type === "PILOT"
+                              ? "#10b981"
+                              : report.type === "CLIENT"
+                              ? "#f59e0b"
+                              : "#8b5cf6",
+                            report.type === "PROJECT"
+                              ? "#1d4ed8"
+                              : report.type === "PILOT"
+                              ? "#059669"
+                              : report.type === "CLIENT"
+                              ? "#d97706"
+                              : "#7c3aed",
                           ]}
                           style={styles.recentReportIcon}
                         >
@@ -641,28 +660,47 @@ export default function ReportsScreen() {
                           {/* Icon glow effect */}
                           <View style={styles.iconGlow} />
                         </LinearGradient>
-                        
+
                         {/* Status indicator */}
-                        <View style={[styles.statusDot, {
-                          backgroundColor: report.type === "PROJECT" ? '#22c55e' : 
-                                         report.type === "PILOT" ? '#3b82f6' : 
-                                         report.type === "CLIENT" ? '#f59e0b' : '#8b5cf6'
-                        }]} />
+                        <View
+                          style={[
+                            styles.statusDot,
+                            {
+                              backgroundColor:
+                                report.type === "PROJECT"
+                                  ? "#22c55e"
+                                  : report.type === "PILOT"
+                                  ? "#3b82f6"
+                                  : report.type === "CLIENT"
+                                  ? "#f59e0b"
+                                  : "#8b5cf6",
+                            },
+                          ]}
+                        />
                       </View>
-                      
+
                       <View style={styles.recentReportInfo}>
-                        <Text style={styles.recentReportName}>{report.name}</Text>
+                        <Text style={styles.recentReportName}>
+                          {report.name}
+                        </Text>
                         <View style={styles.metaInfo}>
-                          <Ionicons name="time-outline" size={12} color="#64748b" />
+                          <Ionicons
+                            name="time-outline"
+                            size={12}
+                            color="#64748b"
+                          />
                           <Text style={styles.recentReportDate}>
                             {report.generatedAt.toLocaleDateString("es-ES")}
                           </Text>
                         </View>
                       </View>
-                      
-                      <TouchableOpacity style={styles.downloadButton} activeOpacity={0.8}>
+
+                      <TouchableOpacity
+                        style={styles.downloadButton}
+                        activeOpacity={0.8}
+                      >
                         <LinearGradient
-                          colors={['#3b82f6', '#1d4ed8']}
+                          colors={["#3b82f6", "#1d4ed8"]}
                           style={styles.downloadButtonGradient}
                         >
                           <Ionicons
@@ -678,56 +716,101 @@ export default function ReportsScreen() {
                     {/* Enhanced stats section */}
                     <View style={styles.recentReportStats}>
                       <View style={styles.statGroup}>
-                        <View style={[styles.statBadge, { 
-                          backgroundColor: report.type === "PROJECT" ? '#dbeafe' : 
-                                         report.type === "PILOT" ? '#d1fae5' : 
-                                         report.type === "CLIENT" ? '#fef3c7' : '#e9d5ff'
-                        }]}>
-                          <Ionicons 
-                            name="document-text-outline" 
-                            size={10} 
+                        <View
+                          style={[
+                            styles.statBadge,
+                            {
+                              backgroundColor:
+                                report.type === "PROJECT"
+                                  ? "#dbeafe"
+                                  : report.type === "PILOT"
+                                  ? "#d1fae5"
+                                  : report.type === "CLIENT"
+                                  ? "#fef3c7"
+                                  : "#e9d5ff",
+                            },
+                          ]}
+                        >
+                          <Ionicons
+                            name="document-text-outline"
+                            size={10}
                             color={
-                              report.type === "PROJECT" ? '#1e40af' : 
-                              report.type === "PILOT" ? '#047857' : 
-                              report.type === "CLIENT" ? '#92400e' : '#6b21a8'
-                            } 
+                              report.type === "PROJECT"
+                                ? "#1e40af"
+                                : report.type === "PILOT"
+                                ? "#047857"
+                                : report.type === "CLIENT"
+                                ? "#92400e"
+                                : "#6b21a8"
+                            }
                           />
-                          <Text style={[styles.statBadgeText, { 
-                            color: report.type === "PROJECT" ? '#1e40af' : 
-                                   report.type === "PILOT" ? '#047857' : 
-                                   report.type === "CLIENT" ? '#92400e' : '#6b21a8'
-                          }]}>
+                          <Text
+                            style={[
+                              styles.statBadgeText,
+                              {
+                                color:
+                                  report.type === "PROJECT"
+                                    ? "#1e40af"
+                                    : report.type === "PILOT"
+                                    ? "#047857"
+                                    : report.type === "CLIENT"
+                                    ? "#92400e"
+                                    : "#6b21a8",
+                              },
+                            ]}
+                          >
                             {report.format}
                           </Text>
                         </View>
-                        
-                        <View style={[styles.statBadge, { 
-                          backgroundColor: '#f1f5f9',
-                          borderWidth: 1,
-                          borderColor: '#e2e8f0'
-                        }]}>
-                          <Ionicons name="layers-outline" size={10} color="#475569" />
-                          <Text style={[styles.statBadgeText, { color: '#475569' }]}>
+
+                        <View
+                          style={[
+                            styles.statBadge,
+                            {
+                              backgroundColor: "#f1f5f9",
+                              borderWidth: 1,
+                              borderColor: "#e2e8f0",
+                            },
+                          ]}
+                        >
+                          <Ionicons
+                            name="layers-outline"
+                            size={10}
+                            color="#475569"
+                          />
+                          <Text
+                            style={[styles.statBadgeText, { color: "#475569" }]}
+                          >
                             {report.type}
                           </Text>
                         </View>
                       </View>
-                      
+
                       {/* Size indicator */}
                       <View style={styles.sizeIndicator}>
                         <Text style={styles.sizeText}>2.4 MB</Text>
                       </View>
                     </View>
-                    
+
                     {/* Subtle border overlay with enhanced effect */}
                     <View style={styles.recentReportOverlay} />
-                    
+
                     {/* Corner accent */}
-                    <View style={[styles.cornerAccent, {
-                      backgroundColor: report.type === "PROJECT" ? '#3b82f6' : 
-                                     report.type === "PILOT" ? '#10b981' : 
-                                     report.type === "CLIENT" ? '#f59e0b' : '#8b5cf6'
-                    }]} />
+                    <View
+                      style={[
+                        styles.cornerAccent,
+                        {
+                          backgroundColor:
+                            report.type === "PROJECT"
+                              ? "#3b82f6"
+                              : report.type === "PILOT"
+                              ? "#10b981"
+                              : report.type === "CLIENT"
+                              ? "#f59e0b"
+                              : "#8b5cf6",
+                        },
+                      ]}
+                    />
                   </LinearGradient>
                 </TouchableOpacity>
               </Animated.View>
@@ -747,7 +830,8 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },  header: {
+  },
+  header: {
     padding: 20,
     paddingTop: 60,
     marginTop: 20,
@@ -756,7 +840,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 16,
-  },  backButton: {
+  },
+  backButton: {
     width: 40,
     height: 40,
     borderRadius: 12,
@@ -780,10 +865,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1e293b",
     marginBottom: 8,
-  },  subtitle: {
+  },
+  subtitle: {
     fontSize: 16,
-    color: "#64748b",    lineHeight: 24,
-  },  templatesSection: {
+    color: "#64748b",
+    lineHeight: 24,
+  },
+  templatesSection: {
     padding: 20,
     paddingTop: 0,
   },
@@ -840,28 +928,29 @@ const styles = StyleSheet.create({
   },
   templateAction: {
     padding: 8,
-  },  recentSection: {
+  },
+  recentSection: {
     padding: 20,
     paddingTop: 0,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 16,
   },
   sectionIndicator: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: "#f1f5f9",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: "#e2e8f0",
   },
   sectionCount: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#475569',
+    fontWeight: "600",
+    color: "#475569",
   },
   recentReports: {
     gap: 16,
@@ -876,17 +965,17 @@ const styles = StyleSheet.create({
   recentReportGradient: {
     borderRadius: 16,
     padding: 20,
-    position: 'relative',
-    overflow: 'hidden',
+    position: "relative",
+    overflow: "hidden",
   },
   cardPattern: {
-    position: 'absolute',
+    position: "absolute",
     top: -20,
     right: -20,
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(59, 130, 246, 0.03)',
+    backgroundColor: "rgba(59, 130, 246, 0.03)",
   },
   recentReportHeader: {
     flexDirection: "row",
@@ -894,7 +983,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   iconContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: 16,
   },
   recentReportIcon: {
@@ -910,24 +999,24 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   iconGlow: {
-    position: 'absolute',
+    position: "absolute",
     top: -2,
     left: -2,
     right: -2,
     bottom: -2,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     zIndex: -1,
   },
   statusDot: {
-    position: 'absolute',
+    position: "absolute",
     top: -2,
     right: -2,
     width: 12,
     height: 12,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: "white",
   },
   recentReportInfo: {
     flex: 1,
@@ -940,17 +1029,17 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   metaInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   recentReportDate: {
     fontSize: 13,
     color: "#64748b",
-    fontWeight: '500',
+    fontWeight: "500",
   },
   downloadButton: {
-    position: 'relative',
+    position: "relative",
   },
   downloadButtonGradient: {
     width: 40,
@@ -965,27 +1054,27 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   buttonGlow: {
-    position: 'absolute',
+    position: "absolute",
     top: -4,
     left: -4,
     right: -4,
     bottom: -4,
     borderRadius: 16,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    backgroundColor: "rgba(59, 130, 246, 0.1)",
     zIndex: -1,
   },
   recentReportStats: {
     flexDirection: "row",
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   statGroup: {
     flexDirection: "row",
     gap: 10,
   },
   statBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
@@ -994,36 +1083,36 @@ const styles = StyleSheet.create({
   statBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   sizeIndicator: {
-    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+    backgroundColor: "rgba(148, 163, 184, 0.1)",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   sizeText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#64748b',
+    fontWeight: "600",
+    color: "#64748b",
   },
   recentReportOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.06)',
+    borderColor: "rgba(0, 0, 0, 0.06)",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
   cornerAccent: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     right: 0,
     width: 3,

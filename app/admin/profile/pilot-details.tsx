@@ -152,7 +152,7 @@ const PilotDetailsScreen = () => {
       <View style={styles.pilotRank}>
         <Text style={styles.rankNumber}>#{rank}</Text>
       </View>
-      <View style={styles.pilotInfo}>        <Text style={styles.pilotName}>{pilot.name}</Text>
+      <View style={styles.pilotInfo}><Text style={styles.pilotName}>{pilot.name}</Text>
         <Text style={styles.pilotDetails}>
           {Math.round((pilot.stats?.totalFlightMinutes || 0) / 60)}h vuelo • {pilot.stats?.dailyCompletionRatePercentage || 0}% eficiencia
         </Text>
@@ -272,7 +272,7 @@ const PilotDetailsScreen = () => {
               </Animated.View>
             ))}
           </View>
-        </Animated.View>      </ScrollView>
+        </Animated.View></ScrollView>
       {/* Floating Dashboard Button */}
       {/* Removed as per user request */}
     </View>
@@ -291,18 +291,6 @@ const styles = StyleSheet.create({
     marginLeft: -8,
   },
   backButtonText: {
-    fontSize: 14,
-    color: "#9C46CE",
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  dashboardButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-    marginRight: -8,
-  },
-  dashboardButtonText: {
     fontSize: 14,
     color: "#9C46CE",
     fontWeight: "600",
