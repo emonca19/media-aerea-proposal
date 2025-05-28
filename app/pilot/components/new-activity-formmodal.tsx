@@ -349,8 +349,6 @@ export default function NewActivityScreen() { // Props removidas por ahora
       </View>
     );
   };
-
-  // --- Render ---
   return (
     <View style={styles.screenContainer}>
       <Stack.Screen
@@ -369,7 +367,6 @@ export default function NewActivityScreen() { // Props removidas por ahora
       >
         <Text style={styles.currentTime}>{currentTimeString}</Text>
 
-        {/* SECCIÓN DE SELECCIÓN DE TIPO DE ACTIVIDAD ("CUADRITOS") */}
         <Text style={styles.subtitle}>Tipo de Actividad</Text>
         <View style={styles.typeSelection}>
             {quickActivityTypes.map((type) => (
@@ -383,10 +380,8 @@ export default function NewActivityScreen() { // Props removidas por ahora
             </TouchableOpacity>
             ))}
         </View>
-        {/* FIN DE SELECCIÓN DE TIPO DE ACTIVIDAD */}
 
 
-        {/* SECCIÓN DE SELECCIÓN DE ASSET (TURBINAS, EQUIPOS, SITIOS) - SI ES REQUERIDO */}
         {requiresAssetSelection && (
             <View style={styles.assetSelection}>
                 <Text style={styles.subtitle}>
@@ -394,9 +389,8 @@ export default function NewActivityScreen() { // Props removidas por ahora
                 </Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.assetScroll}>
                     {availableAssets.map(asset => {
-                      // Determinar el icono basado en el tipo de asset
                       let assetIcon: keyof typeof Ionicons.glyphMap = "cog-outline";
-                      if (asset.type === 'TURBINE') assetIcon = "nuclear-outline"; // O 'hardware-chip-outline' o 'cog'
+                      if (asset.type === 'TURBINE') assetIcon = "nuclear-outline";
                       else if (asset.type === 'DRONE') assetIcon = "airplane-outline";
                       else if (asset.type === 'SITE') assetIcon = "map-outline";
 
@@ -417,15 +411,13 @@ export default function NewActivityScreen() { // Props removidas por ahora
                 </ScrollView>
             </View>
         )}
-        {/* FIN DE SELECCIÓN DE ASSET */}
 
 
-        {/* NOMBRE PERSONALIZADO SI EL TIPO ES "OTRO" */}
         {activityTypeId === 'ACT_OTRO' && (
             <>
               <Text style={styles.subtitleCompact}>Nombre Actividad Personalizada</Text>
               <TextInput
-                  style={styles.notesInput} // Reutilizamos el estilo de notesInput
+                  style={styles.notesInput}
                   placeholder="Ej: Calibración de GPS, Reunión Cliente"
                   value={customActivityNameInput}
                   onChangeText={setCustomActivityNameInput}
@@ -433,10 +425,8 @@ export default function NewActivityScreen() { // Props removidas por ahora
               />
             </>
         )}
-        {/* FIN DE NOMBRE PERSONALIZADO */}
 
 
-        {/* NOTAS ADICIONALES */}
         <Text style={styles.subtitleCompact}>Notas Adicionales (Opcional)</Text>
         <TextInput
             style={styles.notesInput}
