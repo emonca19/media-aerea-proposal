@@ -247,12 +247,12 @@ export default function AdminKPIDashboard() {
         </Animated.View>
         {/* Project Progress Section */}
         <Animated.View entering={FadeInDown.delay(200)} style={styles.section}>
-          <Text style={styles.sectionTitle}>Avance de Proyectos</Text>
+         
           <View style={styles.statsGrid}>
             <StatCard
-              icon="assessment"
-              title="Total Proyectos"
-              value={kpiData.projects.total}
+              icon="speed"
+              title="Eficiencia Operativa"
+              value={`87%`}
               color="#3b82f6"
             />
             <StatCard
@@ -263,8 +263,8 @@ export default function AdminKPIDashboard() {
             />
             <StatCard
               icon="wind-power"
-              title="Total Turbinas"
-              value={kpiData.turbines.total}
+              title="Tiempo Promedio por Turbina"
+              value={`1.4h`}
               color="#8b5cf6"
             />
             <StatCard
@@ -274,91 +274,120 @@ export default function AdminKPIDashboard() {
               color="#06b6d4"
             />
           </View>
+        </Animated.View>        {/* Visual KPIs Dashboard - Chart Based */}
+        <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>          {/* Work Hours Horizontal Bar Chart */}
+          <View style={styles.visualKpiContainer}>
+            <Text style={styles.kpiTitle}>Horas Efectivas en Promedio</Text>
+            <View style={styles.workHoursBarContainer}>
+              {/* Main time display */}
+              <View style={styles.workHoursHeader}>
+                <Text style={styles.workHoursMainText}>6 de 8 horas</Text>
+                <Text style={styles.workHoursPercentage}>75% efectividad</Text>
+              </View>
+                {/* Horizontal bar chart */}
+              <View style={styles.horizontalBarChart}>
+                <View style={styles.barBackground}>
+                  <View style={[styles.barFill, { width: '75%' }]} />
+                </View>
+                <View style={styles.barLabels}>
+                  <Text style={styles.barStartLabel}>0h</Text>
+                  <Text style={styles.barMidLabel}>4h</Text>
+                  <Text style={styles.barEndLabel}>8h</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Photo Quality Stats Only */}
+          <View style={styles.visualKpiContainer}>
+            <Text style={styles.kpiTitle}>Calidad de Evidencias</Text>
+            <View style={styles.photoQualityStats}>
+              <View style={styles.qualityStatCard}>
+                <MaterialIcons name="check-circle" size={24} color="#10b981" />
+                <Text style={styles.qualityStatNumber}>85%</Text>
+                <Text style={styles.qualityStatLabel}>Aprobadas</Text>
+              </View>
+              <View style={styles.qualityStatCard}>
+                <MaterialIcons name="error" size={24} color="#ef4444" />
+                <Text style={styles.qualityStatNumber}>15%</Text>
+                <Text style={styles.qualityStatLabel}>Rechazadas</Text>
+              </View>
+            </View>
+          </View>
         </Animated.View>
-        {/* Individual Pilot Statistics */}
-        <Animated.View
-          entering={FadeInDown.delay(400)}
-          style={[styles.navigationSection, styles.blackCardWrapper]}
-        >
-          {" "}
+        {/* End Project KPIs Graphical Section */}        {/* Enhanced Navigation Cards */}
+        <Animated.View entering={FadeInDown.delay(400)} style={styles.enhancedCardsContainer}>
+          {/* Pilot Statistics Card */}
           <TouchableOpacity
             onPress={() => router.push("/admin/profile/pilot-details")}
-            activeOpacity={0.8}
-            style={[styles.navigationCardWrapper, styles.blackCardWrapper]}
+            activeOpacity={0.85}
+            style={styles.enhancedCardWrapper}
           >
             <LinearGradient
-              colors={["#111111", "#222222"]}
+              colors={["#3B82F6", "#1E40AF", "#1E3A8A"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={[
-                styles.navigationCard,
-                styles.blackCard,
-                styles.centeredCard,
-              ]}
+              style={styles.enhancedCard}
             >
-              <View style={styles.centeredCardContent}>
-                <View style={styles.centeredIconContainer}>
-                  <MaterialIcons name="people" size={40} color="white" />
+              <View style={styles.enhancedCardContent}>
+                <View style={styles.enhancedIconWrapper}>
+                  <View style={styles.enhancedIconBackground}>
+                    <MaterialIcons name="people" size={28} color="#3B82F6" />
+                  </View>
                 </View>
-                <Text style={styles.navigationTitleWhite}>
-                  Estadísticas de Pilotos
-                </Text>
-                <Text style={styles.navigationSubtitleWhite}>
-                  Ver análisis detallado del rendimiento
-                </Text>
+                <View style={styles.enhancedTextContent}>
+                  <Text style={styles.enhancedCardTitle}>Estadísticas de Pilotos</Text>
+                  <Text style={styles.enhancedCardSubtitle}>
+                    Análisis detallado del rendimiento
+                  </Text>
+                  <View style={styles.enhancedCardMeta}>
+                    <Text style={styles.enhancedMetaText}>{kpiData.pilots.active} activos</Text>
+                    <Text style={styles.enhancedMetaDot}>•</Text>
+                    <Text style={styles.enhancedMetaText}>{Math.round(kpiData.pilots.averageEfficiency)}% eficiencia</Text>
+                  </View>
+                </View>
+                <View style={styles.enhancedArrowContainer}>
+                  <MaterialIcons name="arrow-forward" size={20} color="rgba(255, 255, 255, 0.9)" />
+                </View>
               </View>
-              <View style={[styles.navigationArrow, styles.blackArrow]}>
-                <MaterialIcons
-                  name="arrow-forward"
-                  size={24}
-                  color="rgba(255, 255, 255, 0.8)"
-                />
-              </View>
-              <View style={styles.navigationOverlay} />
+              <View style={styles.enhancedCardGlow} />
             </LinearGradient>
           </TouchableOpacity>
-        </Animated.View>
 
-        {/* Projects Statistics Section */}
-        <Animated.View
-          entering={FadeInDown.delay(500)}
-          style={[styles.navigationSection, styles.blackCardWrapper]}
-        >
-          {" "}
+          {/* Projects Statistics Card */}
           <TouchableOpacity
             onPress={() => router.push("/admin/profile/project-details")}
-            activeOpacity={0.8}
-            style={[styles.navigationCardWrapper, styles.blackCardWrapper]}
+            activeOpacity={0.85}
+            style={styles.enhancedCardWrapper}
           >
             <LinearGradient
-              colors={["#111111", "#222222"]}
+              colors={["#10B981", "#059669", "#047857"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={[
-                styles.navigationCard,
-                styles.blackCard,
-                styles.centeredCard,
-              ]}
+              style={styles.enhancedCard}
             >
-              <View style={styles.centeredCardContent}>
-                <View style={styles.centeredIconContainer}>
-                  <MaterialIcons name="analytics" size={40} color="white" />
+              <View style={styles.enhancedCardContent}>
+                <View style={styles.enhancedIconWrapper}>
+                  <View style={styles.enhancedIconBackground}>
+                    <MaterialIcons name="analytics" size={28} color="#10B981" />
+                  </View>
                 </View>
-                <Text style={styles.navigationTitleWhite}>
-                  Estadísticas de Proyectos
-                </Text>
-                <Text style={styles.navigationSubtitleWhite}>
-                  Ver métricas y progreso de proyectos
-                </Text>
+                <View style={styles.enhancedTextContent}>
+                  <Text style={styles.enhancedCardTitle}>Estadísticas de Proyectos</Text>
+                  <Text style={styles.enhancedCardSubtitle}>
+                    Métricas y progreso de proyectos
+                  </Text>
+                  <View style={styles.enhancedCardMeta}>
+                    <Text style={styles.enhancedMetaText}>{kpiData.projects.active} activos</Text>
+                    <Text style={styles.enhancedMetaDot}>•</Text>
+                    <Text style={styles.enhancedMetaText}>{Math.round(kpiData.projects.averageProgress)}% progreso</Text>
+                  </View>
+                </View>
+                <View style={styles.enhancedArrowContainer}>
+                  <MaterialIcons name="arrow-forward" size={20} color="rgba(255, 255, 255, 0.9)" />
+                </View>
               </View>
-              <View style={[styles.navigationArrow, styles.blackArrow]}>
-                <MaterialIcons
-                  name="arrow-forward"
-                  size={24}
-                  color="rgba(255, 255, 255, 0.8)"
-                />
-              </View>
-              <View style={styles.navigationOverlay} />
+              <View style={styles.enhancedCardGlow} />
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
@@ -1316,9 +1345,495 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 18,
     marginLeft: 4,
-  },
-  horizontalTextContainer: {
+  },  horizontalTextContainer: {
     flex: 1,
     justifyContent: "center",
+  },
+  // Visual KPI Styles
+  visualKpiContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  kpiTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  // Pie Chart Styles
+  pieChartContainer: {
+    alignItems: 'center',
+  },
+  pieChart: {
+    width: 100,
+    height: 100,
+    position: 'relative',
+    marginBottom: 16,
+  },
+  pieSegment: {
+    borderRadius: 50,
+  },
+  pieCenter: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'white',
+    top: 20,
+    left: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pieCenterText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+  pieCenterLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  pieLegend: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendColor: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 6,
+  },  legendText: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  // Photo Quality Bar Chart Styles
+  photoQualityContainer: {
+    alignItems: 'center',
+  },
+  photoQualityBars: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    marginBottom: 20,
+    gap: 30,
+    height: 140,
+  },
+  photoBarGroup: {
+    alignItems: 'center',
+    minWidth: 80,
+  },
+  photoBar: {
+    width: 40,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  photoBarValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  photoBarLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  photoQualityStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    gap: 16,
+  },
+  qualityStatCard: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  qualityStatNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  qualityStatLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+  },  // Work Hours Horizontal Bar Chart Styles
+  workHoursBarContainer: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  workHoursHeader: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  workHoursMainText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 3,
+  },
+  workHoursPercentage: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#3b82f6',
+  },
+  horizontalBarChart: {
+    width: '100%',
+    marginBottom: 12,
+  },
+  barBackground: {
+    width: '100%',
+    height: 16,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },  barFill: {
+    height: '100%',
+    backgroundColor: '#3b82f6',
+    borderRadius: 8,
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  barLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 3,
+  },
+  barStartLabel: {
+    fontSize: 11,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  barMidLabel: {
+    fontSize: 11,
+    color: '#6b7280',
+    fontWeight: '500',
+  },  barEndLabel: {
+    fontSize: 11,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  // Gauge Styles
+  gaugeContainer: {
+    alignItems: 'center',
+  },
+  gauge: {
+    width: 120,
+    height: 60,
+    position: 'relative',
+    marginBottom: 8,
+  },
+  gaugeBackground: {
+    width: 120,
+    height: 60,
+    borderTopLeftRadius: 60,
+    borderTopRightRadius: 60,
+    backgroundColor: '#e5e7eb',
+    overflow: 'hidden',
+  },
+  gaugeFill: {
+    position: 'absolute',
+    width: 120,
+    height: 60,
+    borderTopLeftRadius: 60,
+    borderTopRightRadius: 60,
+    backgroundColor: '#3b82f6',
+    transformOrigin: 'bottom center',
+  },
+  gaugeCenter: {
+    position: 'absolute',
+    bottom: -10,
+    left: '50%',
+    transform: [{ translateX: -25 }],
+    alignItems: 'center',
+  },
+  gaugeValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+  gaugeLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  gaugeLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: 120,
+    marginBottom: 8,
+  },
+  gaugeStartLabel: {
+    fontSize: 10,
+    color: '#6b7280',
+  },
+  gaugeEndLabel: {
+    fontSize: 10,
+    color: '#6b7280',
+  },
+  efficiencyBadge: {
+    backgroundColor: '#dbeafe',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  efficiencyText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#2563eb',
+  },
+  // Bar Chart Styles
+  barChartContainer: {
+    alignItems: 'center',
+  },
+  barChart: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-around',
+    width: '100%',
+    height: 100,
+    marginBottom: 16,
+  },
+  barGroup: {
+    alignItems: 'center',
+  },
+  bar: {
+    width: 20,
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+  barLabel: {
+    fontSize: 10,
+    color: '#6b7280',
+  },
+  chartLegend: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  // Turbine Grid Styles
+  turbineGridContainer: {
+    alignItems: 'center',
+  },
+  turbineGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+    maxWidth: 200,
+  },
+  turbineIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressInfo: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  progressTimeline: {
+    flexDirection: 'row',
+    width: '80%',
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  timelineCompleted: {
+    flex: 5,
+    backgroundColor: '#10b981',
+  },
+  timelineRemaining: {
+    flex: 5,
+    backgroundColor: '#e5e7eb',
+  },
+  // Line Chart Styles
+  lineChartContainer: {
+    alignItems: 'center',
+  },
+  lineChart: {
+    width: 200,
+    height: 100,
+    position: 'relative',
+    marginBottom: 16,
+  },
+  chartGrid: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  gridLine: {
+    height: 1,
+    backgroundColor: '#f3f4f6',
+    marginBottom: 19,
+  },
+  lineChartData: {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+  },
+  dataPoint: {
+    position: 'absolute',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ef4444',
+  },
+  linePath: {
+    position: 'absolute',
+    backgroundColor: '#ef4444',
+  },
+  chartInfo: {
+    alignItems: 'center',
+  },
+  trendText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#10b981',
+    marginBottom: 4,
+  },  currentValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+
+  // Enhanced Navigation Cards Styles
+  enhancedCardsContainer: {
+    marginHorizontal: 16,
+    marginBottom: 20,
+    gap: 14,
+  },
+  enhancedCardWrapper: {
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  enhancedCard: {
+    borderRadius: 20,
+    padding: 20,
+    height: 120,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  enhancedCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: '100%',
+    zIndex: 2,
+  },
+  enhancedIconWrapper: {
+    marginRight: 16,
+  },
+  enhancedIconBackground: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  enhancedTextContent: {
+    flex: 1,
+    paddingRight: 16,
+  },
+  enhancedCardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 6,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  enhancedCardSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginBottom: 8,
+    lineHeight: 18,
+  },
+  enhancedCardMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  enhancedMetaText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  enhancedMetaDot: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginHorizontal: 8,
+  },
+  enhancedArrowContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  enhancedCardGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
 });
