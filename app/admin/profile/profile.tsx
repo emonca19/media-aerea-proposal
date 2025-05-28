@@ -1,10 +1,10 @@
 "use client";
 
 import { Ionicons } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -12,27 +12,22 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { showAlert } from "../../../src/components/CrossPlatformAlert";
 import { mockAdminUsers } from "../../../src/mocks/users";
-import Constants from "expo-constants";
 
 const admin = mockAdminUsers[0];
 
 export default function AdminProfile() {
   const router = useRouter();
-
   const handleLogout = () => {
-    Alert.alert(
-      "Cerrar Sesión",
-      "¿Estás seguro de que quieres cerrar sesión?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Cerrar Sesión",
-          style: "destructive",
-          onPress: () => router.replace("/login"),
-        },
-      ]
-    );
+    showAlert("Cerrar Sesión", "¿Estás seguro de que quieres cerrar sesión?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Cerrar Sesión",
+        style: "destructive",
+        onPress: () => router.replace("/login"),
+      },
+    ]);
   };
 
   const handleEditProfile = () => {};

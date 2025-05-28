@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9fafb",
     borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 2,
+    paddingVertical: Platform.OS === "web" ? 10 : 4,
     gap: 12,
     borderWidth: 1,
     borderColor: "#e5e7eb",
@@ -220,6 +221,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#111827",
+    ...(Platform.OS === "web" && { outlineWidth: 0 }),
+
   },
   listContainer: {
     padding: 16,
@@ -234,9 +237,9 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 5,
     elevation: 3,
   },
   cardHeader: {
@@ -323,6 +326,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 8,
   },
 });

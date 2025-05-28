@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { mockActivities } from "../../src/mocks/activities";
 import { mockTurbines } from "../../src/mocks/turbines";
-import { TurbineStatus } from "../../src/types/turbines";
+import { TurbineStatus } from "../../src/types/index";
 import { setGlobalProjectData } from '../../src/utils/globalState';
 import { Storage } from '../../src/utils/storage';
 

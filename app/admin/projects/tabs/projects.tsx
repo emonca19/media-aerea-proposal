@@ -4,6 +4,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -513,7 +514,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9fafb",
     borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 2,
+    paddingVertical: Platform.OS === "web" ? 10 : 4,
     gap: 12,
     borderWidth: 1,
     borderColor: "#e5e7eb",
@@ -522,6 +523,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#111827",
+    ...(Platform.OS === "web" && { outlineWidth: 0 }),
   },
   filterButton: {
     width: 40,
@@ -591,10 +593,7 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: "#f3f4f6",
+    shadowRadius: 5,
   },
   cardHeader: {
     flexDirection: "row",
@@ -712,12 +711,19 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
+    justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+    alignItems: Platform.OS === "web" ? "center" : "stretch",
+    paddingHorizontal: Platform.OS === "web" ? 20 : 0,
   },
   modalContent: {
     backgroundColor: "#ffffff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: Platform.OS === "web" ? 20 : 20,
+    borderTopRightRadius: Platform.OS === "web" ? 20 : 20,
+    borderBottomLeftRadius: Platform.OS === "web" ? 20 : 0,
+    borderBottomRightRadius: Platform.OS === "web" ? 20 : 0,
+    maxWidth: Platform.OS === "web" ? 600 : "100%", // Limit width on web
+    width: Platform.OS === "web" ? "100%" : "100%",
+    maxHeight: Platform.OS === "web" ? "80%" : "100%", // Limit height on web
   },
   modalHeader: {
     flexDirection: "row",
@@ -821,6 +827,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 8,
   },
 });

@@ -187,10 +187,9 @@ function ProjectSummaryCard({
     >
       <View style={projectSummaryStyles.cardWrapper}>
         <View style={projectSummaryStyles.cardCompact}>
-          {/* Header compacto con información esencial */}
           <View style={projectSummaryStyles.headerRowCompact}>
             <View style={projectSummaryStyles.iconCircleCompact}>
-              <Ionicons name="business-outline" size={20} color="#8b5cf6" /> {/* Changed to purple */}
+              <Ionicons name="business-outline" size={20} color="#8b5cf6"/>
             </View>
             <View style={projectSummaryStyles.headerInfo}>
               <Text style={projectSummaryStyles.titleCompact}>
@@ -2335,7 +2334,6 @@ const PilotDashboard = () => {
             });
           });
           const renderTimelineContent = () => {
-            // Always render ActivityTimeline - it will handle empty state internally
             return (
               <ActivityTimeline
                 activities={timelineActivities}

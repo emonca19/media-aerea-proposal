@@ -4,7 +4,9 @@ import React, { useMemo, useState } from "react";
 import {
   Alert,
   Modal,
+  Platform,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -35,9 +37,9 @@ export default function AssignmentListScreen() {
 
   // Define colors based on theme
   const colors = {
-    primary: "#3b82f6",
+    primary: "#9744C3",
     secondary: "#8b5cf6",
-    background: "#f8fafc",
+    background: "#ffffff",
     surface: "#ffffff",
     border: "#e2e8f0",
     text: {
@@ -48,14 +50,6 @@ export default function AssignmentListScreen() {
     warning: "#f59e0b",
     error: "#ef4444",
     shadow: "#000000",
-  };
-
-  const spacing = {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
   };
 
   const [showFilters, setShowFilters] = useState(false);
@@ -183,67 +177,31 @@ export default function AssignmentListScreen() {
     return (
       <TouchableOpacity
         key={assignment.id}
-        style={{
-          backgroundColor: colors.surface,
-          borderRadius: 12,
-          padding: spacing.md,
-          marginBottom: spacing.sm,
-          borderWidth: 1,
-          borderColor: colors.border,
-          shadowColor: colors.shadow,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
-        }}
+        style={styles.cardContainer}
         onPress={() => {
           // Navigate to assignment details
           Alert.alert("Info", `Ver detalles de: ${project?.name}`);
         }}
       >
         {/* Header */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            marginBottom: spacing.sm,
-          }}
-        >
-          <View style={{ flex: 1, marginRight: spacing.sm }}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: "600",
-                color: colors.text.primary,
-                marginBottom: 4,
-              }}
-            >
+        <View style={styles.cardHeader}>
+          <View style={styles.cardTitleContainer}>
+            <Text style={styles.cardTitle}>
               {project?.name || "Proyecto no encontrado"}
             </Text>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={styles.statusContainer}>
               <View
-                style={{
-                  backgroundColor: assignmentStatus.color,
-                  paddingHorizontal: 8,
-                  paddingVertical: 2,
-                  borderRadius: 4,
-                }}
+                style={[
+                  styles.statusBadge,
+                  { backgroundColor: assignmentStatus.color },
+                ]}
               >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: colors.surface,
-                    fontWeight: "500",
-                  }}
-                >
-                  {assignmentStatus.status}
-                </Text>
+                <Text style={styles.statusText}>{assignmentStatus.status}</Text>
               </View>
             </View>
           </View>
           <TouchableOpacity
-            style={{ padding: 4 }}
+            style={styles.optionsButton}
             onPress={() => Alert.alert("Info", "Opciones de asignación")}
           >
             <Ionicons
@@ -255,92 +213,50 @@ export default function AssignmentListScreen() {
         </View>
 
         {/* Dates */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: spacing.sm,
-          }}
-        >
+        <View style={styles.dateRow}>
           <Ionicons
             name="calendar-outline"
             size={16}
             color={colors.text.secondary}
           />
-          <Text
-            style={{
-              marginLeft: 6,
-              fontSize: 14,
-              color: colors.text.secondary,
-            }}
-          >
+          <Text style={styles.dateText}>
             {formatDate(assignment.estimatedStartDate)} -{" "}
             {formatDate(assignment.estimatedEndDate)}
           </Text>
-          <Text
-            style={{
-              marginLeft: spacing.sm,
-              fontSize: 14,
-              color: colors.text.secondary,
-            }}
-          >
+          <Text style={styles.durationText}>
             ({assignment.estimatedDuration} días)
           </Text>
         </View>
 
         {/* Resources */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginBottom: spacing.sm,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={styles.resourcesRow}>
+          <View style={styles.resourceItem}>
             <Ionicons
               name="person-outline"
               size={16}
               color={colors.text.secondary}
             />
-            <Text
-              style={{
-                marginLeft: 6,
-                fontSize: 14,
-                color: colors.text.secondary,
-              }}
-            >
+            <Text style={styles.resourceText}>
               {pilots.length} piloto{pilots.length !== 1 ? "s" : ""}
             </Text>
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View style={styles.resourceItem}>
             <Ionicons
               name="airplane-outline"
               size={16}
               color={colors.text.secondary}
             />
-            <Text
-              style={{
-                marginLeft: 6,
-                fontSize: 14,
-                color: colors.text.secondary,
-              }}
-            >
+            <Text style={styles.resourceText}>
               {drones.length} drone{drones.length !== 1 ? "s" : ""}
             </Text>
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View style={styles.resourceItem}>
             <Ionicons
               name="business-outline"
               size={16}
               color={colors.text.secondary}
             />
-            <Text
-              style={{
-                marginLeft: 6,
-                fontSize: 14,
-                color: colors.text.secondary,
-              }}
-            >
+            <Text style={styles.resourceText}>
               {assignment.turbineIds.length} turbina
               {assignment.turbineIds.length !== 1 ? "s" : ""}
             </Text>
@@ -349,17 +265,9 @@ export default function AssignmentListScreen() {
 
         {/* Pilots */}
         {pilots.length > 0 && (
-          <View style={{ marginBottom: spacing.xs }}>
-            <Text
-              style={{
-                fontSize: 12,
-                color: colors.text.secondary,
-                marginBottom: 4,
-              }}
-            >
-              Pilotos asignados:
-            </Text>
-            <Text style={{ fontSize: 14, color: colors.text.primary }}>
+          <View style={styles.pilotsContainer}>
+            <Text style={styles.pilotsLabel}>Pilotos asignados:</Text>
+            <Text style={styles.pilotsText}>
               {pilots.map((pilot) => pilot?.name).join(", ")}
             </Text>
           </View>
@@ -367,23 +275,8 @@ export default function AssignmentListScreen() {
 
         {/* Notes */}
         {assignment.notes && (
-          <View
-            style={{
-              marginTop: spacing.xs,
-              paddingTop: spacing.xs,
-              borderTopWidth: 1,
-              borderTopColor: colors.border,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                color: colors.text.secondary,
-                fontStyle: "italic",
-              }}
-            >
-              {assignment.notes}
-            </Text>
+          <View style={styles.notesContainer}>
+            <Text style={styles.notesText}>{assignment.notes}</Text>
           </View>
         )}
       </TouchableOpacity>
@@ -397,44 +290,18 @@ export default function AssignmentListScreen() {
       presentationStyle="pageSheet"
       onRequestClose={() => setShowFilters(false)}
     >
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: spacing.md,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "600",
-              color: colors.text.primary,
-            }}
-          >
-            Filtros y Ordenación
-          </Text>
+      <View style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Filtros y Ordenación</Text>
           <TouchableOpacity onPress={() => setShowFilters(false)}>
             <Ionicons name="close" size={24} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={{ padding: spacing.md }}>
+        <ScrollView style={styles.modalContent}>
           {/* Filter Type */}
-          <View style={{ marginBottom: spacing.lg }}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: "600",
-                color: colors.text.primary,
-                marginBottom: spacing.sm,
-              }}
-            >
-              Tipo de Asignación
-            </Text>
+          <View style={styles.filterSection}>
+            <Text style={styles.filterSectionTitle}>Tipo de Asignación</Text>
             {(["all", "active", "upcoming", "urgent"] as FilterType[]).map(
               (type) => {
                 const labels = {
@@ -447,11 +314,7 @@ export default function AssignmentListScreen() {
                 return (
                   <TouchableOpacity
                     key={type}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      paddingVertical: spacing.sm,
-                    }}
+                    style={styles.filterOption}
                     onPress={() =>
                       setFilters((prev) => ({ ...prev, filterType: type }))
                     }
@@ -470,14 +333,11 @@ export default function AssignmentListScreen() {
                       }
                     />
                     <Text
-                      style={{
-                        marginLeft: spacing.sm,
-                        fontSize: 16,
-                        color:
-                          filters.filterType === type
-                            ? colors.primary
-                            : colors.text.primary,
-                      }}
+                      style={[
+                        styles.filterOptionText,
+                        filters.filterType === type &&
+                          styles.filterOptionTextActive,
+                      ]}
                     >
                       {labels[type]}
                     </Text>
@@ -488,17 +348,8 @@ export default function AssignmentListScreen() {
           </View>
 
           {/* Sort By */}
-          <View style={{ marginBottom: spacing.lg }}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: "600",
-                color: colors.text.primary,
-                marginBottom: spacing.sm,
-              }}
-            >
-              Ordenar por
-            </Text>
+          <View style={styles.filterSection}>
+            <Text style={styles.filterSectionTitle}>Ordenar por</Text>
             {(
               [
                 "startDate",
@@ -517,11 +368,7 @@ export default function AssignmentListScreen() {
               return (
                 <TouchableOpacity
                   key={sort}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingVertical: spacing.sm,
-                  }}
+                  style={styles.filterOption}
                   onPress={() =>
                     setFilters((prev) => ({ ...prev, sortBy: sort }))
                   }
@@ -540,14 +387,10 @@ export default function AssignmentListScreen() {
                     }
                   />
                   <Text
-                    style={{
-                      marginLeft: spacing.sm,
-                      fontSize: 16,
-                      color:
-                        filters.sortBy === sort
-                          ? colors.primary
-                          : colors.text.primary,
-                    }}
+                    style={[
+                      styles.filterOptionText,
+                      filters.sortBy === sort && styles.filterOptionTextActive,
+                    ]}
                   >
                     {labels[sort]}
                   </Text>
@@ -557,17 +400,8 @@ export default function AssignmentListScreen() {
           </View>
 
           {/* Sort Direction */}
-          <View>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: "600",
-                color: colors.text.primary,
-                marginBottom: spacing.sm,
-              }}
-            >
-              Dirección
-            </Text>
+          <View style={styles.filterSection}>
+            <Text style={styles.filterSectionTitle}>Dirección</Text>
             {(["asc", "desc"] as const).map((direction) => {
               const labels = {
                 asc: "Ascendente",
@@ -577,11 +411,7 @@ export default function AssignmentListScreen() {
               return (
                 <TouchableOpacity
                   key={direction}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingVertical: spacing.sm,
-                  }}
+                  style={styles.filterOption}
                   onPress={() =>
                     setFilters((prev) => ({
                       ...prev,
@@ -603,14 +433,11 @@ export default function AssignmentListScreen() {
                     }
                   />
                   <Text
-                    style={{
-                      marginLeft: spacing.sm,
-                      fontSize: 16,
-                      color:
-                        filters.sortDirection === direction
-                          ? colors.primary
-                          : colors.text.primary,
-                    }}
+                    style={[
+                      styles.filterOptionText,
+                      filters.sortDirection === direction &&
+                        styles.filterOptionTextActive,
+                    ]}
                   >
                     {labels[direction]}
                   </Text>
@@ -624,7 +451,7 @@ export default function AssignmentListScreen() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={styles.container}>
       <Stack.Screen
         options={{
           title: "Asignaciones",
@@ -632,41 +459,12 @@ export default function AssignmentListScreen() {
         }}
       />
       {/* Search and Filter Header */}
-      <View
-        style={{
-          padding: spacing.md,
-          backgroundColor: colors.surface,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: spacing.sm,
-          }}
-        >
-          <View
-            style={{
-              flex: 1,
-              flexDirection: "row",
-              alignItems: "center",
-              backgroundColor: colors.background,
-              borderRadius: 8,
-              paddingHorizontal: spacing.sm,
-              marginRight: spacing.sm,
-            }}
-          >
+      <View style={styles.headerContainer}>
+        <View style={styles.searchRow}>
+          <View style={styles.searchContainer}>
             <Ionicons name="search" size={20} color={colors.text.secondary} />
             <TextInput
-              style={{
-                flex: 1,
-                paddingVertical: spacing.sm,
-                paddingHorizontal: spacing.sm,
-                fontSize: 16,
-                color: colors.text.primary,
-              }}
+              style={styles.searchInput}
               placeholder="Buscar asignaciones..."
               placeholderTextColor={colors.text.secondary}
               value={filters.search}
@@ -676,11 +474,7 @@ export default function AssignmentListScreen() {
             />
           </View>
           <TouchableOpacity
-            style={{
-              backgroundColor: colors.primary,
-              padding: spacing.sm,
-              borderRadius: 8,
-            }}
+            style={styles.filterButton}
             onPress={() => setShowFilters(true)}
           >
             <Ionicons name="filter" size={20} color={colors.surface} />
@@ -688,8 +482,8 @@ export default function AssignmentListScreen() {
         </View>
 
         {/* Stats */}
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <Text style={{ fontSize: 14, color: colors.text.secondary }}>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsText}>
             {filteredAssignments.length} asignacion
             {filteredAssignments.length !== 1 ? "es" : ""}
           </Text>
@@ -699,41 +493,25 @@ export default function AssignmentListScreen() {
                 setFilters((prev) => ({ ...prev, filterType: "all" }))
               }
             >
-              <Text style={{ fontSize: 14, color: colors.primary }}>
-                Limpiar filtros
-              </Text>
+              <Text style={styles.clearFiltersText}>Limpiar filtros</Text>
             </TouchableOpacity>
           )}
         </View>
       </View>
       {/* Assignment List */}
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ padding: spacing.md }}
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {filteredAssignments.length === 0 ? (
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              paddingVertical: spacing.xl * 2,
-            }}
-          >
+          <View style={styles.emptyContainer}>
             <Ionicons
               name="document-outline"
               size={64}
               color={colors.text.secondary}
             />
-            <Text
-              style={{
-                fontSize: 18,
-                color: colors.text.secondary,
-                marginTop: spacing.md,
-                textAlign: "center",
-              }}
-            >
+            <Text style={styles.emptyText}>
               {filters.search || filters.filterType !== "all"
                 ? "No se encontraron asignaciones con los filtros aplicados"
                 : "No hay asignaciones disponibles"}
@@ -745,22 +523,7 @@ export default function AssignmentListScreen() {
       </ScrollView>{" "}
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={{
-          position: "absolute",
-          bottom: spacing.lg,
-          right: spacing.lg,
-          backgroundColor: colors.primary,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          justifyContent: "center",
-          alignItems: "center",
-          shadowColor: colors.shadow,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 8,
-        }}
+        style={styles.fab}
         onPress={() => router.push("/admin/tasks/assignment/create")}
       >
         <Ionicons name="add" size={28} color={colors.surface} />
@@ -769,3 +532,233 @@ export default function AssignmentListScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  headerContainer: {
+    padding: 16,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f9fafb",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === "web" ? 10 : 4,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+  },
+  filterButton: {
+    backgroundColor: "#9744C3",
+    padding: 8,
+    borderRadius: 8,
+  },
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  statsText: {
+    fontSize: 14,
+    color: "#64748b",
+  },
+  clearFiltersText: {
+    fontSize: 14,
+    color: "#9744C3",
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 64,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: "#64748b",
+    marginTop: 16,
+    textAlign: "center",
+  },
+  fab: {
+    position: "absolute",
+    bottom: 24,
+    right: 24,
+    backgroundColor: "#9744C3",
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  cardContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+  cardTitleContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1e293b",
+    marginBottom: 4,
+  },
+  statusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  statusText: {
+    fontSize: 12,
+    color: "#ffffff",
+    fontWeight: "500",
+  },
+  optionsButton: {
+    padding: 4,
+  },
+  dateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  dateText: {
+    marginLeft: 6,
+    fontSize: 14,
+    color: "#64748b",
+  },
+  durationText: {
+    marginLeft: 16,
+    fontSize: 14,
+    color: "#64748b",
+  },
+  resourcesRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  resourceItem: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  resourceText: {
+    marginLeft: 6,
+    fontSize: 14,
+    color: "#64748b",
+  },
+  pilotsContainer: {
+    marginBottom: 4,
+  },
+  pilotsLabel: {
+    fontSize: 12,
+    color: "#64748b",
+    marginBottom: 4,
+  },
+  pilotsText: {
+    fontSize: 14,
+    color: "#1e293b",
+  },
+  notesContainer: {
+    marginTop: 4,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: "#e2e8f0",
+  },
+  notesText: {
+    fontSize: 14,
+    color: "#64748b",
+    fontStyle: "italic",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    // Responsive width constraints for web/tablet
+    maxWidth: Platform.OS === "web" ? 600 : "100%",
+    alignSelf: Platform.OS === "web" ? "center" : "stretch",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1e293b",
+  },
+  modalContent: {
+    padding: 16,
+  },
+  filterSection: {
+    marginBottom: 24,
+  },
+  filterSectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1e293b",
+    marginBottom: 8,
+  },
+  filterOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  filterOptionText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: "#1e293b",
+  },
+  filterOptionTextActive: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: "#9744C3",
+  },
+});

@@ -445,11 +445,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6b7280",
     textAlign: "center",
-  },
-  // Modal styles
+  }, // Modal styles
   modalContainer: {
     flex: 1,
     backgroundColor: "#ffffff",
+    // Responsive width constraints for web/tablet
+    maxWidth: Platform.OS === "web" ? 600 : "100%",
+    alignSelf: Platform.OS === "web" ? "center" : "stretch",
   },
   modalHeader: {
     flexDirection: "row",

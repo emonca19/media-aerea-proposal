@@ -512,7 +512,6 @@ const ProjectInfoMenuEnhanced = () => {
       contentContainerStyle={componentStyles.scrollContent}
     >
       <View style={componentStyles.projectInfoCard}>
-        {/* Header with icon and project info */}
         <View style={componentStyles.headerContainer}>
           <LinearGradient
             colors={['#a78bfa', '#8b5cf6']}
@@ -525,7 +524,7 @@ const ProjectInfoMenuEnhanced = () => {
             <Text style={componentStyles.projectClient}>{projectData.client}</Text>
             <Text style={componentStyles.projectDescription}>{projectData.description}</Text>
           </View>
-        </View>        {/* Quick Access Buttons */}
+        </View>
         <View style={componentStyles.quickAccessContainer}>
           <TouchableOpacity 
             style={componentStyles.quickAccessButton}

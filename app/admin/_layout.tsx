@@ -406,7 +406,7 @@ export default function AdminLayout() {
             borderTopColor: "#ffffff",
             elevation: 0,
             shadowOpacity: 0,
-            height: 75,
+            height: Platform.OS === "ios" ? 90 : 65,
             borderBlockColor: "#ffffff",
           },
           tabBarActiveTintColor: "#9C46CE",

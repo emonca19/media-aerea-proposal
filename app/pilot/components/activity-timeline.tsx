@@ -82,7 +82,7 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                     <Ionicons name="time-outline" size={15} color="#9ca3af" style={{ marginRight: 4 }} />
                     <Text style={styles.activityTime}>{activity.time}</Text>
                     {activity.duration && (
-                      <Text style={styles.activityDuration}> · {activity.duration}</Text>
+                      <Text style={styles.activityDuration}>{activity.duration}</Text>
                     )}
                   </View>                {/* Action buttons for activities - Simplificado a solo mostrar el botón Iniciar */}
                   {onActionPress && (

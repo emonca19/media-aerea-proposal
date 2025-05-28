@@ -3,22 +3,22 @@ import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import {
-  AccessibilityRole,
-  AccessibilityState,
-  Animated,
-  GestureResponderEvent,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  StyleProp,
-  View,
-  ViewStyle
+    AccessibilityRole,
+    AccessibilityState,
+    Animated,
+    GestureResponderEvent,
+    Platform,
+    Pressable,
+    SafeAreaView,
+    StyleProp,
+    View,
+    ViewStyle
 } from 'react-native';
 import {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
 } from "react-native-reanimated";
 
 // Define the props for the custom tab bar button
@@ -236,7 +236,6 @@ export default function PilotLayout() {
             }}
           />
           {/* ... el resto de tus Tabs.Screen con href: null */}
-            <Tabs.Screen name="new-activity" options={{ href: null }} />
             <Tabs.Screen name="statistics" options={{ href: null }} />
             <Tabs.Screen name="incidents" options={{ href: null }} />
             <Tabs.Screen name="preflight-checklist" options={{ href: null }} />
@@ -251,7 +250,6 @@ export default function PilotLayout() {
             <Tabs.Screen name="components/incident-form-modal" options={{ href: null }} />
             <Tabs.Screen name="components/quick-actions-menu-card" options={{ href: null }} />
             <Tabs.Screen name="components/quick-register-activity-form" options={{ href: null }} />
-            <Tabs.Screen name="components/activity-form-modal" options={{ href: null }} />
             <Tabs.Screen name="new-incident" options={{ href: null }} />
             <Tabs.Screen name="calendar" options={{ href: null }} />
             <Tabs.Screen name="site-map" options={{ href: null }} />
@@ -259,7 +257,6 @@ export default function PilotLayout() {
             <Tabs.Screen name="support-chat" options={{ href: null }} />
              <Tabs.Screen name="turbines" options={{ href: null }} />
             <Tabs.Screen name="notifications" options={{ href: null }} />
-            <Tabs.Screen name="components" options={{ href: null }} />
             <Tabs.Screen name="project-details" options={{ href: null }} />
             <Tabs.Screen name="components/activity-timeline" options={{ href: null }} />
             <Tabs.Screen name="components/activity-control" options={{ href: null }}/>

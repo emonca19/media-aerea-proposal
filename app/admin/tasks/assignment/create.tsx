@@ -1127,6 +1127,10 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
+    backgroundColor: "#ffffff",
+    // Responsive width constraints for web/tablet
+    maxWidth: Platform.OS === "web" ? 800 : "100%",
+    alignSelf: Platform.OS === "web" ? "center" : "stretch",
   },
   modalHeader: {
     flexDirection: "row",
@@ -1207,6 +1211,8 @@ const styles = StyleSheet.create({
     padding: 24,
     margin: 20,
     minWidth: 300,
+    maxWidth: Platform.OS === "web" ? 500 : "90%",
+    width: Platform.OS === "web" ? "100%" : "auto",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
