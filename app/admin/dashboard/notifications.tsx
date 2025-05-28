@@ -417,7 +417,7 @@ export default function AdminNotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#f1f5f9" },
+  safeArea: { flex: 1, backgroundColor: "#ffffff" },
   container: { flex: 1 },
   header: {
     flexDirection: "row",

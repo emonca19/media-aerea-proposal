@@ -125,7 +125,7 @@ export default function AdminProfile() {
           </View>
           <TouchableOpacity
             style={styles.kpiAccessButton}
-            onPress={() => router.push("/admin/kpisdashboard")}
+            onPress={() => router.push("/admin/profile/kpisdashboard")}
           >
             <Ionicons name="stats-chart" size={20} color="#ffffff" />
             <Text style={styles.kpiAccessText}>Ver Indicadores Completos</Text>
@@ -181,7 +181,7 @@ export default function AdminProfile() {
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: "#f0f2f5",
+    backgroundColor: "#ffffff",
   },
   container: {
     flex: 1,

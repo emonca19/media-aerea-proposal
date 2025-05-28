@@ -597,7 +597,7 @@ const DronesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#ffffff",
   },
   addButtonContainer: {
     alignItems: "center",

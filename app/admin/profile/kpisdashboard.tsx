@@ -182,7 +182,7 @@ export default function AdminKPIDashboard() {
           headerTitleStyle: { fontWeight: "600" },
           headerLeft: () => (
             <TouchableOpacity
-              onPress={() => router.push("/admin/profile")}
+              onPress={() => router.push("/admin/profile/kpisdashboard")}
               style={[
                 styles.headerButton,
                 { flexDirection: "row", alignItems: "center" },
@@ -355,7 +355,7 @@ export default function AdminKPIDashboard() {
             <Text style={styles.sectionTitle}>Estadísticas de Pilotos</Text>
             <TouchableOpacity 
               style={styles.viewDetailsButton}
-              onPress={() => router.push('/admin/pilot-details')}
+              onPress={() => router.push('/admin/profile/pilot-details')}
             >
               <Text style={styles.viewDetailsButtonText}>Ver Detalles</Text>
               <Ionicons name="chevron-forward" size={16} color="#9C46CE" />
@@ -387,7 +387,7 @@ export default function AdminKPIDashboard() {
             
             <TouchableOpacity 
               style={styles.fullDetailsButton}
-              onPress={() => router.push('/admin/pilot-details')}
+              onPress={() => router.push('/admin/profile/pilot-details')}
             >
               <Text style={styles.fullDetailsButtonText}>Ver Estadísticas Detalladas de Pilotos</Text>
               <Ionicons name="analytics" size={20} color="#ffffff" />
@@ -401,7 +401,7 @@ export default function AdminKPIDashboard() {
             <Text style={styles.sectionTitle}>Estadísticas de Proyectos</Text>
             <TouchableOpacity 
               style={styles.viewDetailsButton}
-              onPress={() => router.push('/admin/project-details')}
+              onPress={() => router.push('/admin/profile/project-details')}
             >
               <Text style={styles.viewDetailsButtonText}>Ver Detalles</Text>
               <Ionicons name="chevron-forward" size={16} color="#9C46CE" />
@@ -431,7 +431,7 @@ export default function AdminKPIDashboard() {
             
             <TouchableOpacity 
               style={styles.fullDetailsButton}
-              onPress={() => router.push('/admin/project-details')}
+              onPress={() => router.push('/admin/profile/project-details')}
             >
               <Text style={styles.fullDetailsButtonText}>Ver Estadísticas Detalladas de Proyectos</Text>
               <Ionicons name="bar-chart" size={20} color="#ffffff" />

@@ -8,7 +8,7 @@ export default function ProjectsLayout() {
       }}
     >
       <Stack.Screen
-        name="(tabs)"
+        name="tabs"
         options={{
           headerShown: false,
         }}

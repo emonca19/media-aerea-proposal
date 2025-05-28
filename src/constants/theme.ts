@@ -58,7 +58,7 @@ const darkColors = {
 
 const lightColors = {
   primary: "#1a237e",
-  background: "#f5f5f7",
+  background: "#ffffff",
   elevated: "#ffffff",
   card: "#ffffff",
   border: "#e1e1e1",

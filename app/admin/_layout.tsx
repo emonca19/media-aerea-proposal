@@ -188,29 +188,28 @@ const Sidebar: React.FC = () => {
       icon: "checkbox" as const,
       path: "/admin/(tasks)/assignments",
       segment: "tasks",
-      patterns: ["/assignments", "/(tasks)"],
+      patterns: ["/assignments", "/(tasks)", "/pictures"],
     },
     {
       label: "Proyectos",
       icon: "document-text" as const,
       path: "/admin/(projects)",
       segment: "projects",
-      patterns: ["/(projects)"],
+      patterns: ["/(projects)", "clients", "projects",],
     },
     {
       label: "Recursos",
       icon: "construct" as const,
       path: "/admin/(resources)/users",
       segment: "resources",
-      patterns: ["/users", "/(resources)"],
-      patternsWeb: ["/resources", "/(resources)"],
+      patterns: ["/users", "/drones", "/cameras"],
     },
     {
       label: "Perfil",
       icon: "person" as const,
       path: "/admin/(profile)/profile",
       segment: "profile",
-      patterns: ["/profile", "/(profile)"],
+      patterns: ["/profile", "/(profile)", "/kpisdashboard"],
     },
   ];
 
@@ -256,14 +255,26 @@ const Sidebar: React.FC = () => {
               // Check for path containing any of the pattern identifiers
               else {
                 for (const pattern of item.patterns) {
-                  // Full path checks for both web and mobile formats
+                  const adminPrefix = "/admin/";
+                  // Handle [id] or /[id] patterns for single dynamic segments
                   if (
+                    (pattern === "[id]" || pattern === "/[id]") &&
+                    pathname.startsWith(adminPrefix)
+                  ) {
+                    const pathSuffix = pathname.substring(adminPrefix.length);
+                    // Ensure pathSuffix is a single segment (non-empty and no slashes)
+                    if (pathSuffix.length > 0 && !pathSuffix.includes("/")) {
+                      isActive = true;
+                      break; // Match found
+                    }
+                  } else if (
+                    // Original conditions for other patterns
                     pathname.includes(pattern) ||
                     pathname.includes(`/admin${pattern}`) ||
                     pathname.includes(`/admin/${item.segment}${pattern}`)
                   ) {
                     isActive = true;
-                    break;
+                    break; // Match found
                   }
                 }
               }
@@ -300,7 +311,11 @@ const ResponsiveAdminLayout: React.FC<{ children: React.ReactNode }> = ({
         style={{ flex: 1, flexDirection: "row", backgroundColor: "#ffffff" }}
       >
         <Sidebar />
-        <View style={{ flex: 1 }}>{children}</View>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <View style={{ flex: 1, width: "100%", maxWidth: 1200 }}>
+            {children}
+          </View>
+        </View>
       </View>
     );
   }
@@ -333,13 +348,13 @@ export default function AdminLayout() {
               listeners={{
                 tabPress: (e: { preventDefault: () => void }) => {
                   e.preventDefault();
-                  return <Redirect href="/admin/dashboard" />;
+                  return <Redirect href="/admin/dashboard/dashboard" />;
                 },
               }}
             />
 
             <Tabs.Screen
-              name="(dashboard)"
+              name="dashboard"
               options={{
                 title: "Inicio",
                 sceneStyle: { backgroundColor: "#ffffff" },
@@ -347,7 +362,7 @@ export default function AdminLayout() {
             />
 
             <Tabs.Screen
-              name="(tasks)"
+              name="tasks"
               options={{
                 title: "Tareas",
                 sceneStyle: { backgroundColor: "#ffffff" },
@@ -355,7 +370,7 @@ export default function AdminLayout() {
             />
 
             <Tabs.Screen
-              name="(projects)"
+              name="projects"
               options={{
                 title: "Proyectos",
                 sceneStyle: { backgroundColor: "#ffffff" },
@@ -363,7 +378,7 @@ export default function AdminLayout() {
             />
 
             <Tabs.Screen
-              name="(resources)"
+              name="resources"
               options={{
                 title: "Recursos",
                 sceneStyle: { backgroundColor: "#ffffff" },
@@ -371,7 +386,7 @@ export default function AdminLayout() {
             />
 
             <Tabs.Screen
-              name="(profile)"
+              name="profile"
               options={{
                 title: "Perfil",
                 sceneStyle: { backgroundColor: "#ffffff" },
@@ -415,13 +430,13 @@ export default function AdminLayout() {
           listeners={{
             tabPress: (e: { preventDefault: () => void }) => {
               e.preventDefault();
-              return <Redirect href="/admin/dashboard" />;
+              return <Redirect href="/admin/dashboard/dashboard" />;
             },
           }}
         />
 
         <Tabs.Screen
-          name="(dashboard)"
+          name="dashboard"
           options={{
             title: "Inicio",
             sceneStyle: { backgroundColor: "#ffffff" },
@@ -436,7 +451,7 @@ export default function AdminLayout() {
         />
 
         <Tabs.Screen
-          name="(tasks)"
+          name="tasks"
           options={{
             title: "Tareas",
             sceneStyle: { backgroundColor: "#ffffff" },
@@ -451,7 +466,7 @@ export default function AdminLayout() {
         />
 
         <Tabs.Screen
-          name="(projects)"
+          name="projects"
           options={{
             title: "Proyectos",
             sceneStyle: { backgroundColor: "#ffffff" },
@@ -466,7 +481,7 @@ export default function AdminLayout() {
         />
 
         <Tabs.Screen
-          name="(resources)"
+          name="resources"
           options={{
             title: "Recursos",
             sceneStyle: { backgroundColor: "#ffffff" },
@@ -481,7 +496,7 @@ export default function AdminLayout() {
         />
 
         <Tabs.Screen
-          name="(profile)"
+          name="profile"
           options={{
             title: "Perfil",
             sceneStyle: { backgroundColor: "#ffffff" },

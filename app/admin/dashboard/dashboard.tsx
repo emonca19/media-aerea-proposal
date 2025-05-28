@@ -632,7 +632,7 @@ export default function AdminDashboard() {
       title: "Clientes",
       subtitle: `${totalClients} registrados`,
       icon: "business" as keyof typeof MaterialIcons.glyphMap,
-      route: "/admin/(projects)/(tabs)/clients",
+      route: "/admin/projects/tabs/clients",
       color: currentTheme.primary,
     },
     {
@@ -646,14 +646,14 @@ export default function AdminDashboard() {
       title: "Recursos",
       subtitle: `${operationalDrones} drones disponibles`,
       icon: "people" as keyof typeof MaterialIcons.glyphMap,
-      route: "/admin/(resources)/drones",
+      route: "/admin/resources/drones",
       color: currentTheme.primary,
     },
     {
       title: "Tareas",
       subtitle: `${todayActivities} hoy`,
       icon: "schedule" as keyof typeof MaterialIcons.glyphMap,
-      route: "/admin/(tasks)/assignments",
+      route: "/admin/tasks/assignments",
       color: currentTheme.success,
     },
   ];
@@ -672,7 +672,7 @@ export default function AdminDashboard() {
               <Text style={styles.headerTitle}>Panel de Administración</Text>
               <TouchableOpacity
                 style={styles.notificationButton}
-                onPress={() => router.push("/admin/(dashboard)/notifications")}
+                onPress={() => router.push("/admin/dashboard/notifications")}
               >
                 <Ionicons
                   name="notifications-outline"
@@ -696,7 +696,7 @@ export default function AdminDashboard() {
             icon="assignment"
             gradientColors={["#3b82f6", "#1e40af"]}
             isLarge={true}
-            onPress={() => router.push("/admin/(projects)/projects")}
+            onPress={() => router.push("/admin/projects/tabs/projects")}
             details={{
               progressPercentage: averageCompletionPercentage,
             }}
@@ -708,7 +708,7 @@ export default function AdminDashboard() {
               subtitle="Pendientes"
               icon="photo-camera"
               gradientColors={["#1f2937", "#111827"]}
-              onPress={() => router.push("/admin/(tasks)/pictures")}
+              onPress={() => router.push("/admin/tasks/pictures")}
             />
             <OverviewCard
               title="Rendimiento Operativo"
@@ -716,7 +716,7 @@ export default function AdminDashboard() {
               subtitle="Esta semana"
               icon="trending-up"
               gradientColors={["#10b981", "#059669"]}
-              onPress={() => router.push("/admin/(profile)/kpisdashboard")}
+              onPress={() => router.push("/admin/profile/kpisdashboard")}
             />
           </View>
         </View>

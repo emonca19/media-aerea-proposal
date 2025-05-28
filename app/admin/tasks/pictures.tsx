@@ -964,7 +964,7 @@ export default function PicturesReviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#ffffff",
   },
   filterContainer: {
     paddingHorizontal: 16,

@@ -111,16 +111,16 @@ export default function ReportsScreen() {
     const from = params.from as string;
     
     if (from === 'kpis') {
-      router.push("/admin/(profile)/kpisdashboard");
+      router.push("/admin/profile/kpisdashboard");
     } else if (from === 'dashboard') {
-      router.push("/admin/(dashboard)/dashboard");
+      router.push("/admin/dashboard/dashboard");
     } else {
       // Default fallback - try router.back() first
       try {
         router.back();
       } catch (error) {
         // If that fails, go to KPIs dashboard
-        router.push("/admin/(profile)/kpisdashboard");
+        router.push("/admin/profile/kpisdashboard");
       }
     }
   };

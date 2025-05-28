@@ -268,11 +268,11 @@ export default function ProjectsScreen() {
     }
   };
   const handleCreateProject = () => {
-    router.push("/admin/(projects)/create");
+    router.push("/admin/projects/create");
   };
   const handleProjectPress = (project: Project) => {
     router.push({
-      pathname: "/admin/(projects)/[id]",
+      pathname: "/admin/projects/[id]",
       params: { id: project.id },
     });
   };
@@ -494,7 +494,7 @@ export default function ProjectsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#ffffff",
   },
   addButton: {
     padding: 8,
