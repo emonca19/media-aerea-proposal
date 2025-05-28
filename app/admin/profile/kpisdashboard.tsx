@@ -182,7 +182,7 @@ export default function AdminKPIDashboard() {
           headerTitleStyle: { fontWeight: "600" },
           headerLeft: () => (
             <TouchableOpacity
-              onPress={() => router.push("/admin/profile")}
+              onPress={() => router.push("/admin/profile/profile")}
               style={[
                 styles.headerButton,
                 { flexDirection: "row", alignItems: "center" },

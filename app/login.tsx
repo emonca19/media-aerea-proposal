@@ -174,13 +174,7 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={
-        Platform.OS === "ios"
-          ? "padding"
-          : Platform.OS === "android"
-          ? "height"
-          : undefined
-      } // Disable behavior for web
+      behavior={Platform.OS === "ios" ? "padding" : "padding"} // Use "padding" for Android too
       style={styles.container}
       enabled={Platform.OS !== "web"} // Disable KAV entirely for web
     >
@@ -188,7 +182,7 @@ export default function LoginScreen() {
         onPress={Platform.OS === "web" ? undefined : Keyboard.dismiss}
       >
         <LinearGradient
-          colors={["rgb(12,4,67)", "rgb(151,68,195)"]}
+          colors={["#0C0443", "#9744C3"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
@@ -313,7 +307,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "rgb(12,4,67)",
+    backgroundColor: "#9744C3",
   },
   gradient: {
     flex: 1,
@@ -365,11 +359,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.dark.dimensions.borderRadius.large,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     backdropFilter: "blur(10px)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
   },
   inputContainer: {
     marginBottom: theme.dark.dimensions.spacing.lg,
