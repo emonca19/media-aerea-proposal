@@ -14,8 +14,7 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 // Mock data imports
 import { StatCard } from "../../../src/components/StatCard";
-import { mockPilotStats, mockPilotUsers } from "../../../src/mocks/pilots";
-import { mockProjectProgress, mockProjects } from "../../../src/mocks/projects";
+import { mockPilotStats } from "../../../src/mocks/pilots";
 import { mockProjectReports } from "../../../src/mocks/reports";
 
 const { width } = Dimensions.get("window");
@@ -335,8 +334,7 @@ export default function AdminKPIDashboard() {
                   },
                 ]}
               />
-            </View>
-            <View style={styles.progressLabels}>
+            </View>            <View style={styles.progressLabels}>
               <Text style={styles.progressLabel}>
                 Inspeccionadas: {kpiData.turbines.inspected}/
                 {kpiData.turbines.total}
@@ -349,268 +347,96 @@ export default function AdminKPIDashboard() {
               </Text>
             </View>
           </View>
-        </Animated.View>        {/* Individual Pilot Statistics */}
+        </Animated.View>
+
+        {/* Individual Pilot Statistics */}
         <Animated.View entering={FadeInDown.delay(400)} style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Estadísticas Individuales de Pilotos
-          </Text>
-          <View style={styles.pilotsGrid}>
-            {mockPilotUsers.map((pilot, index) => {
-              const avatarColor = index % 4 === 0 ? '#3b82f6' : 
-                                index % 4 === 1 ? '#10b981' : 
-                                index % 4 === 2 ? '#f59e0b' : '#8b5cf6';
-              return (
-                <Animated.View 
-                  key={pilot.id} 
-                  style={styles.pilotCardImproved}
-                  entering={FadeInDown.delay(450 + index * 100)}
-                >
-                  <View style={styles.pilotCardHeader}>
-                    <View style={styles.pilotAvatarContainer}>
-                      <LinearGradient
-                        colors={[avatarColor, `${avatarColor}CC`]}
-                        style={styles.pilotAvatar}
-                      >
-                        <Text style={styles.pilotAvatarText}>
-                          {pilot.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                        </Text>
-                      </LinearGradient>
-                      <View style={[styles.pilotStatusDot, { 
-                        backgroundColor: pilot.isAvailable ? '#10b981' : '#f59e0b' 
-                      }]} />
-                    </View>
-                    <View style={styles.pilotInfoImproved}>
-                      <Text style={styles.pilotNameImproved} numberOfLines={1}>
-                        {pilot.name}
-                      </Text>
-                      <Text style={styles.pilotStatsImproved}>
-                        {pilot.stats.totalTurbinesInspected} turbinas inspeccionadas
-                      </Text>
-                      <Text style={styles.pilotFlightTime}>
-                        {Math.round(pilot.stats.totalFlightMinutes / 60)}h de vuelo total
-                      </Text>
-                    </View>
-                    <View style={styles.pilotEfficiencyBadgeImproved}>
-                      <Text style={styles.pilotEfficiencyNumber}>
-                        {pilot.stats.dailyCompletionRatePercentage}%
-                      </Text>
-                      <Text style={styles.pilotEfficiencyLabel}>Eficiencia</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.pilotMetricsGrid}>
-                    <View style={styles.metricCard}>
-                      <MaterialIcons name="schedule" size={16} color="#6b7280" />
-                      <Text style={styles.metricValue}>
-                        {(pilot.stats.averageTimePerTurbineSeconds / 3600).toFixed(1)}h
-                      </Text>
-                      <Text style={styles.metricLabel}>Por turbina</Text>
-                    </View>
-                    <View style={styles.metricCard}>
-                      <MaterialIcons name="photo-camera" size={16} color="#6b7280" />
-                      <Text style={styles.metricValue}>
-                        {pilot.stats.photoDeliveryTimeMinutes}min
-                      </Text>
-                      <Text style={styles.metricLabel}>Entrega fotos</Text>
-                    </View>
-                    <View style={styles.metricCard}>
-                      <MaterialIcons name="warning" size={16} color="#6b7280" />
-                      <Text style={styles.metricValue}>
-                        {pilot.stats.incidentCount}
-                      </Text>
-                      <Text style={styles.metricLabel}>Incidentes</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.pilotProgressSection}>
-                    <Text style={styles.progressSectionTitle}>Puntualidad en entregas</Text>
-                    <View style={styles.pilotProgressBarImproved}>
-                      <View style={[styles.pilotProgressFill, { 
-                        width: `${pilot.stats.onTimePhotoDeliveryRatePercentage}%`,
-                        backgroundColor: pilot.stats.onTimePhotoDeliveryRatePercentage >= 90 ? '#10b981' : 
-                                       pilot.stats.onTimePhotoDeliveryRatePercentage >= 75 ? '#f59e0b' : '#ef4444'
-                      }]} />
-                    </View>
-                    <Text style={styles.pilotProgressText}>
-                      {pilot.stats.onTimePhotoDeliveryRatePercentage}% entregas puntuales
-                    </Text>
-                  </View>
-                </Animated.View>
-              );
-            })}
-          </View>        </Animated.View>
+          <View style={styles.sectionHeaderWithButton}>
+            <Text style={styles.sectionTitle}>Estadísticas de Pilotos</Text>
+            <TouchableOpacity 
+              style={styles.viewDetailsButton}
+              onPress={() => router.push('/admin/pilot-details')}
+            >
+              <Text style={styles.viewDetailsButtonText}>Ver Detalles</Text>
+              <Ionicons name="chevron-forward" size={16} color="#9C46CE" />
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.pilotOverviewCard}>
+            <View style={styles.overviewStats}>
+              <View style={styles.overviewStat}>
+                <MaterialIcons name="person" size={24} color="#3b82f6" />
+                <Text style={styles.overviewStatValue}>{kpiData.pilots.total}</Text>
+                <Text style={styles.overviewStatLabel}>Pilotos Totales</Text>
+              </View>
+              <View style={styles.overviewStat}>
+                <MaterialIcons name="flight-takeoff" size={24} color="#10b981" />
+                <Text style={styles.overviewStatValue}>
+                  {Math.round(kpiData.pilots.totalFlightHours)}h
+                </Text>
+                <Text style={styles.overviewStatLabel}>Horas de Vuelo</Text>
+              </View>
+              <View style={styles.overviewStat}>
+                <MaterialIcons name="trending-up" size={24} color="#f59e0b" />
+                <Text style={styles.overviewStatValue}>
+                  {Math.round(kpiData.pilots.averageEfficiency)}%
+                </Text>
+                <Text style={styles.overviewStatLabel}>Eficiencia Media</Text>
+              </View>
+            </View>
+            
+            <TouchableOpacity 
+              style={styles.fullDetailsButton}
+              onPress={() => router.push('/admin/pilot-details')}
+            >
+              <Text style={styles.fullDetailsButtonText}>Ver Estadísticas Detalladas de Pilotos</Text>
+              <Ionicons name="analytics" size={20} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
 
         {/* Projects Statistics Section */}
         <Animated.View entering={FadeInDown.delay(500)} style={styles.section}>
-          <Text style={styles.sectionTitle}>Estadísticas de Proyectos</Text>
+          <View style={styles.sectionHeaderWithButton}>
+            <Text style={styles.sectionTitle}>Estadísticas de Proyectos</Text>
+            <TouchableOpacity 
+              style={styles.viewDetailsButton}
+              onPress={() => router.push('/admin/project-details')}
+            >
+              <Text style={styles.viewDetailsButtonText}>Ver Detalles</Text>
+              <Ionicons name="chevron-forward" size={16} color="#9C46CE" />
+            </TouchableOpacity>
+          </View>
           
-          {/* Project Status Overview Cards */}
-          <View style={styles.projectOverviewGrid}>
-            {mockProjects.map((project, index) => {
-              const progress = mockProjectProgress.find(p => p.projectId === project.id);
-              const statusColor = 
-                project.status === 'ACTIVE' ? '#10b981' :
-                project.status === 'COMPLETED' ? '#3b82f6' :
-                project.status === 'PAUSED' ? '#f59e0b' : '#6b7280';
-              
-              const statusText = 
-                project.status === 'ACTIVE' ? 'Activo' :
-                project.status === 'COMPLETED' ? 'Completado' :
-                project.status === 'PAUSED' ? 'Pausado' : 'Pendiente';
-
-              return (
-                <Animated.View
-                  key={project.id}
-                  style={styles.projectCard}
-                  entering={FadeInDown.delay(550 + index * 100)}
-                >
-                  <View style={styles.projectCardHeader}>
-                    <View style={styles.projectTitleSection}>
-                      <Text style={styles.projectName} numberOfLines={2}>
-                        {project.name}
-                      </Text>
-                      <Text style={styles.projectClient}>
-                        Cliente: {project.clientId.replace('client_', 'Cliente ')}
-                      </Text>
-                    </View>
-                    <View style={[styles.projectStatusBadge, { backgroundColor: `${statusColor}20`, borderColor: statusColor }]}>
-                      <View style={[styles.projectStatusDot, { backgroundColor: statusColor }]} />
-                      <Text style={[styles.projectStatusText, { color: statusColor }]}>
-                        {statusText}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.projectMetricsGrid}>
-                    <View style={styles.projectMetricCard}>
-                      <MaterialIcons name="wind-power" size={18} color="#6b7280" />
-                      <Text style={styles.projectMetricValue}>
-                        {progress?.totalTurbines || 0}
-                      </Text>
-                      <Text style={styles.projectMetricLabel}>Turbinas</Text>
-                    </View>
-                    <View style={styles.projectMetricCard}>
-                      <MaterialIcons name="check-circle" size={18} color="#6b7280" />
-                      <Text style={styles.projectMetricValue}>
-                        {progress?.turbinesInspected || 0}
-                      </Text>
-                      <Text style={styles.projectMetricLabel}>Inspeccionadas</Text>
-                    </View>
-                    <View style={styles.projectMetricCard}>
-                      <MaterialIcons name="schedule" size={18} color="#6b7280" />
-                      <Text style={styles.projectMetricValue}>
-                        {project.estimatedDuration}d
-                      </Text>
-                      <Text style={styles.projectMetricLabel}>Duración</Text>
-                    </View>
-                  </View>
-
-                  {progress && (
-                    <View style={styles.projectProgressSection}>
-                      <View style={styles.projectProgressHeader}>
-                        <Text style={styles.projectProgressLabel}>Progreso del proyecto</Text>
-                        <Text style={styles.projectProgressPercentage}>
-                          {progress.completionPercentage}%
-                        </Text>
-                      </View>
-                      <View style={styles.projectProgressBarContainer}>
-                        <View style={[styles.projectProgressBar, { 
-                          width: `${progress.completionPercentage}%`,
-                          backgroundColor: statusColor
-                        }]} />
-                      </View>
-                      <View style={styles.projectProgressDetails}>
-                        <Text style={styles.projectProgressDetailText}>
-                          {progress.turbinesPhotosApproved} fotos aprobadas • {progress.turbinesPhotosRejected} rechazadas
-                        </Text>
-                      </View>
-                    </View>
-                  )}
-                </Animated.View>
-              );
-            })}
-          </View>          {/* Project Performance Summary */}
-          {/* <Animated.View entering={FadeInDown.delay(800)} style={styles.projectSummaryCard}>
-            <Text style={styles.projectSummaryTitle}>Resumen de Rendimiento</Text>
+          <View style={styles.projectOverviewCard}>
+            <View style={styles.overviewStats}>
+              <View style={styles.overviewStat}>
+                <MaterialIcons name="folder" size={24} color="#8b5cf6" />
+                <Text style={styles.overviewStatValue}>{kpiData.projects.total}</Text>
+                <Text style={styles.overviewStatLabel}>Proyectos Totales</Text>
+              </View>
+              <View style={styles.overviewStat}>
+                <MaterialIcons name="play-circle-fill" size={24} color="#10b981" />
+                <Text style={styles.overviewStatValue}>{kpiData.projects.active}</Text>
+                <Text style={styles.overviewStatLabel}>Activos</Text>
+              </View>
+              <View style={styles.overviewStat}>
+                <MaterialIcons name="check-circle" size={24} color="#3b82f6" />
+                <Text style={styles.overviewStatValue}>
+                  {Math.round(kpiData.projects.averageProgress)}%
+                </Text>
+                <Text style={styles.overviewStatLabel}>Progreso Medio</Text>
+              </View>
+            </View>
             
-            <View style={styles.projectSummaryGrid}>              <View style={styles.projectSummaryMetric}>
-                <View style={styles.projectSummaryIconContainer}>
-                  <MaterialIcons name="assessment" size={20} color="#3b82f6" />
-                </View>
-                <Text style={styles.projectSummaryValue}>
-                  {Math.round(mockProjectProgress.reduce((sum, p) => sum + p.completionPercentage, 0) / mockProjectProgress.length)}%
-                </Text>
-                <Text style={styles.projectSummaryLabel}>Progreso Promedio</Text>
-              </View>
-              
-              <View style={styles.projectSummaryMetric}>
-                <View style={styles.projectSummaryIconContainer}>
-                  <MaterialIcons name="photo-camera" size={20} color="#10b981" />
-                </View>
-                <Text style={styles.projectSummaryValue}>
-                  {Math.round((mockProjectProgress.reduce((sum, p) => sum + p.turbinesPhotosApproved, 0) / 
-                    mockProjectProgress.reduce((sum, p) => sum + p.turbinesPhotosUploaded, 0)) * 100) || 0}%
-                </Text>
-                <Text style={styles.projectSummaryLabel}>Tasa de Aprobación</Text>
-              </View>
-
-              <View style={styles.projectSummaryMetric}>
-                <View style={styles.projectSummaryIconContainer}>
-                  <MaterialIcons name="schedule" size={20} color="#f59e0b" />
-                </View>
-                <Text style={styles.projectSummaryValue}>
-                  {mockProjects.filter(p => p.status === 'ACTIVE').length}
-                </Text>
-                <Text style={styles.projectSummaryLabel}>Proyectos Activos</Text>
-              </View>
-
-              <View style={styles.projectSummaryMetric}>
-                <View style={styles.projectSummaryIconContainer}>
-                  <MaterialIcons name="done-all" size={20} color="#8b5cf6" />
-                </View>
-                <Text style={styles.projectSummaryValue}>
-                  {mockProjects.filter(p => p.status === 'COMPLETED').length}
-                </Text>
-                <Text style={styles.projectSummaryLabel}>Completados</Text>
-              </View>
-            </View>
-
-            {/* Timeline Performance Chart */}
-            {/* <View style={styles.projectTimelineSection}>
-              <Text style={styles.projectTimelineTitle}>Línea de Tiempo de Proyectos</Text>
-              <View style={styles.projectTimelineContainer}>
-                {mockProjects.map((project, index) => {
-                  const daysSinceStart = Math.ceil((new Date().getTime() - project.startDate.getTime()) / (1000 * 60 * 60 * 24));
-                  const progressPercentage = mockProjectProgress.find(p => p.projectId === project.id)?.completionPercentage || 0;
-                  const isOnTrack = progressPercentage >= (daysSinceStart / project.estimatedDuration) * 100;
-                  
-                  return (
-                    <View key={project.id} style={styles.projectTimelineItem}>
-                      <View style={styles.projectTimelineInfo}>
-                        <Text style={styles.projectTimelineName} numberOfLines={1}>
-                          {project.name}
-                        </Text>
-                        <Text style={styles.projectTimelineStatus}>
-                          {project.status === 'COMPLETED' ? 'Finalizado' : 
-                           project.status === 'ACTIVE' ? (isOnTrack ? 'En tiempo' : 'Atrasado') : 
-                           'Pausado'}
-                        </Text>
-                      </View>
-                      <View style={styles.projectTimelineProgress}>
-                        <Text style={[styles.projectTimelinePercentage, {
-                          color: project.status === 'COMPLETED' ? '#10b981' : 
-                                isOnTrack ? '#3b82f6' : '#ef4444'
-                        }]}>
-                          {progressPercentage}%
-                        </Text>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          </Animated.View> */}
-        </Animated.View>
+            <TouchableOpacity 
+              style={styles.fullDetailsButton}
+              onPress={() => router.push('/admin/project-details')}
+            >
+              <Text style={styles.fullDetailsButtonText}>Ver Estadísticas Detalladas de Proyectos</Text>
+              <Ionicons name="bar-chart" size={20} color="#ffffff" />
+            </TouchableOpacity>
+          </View>        </Animated.View>
 
         {/* Operational Bottlenecks */}
         <Animated.View entering={FadeInDown.delay(900)} style={styles.section}>
@@ -1280,8 +1106,93 @@ const styles = StyleSheet.create({
   impactText: {
     fontSize: 12,
     fontWeight: "600",
-  },
-  bottomSpacing: {
+  },  bottomSpacing: {
     height: 32,
+  },
+  
+  // Navigation overview card styles
+  sectionHeaderWithButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  viewDetailsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  viewDetailsButtonText: {
+    fontSize: 12,
+    color: "#9C46CE",
+    fontWeight: "600",
+    marginRight: 4,
+  },
+  pilotOverviewCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
+  },
+  projectOverviewCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
+  },
+  overviewStats: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 20,
+  },
+  overviewStat: {
+    alignItems: "center",
+    flex: 1,
+  },
+  overviewStatValue: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  overviewStatLabel: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  fullDetailsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#9C46CE",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  fullDetailsButtonText: {
+    fontSize: 14,
+    color: "#ffffff",
+    fontWeight: "600",
+    marginRight: 8,
   },
 });
