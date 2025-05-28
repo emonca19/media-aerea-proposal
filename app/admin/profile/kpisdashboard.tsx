@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { BarChart, PieChart } from "react-native-chart-kit";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 // Mock data imports
@@ -247,7 +248,6 @@ export default function AdminKPIDashboard() {
         </Animated.View>
         {/* Project Progress Section */}
         <Animated.View entering={FadeInDown.delay(200)} style={styles.section}>
-         
           <View style={styles.statsGrid}>
             <StatCard
               icon="speed"
@@ -274,30 +274,131 @@ export default function AdminKPIDashboard() {
               color="#06b6d4"
             />
           </View>
-        </Animated.View>        {/* Visual KPIs Dashboard - Chart Based */}
-        <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>          {/* Work Hours Horizontal Bar Chart */}
+        </Animated.View>{" "}
+        {/* Visual KPIs Dashboard - Chart Based */}
+        <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
+          {" "}
+          {/* Time Analytics - Effective vs Pause Time */}
           <View style={styles.visualKpiContainer}>
-            <Text style={styles.kpiTitle}>Horas Efectivas en Promedio</Text>
-            <View style={styles.workHoursBarContainer}>
-              {/* Main time display */}
-              <View style={styles.workHoursHeader}>
-                <Text style={styles.workHoursMainText}>6 de 8 horas</Text>
-                <Text style={styles.workHoursPercentage}>75% efectividad</Text>
-              </View>
-                {/* Horizontal bar chart */}
-              <View style={styles.horizontalBarChart}>
-                <View style={styles.barBackground}>
-                  <View style={[styles.barFill, { width: '75%' }]} />
+            <Text style={styles.kpiTitle}>
+              Distribución de Tiempo Operativo
+            </Text>
+            <View style={styles.timeAnalyticsContainer}>
+              {" "}
+              <BarChart
+                data={{
+                  labels: ["Efectivo", "En Pausa"],
+                  datasets: [
+                    {
+                      data: [6, 2], // 6 hours effective, 2 hours pause
+                    },
+                  ],
+                }}
+                width={Dimensions.get("window").width - 70}
+                height={140}
+                yAxisLabel=""
+                chartConfig={{
+                  backgroundGradientFrom: "#ffffff",
+                  backgroundGradientTo: "#ffffff",
+                  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+                  strokeWidth: 2,
+                  barPercentage: 0.6,
+                  useShadowColorFromDataset: false,
+                  decimalPlaces: 0,
+                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  style: { borderRadius: 16 },
+                  propsForBackgroundLines: {
+                    strokeDasharray: "", // Solid lines
+                    stroke: "#e5e7eb",
+                    strokeWidth: 1,
+                  },
+                }}
+                style={{ borderRadius: 16 }}
+                yAxisSuffix="h"
+                fromZero
+              />
+              <View style={styles.timeMetricsRow}>
+                <View style={styles.timeMetricItem}>
+                  <View
+                    style={[
+                      styles.timeMetricDot,
+                      { backgroundColor: "#3b82f6" },
+                    ]}
+                  />
+                  <Text style={styles.timeMetricLabel}>Tiempo Efectivo</Text>
+                  <Text style={styles.timeMetricValue}>6h (75%)</Text>
                 </View>
-                <View style={styles.barLabels}>
-                  <Text style={styles.barStartLabel}>0h</Text>
-                  <Text style={styles.barMidLabel}>4h</Text>
-                  <Text style={styles.barEndLabel}>8h</Text>
+                <View style={styles.timeMetricItem}>
+                  <View
+                    style={[
+                      styles.timeMetricDot,
+                      { backgroundColor: "#ef4444" },
+                    ]}
+                  />
+                  <Text style={styles.timeMetricLabel}>Tiempo en Pausa</Text>
+                  <Text style={styles.timeMetricValue}>2h (25%)</Text>
                 </View>
               </View>
             </View>
           </View>
-
+          {/* Pause Reasons Pie Chart */}
+          <View style={styles.visualKpiContainer}>
+            <Text style={styles.kpiTitle}>Motivos de Pausas Principales</Text>
+            <View style={styles.pauseReasonsContainer}>
+              {" "}
+              <PieChart
+                data={[
+                  {
+                    name: "Clima",
+                    population: 45,
+                    color: "#ef4444",
+                    legendFontColor: "#374151",
+                    legendFontSize: 12,
+                  },
+                  {
+                    name: "Cliente",
+                    population: 25,
+                    color: "#f59e0b",
+                    legendFontColor: "#374151",
+                    legendFontSize: 12,
+                  },
+                  {
+                    name: "Descanso",
+                    population: 20,
+                    color: "#10b981",
+                    legendFontColor: "#374151",
+                    legendFontSize: 12,
+                  },
+                  {
+                    name: "Otros",
+                    population: 10,
+                    color: "#8b5cf6",
+                    legendFontColor: "#374151",
+                    legendFontSize: 12,
+                  },
+                ]}
+                width={Dimensions.get("window").width - 70}
+                height={160}
+                chartConfig={{
+                  backgroundGradientFrom: "#ffffff",
+                  backgroundGradientTo: "#ffffff",
+                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`,
+                  style: { borderRadius: 16 },
+                }}
+                accessor="population"
+                backgroundColor="transparent"
+                paddingLeft="15"
+                absolute
+              />{" "}
+              <View style={styles.pauseInsight}>
+                <MaterialIcons name="info-outline" size={16} color="#3b82f6" />
+                <Text style={styles.pauseInsightText}>
+                  45% de pausas relacionadas con el clima
+                </Text>
+              </View>
+            </View>
+          </View>
           {/* Photo Quality Stats Only */}
           <View style={styles.visualKpiContainer}>
             <Text style={styles.kpiTitle}>Calidad de Evidencias</Text>
@@ -315,8 +416,12 @@ export default function AdminKPIDashboard() {
             </View>
           </View>
         </Animated.View>
-        {/* End Project KPIs Graphical Section */}        {/* Enhanced Navigation Cards */}
-        <Animated.View entering={FadeInDown.delay(400)} style={styles.enhancedCardsContainer}>
+        {/* End Project KPIs Graphical Section */}{" "}
+        {/* Enhanced Navigation Cards */}
+        <Animated.View
+          entering={FadeInDown.delay(400)}
+          style={styles.enhancedCardsContainer}
+        >
           {/* Pilot Statistics Card */}
           <TouchableOpacity
             onPress={() => router.push("/admin/profile/pilot-details")}
@@ -336,18 +441,28 @@ export default function AdminKPIDashboard() {
                   </View>
                 </View>
                 <View style={styles.enhancedTextContent}>
-                  <Text style={styles.enhancedCardTitle}>Estadísticas de Pilotos</Text>
+                  <Text style={styles.enhancedCardTitle}>
+                    Estadísticas de Pilotos
+                  </Text>
                   <Text style={styles.enhancedCardSubtitle}>
                     Análisis detallado del rendimiento
                   </Text>
                   <View style={styles.enhancedCardMeta}>
-                    <Text style={styles.enhancedMetaText}>{kpiData.pilots.active} activos</Text>
+                    <Text style={styles.enhancedMetaText}>
+                      {kpiData.pilots.active} activos
+                    </Text>
                     <Text style={styles.enhancedMetaDot}>•</Text>
-                    <Text style={styles.enhancedMetaText}>{Math.round(kpiData.pilots.averageEfficiency)}% eficiencia</Text>
+                    <Text style={styles.enhancedMetaText}>
+                      {Math.round(kpiData.pilots.averageEfficiency)}% eficiencia
+                    </Text>
                   </View>
                 </View>
                 <View style={styles.enhancedArrowContainer}>
-                  <MaterialIcons name="arrow-forward" size={20} color="rgba(255, 255, 255, 0.9)" />
+                  <MaterialIcons
+                    name="arrow-forward"
+                    size={20}
+                    color="rgba(255, 255, 255, 0.9)"
+                  />
                 </View>
               </View>
               <View style={styles.enhancedCardGlow} />
@@ -373,28 +488,36 @@ export default function AdminKPIDashboard() {
                   </View>
                 </View>
                 <View style={styles.enhancedTextContent}>
-                  <Text style={styles.enhancedCardTitle}>Estadísticas de Proyectos</Text>
+                  <Text style={styles.enhancedCardTitle}>
+                    Estadísticas de Proyectos
+                  </Text>
                   <Text style={styles.enhancedCardSubtitle}>
                     Métricas y progreso de proyectos
                   </Text>
                   <View style={styles.enhancedCardMeta}>
-                    <Text style={styles.enhancedMetaText}>{kpiData.projects.active} activos</Text>
+                    <Text style={styles.enhancedMetaText}>
+                      {kpiData.projects.active} activos
+                    </Text>
                     <Text style={styles.enhancedMetaDot}>•</Text>
-                    <Text style={styles.enhancedMetaText}>{Math.round(kpiData.projects.averageProgress)}% progreso</Text>
+                    <Text style={styles.enhancedMetaText}>
+                      {Math.round(kpiData.projects.averageProgress)}% progreso
+                    </Text>
                   </View>
                 </View>
                 <View style={styles.enhancedArrowContainer}>
-                  <MaterialIcons name="arrow-forward" size={20} color="rgba(255, 255, 255, 0.9)" />
+                  <MaterialIcons
+                    name="arrow-forward"
+                    size={20}
+                    color="rgba(255, 255, 255, 0.9)"
+                  />
                 </View>
               </View>
               <View style={styles.enhancedCardGlow} />
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
-
         {/* Add spacing between cards and Cuellos de Botella */}
         <View style={{ height: 18 }} />
-
         {/* Operational Bottlenecks */}
         <Animated.View entering={FadeInDown.delay(900)} style={styles.section}>
           <Text style={styles.sectionTitle}>Cuellos de Botella Operativos</Text>
@@ -451,7 +574,6 @@ export default function AdminKPIDashboard() {
             </View>
           ))}
         </Animated.View>
-
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </View>
@@ -1345,17 +1467,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 18,
     marginLeft: 4,
-  },  horizontalTextContainer: {
+  },
+  horizontalTextContainer: {
     flex: 1,
     justifyContent: "center",
   },
   // Visual KPI Styles
   visualKpiContainer: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1363,82 +1486,83 @@ const styles = StyleSheet.create({
   },
   kpiTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1f2937',
+    fontWeight: "700",
+    color: "#1f2937",
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   // Pie Chart Styles
   pieChartContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   pieChart: {
     width: 100,
     height: 100,
-    position: 'relative',
+    position: "relative",
     marginBottom: 16,
   },
   pieSegment: {
     borderRadius: 50,
   },
   pieCenter: {
-    position: 'absolute',
+    position: "absolute",
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     top: 20,
     left: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   pieCenterText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1f2937',
+    fontWeight: "700",
+    color: "#1f2937",
   },
   pieCenterLabel: {
     fontSize: 12,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   pieLegend: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
   },
   legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   legendColor: {
     width: 12,
     height: 12,
     borderRadius: 6,
     marginRight: 6,
-  },  legendText: {
+  },
+  legendText: {
     fontSize: 12,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   // Photo Quality Bar Chart Styles
   photoQualityContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   photoQualityBars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "center",
     marginBottom: 20,
     gap: 30,
     height: 140,
   },
   photoBarGroup: {
-    alignItems: 'center',
+    alignItems: "center",
     minWidth: 80,
   },
   photoBar: {
     width: 40,
     marginBottom: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1446,115 +1570,105 @@ const styles = StyleSheet.create({
   },
   photoBarValue: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1f2937',
+    fontWeight: "700",
+    color: "#1f2937",
     marginBottom: 4,
   },
   photoBarLabel: {
     fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'center',
+    color: "#6b7280",
+    textAlign: "center",
     lineHeight: 16,
   },
   photoQualityStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
     gap: 16,
   },
   qualityStatCard: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: "#f8fafc",
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: "#e2e8f0",
   },
   qualityStatNumber: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1f2937',
+    fontWeight: "700",
+    color: "#1f2937",
     marginTop: 8,
     marginBottom: 4,
   },
   qualityStatLabel: {
     fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'center',
-  },  // Work Hours Horizontal Bar Chart Styles
-  workHoursBarContainer: {
-    alignItems: 'center',
-    width: '100%',
+    color: "#6b7280",
+    textAlign: "center",
+  }, // Time Analytics Styles
+  timeAnalyticsContainer: {
+    alignItems: "center",
+    width: "100%",
   },
-  workHoursHeader: {
-    alignItems: 'center',
-    marginBottom: 12,
+  timeMetricsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    marginTop: 16,
+    paddingHorizontal: 20,
   },
-  workHoursMainText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1f2937',
-    marginBottom: 3,
+  timeMetricItem: {
+    alignItems: "center",
+    flex: 1,
   },
-  workHoursPercentage: {
+  timeMetricDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginBottom: 8,
+  },
+  timeMetricLabel: {
+    fontSize: 12,
+    color: "#6b7280",
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  timeMetricValue: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1f2937",
+    textAlign: "center",
+  },
+  // Pause Reasons Styles
+  pauseReasonsContainer: {
+    alignItems: "center",
+    width: "100%",
+  },
+  pauseInsight: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f9ff",
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: "#3b82f6",
+  },
+  pauseInsightText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#3b82f6',
-  },
-  horizontalBarChart: {
-    width: '100%',
-    marginBottom: 12,
-  },
-  barBackground: {
-    width: '100%',
-    height: 16,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },  barFill: {
-    height: '100%',
-    backgroundColor: '#3b82f6',
-    borderRadius: 8,
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  barLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 3,
-  },
-  barStartLabel: {
-    fontSize: 11,
-    color: '#6b7280',
-    fontWeight: '500',
-  },
-  barMidLabel: {
-    fontSize: 11,
-    color: '#6b7280',
-    fontWeight: '500',
-  },  barEndLabel: {
-    fontSize: 11,
-    color: '#6b7280',
-    fontWeight: '500',
+    color: "#1e40af",
+    marginLeft: 8,
+    fontWeight: "500",
   },
   // Gauge Styles
   gaugeContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   gauge: {
     width: 120,
     height: 60,
-    position: 'relative',
+    position: "relative",
     marginBottom: 8,
   },
   gaugeBackground: {
@@ -1562,73 +1676,73 @@ const styles = StyleSheet.create({
     height: 60,
     borderTopLeftRadius: 60,
     borderTopRightRadius: 60,
-    backgroundColor: '#e5e7eb',
-    overflow: 'hidden',
+    backgroundColor: "#e5e7eb",
+    overflow: "hidden",
   },
   gaugeFill: {
-    position: 'absolute',
+    position: "absolute",
     width: 120,
     height: 60,
     borderTopLeftRadius: 60,
     borderTopRightRadius: 60,
-    backgroundColor: '#3b82f6',
-    transformOrigin: 'bottom center',
+    backgroundColor: "#3b82f6",
+    transformOrigin: "bottom center",
   },
   gaugeCenter: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -10,
-    left: '50%',
+    left: "50%",
     transform: [{ translateX: -25 }],
-    alignItems: 'center',
+    alignItems: "center",
   },
   gaugeValue: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1f2937',
+    fontWeight: "700",
+    color: "#1f2937",
   },
   gaugeLabel: {
     fontSize: 12,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   gaugeLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     width: 120,
     marginBottom: 8,
   },
   gaugeStartLabel: {
     fontSize: 10,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   gaugeEndLabel: {
     fontSize: 10,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   efficiencyBadge: {
-    backgroundColor: '#dbeafe',
+    backgroundColor: "#dbeafe",
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 4,
   },
   efficiencyText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontWeight: "600",
+    color: "#2563eb",
   },
   // Bar Chart Styles
   barChartContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   barChart: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-around',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-around",
+    width: "100%",
     height: 100,
     marginBottom: 16,
   },
   barGroup: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   bar: {
     width: 20,
@@ -1637,21 +1751,21 @@ const styles = StyleSheet.create({
   },
   barLabel: {
     fontSize: 10,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   chartLegend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 16,
   },
   // Turbine Grid Styles
   turbineGridContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   turbineGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
     gap: 8,
     marginBottom: 16,
     maxWidth: 200,
@@ -1660,82 +1774,83 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   progressInfo: {
-    alignItems: 'center',
-    width: '100%',
+    alignItems: "center",
+    width: "100%",
   },
   progressText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontWeight: "600",
+    color: "#1f2937",
     marginBottom: 8,
   },
   progressTimeline: {
-    flexDirection: 'row',
-    width: '80%',
+    flexDirection: "row",
+    width: "80%",
     height: 4,
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   timelineCompleted: {
     flex: 5,
-    backgroundColor: '#10b981',
+    backgroundColor: "#10b981",
   },
   timelineRemaining: {
     flex: 5,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: "#e5e7eb",
   },
   // Line Chart Styles
   lineChartContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   lineChart: {
     width: 200,
     height: 100,
-    position: 'relative',
+    position: "relative",
     marginBottom: 16,
   },
   chartGrid: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
+    position: "absolute",
+    width: "100%",
+    height: "100%",
   },
   gridLine: {
     height: 1,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: "#f3f4f6",
     marginBottom: 19,
   },
   lineChartData: {
-    position: 'relative',
-    width: '100%',
-    height: '100%',
+    position: "relative",
+    width: "100%",
+    height: "100%",
   },
   dataPoint: {
-    position: 'absolute',
+    position: "absolute",
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#ef4444',
+    backgroundColor: "#ef4444",
   },
   linePath: {
-    position: 'absolute',
-    backgroundColor: '#ef4444',
+    position: "absolute",
+    backgroundColor: "#ef4444",
   },
   chartInfo: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   trendText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#10b981',
+    fontWeight: "600",
+    color: "#10b981",
     marginBottom: 4,
-  },  currentValue: {
+  },
+  currentValue: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#1f2937',
+    fontWeight: "700",
+    color: "#1f2937",
   },
 
   // Enhanced Navigation Cards Styles
@@ -1756,13 +1871,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     height: 120,
-    position: 'relative',
-    overflow: 'hidden',
+    position: "relative",
+    overflow: "hidden",
   },
   enhancedCardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    height: "100%",
     zIndex: 2,
   },
   enhancedIconWrapper: {
@@ -1772,10 +1887,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -1787,53 +1902,53 @@ const styles = StyleSheet.create({
   },
   enhancedCardTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontWeight: "700",
+    color: "#ffffff",
     marginBottom: 6,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   enhancedCardSubtitle: {
     fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.85)',
+    fontWeight: "500",
+    color: "rgba(255, 255, 255, 0.85)",
     marginBottom: 8,
     lineHeight: 18,
   },
   enhancedCardMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   enhancedMetaText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.9)",
   },
   enhancedMetaDot: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: "rgba(255, 255, 255, 0.6)",
     marginHorizontal: 8,
   },
   enhancedArrowContainer: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   enhancedCardGlow: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: "rgba(255, 255, 255, 0.15)",
   },
 });
