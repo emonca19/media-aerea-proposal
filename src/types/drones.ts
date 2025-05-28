@@ -9,4 +9,5 @@ export interface Drone extends BaseEntity {
   status: DroneStatus;
   assignedTo?: string; // User ID
   notes?: string;
+  hasCamera: boolean;
 }

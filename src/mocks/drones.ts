@@ -1,8 +1,7 @@
 import { DroneStatus } from "../types/common";
 import { Drone } from "../types/drones";
 
-export const mockDrones: Drone[] = [
-  {
+export const mockDrones: Drone[] = [  {
     id: "drone_001",
     name: "DJI Mavic 3 - Unidad 001",
     model: "Mavic 3 Enterprise",
@@ -12,10 +11,10 @@ export const mockDrones: Drone[] = [
     status: "IN_USE" as DroneStatus,
     assignedTo: "pilot_001",
     notes: "Dron principal para inspecciones de largo alcance",
+    hasCamera: true,
     createdAt: new Date("2023-08-15T10:00:00Z"),
     updatedAt: new Date("2025-05-24T08:00:00Z"),
-  },
-  {
+  },  {
     id: "drone_002",
     name: "DJI Mavic 3 - Unidad 002",
     model: "Mavic 3 Enterprise",
@@ -24,10 +23,10 @@ export const mockDrones: Drone[] = [
     acquisitionDate: new Date("2023-08-15"),
     status: "AVAILABLE" as DroneStatus,
     notes: "Unidad de respaldo, recientemente revisada",
+    hasCamera: true,
     createdAt: new Date("2023-08-15T10:00:00Z"),
     updatedAt: new Date("2025-05-20T14:30:00Z"),
-  },
-  {
+  },  {
     id: "drone_003",
     name: "DJI Mavic 3 - Unidad 003",
     model: "Mavic 3 Enterprise",
@@ -37,10 +36,10 @@ export const mockDrones: Drone[] = [
     status: "IN_USE" as DroneStatus,
     assignedTo: "pilot_003",
     notes: "Equipado con cámara de imagen térmica",
+    hasCamera: true,
     createdAt: new Date("2023-09-10T12:00:00Z"),
     updatedAt: new Date("2025-05-24T07:30:00Z"),
-  },
-  {
+  },  {
     id: "drone_004",
     name: "DJI Air 2S - Unidad 001",
     model: "Air 2S",
@@ -50,10 +49,10 @@ export const mockDrones: Drone[] = [
     status: "IN_USE" as DroneStatus,
     assignedTo: "pilot_004",
     notes: "Opción ligera para inspecciones rápidas",
+    hasCamera: true,
     createdAt: new Date("2023-07-20T09:00:00Z"),
     updatedAt: new Date("2025-05-22T16:00:00Z"),
-  },
-  {
+  },  {
     id: "drone_005",
     name: "DJI Mini 3 Pro - Unidad 001",
     model: "Mini 3 Pro",
@@ -62,10 +61,10 @@ export const mockDrones: Drone[] = [
     acquisitionDate: new Date("2024-02-14"),
     status: "AVAILABLE" as DroneStatus,
     notes: "En mantenimiento - necesita reemplazo de hélices",
+    hasCamera: false,
     createdAt: new Date("2024-02-14T11:30:00Z"),
     updatedAt: new Date("2025-05-23T13:45:00Z"),
-  },
-  {
+  },  {
     id: "drone_006",
     name: "Autel EVO Lite+ - Unidad 001",
     model: "EVO Lite+",
@@ -74,6 +73,7 @@ export const mockDrones: Drone[] = [
     acquisitionDate: new Date("2024-04-10"),
     status: "AVAILABLE" as DroneStatus,
     notes: "Nueva adquisición para fines de prueba",
+    hasCamera: false,
     createdAt: new Date("2024-04-10T15:00:00Z"),
     updatedAt: new Date("2024-04-10T15:00:00Z"),
   },

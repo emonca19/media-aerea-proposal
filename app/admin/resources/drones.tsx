@@ -32,7 +32,6 @@ const DronesScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingDrone, setEditingDrone] = useState<Drone | null>(null);
   const [isNewDrone, setIsNewDrone] = useState(false);
-
   // Form state for adding/editing a drone
   const [name, setName] = useState("");
   const [model, setModel] = useState("");
@@ -42,6 +41,7 @@ const DronesScreen = () => {
   const [currentStatus, setCurrentStatus] = useState<DroneStatus>("AVAILABLE");
   const [assignedTo, setAssignedTo] = useState("");
   const [notes, setNotes] = useState("");
+  const [hasCamera, setHasCamera] = useState(true);
 
   // Status update modal state
   const [statusModalVisible, setStatusModalVisible] = useState(false);
@@ -60,7 +60,6 @@ const DronesScreen = () => {
       [section]: !prev[section],
     }));
   };
-
   const resetForm = () => {
     setName("");
     setModel("");
@@ -70,6 +69,7 @@ const DronesScreen = () => {
     setCurrentStatus("AVAILABLE");
     setAssignedTo("");
     setNotes("");
+    setHasCamera(true);
     setEditingDrone(null);
     setIsNewDrone(false);
   };
@@ -92,6 +92,7 @@ const DronesScreen = () => {
     setCurrentStatus(drone.status);
     setAssignedTo(drone.assignedTo || "");
     setNotes(drone.notes || "");
+    setHasCamera(drone.hasCamera);
     setModalVisible(true);
   };
 
@@ -100,7 +101,6 @@ const DronesScreen = () => {
       Alert.alert("Error", "Nombre, Modelo y Fabricante son requeridos.");
       return;
     }
-
     if (isNewDrone || !editingDrone) {
       // Adding new drone
       const newDroneData: Drone = {
@@ -115,6 +115,7 @@ const DronesScreen = () => {
         status: currentStatus,
         assignedTo: assignedTo.trim() || undefined,
         notes: notes.trim() || undefined,
+        hasCamera: hasCamera,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -136,6 +137,7 @@ const DronesScreen = () => {
                 status: currentStatus,
                 assignedTo: assignedTo.trim() || undefined,
                 notes: notes.trim() || undefined,
+                hasCamera: hasCamera,
                 updatedAt: new Date(),
               }
             : d
@@ -199,13 +201,28 @@ const DronesScreen = () => {
           <Text style={styles.detailText}>
             N/S: {item.serialNumber || "N/A"}
           </Text>
-        </View>
+        </View>{" "}
         {item.assignedTo && (
           <View style={styles.detailRow}>
             <Ionicons name="person-outline" size={16} color="#666" />
             <Text style={styles.detailText}>Asignado a: {item.assignedTo}</Text>
           </View>
-        )}
+        )}{" "}
+        <View style={styles.detailRow}>
+          <Ionicons
+            name={item.hasCamera ? "camera-outline" : "ban-outline"}
+            size={16}
+            color={item.hasCamera ? "#10B981" : "#DC2626"}
+          />
+          <Text
+            style={[
+              styles.detailText,
+              { color: item.hasCamera ? "#10B981" : "#DC2626" },
+            ]}
+          >
+            {item.hasCamera ? "Cámara incluida" : "No incluye cámara"}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.droneActions}>
@@ -425,7 +442,45 @@ const DronesScreen = () => {
                       {getStatusDisplayText(s)}
                     </Text>
                   </TouchableOpacity>
-                ))}
+                ))}{" "}
+              </View>
+
+              <Text style={styles.label}>Cámara Incluida*</Text>
+              <View style={styles.statusSelector}>
+                <TouchableOpacity
+                  style={[
+                    styles.statusOption,
+                    hasCamera && styles.statusOptionSelected,
+                  ]}
+                  onPress={() => setHasCamera(true)}
+                >
+                  <Text
+                    style={
+                      hasCamera
+                        ? styles.statusOptionTextSelected
+                        : styles.statusOptionText
+                    }
+                  >
+                    Sí
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.statusOption,
+                    !hasCamera && styles.statusOptionSelected,
+                  ]}
+                  onPress={() => setHasCamera(false)}
+                >
+                  <Text
+                    style={
+                      !hasCamera
+                        ? styles.statusOptionTextSelected
+                        : styles.statusOptionText
+                    }
+                  >
+                    No
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               <Text style={styles.label}>Notas</Text>
