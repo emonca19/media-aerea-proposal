@@ -32,6 +32,7 @@ export type IncidentType =
   | "EQUIPMENT"
   | "ACCIDENT"
   | "CLIENT_PRIORITY"
+  | "DELAY"
   | "OTHER";
 
 export interface BaseEntity {

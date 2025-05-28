@@ -395,7 +395,7 @@ const ProjectInfoMenuEnhanced = () => {
               <Text style={modalStyles.modalSubtitle}>
                 Selecciona las turbinas que has completado para actualizar el progreso del proyecto.
               </Text>
-            </View>            {/* Turbines List */}
+            </View>           
             <FlatList
               data={projectData.turbines}
               keyExtractor={(item) => item.id}

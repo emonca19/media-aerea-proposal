@@ -2,6 +2,8 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from "react";
 import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { requiresBladeInspection as validateBladeInspectionRequired } from '../../../src/utils/bladeInspectionValidation';
+import ActivitySuggestionsCard from "./activity-suggestions-card";
 import { activityTypes } from './quick-register-activity-form';
 
 interface ActivityControlProps {
@@ -14,7 +16,6 @@ interface ActivityControlProps {
   currentPauseReason?: string;
   onIncidentCreate?: (incidentData: any) => void;
   currentIncident?: any | null;
-  onToggleIncidentBlocking?: (incidentId: string, isBlocking: boolean) => void;
   onFinishActivityByBlockingIncident?: (incidentId: string) => void;
   // New props for blade inspection
   requiresBladeInspection?: boolean;
@@ -35,7 +36,6 @@ export default function ActivityControl({
   currentPauseReason,
   onIncidentCreate,
   currentIncident,
-  onToggleIncidentBlocking,
   onFinishActivityByBlockingIncident,
   requiresBladeInspection = false,
   hasCompletedBladeInspection = false,
@@ -46,12 +46,77 @@ export default function ActivityControl({
   const [accumulated, setAccumulated] = useState(0); // tiempo acumulado antes de pausar
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [activityStartTime, setActivityStartTime] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [terminationType, setTerminationType] = useState<'completed' | 'incident'>('completed');
+  const [suggestedActivities, setSuggestedActivities] = useState<any[]>([]);
 
-  const hasActivity = ongoingActivity && ongoingActivity.actualStart;
+  const hasActivity = ongoingActivity && ongoingActivity.actualStart;  // Use the enhanced blade inspection validation logic
+  const shouldRequireBladeInspection = requiresBladeInspection && 
+                                       ongoingActivity && 
+                                       validateBladeInspectionRequired(ongoingActivity);
+                                       
+  const isInspectionPendingAndActionable = shouldRequireBladeInspection && !hasCompletedBladeInspection && onGoToBladeInspection;
+  const isInspectionRequiredNotActionable = shouldRequireBladeInspection && !hasCompletedBladeInspection && !onGoToBladeInspection;
 
-  const isInspectionPendingAndActionable = requiresBladeInspection && !hasCompletedBladeInspection && onGoToBladeInspection;
-  const isInspectionRequiredNotActionable = requiresBladeInspection && !hasCompletedBladeInspection && !onGoToBladeInspection;
+  // Get suggested activities based on current activity
+  React.useEffect(() => {
+    if (ongoingActivity) {
+      // Mock data for suggested activities - replace with actual API call in production
+      const mockSuggestedActivities = [
+        { 
+          id: 'sugg1', 
+          name: 'Inspección Visual Turbina', 
+          type: 'TURBINE_INSPECTION',
+          turbineId: 'turbine1'
+        },
+        { 
+          id: 'sugg2', 
+          name: 'Mantenimiento Preventivo', 
+          type: 'MAINTENANCE'
+        },
+        { 
+          id: 'sugg3', 
+          name: 'Documentación de Incidencias', 
+          type: 'DOCUMENTATION'
+        }
+      ];
+      
+      setSuggestedActivities(mockSuggestedActivities);
+    }
+  }, [ongoingActivity]);
 
+  // Handle finishing activity with proper suggestions
+  const handleFinishWithSuggestions = () => {
+    // Don't show suggestions here - just call onFinish()
+    // The parent component (pilot-dashboard) will show suggestions after the activity is finished
+    onFinish();
+    
+    // Don't set showSuggestions to true here, as it's causing duplicate suggestion displays
+    // setShowSuggestions(true); - REMOVED
+  };
+
+  // Handle finishing due to blocking incident
+  const handleFinishByBlockingIncident = (incidentId: string) => {
+    // Same here - don't show suggestions locally, let the parent handle it
+    if (onFinishActivityByBlockingIncident) {
+      onFinishActivityByBlockingIncident(incidentId);
+    }
+    // setShowSuggestions(true); - REMOVED
+  };
+
+  // Handle selecting a suggested activity
+  const handleActivitySelect = (activityId: string, isTurbineActivity: boolean) => {
+    setShowSuggestions(false);
+    
+    // Remove alert and just handle the selection silently
+    // Alert.alert("Actividad seleccionada", `Iniciando actividad ${activityId}`); - REMOVED
+  };
+
+  // Handle closing suggestions without selecting an activity
+  const handleCloseWithoutSelection = () => {
+    setShowSuggestions(false);
+    // Don't call onFinish again since it was already called in handleFinishWithSuggestions
+  };
 
   // Update current time continuously
   React.useEffect(() => {
@@ -152,9 +217,11 @@ export default function ActivityControl({
                 return <MaterialCommunityIcons name={found.icon as any} size={36} color="#4F6DF5" />;
               }
               return <Ionicons name="briefcase-outline" size={36} color="#4F6DF5" />;            })()}
-          </View>
-          <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">
-            {ongoingActivity.description || ongoingActivity.type || 'Actividad en curso'}
+          </View><Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">
+            {ongoingActivity.description || 
+              (ongoingActivity.type && activityTypes.find(t => t.type === ongoingActivity.type)?.label) || 
+              ongoingActivity.type || 
+              'Actividad en curso'}
           </Text>
           {/* Si está en pausa, mostrar información de pausa debajo con texto más pequeño */}
           {isPaused && pauseStart && (
@@ -181,7 +248,7 @@ export default function ActivityControl({
                 {formatDurationMs(currentTime - (pauseStart || currentTime))}
               </Text>
             </View>
-          )}          {/* Nueva etiqueta y contador principal de actividad, ahora debajo de la pausa */}
+          )}        
           <Text style={{ color: '#64748b', fontSize: 12, fontWeight: '500', textAlign: 'center', marginBottom: 0 }}>
             Tiempo transcurrido
           </Text>
@@ -202,13 +269,13 @@ export default function ActivityControl({
               fontSize: 14,
               color: '#6b7280',
               textAlign: 'center',
-              marginTop: 2, // Adjust as needed for spacing
-              marginBottom: 5, // Add some space before the pause info
+              marginTop: 2,
+              marginBottom: shouldRequireBladeInspection && !hasCompletedBladeInspection ? 5 : 15, // More padding when no blade timing data
             }}>
               Iniciada el: {activityStartTime}
             </Text>
-          )}          {/* Blade inspection status for turbine activities */}
-          {requiresBladeInspection && (
+          )}        
+          {shouldRequireBladeInspection && (
             <View style={styles.bladeInspectionStatus}>
               <View style={styles.bladeInspectionHeader}>
                 <Ionicons 
@@ -220,38 +287,54 @@ export default function ActivityControl({
                   styles.bladeInspectionText,
                   hasCompletedBladeInspection && styles.bladeInspectionCompleted
                 ]}>
-                  Inspección de Aspas: {hasCompletedBladeInspection ? 'Completada' : 'Pendiente'}
+                  Inspección de Aspas: {hasCompletedBladeInspection ? 'Completada ✓' : 'Pendiente'}
                 </Text>
               </View>
               
-              {/* Show blade timing data if available */}
-              {hasCompletedBladeInspection && bladeInspectionTimingData && bladeInspectionTimingData.length > 0 && (
-                <View style={styles.bladeTimingContainer}>
-                  <Text style={styles.bladeTimingTitle}>Tiempos de Inspección:</Text>
-                  {bladeInspectionTimingData.map((blade, index) => (
-                    <View key={index} style={styles.bladeTimingItem}>
-                      <Text style={styles.bladeTimingName}>{blade.bladeName || `Aspa ${blade.bladeNumber}`}</Text>
-                      <Text style={styles.bladeTimingTime}>
-                        {Math.floor(blade.inspectionTime / 60)}:{(blade.inspectionTime % 60).toString().padStart(2, '0')}
+              {/* Show blade timing data if available and completed - Enhanced debugging */}
+              {hasCompletedBladeInspection && (
+                <View>
+                  {bladeInspectionTimingData && bladeInspectionTimingData.length > 0 ? (
+                    <View style={styles.bladeTimingContainer}>
+                      <Text style={styles.bladeTimingTitle}>Tiempos de Inspección por Aspa:</Text>
+                      {bladeInspectionTimingData.map((blade, index) => (
+                        <View key={index} style={styles.bladeTimingItem}>
+                          <Text style={styles.bladeTimingName}>
+                            {blade.bladeName || blade.name || `Aspa ${blade.bladeNumber || (index + 1)}`}
+                          </Text>
+                          <Text style={styles.bladeTimingTime}>
+                            {formatTime(blade.inspectionTime || blade.timeSpent || 0)}
+                          </Text>
+                        </View>
+                      ))}
+                      <View style={styles.bladeTimingTotal}>
+                        <Text style={styles.bladeTimingTotalText}>
+                          Tiempo Total: {formatTime(bladeInspectionTimingData.reduce((sum, blade) => 
+                            sum + (blade.inspectionTime || blade.timeSpent || 0), 0))}
+                        </Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={styles.noTimingDataContainer}>
+                      <Text style={styles.noTimingDataText}>
+                        Inspección completada sin datos de tiempo detallados
                       </Text>
                     </View>
-                  ))}
-                  <View style={styles.bladeTimingTotal}>
-                    <Text style={styles.bladeTimingTotalText}>
-                      Total: {Math.floor(bladeInspectionTimingData.reduce((sum, blade) => sum + blade.inspectionTime, 0) / 60)}:
-                      {(bladeInspectionTimingData.reduce((sum, blade) => sum + blade.inspectionTime, 0) % 60).toString().padStart(2, '0')}
-                    </Text>
-                  </View>
+                  )}
                 </View>
               )}
               
+              {/* Show inspection button only if not completed and action is available */}
               {isInspectionPendingAndActionable && (
                 <TouchableOpacity 
                   style={styles.bladeInspectionButton}
-                  onPress={onGoToBladeInspection}
+                  onPress={() => {
+                    console.log("Going to blade inspection...");
+                    onGoToBladeInspection();
+                  }}
                 >
                   <Ionicons name="search-outline" size={14} color="#8b5cf6" style={{marginRight: 4}} />
-                  <Text style={styles.bladeInspectionButtonText}>Inspeccionar Aspas</Text>
+                  <Text style={styles.bladeInspectionButtonText}>Completar Inspección</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -260,9 +343,7 @@ export default function ActivityControl({
             {!isPaused && (
               <>
                 {isInspectionPendingAndActionable ? (
-                  // Only the disabled "Terminar" button.
-                  // The "Completar Inspección" button is removed from this row.
-                  // The onGoToBladeInspection prop would need to be triggered by another UI element if desired.
+                  // Disabled button when inspection is pending
                   <LinearGradient
                     colors={["#9ca3af", "#6b7280"]} // Grey gradient
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -270,16 +351,17 @@ export default function ActivityControl({
                   >
                     <TouchableOpacity
                       style={styles.gradientBtnContent}
-                      onPress={() => Alert.alert("Inspección Requerida", "Debe completar la inspección de aspas para terminar la actividad.")}
-                      activeOpacity={1} // Less feedback for disabled appearance
+                      onPress={() => {
+                        console.log("Button disabled - inspection required");
+                      }}
+                      activeOpacity={1}
                     >
                       <Ionicons name="lock-closed-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                      <Text style={styles.buttonText}>Requiere Inspección</Text>
+                      <Text style={styles.buttonText}>Completar Inspección Primero</Text>
                     </TouchableOpacity>
                   </LinearGradient>
                 ) : isInspectionRequiredNotActionable ? (
-                  // Case: Inspection is required, but no onGoToBladeInspection prop is provided.
-                  // Show only the disabled "Terminar" button.
+                  // Case: Inspection is required, but no onGoToBladeInspection prop is provided
                   <LinearGradient
                     colors={["#9ca3af", "#6b7280"]} // Grey gradient
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -287,7 +369,7 @@ export default function ActivityControl({
                   >
                     <TouchableOpacity
                       style={styles.gradientBtnContent}
-                      onPress={() => Alert.alert("Inspección Requerida", "La inspección de aspas es necesaria pero la acción para completarla no está disponible.")}
+                      onPress={() => {}}
                       activeOpacity={1}
                     >
                       <Ionicons name="lock-closed-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
@@ -295,8 +377,7 @@ export default function ActivityControl({
                     </TouchableOpacity>
                   </LinearGradient>
                 ) : (
-                  /* Botón Terminar (Habilitado, Rojo) */
-                  /* Covers: No inspection required OR inspection required AND completed. */
+                  /* Botón Terminar (Habilitado) - Removed checkmark */
                   <LinearGradient
                     colors={["#ff5858", "#f857a6"]} // Red gradient for finish
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -304,11 +385,16 @@ export default function ActivityControl({
                   >
                     <TouchableOpacity
                       style={styles.gradientBtnContent}
-                      onPress={onFinish}
+                      onPress={() => {
+                        console.log("Finishing activity...");
+                        handleFinishWithSuggestions();
+                      }}
                       activeOpacity={0.9}
                     >
                       <Ionicons name="stop" size={20} color="#fff" style={{ marginRight: 8 }} />
-                      <Text style={styles.buttonText}>Terminar</Text>
+                      <Text style={styles.buttonText}>
+                        Terminar Actividad
+                      </Text>
                     </TouchableOpacity>
                   </LinearGradient>
                 )}
@@ -342,6 +428,11 @@ export default function ActivityControl({
             <TouchableOpacity
               style={styles.stopButtonTopRight}
               onPress={() => {
+                // Don't show confirmation, just finish the activity directly
+                handleFinishByBlockingIncident(currentIncident.id);
+                
+                // Remove the alert:
+                /*
                 Alert.alert(
                   "Terminar Actividad por Incidente Bloqueante",
                   "¿Estás seguro de que quieres terminar la actividad debido a este incidente bloqueante? La actividad no se marcará como completada.",
@@ -354,15 +445,15 @@ export default function ActivityControl({
                       text: "Terminar Actividad",
                       style: "destructive",
                       onPress: () => {
-                        // Llamar función para terminar actividad por incidente bloqueante
-                        if (onFinishActivityByBlockingIncident) {
-                          onFinishActivityByBlockingIncident(currentIncident.id);
-                        }
+                        // Call the new handler for finishing with blocking incident
+                        handleFinishByBlockingIncident(currentIncident.id);
                       }
                     }
                   ]
                 );
-              }}            >
+                */
+              }}
+            >
               <Ionicons 
                 name="stop-circle" 
                 size={20} 
@@ -379,8 +470,33 @@ export default function ActivityControl({
             </Text>
           )}
         </View>
-      )}</View>
+      )}
+
+      {/* Activity suggestions card - modified for better positioning/transition */}
+      {showSuggestions && (
+        <View style={styles.suggestionsOverlay}>
+          <ActivitySuggestionsCard 
+            activities={suggestedActivities}
+            onActivitySelect={handleActivitySelect}
+            onClose={handleCloseWithoutSelection}
+            onGoToPreflightChecklist={(turbineId, activityId) => {
+              Alert.alert("Checklist", `Abriendo checklist para turbina ${turbineId} y actividad ${activityId}`);
+              setShowSuggestions(false);
+            }}
+            terminationType={terminationType}
+          />
+        </View>
+      )}
+    </View>
   );
+}
+
+// Helper function to format time in MM:SS format
+function formatTime(seconds: number): string {
+  if (!seconds || seconds < 0) return '0:00';
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
 function formatDurationMs(ms: number) {
@@ -411,78 +527,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  card: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    padding: 15,
-    marginVertical: 10,
-    width: '100%',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#555',
-  },
-  smallPauseText: {
-    fontSize: 12,
-    color: '#9ca3af',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pauseModalBox: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    width: '90%',
-  },
-  modalHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1e293b',
-  },
-  closeButton: {
-    padding: 5,
-  },
-  pauseReasonBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 5,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  pauseReasonText: {
-    fontSize: 14,
-  },
-  notesLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 10,
-    marginBottom: 5,
-  },
-  notesInput: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 5,
-    padding: 10,
-    fontSize: 14,
-    color: '#1e293b',
-  },
+  
   iconCircleBox: {
     backgroundColor: '#E8EDFB',
     borderRadius: 999,
@@ -500,77 +545,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
   },
-  cardMainTimer: {
-    fontSize: 38,
-    color: '#4F6DF5',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 4,
-    marginTop: 2,
-    letterSpacing: 1,
-  },
-  pausedTimeBox: {
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 8,
-  },
-  pausedTimeLabel: {
-    fontSize: 16,
-    color: '#f59e0b',
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  pausedTimeMain: {
-    fontSize: 38,
-    color: '#f59e0b',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    letterSpacing: 1,
-  },
   cardActionsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 14,
     marginTop: 18,
     width: '100%',
-  },
-  primaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#4F6DF5',
-    paddingVertical: 16,
-    paddingHorizontal: 28,
-    borderRadius: 12,
-    flex: 1,
-    marginHorizontal: 4,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  dangerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#EF4444',
-    paddingVertical: 16,
-    paddingHorizontal: 22,
-    borderRadius: 12,
-    flex: 1,
-    marginHorizontal: 4,
-  },
-  warningButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F59E0B',
-    paddingVertical: 16,
-    paddingHorizontal: 22,
-    borderRadius: 12,
-    flex: 1,
-    marginHorizontal: 4,
   },
   buttonText: {
     color: '#fff',
@@ -596,87 +576,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     borderRadius: 14,
   },
-  timerGradientCircle: {
-    borderRadius: 999,
-    padding: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 8,
-    width: 160,
-    alignSelf: 'center',
-    shadowColor: '#4F6DF5',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  timerGradientCirclePaused: {
-    borderRadius: 999,
-    padding: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 8,
-    width: 160,
-    alignSelf: 'center',
-    shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  timerShadowWrap: {
-    backgroundColor: 'rgba(255,255,255,0.85)',
-    borderRadius: 50,
-    paddingVertical: 10,
-    paddingHorizontal: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#4F6DF5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    elevation: 6,
-  },  timerShadowWrapPaused: {
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderRadius: 50,
-    paddingVertical: 10,
-    paddingHorizontal: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    elevation: 6,
-  },  smallPauseButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginTop: 12,
-    borderRadius: 6,
-    backgroundColor: 'transparent',
-    alignSelf: 'center',
-  },
-  incidentButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginTop: 10,
-    borderRadius: 8,
-    backgroundColor: '#f3e8ff', // Changed to purple background
-    borderWidth: 1,
-    borderColor: '#e9d5ff', // Changed to purple border
-    alignSelf: 'center',
-  },
-  incidentButtonText: {
-    fontSize: 13,
-    color: '#8b5cf6', // Changed to purple
-    fontWeight: '600',
-  },  currentIncidentDisplay: {
+    currentIncidentDisplay: {
     backgroundColor: '#fef2f2',
     borderRadius: 8,
     padding: 10,
@@ -711,109 +611,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#7f1d1d',
     lineHeight: 14,
-  },incidentTime: {
-    fontSize: 12,
-    color: '#991b1b',
-    fontStyle: 'italic',
-  },  blockingControlsContainer: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#fecaca',
-  },
-  blockingControlsTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#7f1d1d',
-    marginBottom: 12,
-  },
-  blockingToggleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#fecaca',
-    borderRadius: 10,
-    padding: 12,
-  },
-  blockingToggleButtonActive: {
-    backgroundColor: '#dc2626',
-    borderColor: '#b91c1c',
-  },
-  blockingToggleTextContainer: {
-    flex: 1,
-    marginLeft: 8,
-    marginRight: 8,
-  },
-  blockingToggleText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#dc2626',
-    marginBottom: 2,
-  },
-  blockingToggleTextActive: {
-    color: 'white',
-  },
-  blockingToggleSubtext: {
-    fontSize: 12,
-    color: '#7f1d1d',
-    lineHeight: 16,
-  },
-  blockingToggleSubtextActive: {
-    color: '#fecaca',
-  },  confirmPauseBtn: {
-    backgroundColor: '#4F6DF5',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  confirmPauseText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },  blockingToggleButtonSmall: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#fecaca',
-    borderRadius: 6,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  blockingToggleButtonSmallActive: {
-    backgroundColor: '#dc2626',
-    borderColor: '#b91c1c',
-  },  blockingToggleTextSmall: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#dc2626',
-  },  blockingToggleTextSmallActive: {
-    color: 'white',
-  },
-  terminateByIncidentButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#dc2626',
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginTop: 8,
-    shadowColor: '#dc2626',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },  terminateByIncidentButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
   },  stopButtonTopRight: {
     backgroundColor: 'transparent',
     borderRadius: 20,
@@ -902,6 +699,32 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0284c7',
     textAlign: 'center',
+  },
+  suggestionsOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+    padding: 16,
+  },
+  noTimingDataContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  noTimingDataText: {
+    fontSize: 12,
+    color: '#6c757d',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
 

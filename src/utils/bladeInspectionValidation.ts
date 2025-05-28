@@ -83,13 +83,58 @@ export const validateTurbineBladeInspection = async (
 export const requiresBladeInspection = (activity: any): boolean => {
   if (!activity) return false;
   
+  // Exclude transfer, travel, and mobilization activities
+  const activityNameLower = activity.name?.toLowerCase() || '';
+  const activityTypeLower = activity.type?.toLowerCase() || '';
+  const activityDescLower = activity.description?.toLowerCase() || '';
+  
+  const transferKeywords = [
+    'traslado',
+    'transfer',
+    'movilizacion', 
+    'movilización',
+    'mobilization',
+    'travel',
+    'transporte',
+    'transport',
+    'movimiento'
+  ];
+  
+  const turbineTransferKeywords = [
+    'traslado entre turbinas',
+    'traslado de turbina',
+    'transfer between turbines',
+    'turbine transfer',
+    'movilización de turbina',
+    'movilizacion entre turbinas'
+  ];
+  
+  // Check if it's explicitly a transfer/mobilization activity
+  const isTransferActivity = 
+    activityTypeLower === 'travel' ||
+    activityTypeLower === 'transfer' ||
+    activityTypeLower === 'mobilization' ||
+    activityTypeLower === 'movilizacion' ||
+    transferKeywords.some(keyword => 
+      activityNameLower.includes(keyword) || 
+      activityDescLower.includes(keyword)
+    ) ||
+    turbineTransferKeywords.some(keyword => 
+      activityNameLower.includes(keyword) || 
+      activityDescLower.includes(keyword)
+    );
+  
+  if (isTransferActivity) {
+    return false;
+  }
+  
   // Check if activity is turbine-related work
   const isTurbineActivity = 
     activity.type === 'TURBINE_WORK' ||
     activity.type === 'TURBINE_INSPECTION' ||
-    activity.name?.toLowerCase().includes('turbina') ||
-    activity.type?.toLowerCase().includes('turbine') ||
-    activity.description?.toLowerCase().includes('turbina');
+    activityNameLower.includes('turbina') ||
+    activityTypeLower.includes('turbine') ||
+    activityDescLower.includes('turbina');
 
   // Check if activity has a turbine ID assigned
   const hasTurbineId = !!activity.turbineId;

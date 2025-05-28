@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ActivitySuggestionsCardProps {
   activities: any[]; // Usando any en lugar de Activity para evitar problemas con tipos
@@ -16,7 +16,35 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
   onClose,
   onGoToPreflightChecklist,
   terminationType = 'completed' // Default to completed for backward compatibility
-}) => {  // Determina si una actividad está relacionada con turbinas
+}) => {
+  // Animation values for smoother transition
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const scaleAnim = React.useRef(new Animated.Value(0.98)).current;
+  
+  // Start fade-in animation when component mounts - optimized for performance
+  useEffect(() => {
+    // Run animations in parallel for better performance
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 150, // Slightly increased for smoother fade
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 200, // Slightly increased for smoother scale
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, [fadeAnim, scaleAnim]);
+  
+  // Don't render if there are no activities
+  if (!activities || activities.length === 0) {
+    console.log("No activities to suggest, not rendering suggestions card");
+    return null;
+  }
+  
+  // Determina si una actividad está relacionada con turbinas
   const isTurbineActivity = (activity: any) => {
     return (
       activity.type === 'TURBINE_WORK' || 
@@ -46,7 +74,16 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
 
   const headerInfo = getHeaderInfo();
 
-  return (    <View style={styles.container}>
+  return (
+    <Animated.View 
+      style={[
+        styles.container,
+        { 
+          opacity: fadeAnim, 
+          transform: [{ scale: scaleAnim }]
+        }
+      ]}
+    >
       <View style={styles.header}>
         <Ionicons name={headerInfo.icon} size={24} color={headerInfo.color} />
         <Text style={styles.title}>{headerInfo.title}</Text>
@@ -55,75 +92,83 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
       <Text style={styles.subtitle}>{headerInfo.subtitle}</Text>
 
       <View style={styles.activitiesContainer}>
-        {activities.map((activity, index) => {
-          const isTurbine = isTurbineActivity(activity);
-          const turbineId = activity.turbineId || activity.id;
-          
-          return (
-            <TouchableOpacity 
-              key={activity.id} 
-              style={styles.activityButton}
-              onPress={() => onActivitySelect(activity.id, false)}
-            >
-              <View style={styles.activityNumberContainer}>
-                <Text style={styles.activityNumber}>{index + 1}</Text>
-              </View>
-              
-              <View style={styles.activityContent}>
-                <Ionicons 
-                  name={isTurbine ? "nuclear-outline" : "calendar-outline"} 
-                  size={22} 
-                  color="#8b5cf6" // Changed to purple
-                />
-                <Text style={styles.activityName} numberOfLines={1} ellipsizeMode="tail">
-                  {activity.name}
-                </Text>
-              </View>
-              
-              {isTurbine ? (
-                <TouchableOpacity 
-                  style={styles.preflightButton}
-                  onPress={() => onGoToPreflightChecklist && onGoToPreflightChecklist(turbineId, activity.id)} // Pass activity.id
-                >
-                  <Ionicons name="clipboard-outline" size={16} color="#0369a1" />
-                  <Text style={styles.preflightText}>Preflight</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity 
-                  style={styles.startButton}
-                  onPress={() => onActivitySelect(activity.id, false)}
-                >
-                  <Ionicons name="play" size={16} color="#10b981" />
-                  <Text style={styles.startText}>Iniciar</Text>
-                </TouchableOpacity>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+        {activities.length > 0 ? (
+          activities.map((activity, index) => {
+            const isTurbine = isTurbineActivity(activity);
+            const turbineId = activity.turbineId || activity.id;
+            
+            return (
+              <TouchableOpacity 
+                key={activity.id} 
+                style={styles.activityButton}
+                onPress={() => onActivitySelect(activity.id, false)}
+              >
+                <View style={styles.activityNumberContainer}>
+                  <Text style={styles.activityNumber}>{index + 1}</Text>
+                </View>
+                
+                <View style={styles.activityContent}>
+                  <Ionicons 
+                    name={isTurbine ? "nuclear-outline" : "calendar-outline"} 
+                    size={22} 
+                    color="#8b5cf6" // Changed to purple
+                  />
+                  <Text style={styles.activityName} numberOfLines={1} ellipsizeMode="tail">
+                    {activity.name}
+                  </Text>
+                </View>
+                
+                {isTurbine ? (
+                  <TouchableOpacity 
+                    style={styles.preflightButton}
+                    onPress={() => onGoToPreflightChecklist && onGoToPreflightChecklist(turbineId, activity.id)} // Pass activity.id
+                  >
+                    <Ionicons name="clipboard-outline" size={16} color="#0369a1" />
+                    <Text style={styles.preflightText}>Preflight</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity 
+                    style={styles.startButton}
+                    onPress={() => onActivitySelect(activity.id, false)}
+                  >
+                    <Ionicons name="play" size={16} color="#10b981" />
+                    <Text style={styles.startText}>Iniciar</Text>
+                  </TouchableOpacity>
+                )}
+              </TouchableOpacity>
+            );
+          })
+        ) : (
+          <View style={styles.noActivitiesContainer}>
+            <Text style={styles.noActivitiesText}>No hay actividades sugeridas disponibles</Text>
+          </View>
+        )}
       </View>
       <TouchableOpacity 
         style={styles.closeButton} 
-        onPress={onClose} // Simplificado para llamar directamente a la función onClose
-        activeOpacity={0.7}
+        onPress={onClose} // Simply close without additional confirmation
       >
         <Ionicons name="checkmark-circle-outline" size={18} color="#6b7280" style={{ marginRight: 6 }} />
-        <Text style={styles.closeButtonText}>Solo terminar</Text>
+        <Text style={styles.closeButtonText}>Cerrar</Text>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 20,
-    marginVertical: 10,
+    paddingTop: 16, // Reduced from 20 to 16
+    marginVertical: 6, // Reduced from 10 to 6 
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+    width: '100%',
+    maxWidth: 500,
   },
   header: {
     flexDirection: 'row',
@@ -219,6 +264,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#6b7280',
     fontWeight: '500',
+  },
+  noActivitiesContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  noActivitiesText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
 

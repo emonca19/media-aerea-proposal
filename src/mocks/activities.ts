@@ -5,158 +5,205 @@ import {
 } from "../types/activities";
 import { ActivityStatus, ActivityType } from "../types/common";
 
-// Completed activities (from previous day)
+// Helper function to create consistent dates
+const createDate = (dateStr: string): Date => new Date(dateStr);
+
+// Previous day completed activities (May 27, 2025)
 export const mockCompletedActivities: Activity[] = [
   {
-    id: "act_001",
+    id: "act_20250527_001",
     type: "MOBILIZATION" as ActivityType,
     status: "COMPLETED" as ActivityStatus,
-    startTime: new Date("2025-05-24T07:00:00Z"),
-    endTime: new Date("2025-05-24T07:30:00Z"),
-    durationSeconds: 1800,
+    startTime: createDate("2025-05-27T07:00:00Z"),
+    endTime: createDate("2025-05-27T07:45:00Z"),
+    durationSeconds: 2700, // 45 minutes
     projectId: "proj_001",
     pilotId: "pilot_001",
     droneId: "drone_001",
-    notes: "Setting up equipment and preparing for the day",
+    notes: "Movilización desde hotel al parque eólico. Revisión inicial de equipos",
     orderIndex: 1,
-    createdAt: new Date("2025-05-24T07:00:00Z"),
-    updatedAt: new Date("2025-05-24T07:30:00Z"),
+    createdAt: createDate("2025-05-27T07:00:00Z"),
+    updatedAt: createDate("2025-05-27T07:45:00Z"),
   },
   {
-    id: "act_002",
+    id: "act_20250527_002",
     type: "TURBINE_WORK" as ActivityType,
     status: "COMPLETED" as ActivityStatus,
-    startTime: new Date("2025-05-24T08:00:00Z"),
-    endTime: new Date("2025-05-24T10:30:00Z"),
-    durationSeconds: 9000,
+    startTime: createDate("2025-05-27T08:15:00Z"),
+    endTime: createDate("2025-05-27T11:30:00Z"),
+    durationSeconds: 11700, // 3 hours 15 minutes
     projectId: "proj_001",
     turbineId: "turbine_001",
     pilotId: "pilot_001",
     droneId: "drone_001",
-    notes: "Inspecting turbine blades and tower",
+    notes: "Inspección completa de turbina T-001. Revisión de aspas, torre y nacelle. 147 fotos capturadas",
     orderIndex: 2,
-    createdAt: new Date("2025-05-24T08:00:00Z"),
-    updatedAt: new Date("2025-05-24T10:30:00Z"),
+    createdAt: createDate("2025-05-27T08:15:00Z"),
+    updatedAt: createDate("2025-05-27T11:30:00Z"),
   },
   {
-    id: "act_003",
+    id: "act_20250527_003",
     type: "LUNCH" as ActivityType,
     status: "COMPLETED" as ActivityStatus,
-    startTime: new Date("2025-05-24T12:00:00Z"),
-    endTime: new Date("2025-05-24T13:00:00Z"),
-    durationSeconds: 3600,
+    startTime: createDate("2025-05-27T12:00:00Z"),
+    endTime: createDate("2025-05-27T13:00:00Z"),
+    durationSeconds: 3600, // 1 hour
     projectId: "proj_001",
     pilotId: "pilot_001",
-    notes: "Lunch break",
+    notes: "Descanso para almuerzo",
     orderIndex: 3,
-    createdAt: new Date("2025-05-24T12:00:00Z"),
-    updatedAt: new Date("2025-05-24T13:00:00Z"),
+    createdAt: createDate("2025-05-27T12:00:00Z"),
+    updatedAt: createDate("2025-05-27T13:00:00Z"),
   },
-];
-
-// Current day activities (May 25, 2025)
-export const mockTodayCompletedActivities: Activity[] = [
   {
-    id: "act_today_001",
-    type: "MOBILIZATION" as ActivityType,
+    id: "act_20250527_004",
+    type: "TURBINE_WORK" as ActivityType,
     status: "COMPLETED" as ActivityStatus,
-    startTime: new Date("2025-05-25T07:00:00Z"),
-    endTime: new Date("2025-05-25T07:30:00Z"),
-    durationSeconds: 1800,
+    startTime: createDate("2025-05-27T13:30:00Z"),
+    endTime: createDate("2025-05-27T16:45:00Z"),
+    durationSeconds: 11700, // 3 hours 15 minutes
+    projectId: "proj_001",
+    turbineId: "turbine_002",
+    pilotId: "pilot_001",
+    droneId: "drone_001",
+    notes: "Inspección completa de turbina T-002. Detectadas anomalías menores en aspa 2. 163 fotos capturadas",
+    orderIndex: 4,
+    createdAt: createDate("2025-05-27T13:30:00Z"),
+    updatedAt: createDate("2025-05-27T16:45:00Z"),
+  },
+  {
+    id: "act_20250527_005",
+    type: "DEMOBILIZATION" as ActivityType,
+    status: "COMPLETED" as ActivityStatus,
+    startTime: createDate("2025-05-27T17:00:00Z"),
+    endTime: createDate("2025-05-27T17:30:00Z"),
+    durationSeconds: 1800, // 30 minutes
     projectId: "proj_001",
     pilotId: "pilot_001",
     droneId: "drone_001",
-    notes: "Morning setup completed",
+    notes: "Desmontaje de equipo y regreso al hotel",
+    orderIndex: 5,
+    createdAt: createDate("2025-05-27T17:00:00Z"),
+    updatedAt: createDate("2025-05-27T17:30:00Z"),
+  },
+];
+
+// Current day activities (May 28, 2025 - Today)
+export const mockTodayCompletedActivities: Activity[] = [
+  {
+    id: "act_20250528_001",
+    type: "MOBILIZATION" as ActivityType,
+    status: "COMPLETED" as ActivityStatus,
+    startTime: createDate("2025-05-28T07:00:00Z"),
+    endTime: createDate("2025-05-28T07:35:00Z"),
+    durationSeconds: 2100, // 35 minutes
+    projectId: "proj_001",
+    pilotId: "pilot_001",
+    droneId: "drone_001",
+    notes: "Movilización matutina completada. Condiciones climáticas favorables",
     orderIndex: 1,
-    createdAt: new Date("2025-05-25T07:00:00Z"),
-    updatedAt: new Date("2025-05-25T07:30:00Z"),
+    createdAt: createDate("2025-05-28T07:00:00Z"),
+    updatedAt: createDate("2025-05-28T07:35:00Z"),
   },
   {
-    id: "act_today_002",
+    id: "act_20250528_002",
     type: "TURBINE_WORK" as ActivityType,
     status: "COMPLETED" as ActivityStatus,
-    startTime: new Date("2025-05-25T08:00:00Z"),
-    endTime: new Date("2025-05-25T10:00:00Z"),
-    durationSeconds: 7200,
+    startTime: createDate("2025-05-28T08:00:00Z"),
+    endTime: createDate("2025-05-28T11:15:00Z"),
+    durationSeconds: 11700, // 3 hours 15 minutes
     projectId: "proj_001",
     turbineId: "turbine_003",
     pilotId: "pilot_001",
     droneId: "drone_001",
-    notes: "Turbine 3 inspection completed",
+    notes: "Inspección de turbina T-003 completada exitosamente. Todas las aspas en buen estado. 156 fotos capturadas",
     orderIndex: 2,
-    createdAt: new Date("2025-05-25T08:00:00Z"),
-    updatedAt: new Date("2025-05-25T10:00:00Z"),
+    createdAt: createDate("2025-05-28T08:00:00Z"),
+    updatedAt: createDate("2025-05-28T11:15:00Z"),
   },
 ];
 
 export const mockTodayInProgressActivity: Activity = {
-  id: "act_today_003",
+  id: "act_20250528_003",
   type: "TURBINE_WORK" as ActivityType,
   status: "IN_PROGRESS" as ActivityStatus,
-  startTime: new Date("2025-05-25T10:30:00Z"),
+  startTime: createDate("2025-05-28T11:45:00Z"),
   projectId: "proj_001",
   turbineId: "turbine_004",
   pilotId: "pilot_001",
   droneId: "drone_001",
-  notes: "Currently inspecting turbine 4",
+  notes: "Inspección en progreso de turbina T-004. Revisando aspa 2 de 3",
   orderIndex: 3,
-  createdAt: new Date("2025-05-25T10:30:00Z"),
-  updatedAt: new Date("2025-05-25T10:30:00Z"),
+  createdAt: createDate("2025-05-28T11:45:00Z"),
+  updatedAt: createDate("2025-05-28T11:45:00Z"),
 };
 
 export const mockTodayPlannedActivities: Activity[] = [
   {
-    id: "act_today_004",
+    id: "act_20250528_004",
     type: "LUNCH" as ActivityType,
     status: "PLANNED" as ActivityStatus,
     projectId: "proj_001",
     pilotId: "pilot_001",
-    notes: "Planned lunch break",
+    notes: "Descanso programado para almuerzo",
     orderIndex: 4,
-    createdAt: new Date("2025-05-25T07:00:00Z"),
-    updatedAt: new Date("2025-05-25T07:00:00Z"),
+    createdAt: createDate("2025-05-28T07:00:00Z"),
+    updatedAt: createDate("2025-05-28T07:00:00Z"),
   },
   {
-    id: "act_today_005",
+    id: "act_20250528_005",
     type: "TURBINE_WORK" as ActivityType,
     status: "PLANNED" as ActivityStatus,
     projectId: "proj_001",
     turbineId: "turbine_005",
     pilotId: "pilot_001",
     droneId: "drone_001",
-    notes: "Planned inspection of turbine 5",
+    notes: "Inspección programada de turbina T-005",
     orderIndex: 5,
-    createdAt: new Date("2025-05-25T07:00:00Z"),
-    updatedAt: new Date("2025-05-25T07:00:00Z"),
+    createdAt: createDate("2025-05-28T07:00:00Z"),
+    updatedAt: createDate("2025-05-28T07:00:00Z"),
   },
   {
-    id: "act_today_006",
+    id: "act_20250528_006",
     type: "TURBINE_WORK" as ActivityType,
     status: "PLANNED" as ActivityStatus,
     projectId: "proj_001",
     turbineId: "turbine_006",
     pilotId: "pilot_001",
     droneId: "drone_001",
-    notes: "Planned inspection of turbine 6",
+    notes: "Inspección programada de turbina T-006",
     orderIndex: 6,
-    createdAt: new Date("2025-05-25T07:00:00Z"),
-    updatedAt: new Date("2025-05-25T07:00:00Z"),
+    createdAt: createDate("2025-05-28T07:00:00Z"),
+    updatedAt: createDate("2025-05-28T07:00:00Z"),
   },
   {
-    id: "act_today_007",
+    id: "act_20250528_007",
+    type: "TURBINE_WORK" as ActivityType,
+    status: "PLANNED" as ActivityStatus,
+    projectId: "proj_001",
+    turbineId: "turbine_007",
+    pilotId: "pilot_001",
+    droneId: "drone_001",
+    notes: "Inspección programada de turbina T-007 (última del día)",
+    orderIndex: 7,
+    createdAt: createDate("2025-05-28T07:00:00Z"),
+    updatedAt: createDate("2025-05-28T07:00:00Z"),
+  },
+  {
+    id: "act_20250528_008",
     type: "DEMOBILIZATION" as ActivityType,
     status: "PLANNED" as ActivityStatus,
     projectId: "proj_001",
     pilotId: "pilot_001",
     droneId: "drone_001",
-    notes: "End of day cleanup and equipment packing",
-    orderIndex: 7,
-    createdAt: new Date("2025-05-25T07:00:00Z"),
-    updatedAt: new Date("2025-05-25T07:00:00Z"),
+    notes: "Desmontaje de equipos y retorno al hotel",
+    orderIndex: 8,
+    createdAt: createDate("2025-05-28T07:00:00Z"),
+    updatedAt: createDate("2025-05-28T07:00:00Z"),
   },
 ];
 
-// Legacy activities for backwards compatibility
+// Consolidated activities array (legacy support)
 export const mockActivities: Activity[] = [
   ...mockCompletedActivities,
   ...mockTodayCompletedActivities,
@@ -164,9 +211,10 @@ export const mockActivities: Activity[] = [
   ...mockTodayPlannedActivities,
 ];
 
+// Preflight checklists mock data
 export const mockPreflightChecklists: PreflightChecklist[] = [
   {
-    id: "pfc_001",
+    id: "pfc_20250527_001",
     pilotId: "pilot_001",
     droneId: "drone_001",
     projectId: "proj_001",
@@ -179,16 +227,38 @@ export const mockPreflightChecklists: PreflightChecklist[] = [
       communicationCheck: true,
     },
     areaPhotos: [
-      "https://example.com/photos/area_001.jpg",
-      "https://example.com/photos/area_002.jpg",
+      "https://example.com/photos/area_001_20250527.jpg",
+      "https://example.com/photos/area_002_20250527.jpg",
     ],
-    notes: "All systems green, ready for operation",
+    notes: "Condiciones ideales para vuelo. Batería al 100%, viento 8 km/h",
     completed: true,
-    createdAt: new Date("2025-05-24T06:30:00Z"),
-    updatedAt: new Date("2025-05-24T06:45:00Z"),
+    createdAt: createDate("2025-05-27T06:30:00Z"),
+    updatedAt: createDate("2025-05-27T06:45:00Z"),
   },
   {
-    id: "pfc_002",
+    id: "pfc_20250528_001",
+    pilotId: "pilot_001",
+    droneId: "drone_001",
+    projectId: "proj_001",
+    checklistItems: {
+      droneCondition: true,
+      batteryLevel: true,
+      weatherConditions: true,
+      eppValidation: true,
+      areaPhotography: true,
+      communicationCheck: true,
+    },
+    areaPhotos: [
+      "https://example.com/photos/area_001_20250528.jpg",
+      "https://example.com/photos/area_002_20250528.jpg",
+    ],
+    notes: "Excelentes condiciones meteorológicas. Batería al 98%, viento 6 km/h del suroeste",
+    completed: true,
+    createdAt: createDate("2025-05-28T06:45:00Z"),
+    updatedAt: createDate("2025-05-28T07:00:00Z"),
+  },
+  {
+    id: "pfc_20250525_002",
     pilotId: "pilot_002",
     droneId: "drone_002",
     projectId: "proj_002",
@@ -200,30 +270,31 @@ export const mockPreflightChecklists: PreflightChecklist[] = [
       areaPhotography: true,
       communicationCheck: true,
     },
-    areaPhotos: ["https://example.com/photos/area_003.jpg"],
-    notes: "Weather conditions marginal - monitoring wind speeds",
+    areaPhotos: ["https://example.com/photos/area_003_20250525.jpg"],
+    notes: "Condiciones meteorológicas marginales - monitoreando velocidad del viento (15-18 km/h)",
     completed: false,
-    createdAt: new Date("2025-05-24T07:00:00Z"),
-    updatedAt: new Date("2025-05-24T07:15:00Z"),
+    createdAt: createDate("2025-05-25T07:00:00Z"),
+    updatedAt: createDate("2025-05-25T07:15:00Z"),
   },
 ];
 
+// Daily activity summaries mock data
 export const mockDailyActivitySummaries: DailyActivitySummary[] = [
-  // Yesterday's summary (completed day)
+  // Yesterday's summary (May 27, 2025 - completed day)
   {
-    date: new Date("2025-05-24"),
+    date: createDate("2025-05-27"),
     pilotId: "pilot_001",
     projectId: "proj_001",
-    plannedActivities: [], // No planned activities for past days
+    plannedActivities: [], // No planned activities for completed days
     completedActivities: mockCompletedActivities,
-    totalWorkTime: 240, // 4 hours in minutes (1800 + 9000 + 3600 seconds = 14400 seconds = 240 minutes)
-    turbinesWorked: ["turbine_001"],
+    totalWorkTime: 488, // Total: 45min + 3h15min + 1h + 3h15min + 30min = 8h5min = 485min + 3min rounding
+    turbinesWorked: ["turbine_001", "turbine_002"],
     preflightCompleted: true,
     photosSubmitted: true,
   },
-  // Today's summary (current day with mix of completed, in-progress, and planned)
+  // Today's summary (May 28, 2025 - current day with ongoing activities)
   {
-    date: new Date("2025-05-25"),
+    date: createDate("2025-05-28"),
     pilotId: "pilot_001",
     projectId: "proj_001",
     plannedActivities: mockTodayPlannedActivities.sort(
@@ -233,39 +304,39 @@ export const mockDailyActivitySummaries: DailyActivitySummary[] = [
       (a, b) => a.orderIndex - b.orderIndex
     ),
     inProgressActivity: mockTodayInProgressActivity,
-    totalWorkTime: 150, // 2.5 hours in minutes (1800 + 7200 seconds = 9000 seconds = 150 minutes)
+    totalWorkTime: 230, // 35min + 3h15min = 3h50min = 230 minutes
     turbinesWorked: ["turbine_003"],
     preflightCompleted: true,
-    photosSubmitted: false,
+    photosSubmitted: false, // Still working on today's activities
   },
-  // Another pilot's summary for today
+  // Another pilot's summary for today (different project)
   {
-    date: new Date("2025-05-25"),
+    date: createDate("2025-05-28"),
     pilotId: "pilot_002",
     projectId: "proj_002",
     plannedActivities: [
       {
-        id: "act_pilot2_001",
+        id: "act_pilot2_20250528_001",
         type: "MOBILIZATION" as ActivityType,
         status: "PLANNED" as ActivityStatus,
         projectId: "proj_002",
         pilotId: "pilot_002",
         droneId: "drone_002",
-        notes: "Morning setup for pilot 2",
+        notes: "Movilización matutina hacia parque eólico Las Brisas",
         orderIndex: 1,
-        createdAt: new Date("2025-05-25T06:00:00Z"),
-        updatedAt: new Date("2025-05-25T06:00:00Z"),
+        createdAt: createDate("2025-05-28T06:00:00Z"),
+        updatedAt: createDate("2025-05-28T06:00:00Z"),
       },
       {
-        id: "act_pilot2_002",
+        id: "act_pilot2_20250528_002",
         type: "AWAITING_PERMISSION" as ActivityType,
         status: "PLANNED" as ActivityStatus,
         projectId: "proj_002",
         pilotId: "pilot_002",
-        notes: "Waiting for client approval",
+        notes: "Esperando autorización del cliente para iniciar inspecciones",
         orderIndex: 2,
-        createdAt: new Date("2025-05-25T06:00:00Z"),
-        updatedAt: new Date("2025-05-25T06:00:00Z"),
+        createdAt: createDate("2025-05-28T06:00:00Z"),
+        updatedAt: createDate("2025-05-28T06:00:00Z"),
       },
     ],
     completedActivities: [],
@@ -278,10 +349,12 @@ export const mockDailyActivitySummaries: DailyActivitySummary[] = [
 
 // Helper function to get today's activity summary
 export const getTodayActivitySummary = (): DailyActivitySummary => {
+  const today = new Date("2025-05-28");
   return (
     mockDailyActivitySummaries.find(
       (summary) =>
-        summary.date.toDateString() === new Date("2025-05-25").toDateString()
+        summary.date.toDateString() === today.toDateString() &&
+        summary.pilotId === "pilot_001"
     ) || mockDailyActivitySummaries[1]
-  ); // Fallback to pilot_001's summary
+  ); // Fallback to pilot_001's current summary
 };

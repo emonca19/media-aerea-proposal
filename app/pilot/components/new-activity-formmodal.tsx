@@ -68,11 +68,10 @@ interface QuickActivityTypeWithIcon {
 // Tipos de actividad con sus iconos y si requieren un asset
 const quickActivityTypes: QuickActivityTypeWithIcon[] = [
   { id: 'ACT_MOVILIZACION', label: 'Movilización (hotel ↔ parque)', icon: 'truck-fast-outline' },
-  { id: 'ACT_TRASLADO_ASSET', label: 'Traslado a Equipo', icon: 'map-marker-path', requiresAsset: true },
+  { id: 'ACT_TRASLADO_ASSET', label: 'Traslado entre Turbinas', icon: 'map-marker-path', requiresAsset: true },
   { id: 'ACT_TRABAJO_ASSET', label: 'Trabajo en Equipo', icon: 'tools', requiresAsset: true }, // Icono genérico para "tools" o "cog"
   { id: 'ACT_TRABAJO_TURBINA', label: 'Trabajo en Turbina', icon: 'wind-turbine', requiresAsset: true },
   { id: 'ACT_TIEMPO_COMIDA', label: 'Tiempo de Comida', icon: 'food-fork-drink' },
-  { id: 'ACT_DESMOVILIZACION', label: 'Desmovilización (parque ↔ hotel)', icon: 'home-export-outline' },
   { id: 'ACT_TIEMPO_MUERTO', label: 'Tiempo Muerto', icon: 'weather-pouring' },
   { id: 'ACT_OTRO', label: 'Otro (Personalizado)', icon: 'dots-horizontal-circle-outline'},
 ];

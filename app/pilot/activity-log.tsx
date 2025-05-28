@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -12,14 +12,14 @@ import {
 } from 'react-native';
 
 // Import incident types
+import { incidentTypes } from '../../src/mocks/incident-types';
 import { mockTurbines } from '../../src/mocks/turbines';
-import { incidentTypes } from './components/pilot-dashboard-data';
 
 // Mock incident data - distribuido de manera más realista
 const mockIncidents = [
   {
     id: 'INC001',
-    type: 'INC_WEATHER',
+    type: 'WEATHER', // Use the centralized IncidentType enum value
     description: 'Condiciones meteorológicas adversas detectadas durante la inspección.',
     activityId: '2', // Asegúrate que este ID exista en mockActivities
     timestamp: '2023-05-18T09:30:00',

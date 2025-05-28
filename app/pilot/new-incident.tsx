@@ -3,19 +3,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
-import { incidentTypes } from './components/pilot-dashboard-data';
+import { incidentTypes } from '../../src/mocks/incident-types';
+import { IncidentType } from '../../src/types/common';
 
 // Interfaz para los datos del formulario que se envían
 export interface IncidentFormData {
-  type: string;        // ID del tipo de incidente (ej. 'INC_WEATHER')
+  type: IncidentType;  // Use the centralized IncidentType enum
   description: string;
   activityId?: string;
   isBlocking?: boolean; // Whether the incident should block activity continuation
@@ -24,14 +25,15 @@ export interface IncidentFormData {
 // Props opcionales para que se pueda usar como pantalla o como componente dentro de un modal
 interface NewIncidentScreenProps {
   onSubmit?: (incidentData: IncidentFormData) => void;
-  activities?: { id: string; name: string; status: string }[];
+  currentActivity?: { id: string; name: string; status: string } | null;
 }
 
-export default function NewIncidentScreen({ onSubmit, activities = [] }: NewIncidentScreenProps) {
-  const router = useRouter();  // Estados
-  const [incidentTypeId, setIncidentTypeId] = useState<string>('');
+export default function NewIncidentScreen({ onSubmit, currentActivity = null }: NewIncidentScreenProps) {
+  const router = useRouter();
+
+  // Estados
+  const [incidentTypeId, setIncidentTypeId] = useState<IncidentType | ''>('');
   const [incidentDescription, setIncidentDescription] = useState('');
-  const [selectedActivityId, setSelectedActivityId] = useState<string>('');
   const [currentTime] = useState(new Date());
   
   // Formatear la hora actual
@@ -40,33 +42,28 @@ export default function NewIncidentScreen({ onSubmit, activities = [] }: NewInci
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Filtrar actividades que no están completadas
-  const relevantActivities = activities.filter(act => 
-    act.status === 'EN_PROGRESO' || act.status === 'PENDIENTE'
-  );
   const handleSubmit = () => {
+    // Verificar que hay una actividad en curso
+    if (!currentActivity) {
+      Alert.alert("Sin Actividad", "Debe haber una actividad en curso para reportar un incidente.");
+      return;
+    }
+
     if (!incidentTypeId) {
       Alert.alert("Campo Requerido", "Por favor, selecciona un tipo de incidente.");
       return;
     }
-    
-    const incidentData: IncidentFormData = {
-      type: incidentTypeId,
+      const incidentData: IncidentFormData = {
+      type: incidentTypeId as IncidentType,
       description: incidentDescription.trim() || "Sin descripción detallada",
-      activityId: selectedActivityId || undefined,
+      activityId: currentActivity.id,
     };
     
     // Si hay una función onSubmit (modo componente), la llamamos
     if (onSubmit) {
       onSubmit(incidentData);
     } else {
-      // Modo pantalla independiente - mostrar alerta y navegar de vuelta
-      const incidentTypeInfo = incidentTypes.find(it => it.id === incidentTypeId);
-      Alert.alert(
-        "Incidencia Registrada", 
-        `"${incidentTypeInfo?.label || 'Incidente'}" ha sido registrada.`
-      );
-      
+      // Modo pantalla independiente - navegar de vuelta sin mostrar alerta
       if (router.canGoBack()) {
         router.back();
       } else {
@@ -74,6 +71,9 @@ export default function NewIncidentScreen({ onSubmit, activities = [] }: NewInci
       }
     }
   };
+  
+  // El formulario siempre está habilitado visualmente, pero la validación impide el envío sin actividad
+  const canSubmit = !!currentActivity && !!incidentTypeId;
 
   return (
     <View style={styles.screenContainer}>
@@ -95,7 +95,7 @@ export default function NewIncidentScreen({ onSubmit, activities = [] }: NewInci
         
         <Text style={styles.currentTimeDisplay}>
           {currentTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-          {' - '}
+          {' | '}
           {formatTime(currentTime)}
         </Text>
         
@@ -123,76 +123,35 @@ export default function NewIncidentScreen({ onSubmit, activities = [] }: NewInci
                 {incidentType.label}
               </Text>
             </TouchableOpacity>
-          ))}        </View>
+          ))}
+        </View>
 
-        {/* Selector de actividad asociada */}
-        {relevantActivities.length > 0 && (
-          <View style={styles.activitySelection}>
-            <Text style={styles.subtitle}>Asociar a actividad (opcional)</Text>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.activityScroll}
-            >
-              {/* Opción "Sin asociar" */}
-              <TouchableOpacity
-                style={[
-                  styles.activityCard,
-                  selectedActivityId === '' && styles.activityCardSelected
-                ]}
-                onPress={() => setSelectedActivityId('')}
-              >
-                <Ionicons 
-                  name="remove-circle-outline" 
-                  size={24} 
-                  color={selectedActivityId === '' ? '#ffffff' : '#6b7280'} 
-                />
-                <Text style={[
-                  styles.activityName,
-                  selectedActivityId === '' && styles.activityNameSelected
-                ]}>
-                  No asociar
-                </Text>
-                <Text style={[
-                  styles.activityStatus,
-                  selectedActivityId === '' && styles.activityStatusSelected
-                ]}>
-                  Incidente general
-                </Text>
-              </TouchableOpacity>
-              
-              {/* Opciones de actividades */}
-              {relevantActivities.map((activity) => (
-                <TouchableOpacity
-                  key={activity.id}
-                  style={[
-                    styles.activityCard,
-                    selectedActivityId === activity.id && styles.activityCardSelected
-                  ]}
-                  onPress={() => setSelectedActivityId(activity.id)}
-                >
-                  <Ionicons 
-                    name={activity.status === 'EN_PROGRESO' ? 'hourglass-outline' : 'time-outline'} 
-                    size={24} 
-                    color={selectedActivityId === activity.id ? '#ffffff' : (activity.status === 'EN_PROGRESO' ? '#3b82f6' : '#f59e0b')} 
-                  />
-                  <Text style={[
-                    styles.activityName,
-                    selectedActivityId === activity.id && styles.activityNameSelected
-                  ]}>
-                    {activity.name}
-                  </Text>
-                  <Text style={[
-                    styles.activityStatus,
-                    selectedActivityId === activity.id && styles.activityStatusSelected
-                  ]}>
-                    {activity.status === 'EN_PROGRESO' ? 'En curso' : 'Pendiente'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+        {/* Mostrar actividad actual o No asociada */}
+        <View style={styles.activitySelection}>
+          <Text style={styles.subtitle}>Actividad Asociada</Text>
+          <View style={[
+            styles.currentActivityCard,
+            !currentActivity && styles.noActivityCard
+          ]}>
+            <Ionicons 
+              name={currentActivity ? "hourglass-outline" : "alert-circle-outline"} 
+              size={24} 
+              color={currentActivity ? "#3b82f6" : "#94a3b8"} 
+            />
+            <Text style={[
+              styles.currentActivityName,
+              !currentActivity && styles.noActivityName
+            ]}>
+              {currentActivity ? currentActivity.name : "No asociada"}
+            </Text>
+            <Text style={[
+              styles.currentActivityStatus,
+              !currentActivity && styles.noActivityStatus
+            ]}>
+              {currentActivity ? "En curso" : "Requiere actividad"}
+            </Text>
           </View>
-        )}
+        </View>
 
         {/* Descripción del incidente */}
         <Text style={styles.subtitle}>Descripción detallada</Text>
@@ -209,12 +168,28 @@ export default function NewIncidentScreen({ onSubmit, activities = [] }: NewInci
           />
         </View>
         
+        {/* Mostrar mensaje cuando no hay actividad */}
+        {!currentActivity && (
+          <View style={styles.noActivityWarning}>
+            <Ionicons name="pause-circle-outline" size={20} color="#f59e0b" />
+            <Text style={styles.noActivityText}>
+              Sin actividad en curso. Para reportar un incidente, debe iniciar una actividad primero.
+            </Text>
+          </View>
+        )}
+        
         {/* Botón de registro */}
         <TouchableOpacity 
-          style={styles.submitButton} 
+          style={[
+            styles.submitButton,
+            !canSubmit && styles.submitButtonDisabled
+          ]} 
           onPress={handleSubmit}
+          disabled={!canSubmit}
         >
-          <Text style={styles.submitButtonText}>Registrar Incidente</Text>
+          <Text style={styles.submitButtonText}>
+            {!currentActivity ? 'Sin Actividad en Curso' : !incidentTypeId ? 'Selecciona Tipo de Incidente' : 'Registrar Incidente'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -361,8 +336,7 @@ const styles = StyleSheet.create({
     height: 120,
     fontSize: 15,
     color: '#334155',
-  },
-  submitButton: {
+  },  submitButton: {
     backgroundColor: '#ef4444',
     borderRadius: 10,
     paddingVertical: 14,
@@ -373,9 +347,62 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
-  },  submitButtonText: {
+  },
+  submitButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  currentActivityCard: {
+    backgroundColor: '#f0f9ff',
+    borderRadius: 10,
+    padding: 15,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  currentActivityName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1e40af',
+    flex: 1,
+    marginLeft: 10,
+  },  currentActivityStatus: {
+    fontSize: 12,
+    color: '#3b82f6',
+    fontWeight: '500',
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#94a3b8',
+    opacity: 0.6,
+  },
+  noActivityCard: {
+    backgroundColor: '#f1f5f9',
+    borderColor: '#e2e8f0',
+  },
+  noActivityName: {
+    color: '#64748b',
+    fontStyle: 'italic'
+  },
+  noActivityStatus: {
+    color: '#94a3b8',
+  },
+  noActivityWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff7ed',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ffedd5',
+    marginBottom: 15,
+  },
+  noActivityText: {
+    color: '#9a3412',
+    fontSize: 12,
+    marginLeft: 8,
+    flex: 1,
   },
 });

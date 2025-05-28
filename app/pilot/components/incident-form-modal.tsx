@@ -9,14 +9,14 @@ interface IncidentFormModalProps {
   isVisible: boolean;
   onClose: () => void;
   onSubmit: (incidentData: IncidentFormData) => void;
-  activities?: { id: string; name: string; status: string }[];
+  currentActivity?: { id: string; name: string; status: string } | null;
 }
 
 const IncidentFormModal: React.FC<IncidentFormModalProps> = ({ 
   isVisible, 
   onClose, 
   onSubmit,
-  activities = []
+  currentActivity = null
 }) => {
   const router = useRouter();
 
@@ -51,10 +51,9 @@ const IncidentFormModal: React.FC<IncidentFormModalProps> = ({
               <Ionicons name="close" size={36} color="#64748b" />
             </TouchableOpacity>
           </View>
-          
-          <NewIncidentScreen 
+            <NewIncidentScreen 
             onSubmit={handleIncidentSubmit} 
-            activities={activities}
+            currentActivity={currentActivity}
           />
         </View>
       </View>

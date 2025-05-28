@@ -1,6 +1,9 @@
 // app/pilot/dashboard/pilotDashboardData.ts
 // Datos iniciales para el dashboard del piloto
 
+// Types imported from centralized sources
+import { IncidentType } from "../../../src/types/common";
+
 // Datos del piloto
 export const pilot = {
   id: 'P001',
@@ -23,16 +26,6 @@ export const quickActivityTypes = [
   { id: 'ACT_OTHER', label: 'Otro', icon: 'ellipsis-horizontal-outline' },
 ];
 
-// Tipos de incidentes
-export const incidentTypes = [
-  { id: 'INC_WEATHER', label: 'Clima adverso', icon: 'rainy-outline' as const },
-  { id: 'INC_TECH', label: 'Fallo técnico', icon: 'warning-outline' as const },
-  { id: 'INC_BATT', label: 'Batería baja', icon: 'battery-dead-outline' as const },
-  { id: 'INC_SIGNAL', label: 'Pérdida de señal', icon: 'wifi-outline' as const },
-  { id: 'INC_OBSTACLE', label: 'Obstáculo', icon: 'stop-circle-outline' as const },
-  { id: 'INC_OTHER', label: 'Otro', icon: 'help-circle-outline' as const },
-];
-
 // Definición para un item del checklist
 export interface ChecklistItemData {
   id: string;
@@ -43,10 +36,10 @@ export interface ChecklistItemData {
 // Definición para un incidente en los datos del proyecto
 export interface IncidentData {
   id: string;
-  type: string; // Corresponds to incidentTypes id e.g., 'INC_WEATHER'
+  type: IncidentType; // Uses centralized IncidentType enum
   description: string;
   timestamp: string;
-  // label and icon will be derived based on type using incidentTypes
+  // label and icon will be derived based on type using centralized incident types
 }
 
 // Proyecto actual del piloto
@@ -146,11 +139,10 @@ export const initialCurrentProject = {
       actualStart: null,
       actualEnd: null,
     },
-  ],
-  incidents: [ // Added incidents
+  ],  incidents: [ // Added incidents
     {
       id: 'INC001',
-      type: 'INC_BATT',
+      type: 'EQUIPMENT' as IncidentType,
       description: 'Batería #2 mostró descarga rápida durante prueba.',
       timestamp: '2025-05-20T15:00:00',
     }

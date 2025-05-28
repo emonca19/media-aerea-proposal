@@ -2,20 +2,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { incidentTypes } from './pilot-dashboard-data';
+import { IncidentTypeInfo, incidentTypes } from '../../../src/mocks/incident-types';
+import { IncidentType } from '../../../src/types/common';
 
 // Interfaz para los datos del formulario que se envían
 export interface IncidentFormData {
-  type: string;        // ID del tipo de incidente (ej. 'INC_WEATHER')
+  type: IncidentType;  // Use the centralized IncidentType enum
   description: string;
   activityId?: string;
   isBlocking?: boolean; // Whether the incident should block activity continuation
@@ -26,8 +27,8 @@ interface NewIncidentFormModalProps {
   isVisible: boolean;
   onClose: () => void;
   onSubmit: (incidentData: IncidentFormData) => void;
-  incidentTypes: typeof incidentTypes;
-  activities?: { id: string; name: string; status: string }[];
+  incidentTypes?: IncidentTypeInfo[]; // Optional override of incident types
+  currentActivity?: { id: string; name: string } | null; // Current running activity
 }
 
 const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
@@ -35,12 +36,11 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
   onClose,
   onSubmit,
   incidentTypes: providedIncidentTypes,
-  activities = [],
-}) => {
-  // Usar los tipos de incidentes proporcionados o los importados por defecto
+  currentActivity = null,
+}) => {// Usar los tipos de incidentes proporcionados o los importados por defecto
   const typesToUse = providedIncidentTypes || incidentTypes;  // Estado inicial
-  const [incidentTypeId, setIncidentTypeId] = useState<string>('');
-  const [incidentDescription, setIncidentDescription] = useState('');  const [selectedActivityId, setSelectedActivityId] = useState<string>('');
+  const [incidentTypeId, setIncidentTypeId] = useState<IncidentType | ''>('');
+  const [incidentDescription, setIncidentDescription] = useState('');
   const [currentTime] = useState(new Date());
   const [isUrgent, setIsUrgent] = useState(true);
   
@@ -53,26 +53,62 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
     if (isVisible) {
       setIncidentTypeId('');
       setIncidentDescription('');
-      setSelectedActivityId('');
       setIsUrgent(true);
     }
   }, [isVisible]);const handleSubmit = () => {
+    // Verificar que hay una actividad en curso
+    if (!currentActivity) {
+      Alert.alert("Sin Actividad", "Debe haber una actividad en curso para reportar un incidente.");
+      return;
+    }
+    
     if (!incidentTypeId) {
       Alert.alert("Campo Requerido", "Por favor, selecciona un tipo de incidente.");
       return;
     }
     
     onSubmit({
-      type: incidentTypeId,
+      type: incidentTypeId as IncidentType,
       description: incidentDescription.trim() || "Sin descripción detallada",
-      activityId: selectedActivityId || undefined,
+      activityId: currentActivity.id,
     });
   };
 
-  // Filtrar actividades que no están completadas
-  const relevantActivities = activities.filter(act => 
-    act.status === 'EN_PROGRESO' || act.status === 'PENDIENTE'
-  );
+  // Si no hay actividad en curso, no permitir el formulario
+  if (!currentActivity) {
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isVisible}
+        onRequestClose={onClose}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.scrollContentContainer}>
+              <View style={styles.closeButtonContainer}>
+                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                  <Ionicons name="close-circle" size={36} color="#64748b" />
+                </TouchableOpacity>
+              </View>
+              
+              <Text style={styles.headerTitle}>Sin Actividad en Curso</Text>
+              
+              <View style={{alignItems: 'center', marginTop: 20}}>
+                <Ionicons name="pause-circle-outline" size={64} color="#94a3b8" />
+                <Text style={{...styles.subtitle, textAlign: 'center', marginTop: 15}}>
+                  Debe haber una actividad en curso para reportar un incidente
+                </Text>
+                <Text style={{fontSize: 14, color: '#64748b', textAlign: 'center', marginTop: 10}}>
+                  Inicie una actividad desde el dashboard y luego podrá reportar incidentes asociados a ella.
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -144,77 +180,16 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
               >
                 <Ionicons name="information-circle" size={18} color={!isUrgent ? '#fff' : '#3b82f6'} />
                 <Text style={[styles.timeOptionText, !isUrgent && styles.timeOptionTextSelected]}>Informativo</Text>
-              </TouchableOpacity>
-            </View>
+              </TouchableOpacity>            </View>
 
-            {/* Selector de actividad asociada */}
-            {relevantActivities.length > 0 && (
-              <View style={styles.activitySelection}>
-                <Text style={styles.subtitle}>Asociar a actividad (opcional)</Text>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.activityScroll}
-                >
-                  {/* Opción "Sin asociar" */}
-                  <TouchableOpacity
-                    style={[
-                      styles.activityCard,
-                      selectedActivityId === '' && styles.activityCardSelected
-                    ]}
-                    onPress={() => setSelectedActivityId('')}
-                  >
-                    <Ionicons 
-                      name="remove-circle-outline" 
-                      size={24} 
-                      color={selectedActivityId === '' ? '#ffffff' : '#6b7280'} 
-                    />
-                    <Text style={[
-                      styles.activityName,
-                      selectedActivityId === '' && styles.activityNameSelected
-                    ]}>
-                      No asociar
-                    </Text>
-                    <Text style={[
-                      styles.activityStatus,
-                      selectedActivityId === '' && styles.activityStatusSelected
-                    ]}>
-                      Incidente general
-                    </Text>
-                  </TouchableOpacity>
-                  
-                  {/* Opciones de actividades */}
-                  {relevantActivities.map((activity) => (
-                    <TouchableOpacity
-                      key={activity.id}
-                      style={[
-                        styles.activityCard,
-                        selectedActivityId === activity.id && styles.activityCardSelected
-                      ]}
-                      onPress={() => setSelectedActivityId(activity.id)}
-                    >
-                      <Ionicons 
-                        name={activity.status === 'EN_PROGRESO' ? 'hourglass-outline' : 'time-outline'} 
-                        size={24} 
-                        color={selectedActivityId === activity.id ? '#ffffff' : (activity.status === 'EN_PROGRESO' ? '#3b82f6' : '#f59e0b')} 
-                      />
-                      <Text style={[
-                        styles.activityName,
-                        selectedActivityId === activity.id && styles.activityNameSelected
-                      ]}>
-                        {activity.name}
-                      </Text>
-                      <Text style={[
-                        styles.activityStatus,
-                        selectedActivityId === activity.id && styles.activityStatusSelected
-                      ]}>
-                        {activity.status === 'EN_PROGRESO' ? 'En curso' : 'Pendiente'}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+            {/* Mostrar actividad actual */}
+            <View style={styles.currentActivityDisplay}>
+              <Text style={styles.subtitle}>Actividad en Curso</Text>
+              <View style={styles.currentActivityCard}>
+                <Ionicons name="hourglass-outline" size={24} color="#3b82f6" />
+                <Text style={styles.currentActivityName}>{currentActivity.name}</Text>
               </View>
-            )}
+            </View>
 
             {/* Descripción del incidente */}
             <Text style={styles.subtitle}>Descripción detallada</Text>
@@ -352,47 +327,8 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontSize: 14,
     fontWeight: '500',
-  },
-  timeOptionTextSelected: {
+  },  timeOptionTextSelected: {
     color: 'white',
-  },
-  activitySelection: {
-    marginVertical: 15,
-  },
-  activityScroll: {
-    paddingRight: 20,
-  },
-  activityCard: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: 10,
-    padding: 12,
-    marginRight: 10,
-    minWidth: 140,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  activityCardSelected: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#2563eb',
-  },
-  activityName: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginTop: 5,
-    color: '#475569',
-    textAlign: 'center',
-  },
-  activityNameSelected: {
-    color: 'white',
-  },
-  activityStatus: {
-    fontSize: 12,
-    color: '#64748b',
-    marginTop: 2,
-  },
-  activityStatusSelected: {
-    color: '#e0f2fe',
   },
   descriptionContainer: {
     marginTop: 5,
@@ -407,8 +343,7 @@ const styles = StyleSheet.create({
     height: 120,
     fontSize: 15,
     color: '#334155',
-  },
-  submitButton: {
+  },  submitButton: {
     backgroundColor: '#ef4444',
     borderRadius: 10,
     paddingVertical: 14,
@@ -419,10 +354,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
-  },  submitButtonText: {
+  },
+  submitButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  currentActivityDisplay: {
+    marginVertical: 15,
+  },
+  currentActivityCard: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 10,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  currentActivityName: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 10,
+    color: '#1e40af',
   },
 });
 

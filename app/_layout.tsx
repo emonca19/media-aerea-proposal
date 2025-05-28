@@ -9,6 +9,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import CrossPlatformAlert from "../src/components/CrossPlatformAlert";
 
 // Keep the splash screen visible while we fetch resources
@@ -31,8 +32,8 @@ export default function RootLayout() {
   if (!fontsLoaded) {
     return null;
   }
-  return (
-    <>
+    return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="dark" backgroundColor="#FFFFFF" />
       <Stack>
         <Stack.Screen
@@ -61,6 +62,6 @@ export default function RootLayout() {
         />
       </Stack>
       <CrossPlatformAlert />
-    </>
+    </GestureHandlerRootView>
   );
 }

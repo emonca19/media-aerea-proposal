@@ -22,6 +22,8 @@ import {
 import useWeather from "./../../hooks/useWeather"; // Asegúrate que la ruta a hooks sea correcta desde aquí
 
 // Importación nombrada para ActivitiesDisplayList
+import { mockTurbines } from "../../../src/mocks/turbines";
+import { requiresBladeInspection as validateBladeInspectionRequired } from "../../../src/utils/bladeInspectionValidation"; // Import centralized blade inspection validation
 import { ActivitiesDisplayList } from "./activities-display-list"; // Ajusta la ruta si es necesario
 import ActivityControl from "./activity-control"; // Importamos el nuevo componente para control de actividad
 import ActivitySuggestionsCard from "./activity-suggestions-card"; // Importamos el nuevo componente de sugerencias
@@ -33,15 +35,15 @@ import { IncidentFormData } from "./new-incident-formmodal"; // Importamos el ti
 import QuickActionsMenuCard from "./quick-actions-menu-card"; // Ajusta la ruta si es necesaria
 import QuickRegisterActivityForm, {
   activityTypes,
-  mockTurbines,
 } from "./quick-register-activity-form";
 
 import {
   ChecklistItemData,
-  incidentTypes as importedIncidentTypes,
   pilot,
   initialCurrentProject as projectDataFromImport,
 } from "./pilot-dashboard-data";
+
+import { incidentTypes as importedIncidentTypes } from "../../../src/mocks/incident-types";
 
 // Claves para almacenar datos en AsyncStorage
 // const STORAGE_KEYS = {
@@ -205,7 +207,7 @@ function ProjectSummaryCard({
                     {
                       backgroundColor: getStatusColor(project.status) + "20",
                       borderColor: getStatusColor(project.status),
-                    },
+                    }
                   ]}
                 >
                   <View
@@ -383,13 +385,7 @@ const projectSummaryStyles = StyleSheet.create({
     elevation: 4,
     borderWidth: 1,
     borderColor: "#f3f4f6",
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  iconCircle: {
+  },  iconCircle: {
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -403,19 +399,6 @@ const projectSummaryStyles = StyleSheet.create({
   headerInfo: {
     flex: 1,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 4,
-    lineHeight: 24,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: "#6b7280",
-    fontWeight: "500",
-    marginBottom: 8,
-  },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -424,67 +407,6 @@ const projectSummaryStyles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     alignSelf: "flex-start",
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  detailsSection: {
-    marginBottom: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#f3f4f6",
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    color: "#4b5563",
-    marginLeft: 8,
-    flex: 1,
-  },
-  progressSection: {
-    marginBottom: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#f3f4f6",
-  },
-  progressHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  progressLabel: {
-    fontSize: 14,
-    color: "#374151",
-    fontWeight: "500",
-  },
-  progressPercentage: {
-    fontSize: 14,
-    color: "#3b82f6",
-    fontWeight: "700",
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: "#e5e7eb",
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 4,
   },
   // Compact styles for smaller project card
   cardCompact: {
@@ -726,222 +648,6 @@ type DashboardSectionItem = {
     | "ACTIVITY_SUGGESTIONS";
 };
 
-// Enhanced NoActivitiesCard component with improved design and optional actions
-function NoActivitiesCard({
-  message,
-  iconName,
-  onActionPress,
-  actionText = "Crear Nueva Actividad",
-  showAction = false,
-  showQuickActions = false,
-  onSecondaryActionPress,
-  secondaryActionText = "Ver Turbinas",
-  compact = false,
-}: {
-  message: string;
-  iconName: keyof typeof Ionicons.glyphMap;
-  onActionPress?: () => void;
-  actionText?: string;
-  showAction?: boolean;
-  showQuickActions?: boolean;
-  onSecondaryActionPress?: () => void;
-  secondaryActionText?: string;
-  compact?: boolean;
-}) {
-  const router = useRouter();
-
-  const handleNavigate = useCallback(
-    (route: string) => {
-      router.push(route as Href);
-    },
-    [router]
-  );
-  return (
-    <View
-      style={{
-        backgroundColor: "#ffffff",
-        borderRadius: compact ? 12 : 20,
-        padding: compact ? 16 : 32,
-        marginVertical: compact ? 2 : 8,
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: compact ? 100 : 160,
-        borderWidth: compact ? 0 : 2, // Updated borderWidth
-        borderColor: compact ? "transparent" : "#e0f2fe", // Updated borderColor
-        shadowColor: "#3b82f6",
-        shadowOffset: { width: 0, height: compact ? 1 : 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: compact ? 4 : 12,
-        elevation: compact ? 1 : 4,
-      }}
-    >
-      {/* Icon with gradient background */}
-      <View
-        style={{
-          width: compact ? 48 : 72,
-          height: compact ? 48 : 72,
-          borderRadius: compact ? 24 : 36,
-          backgroundColor: '#f3e8ff', // Changed to purple background
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: compact ? 8 : 16,
-          borderWidth: 2,
-          borderColor: '#e9d5ff', // Changed to purple border
-          shadowColor: '#8b5cf6', // Changed to purple shadow
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 2,
-        }}
-      >
-        <Ionicons name={iconName} size={compact ? 24 : 36} color="#8b5cf6" /> {/* Changed to purple */}
-      </View>
-
-      {/* Enhanced message */}
-      <Text
-        style={{
-          fontSize: compact ? 14 : 16,
-          color: "#1e293b",
-          textAlign: "center",
-          maxWidth: "90%",
-          lineHeight: compact ? 18 : 24,
-          fontWeight: "500",
-          marginBottom:
-            (showAction && !compact) || showQuickActions
-              ? compact
-                ? 12
-                : 20
-              : 0, // Adjusted marginBottom
-        }}
-      >
-        {message}
-      </Text>
-      {/* Primary action button */}
-      {showAction &&
-        !compact &&
-        onActionPress && ( // Added !compact condition
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#8b5cf6', // Changed to purple
-              borderRadius: compact ? 8 : 12,
-              paddingHorizontal: compact ? 14 : 20,
-              paddingVertical: compact ? 8 : 12,
-              shadowColor: '#8b5cf6', // Changed to purple shadow
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 4,
-              elevation: 3,
-              marginBottom: showQuickActions ? (compact ? 8 : 12) : 0,
-            }}
-            onPress={onActionPress}
-            activeOpacity={0.8}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons
-                name="add-circle-outline"
-                size={compact ? 16 : 20}
-                color="#ffffff"
-                style={{ marginRight: compact ? 4 : 8 }}
-              />
-              <Text
-                style={{
-                  color: "#ffffff",
-                  fontSize: compact ? 13 : 15,
-                  fontWeight: "600",
-                }}
-              >
-                {actionText}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-
-      {/* Quick actions row */}
-      {showQuickActions && (
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            gap: compact ? 8 : 12,
-            marginTop: showAction && !compact ? 0 : compact ? 8 : 0, // Adjusted marginTop for quick actions when primary is hidden
-          }}
-        >
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#f3e8ff', // Changed to purple background
-              borderRadius: compact ? 6 : 10,
-              paddingHorizontal: compact ? 10 : 16,
-              paddingVertical: compact ? 6 : 10,
-              borderWidth: 1,
-              borderColor: '#e9d5ff', // Changed to purple border
-              shadowColor: '#8b5cf6', // Changed to purple shadow
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.05,
-              shadowRadius: 2,
-              elevation: 1,
-            }}
-            onPress={onSecondaryActionPress}
-            activeOpacity={0.7}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons
-                name="nuclear-outline"
-                size={compact ? 12 : 16}
-                color="#8b5cf6" // Changed to purple
-                style={{ marginRight: compact ? 3 : 6 }}
-              />
-              <Text
-                style={{
-                  color: '#8b5cf6', // Changed to purple
-                  fontSize: compact ? 11 : 13,
-                  fontWeight: '600',
-                }}
-              >
-                {secondaryActionText}
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#f3e8ff', // Changed to purple background
-              borderRadius: compact ? 6 : 10,
-              paddingHorizontal: compact ? 10 : 16,
-              paddingVertical: compact ? 6 : 10,
-              borderWidth: 1,
-              borderColor: '#e9d5ff', // Changed to purple border
-              shadowColor: '#8b5cf6', // Changed to purple shadow
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.05,
-              shadowRadius: 2,
-              elevation: 1,
-            }}
-            onPress={() => handleNavigate("/pilot/activities")}
-            activeOpacity={0.7}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons
-                name="list-outline"
-                size={compact ? 12 : 16}
-                color="#8b5cf6" // Changed to purple
-                style={{ marginRight: compact ? 3 : 6 }}
-              />
-              <Text
-                style={{
-                  color: '#8b5cf6', // Changed to purple
-                  fontSize: compact ? 11 : 13,
-                  fontWeight: '600',
-                }}
-              >
-                Ver Todas
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
-}
 
 const PilotDashboard = () => {
   console.log("PilotDashboard RENDERED - V5"); // Incremented version for clarity
@@ -969,11 +675,8 @@ const PilotDashboard = () => {
     isPaused: boolean;
     reason?: string;
     start?: string;
-    end?: string;
-  }>({ isPaused: false });
-  const [completedPreflightChecks, setCompletedPreflightChecks] = useState<
-    Record<string, boolean>
-  >({});  const [bladeInspectionStatus, setBladeInspectionStatus] = useState<Record<string, boolean>>({});
+    end?: string;  }>({ isPaused: false });
+  const [bladeInspectionStatus, setBladeInspectionStatus] = useState<Record<string, boolean>>({});
   const [bladeInspectionTimingData, setBladeInspectionTimingData] = useState<any[]>([]);
 
   // Inicializamos con datos por defecto, pero intentaremos cargar desde almacenamiento local
@@ -1138,26 +841,7 @@ const PilotDashboard = () => {
       ]),
     [router]
   );
-
   // Nueva función interna solo para forzar el actualStart al volver del checklist
-  const forceStartActivityNow = useCallback((activityId: string) => {
-    setCurrentProject((prev) => {
-      const now = new Date().toISOString();
-      const updatedActivities = (prev.activities || []).map((act) =>
-        act.id === activityId
-          ? {
-              ...act,
-              status: "EN_PROGRESO" as Activity["status"],
-              actualStart: now,
-              time: "Hoy - En curso",
-              lastStartedAt: now, // Campo dummy para forzar rerender
-            }
-          : act
-      );
-      return { ...prev, activities: updatedActivities } as Project;
-    });
-  }, []);
-
   const handleActivityAction = useCallback(
     (activityId: string, newStatusString: string, taskType?: string) => {
       const newStatus = (newStatusString?.toUpperCase().replace(" ", "_") ||
@@ -1287,9 +971,7 @@ const PilotDashboard = () => {
         description: activityData.notes,
         scheduledEnd: null,
         actualEnd: null,
-      };
-
-      setCurrentProject((prev) => {
+      };      setCurrentProject((prev) => {
         let baseActivities = [...(prev.activities || [])];
         if (isForNow) {
           const currentOngoing = baseActivities.find(
@@ -1314,6 +996,12 @@ const PilotDashboard = () => {
 
         return updatedProject;
       });
+
+      // Clear any current incident and pause state when starting a new activity
+      if (isForNow) {
+        setCurrentIncident(null);
+        setActivityPauseState({ isPaused: false });
+      }
 
       setIsNewActivityModalVisible(false);
       Alert.alert(
@@ -1538,15 +1226,9 @@ const PilotDashboard = () => {
         const updatedProject = {
           ...prev,
           incidents: [...(prev.incidents || []), newIncident],
-        };
-
-        return updatedProject;
+        };        return updatedProject;
       });
       setIsNewIncidentModalVisible(false);
-      Alert.alert(
-        "Incidencia Registrada",
-        `"${newIncident.label}" registrada. La actividad en curso ha sido pausada automáticamente.`
-      );
     },
     [currentOngoingActivityForDisplay, handlePauseActivity] // Updated dependencies
   );
@@ -1616,17 +1298,9 @@ const PilotDashboard = () => {
       saveToStorage();
       
       return updatedProject;
-    });
+    });    setActivityTerminationType("completed");
 
-    // Hide activity suggestions if showing
-    if (showActivitySuggestions) {
-      setShowActivitySuggestions(false);
-    }
-
-    setActivityTerminationType("completed");
-
-  
-    // Show suggestions for next activities
+    // Prepare next activity suggestions
     const pendingForToday = pendingTodayActivities.filter(
       (act) => act.id !== activityId
     );
@@ -1634,17 +1308,30 @@ const PilotDashboard = () => {
       (act) => act.id !== activityId
     );
 
-    setTimeout(() => {
-      if (pendingForToday.length > 0) {
-        setSuggestedActivities(pendingForToday.slice(0, 3));
-        setShowActivitySuggestions(true);
-      } else if (genericPendingToShow.length > 0) {
-        setSuggestedActivities(genericPendingToShow.slice(0, 3));
-        setShowActivitySuggestions(true);
-      } else {
+    // Show smooth transition for activity suggestions
+    if (pendingForToday.length > 0 || genericPendingToShow.length > 0) {
+      // First hide current suggestions if any
+      if (showActivitySuggestions) {
         setShowActivitySuggestions(false);
       }
-    }, 1000); // Delay suggestions to allow completion message to be seen
+      
+      // Set up new suggestions and show them with smooth animation
+      setTimeout(() => {
+        if (pendingForToday.length > 0) {
+          setSuggestedActivities(pendingForToday.slice(0, 3));
+        } else {
+          setSuggestedActivities(genericPendingToShow.slice(0, 3));
+        }
+        
+        // Show suggestions with a smooth fade in
+        setTimeout(() => {
+          setShowActivitySuggestions(true);
+        }, 100);
+      }, 300);
+    } else {
+      // No suggestions to show, just hide any existing ones
+      setShowActivitySuggestions(false);
+    }
   }, [
     currentOngoingActivityForDisplay,
     pendingTodayActivities,
@@ -1658,26 +1345,7 @@ const PilotDashboard = () => {
     router,
     bladeInspectionStatus
   ]);
-
   // Handler para el cambio de estado de la actividad al volver del checklist
-  const handleActivityPostChecklist = useCallback(
-    (activityId: string) => {
-      setCurrentProject((prev) => {
-        const updatedActivities = (prev.activities || []).map((act) =>
-          act.id === activityId
-            ? {
-                ...act,
-                status: "EN_PROGRESO" as Activity["status"],
-                actualStart: new Date().toISOString(),
-                time: "Hoy - En curso",
-              }
-            : act
-        );
-        return { ...prev, activities: updatedActivities };
-      });
-    },
-    []
-  );
   // Save project state to storage whenever it changes
   useEffect(() => {
     const saveProjectToStorage = async () => {
@@ -1691,10 +1359,10 @@ const PilotDashboard = () => {
         console.error("Error saving project to storage:", error);
       }
     };
-    
-    saveProjectToStorage();
+      saveProjectToStorage();
   }, [currentProject]);
-  // Load project state from storage on mount
+
+  // Load project state from storage on mount ONLY
   useEffect(() => {
     const loadStoredProject = async () => {
       try {
@@ -1707,17 +1375,17 @@ const PilotDashboard = () => {
           setGlobalProjectData(project);
         } else {
           // Set initial global data with current project if no stored data
-          setGlobalProjectData(currentProject);
+          setGlobalProjectData(typedProjectData);
         }
       } catch (error) {
         console.error("Error loading project from storage:", error);
         // Fallback to setting current project data
-        setGlobalProjectData(currentProject);
+        setGlobalProjectData(typedProjectData);
       }
     };
     
     loadStoredProject();
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
 
   // Efecto para iniciar la actividad de turbina después del checklist prevuelo
   useEffect(() => {
@@ -1794,14 +1462,14 @@ const PilotDashboard = () => {
           const turbineId = turbineIdForActivityStart;
           
           // Find turbine by ID with fallback for format differences
-          let turbine = mockTurbines.find(t => t.id === turbineId);
+          let turbine = mockTurbines.find((t: { id: string; name: string }) => t.id === turbineId);
           if (!turbine) {
             // Try with underscore replacement
-            turbine = mockTurbines.find(t => t.id === turbineId.replace(/_/g, '-'));
+            turbine = mockTurbines.find((t: { id: string }) => t.id === turbineId.replace(/_/g, '-'));
           }
           if (!turbine) {
             // Try with dash replacement
-            turbine = mockTurbines.find(t => t.id === turbineId.replace(/-/g, '_'));
+            turbine = mockTurbines.find((t: { id: string }) => t.id === turbineId.replace(/-/g, '_'));
           }
           
           const turbineName = turbine?.name || `Turbina ${turbineIdForActivityStart.replace(/[_-]/g, '')}`;
@@ -1870,10 +1538,9 @@ const PilotDashboard = () => {
         router.replace({
           pathname: currentPathname,
           params: newParams,
-        } as any);
-      }
+        } as any);      }
     }
-  }, [params, router, currentPathname, activities, mockTurbines, setActivityPauseState]);
+  }, [params, router, currentPathname, activities, setActivityPauseState]);
   // Effect para manejar la finalización de la inspección de aspas
   useEffect(() => {
     const {
@@ -1966,16 +1633,11 @@ const PilotDashboard = () => {
           params: newParams,
         } as any);
       }
-    }
-  }, [params, currentPathname, router, setCurrentProject, pendingTodayActivities, genericPendingActivities, setSuggestedActivities, setShowActivitySuggestions, setActivityPauseState]);
+    }  }, [params, currentPathname, router, setCurrentProject, pendingTodayActivities, genericPendingActivities, setSuggestedActivities, setShowActivitySuggestions, setActivityPauseState]);
 
+  // Use centralized blade inspection validation - returns true if inspection IS required
   const isBladeInspectionRequired = (activity: any) => {
-    return activity && (
-      activity.type === 'TURBINE_WORK' ||
-      activity.type === 'TURBINE_INSPECTION' ||
-      activity.name?.toLowerCase().includes('turbina') ||
-      activity.type?.toLowerCase().includes('turbine')
-    );
+    return validateBladeInspectionRequired(activity);
   };
 
   const hasCompletedBladeInspection = (activityId: string) => {
@@ -1987,7 +1649,6 @@ const PilotDashboard = () => {
     // Implement logic to toggle incident blocking if needed
     Alert.alert("Funcionalidad no implementada", "El cambio de estado de bloqueo de incidente aún no está implementado.");
   }, []);
-
   // Stub para finalizar actividad por incidente bloqueante
   const handleFinishActivityByBlockingIncident = useCallback(() => {
     if (currentOngoingActivityForDisplay) {
@@ -2017,7 +1678,7 @@ const PilotDashboard = () => {
                     ),
                   } : act
                 );
-                  const updatedProject = { ...prev, activities: updatedActivities };
+                const updatedProject = { ...prev, activities: updatedActivities };
                 
                 // Save to storage immediately in a separate async operation
                 const saveToStorage = async () => {
@@ -2029,29 +1690,51 @@ const PilotDashboard = () => {
                   }
                 };
                 saveToStorage();
-                
+
                 return updatedProject;
               });
 
               // Clear states
               setCurrentIncident(null);
               setActivityPauseState({ isPaused: false });
-              setShowActivitySuggestions(false);
               
-              Alert.alert("Actividad Finalizada", "La actividad se ha finalizado debido al incidente.");
+              // Set termination type to incident for suggestions
+              setActivityTerminationType("incident");
+              
+              // Show suggestions for next activities after incident termination
+              const pendingForToday = pendingTodayActivities.filter(
+                (act) => act.id !== activityId
+              );
+              const genericPendingToShow = genericPendingActivities.filter(
+                (act) => act.id !== activityId
+              );
+
+              // Show activity suggestions with reduced delay for incident termination
+              setTimeout(() => {
+                if (pendingForToday.length > 0) {
+                  setSuggestedActivities(pendingForToday.slice(0, 3));
+                  setShowActivitySuggestions(true);
+                } else if (genericPendingToShow.length > 0) {
+                  setSuggestedActivities(genericPendingToShow.slice(0, 3));
+                  setShowActivitySuggestions(true);
+                } else {
+                  setShowActivitySuggestions(false);
+                }
+              }, 300); // Reduced from 1000ms to 300ms for faster suggestions
             },
           },
         ]
       );
     } else {
       Alert.alert("Error", "No hay actividad en curso para finalizar por incidente.");
-    }
-  }, [
+    }  }, [
     currentOngoingActivityForDisplay,
     setCurrentProject,
     setCurrentIncident,
     setActivityPauseState,
     setShowActivitySuggestions,
+    genericPendingActivities,
+    pendingTodayActivities,
   ]);
 
   const renderDashboardSection = useCallback(
@@ -2152,7 +1835,9 @@ const PilotDashboard = () => {
                 activityNameLower.includes("turbina") ||
                 activityNameLower.includes("aerogenerador")
               ) {
-                iconName = "nuclear-outline"; // Icono para trabajo en turbinas
+
+                                                            
+                                                             iconName = "nuclear-outline"; // Icono para trabajo en turbinas
               } else if (
                 activityTypeLower.includes("inspection") ||
                 activityTypeLower.includes("inspección") ||
@@ -2491,12 +2176,10 @@ const PilotDashboard = () => {
                       activityPauseReason
                     );
                   }}
-                  onResume={handleResumeActivity}                  onFinish={handleFinishActivity}
-                  isPaused={activityPauseState.isPaused}
+                  onResume={handleResumeActivity}                  onFinish={handleFinishActivity}                  isPaused={activityPauseState.isPaused}
                   currentPauseReason={activityPauseState.reason}
                   onIncidentCreate={handleOpenNewIncidentModal}
                   currentIncident={currentIncident}
-                  onToggleIncidentBlocking={handleToggleIncidentBlocking}
                   onFinishActivityByBlockingIncident={handleFinishActivityByBlockingIncident}
                   // Pass turbine checklist props
                   requiresBladeInspection={isBladeInspectionRequired(currentOngoingActivityForDisplay)}
@@ -2569,7 +2252,7 @@ const PilotDashboard = () => {
       pendingTodayActivities,
       genericPendingActivities,
       activityTypes,
-      handleLogout,
+      handleLogout, // This is properly defined above
       handleNavigate,
       currentOngoingActivityForDisplay,
       alerts,
@@ -2598,6 +2281,9 @@ const PilotDashboard = () => {
       handleFinishActivityByBlockingIncident,
       currentIncident,
       activities,
+      bladeInspectionTimingData, // Add missing dependency
+      isBladeInspectionRequired, // Add missing dependency
+      hasCompletedBladeInspection, // Add missing dependency
     ]
   );
 
@@ -2628,8 +2314,7 @@ const PilotDashboard = () => {
       
       {/* Quick Register Activity Modal */}
       <QuickRegisterActivityForm
-        isVisible={isNewActivityModalVisible}
-        onClose={() => setIsNewActivityModalVisible(false)}
+        isVisible={isNewActivityModalVisible}        onClose={() => setIsNewActivityModalVisible(false)}
         onSubmit={handleCreateQuickActivity}
       />
 
@@ -2638,13 +2323,11 @@ const PilotDashboard = () => {
         isVisible={isNewIncidentModalVisible}
         onClose={() => setIsNewIncidentModalVisible(false)}
         onSubmit={handleCreateNewIncident}
-        activities={[...ongoingActivities, ...pendingTodayActivities].map(
-          (act) => ({
-            id: act.id,
-            name: act.name,
-            status: act.status,
-          })
-        )}
+        currentActivity={currentOngoingActivityForDisplay ? {
+          id: currentOngoingActivityForDisplay.id,
+          name: currentOngoingActivityForDisplay.name,
+          status: currentOngoingActivityForDisplay.status,
+        } : null}
       />
     </View>
   );
@@ -2721,16 +2404,11 @@ const welcomeStyles = StyleSheet.create({
     color: "#6b7280",
     fontWeight: "600",
     lineHeight: 18,
-  },
-  rightSection: {
+  },  rightSection: {
     alignItems: "flex-end",
     gap: 6,
     flexShrink: 0,
     minWidth: 80,
-  },
-  dateTimeSection: {
-    alignItems: "flex-end",
-    maxWidth: 120,
   },
   dateText: {
     fontSize: 11,
@@ -2739,14 +2417,6 @@ const welcomeStyles = StyleSheet.create({
     textTransform: "capitalize",
     marginTop: 4,
     lineHeight: 14,
-  },
-  timeText: {
-    fontSize: 14,
-    color: "#111827",
-    fontWeight: "700",
-    marginTop: 2,
-    textAlign: "right",
-    lineHeight: 16,
   },
   weatherSection: {
     flexDirection: 'row',
@@ -2815,8 +2485,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
-  },
-  errorCard: {
+  },  errorCard: {
     backgroundColor: "#fee2e2",
     padding: 15,
     borderRadius: 8,
@@ -2834,14 +2503,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 12,
-    color: "#111827",
-  },
-  activityCard: {
+  },  activityCard: {
     backgroundColor: "#e0f7fa",
     borderRadius: 8,
     padding: 12,
@@ -2850,73 +2512,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.1,    shadowRadius: 4,
     elevation: 3,
-  },
-  activityHeader: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  activityIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#4db6e4",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  activityInfo: {
-    flex: 1,
-  },
-  activityType: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#111827",
-  },
-  activityDuration: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  subtitle: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#374151",
-  },
-  activityDetail: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 4,
-  },
-  activityDetailText: {
-    fontSize: 14,
-    color: "#374151",
-    marginLeft: 8,
-  },
-  historyButton: {
-    marginTop: 16,
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginHorizontal: 0,
-    shadowColor: "#2563eb",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  historyButtonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  historyButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });
 
