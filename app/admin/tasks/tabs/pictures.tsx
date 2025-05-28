@@ -13,13 +13,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { mockPhotoSubmissions } from "../../../src/mocks/index";
-import { mockTurbines } from "../../../src/mocks/turbines";
-import { PhotoSubmissionStatus } from "../../../src/types/common";
+import { mockPhotoSubmissions } from "../../../../src/mocks/index";
+import { mockTurbines } from "../../../../src/mocks/turbines";
+import { PhotoSubmissionStatus } from "../../../../src/types/common";
 import {
   PhotoSubmission,
   PhotoSubmissionReview,
-} from "../../../src/types/pictures";
+} from "../../../../src/types/pictures";
 
 export default function PicturesReviewScreen() {
   const [submissions, setSubmissions] =
@@ -352,7 +352,6 @@ export default function PicturesReviewScreen() {
               {item.turbinesInspected.length} turbinas inspeccionadas
             </Text>
           </View>
-       
         </View>
         {/* Indicadores de las nuevas métricas */}
         {review && (
@@ -665,8 +664,6 @@ export default function PicturesReviewScreen() {
                         </Text>
                       </View>
                     </View>
-
-                    
                   </View>
                   {/* Evaluación de Rectitud de la pala */}
                   <View style={styles.evaluationSection}>
@@ -1259,7 +1256,6 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 24,
     elevation: 2,
-    
   },
   infoTitle: {
     fontSize: 16,

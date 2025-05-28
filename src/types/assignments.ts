@@ -9,7 +9,6 @@ export interface ProjectAssignment extends BaseEntity {
   estimatedEndDate: Date;
   estimatedDuration: number; // in days
   assignedBy: string; // Admin user ID
-  confirmed: boolean;
   notes?: string;
 }
 

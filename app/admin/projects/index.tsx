@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
 
 export default function ProjectsIndex() {
-  return <Redirect href="/admin/(projects)/(tabs)/projects" />;
+  return <Redirect href="/admin/projects/tabs/projects" />;
 }

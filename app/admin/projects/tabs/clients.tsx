@@ -118,10 +118,9 @@ export default function ClientsScreen() {
     // Navigate to create new client (can be implemented later)
     Alert.alert("Crear Cliente", "Funcionalidad en desarrollo");
   };
-
   const handleClientPress = (client: Client) => {
     // Navigate to client detail screen
-    router.push(`/admin/projects/${client.id}`);
+    router.push(`/admin/projects/client/${client.id}`);
   };
 
   const renderEmptyState = () => (

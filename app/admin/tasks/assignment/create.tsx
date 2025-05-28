@@ -25,9 +25,9 @@ import {
   mockProjects,
   mockTurbines,
   mockWindParks,
-} from "../../../src/mocks";
-import { ProjectAssignment } from "../../../src/types/assignments";
-import { Project } from "../../../src/types/projects";
+} from "../../../../src/mocks";
+import { ProjectAssignment } from "../../../../src/types/assignments";
+import { Project } from "../../../../src/types/projects";
 
 // Helper function to get pilot profile image
 const getPilotProfileImage = (pilotId: string) => {
@@ -184,7 +184,6 @@ export default function AssignmentsScreen() {
       estimatedEndDate: estimatedEndDate,
       estimatedDuration: estimatedDuration,
       assignedBy: "admin_001", // Current admin user
-      confirmed: false,
       notes,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -841,7 +840,7 @@ export default function AssignmentsScreen() {
         {renderProjectSelector()}
         {renderTurbinesSection()}
         {renderAvailabilitySection()}
-        {renderDurationAndDates()}
+        {renderDurationAndDates()}{" "}
         <View style={styles.finalSection}>
           <TouchableOpacity
             style={[

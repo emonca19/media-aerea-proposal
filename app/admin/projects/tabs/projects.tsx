@@ -271,10 +271,7 @@ export default function ProjectsScreen() {
     router.push("/admin/projects/create");
   };
   const handleProjectPress = (project: Project) => {
-    router.push({
-      pathname: "/admin/projects/[projectId]",
-      params: { id: project.id },
-    });
+    router.push(`/admin/projects/project/${project.id}`);
   };
 
   const renderProjectItem = ({ item }: { item: Project }) => {

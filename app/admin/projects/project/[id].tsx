@@ -19,7 +19,7 @@ import {
   mockProjects,
   mockTurbines,
   mockWindParks,
-} from "../../../src/mocks";
+} from "../../../../src/mocks";
 
 type TabType = "general" | "parks" | "assignments" | "history";
 
@@ -34,20 +34,25 @@ export default function ProjectDetailsScreen() {
       <View style={styles.container}>
         <Stack.Screen options={{ title: "Proyecto no encontrado" }} />
         <View style={styles.errorContainer}>
+          {" "}
           <MaterialCommunityIcons
             name="alert-circle"
             size={64}
             color="#ef4444"
           />
-          <Text style={styles.errorTitle}>Proyecto no encontrado</Text>
+          <Text style={styles.errorTitle}>
+            <Text>Proyecto no encontrado</Text>
+          </Text>
           <Text style={styles.errorDescription}>
-            El proyecto solicitado no existe o ha sido eliminado.
+            <Text>El proyecto solicitado no existe o ha sido eliminado.</Text>
           </Text>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.backButtonText}>Volver</Text>
+            <Text style={styles.backButtonText}>
+              <Text>Volver</Text>
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -139,8 +144,11 @@ export default function ProjectDetailsScreen() {
           >
             {/* Project Status */}
             <View style={styles.section}>
+              {" "}
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Estado del Proyecto</Text>
+                <Text style={styles.sectionTitle}>
+                  <Text>Estado del Proyecto</Text>
+                </Text>
                 <View
                   style={[
                     styles.statusBadge,
@@ -148,62 +156,100 @@ export default function ProjectDetailsScreen() {
                   ]}
                 >
                   <Text style={styles.statusText}>
-                    {getStatusText(project.status)}
+                    <Text>{getStatusText(project.status)}</Text>
                   </Text>
                 </View>
               </View>
-            </View>
-
-            {/* Basic Information */}
+            </View>{" "}
+            {/* Basic Information */}{" "}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Información Básica</Text>
+              <Text style={styles.sectionTitle}>
+                <Text>Información Básica</Text>
+              </Text>
               <View style={styles.infoGrid}>
+                {" "}
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Cliente</Text>
-                  <Text style={styles.infoValue}>{clientName}</Text>
-                </View>
+                  <Text style={styles.infoLabel}>
+                    <Text>Cliente</Text>
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.clientLink}
+                    onPress={() =>
+                      router.push(`/admin/projects/client/${project.clientId}`)
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.clientLinkText}>
+                      <Text>{clientName}</Text>
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color="#9C46CE"
+                    />
+                  </TouchableOpacity>
+                </View>{" "}
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Parque Eólico</Text>
-                  <Text style={styles.infoValue}>{windParkName}</Text>
-                </View>
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Fecha de Inicio</Text>
+                  <Text style={styles.infoLabel}>
+                    <Text>Parque Eólico</Text>
+                  </Text>
                   <Text style={styles.infoValue}>
-                    {new Date(project.startDate).toLocaleDateString("es-ES", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    <Text>{windParkName}</Text>
+                  </Text>
+                </View>{" "}
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>
+                    <Text>Fecha de Inicio</Text>
+                  </Text>{" "}
+                  <Text style={styles.infoValue}>
+                    <Text>
+                      {new Date(project.startDate).toLocaleDateString("es-ES", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </Text>
                   </Text>
                 </View>
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Fecha de Finalización</Text>
+                  <Text style={styles.infoLabel}>
+                    <Text>Fecha de Finalización</Text>
+                  </Text>
                   <Text style={styles.infoValue}>
-                    {new Date(project.endDate).toLocaleDateString("es-ES", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    <Text>
+                      {new Date(project.endDate).toLocaleDateString("es-ES", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </Text>
                   </Text>
                 </View>
               </View>
-            </View>
-
+            </View>{" "}
             {/* Description */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Descripción</Text>
-              <Text style={styles.descriptionText}>{project.description}</Text>
+              <Text style={styles.sectionTitle}>
+                <Text>Descripción</Text>
+              </Text>
+              <Text style={styles.descriptionText}>
+                <Text>{project.description}</Text>
+              </Text>
             </View>
-
             {/* Progress */}
             {progress && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Progreso del Proyecto</Text>
+                <Text style={styles.sectionTitle}>
+                  <Text>Progreso del Proyecto</Text>
+                </Text>
                 <View style={styles.progressCard}>
+                  {" "}
                   <View style={styles.progressHeader}>
-                    <Text style={styles.progressLabel}>Progreso General</Text>
+                    <Text style={styles.progressLabel}>
+                      <Text>Progreso General</Text>
+                    </Text>
                     <Text style={styles.progressPercentage}>
-                      {progress.completionPercentage}%
+                      <Text>{progress.completionPercentage}%</Text>
                     </Text>
                   </View>
                   <View style={styles.progressBar}>
@@ -219,22 +265,27 @@ export default function ProjectDetailsScreen() {
                         },
                       ]}
                     />
-                  </View>
+                  </View>{" "}
                   <View style={styles.progressStats}>
                     <Text style={styles.progressStat}>
-                      {progress.turbinesInspected} de {progress.totalTurbines}
-                      turbinas inspeccionadas
+                      <Text>
+                        {progress.turbinesInspected} de {progress.totalTurbines}{" "}
+                        turbinas inspeccionadas
+                      </Text>
                     </Text>
                   </View>
                 </View>
               </View>
             )}
-
-            {/* Notes */}
+            {/* Notes */}{" "}
             {project.notes && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Notas</Text>
-                <Text style={styles.notesText}>{project.notes}</Text>
+                <Text style={styles.sectionTitle}>
+                  <Text>Notas</Text>
+                </Text>
+                <Text style={styles.notesText}>
+                  <Text>{project.notes}</Text>
+                </Text>
               </View>
             )}
           </ScrollView>
@@ -246,9 +297,12 @@ export default function ProjectDetailsScreen() {
             style={styles.tabContent}
             showsVerticalScrollIndicator={false}
           >
+            {" "}
             {/* Wind Park Information */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Parque Eólico Asociado</Text>
+              <Text style={styles.sectionTitle}>
+                <Text>Parque Eólico Asociado</Text>
+              </Text>
               <View style={styles.parkCard}>
                 <View style={styles.parkHeader}>
                   <MaterialCommunityIcons
@@ -256,26 +310,28 @@ export default function ProjectDetailsScreen() {
                     size={24}
                     color="#9C46CE"
                   />
-                  <Text style={styles.parkName}>{windParkName}</Text>
+                  <Text style={styles.parkName}>
+                    <Text>{windParkName}</Text>
+                  </Text>
                 </View>
                 <Text style={styles.parkDescription}>
-                  Parque eólico principal asociado a este proyecto
+                  <Text>Parque eólico principal asociado a este proyecto</Text>
                 </Text>
               </View>
-            </View>
-
+            </View>{" "}
             {/* Turbines List */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                Turbinas ({turbines.length})
+                <Text>Turbinas ({turbines.length})</Text>
               </Text>
               {turbines.length > 0 ? (
                 <View style={styles.turbinesList}>
-                  
                   {turbines.map((turbine) => (
                     <View key={turbine.id} style={styles.turbineCard}>
                       <View style={styles.turbineHeader}>
-                        <Text style={styles.turbineId}>{turbine.name}</Text>
+                        <Text style={styles.turbineId}>
+                          <Text>{turbine.name}</Text>
+                        </Text>
                         <View
                           style={[
                             styles.turbineStatusBadge,
@@ -291,33 +347,42 @@ export default function ProjectDetailsScreen() {
                             },
                           ]}
                         >
+                          {" "}
                           <Text style={styles.turbineStatusText}>
-                            {turbine.status === "APPROVED"
-                              ? "Aprobada"
-                              : turbine.status === "PHOTOS_UPLOADED"
-                              ? "Fotos Subidas"
-                              : turbine.status === "INSPECTED"
-                              ? "Inspeccionada"
-                              : turbine.status === "NOT_STARTED"
-                              ? "No Iniciada"
-                              : "Rechazada"}
+                            <Text>
+                              {turbine.status === "APPROVED"
+                                ? "Aprobada"
+                                : turbine.status === "PHOTOS_UPLOADED"
+                                ? "Fotos Subidas"
+                                : turbine.status === "INSPECTED"
+                                ? "Inspeccionada"
+                                : turbine.status === "NOT_STARTED"
+                                ? "No Iniciada"
+                                : "Rechazada"}
+                            </Text>
                           </Text>
                         </View>
-                      </View>
+                      </View>{" "}
                       {turbine.position && (
                         <Text style={styles.turbineLocation}>
-                          Posición: X: {turbine.position.x}, Y:
-                          {turbine.position.y}
+                          <Text>
+                            Posición: X: {turbine.position.x}, Y:{" "}
+                            {turbine.position.y}
+                          </Text>
                         </Text>
                       )}
                       {turbine.lastInspection && (
                         <Text style={styles.turbineDate}>
-                          Última inspección:
-                          {turbine.lastInspection.toLocaleDateString()}
+                          <Text>
+                            Última inspección:{" "}
+                            {turbine.lastInspection.toLocaleDateString()}
+                          </Text>
                         </Text>
                       )}
                       {turbine.notes && (
-                        <Text style={styles.turbineNotes}>{turbine.notes}</Text>
+                        <Text style={styles.turbineNotes}>
+                          <Text>{turbine.notes}</Text>
+                        </Text>
                       )}
                     </View>
                   ))}
@@ -330,7 +395,7 @@ export default function ProjectDetailsScreen() {
                     color="#d1d5db"
                   />
                   <Text style={styles.emptyStateText}>
-                    No hay turbinas asociadas a este proyecto
+                    <Text>No hay turbinas asociadas a este proyecto</Text>
                   </Text>
                 </View>
               )}
@@ -344,42 +409,32 @@ export default function ProjectDetailsScreen() {
             style={styles.tabContent}
             showsVerticalScrollIndicator={false}
           >
+            {" "}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                Asignaciones Activas ({assignments.length})
+                <Text>Asignaciones Activas ({assignments.length})</Text>
               </Text>
               {assignments.length > 0 ? (
                 <View style={styles.assignmentsList}>
-                  
                   {assignments.map((assignment) => (
                     <View key={assignment.id} style={styles.assignmentCard}>
+                      {" "}
                       <View style={styles.assignmentHeader}>
                         <Text style={styles.assignmentTitle}>
-                          Asignación #{assignment.id.slice(-4)}
+                          <Text>Asignación #{assignment.id.slice(-4)}</Text>
                         </Text>
-                        <View
-                          style={[
-                            styles.assignmentStatusBadge,
-                            {
-                              backgroundColor: assignment.confirmed
-                                ? "#10b981"
-                                : "#f59e0b",
-                            },
-                          ]}
-                        >
-                          <Text style={styles.assignmentStatusText}>
-                            {assignment.confirmed ? "Confirmada" : "Pendiente"}
-                          </Text>
-                        </View>
                       </View>
                       <View style={styles.assignmentDetails}>
+                        {" "}
                         <View style={styles.assignmentDetailRow}>
                           <Ionicons name="people" size={16} color="#6b7280" />
                           <Text style={styles.assignmentDetailText}>
-                            Pilotos:
-                            {assignment.pilotIds
-                              .map((id) => getPilotName(id))
-                              .join(", ")}
+                            <Text>
+                              Pilotos:{" "}
+                              {assignment.pilotIds
+                                .map((id) => getPilotName(id))
+                                .join(", ")}
+                            </Text>
                           </Text>
                         </View>
                         <View style={styles.assignmentDetailRow}>
@@ -389,32 +444,38 @@ export default function ProjectDetailsScreen() {
                             color="#6b7280"
                           />
                           <Text style={styles.assignmentDetailText}>
-                            Drones:
-                            {assignment.droneIds
-                              .map((id) => getDroneName(id))
-                              .join(", ")}
+                            <Text>
+                              Drones:{" "}
+                              {assignment.droneIds
+                                .map((id) => getDroneName(id))
+                                .join(", ")}
+                            </Text>
                           </Text>
-                        </View>
+                        </View>{" "}
                         <View style={styles.assignmentDetailRow}>
                           <Ionicons name="calendar" size={16} color="#6b7280" />
                           <Text style={styles.assignmentDetailText}>
-                            Inicio:
-                            {assignment.estimatedStartDate.toLocaleDateString(
-                              "es-ES",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              }
-                            )}
+                            <Text>
+                              Inicio:{" "}
+                              {assignment.estimatedStartDate.toLocaleDateString(
+                                "es-ES",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )}
+                            </Text>
                           </Text>
                         </View>
                         <View style={styles.assignmentDetailRow}>
                           <Ionicons name="time" size={16} color="#6b7280" />
                           <Text style={styles.assignmentDetailText}>
-                            Duración: {assignment.estimatedDuration} días
+                            <Text>
+                              Duración: {assignment.estimatedDuration} días
+                            </Text>
                           </Text>
-                        </View>
+                        </View>{" "}
                         {assignment.notes && (
                           <View style={styles.assignmentDetailRow}>
                             <Ionicons
@@ -423,7 +484,7 @@ export default function ProjectDetailsScreen() {
                               color="#6b7280"
                             />
                             <Text style={styles.assignmentDetailText}>
-                              {assignment.notes}
+                              <Text>{assignment.notes}</Text>
                             </Text>
                           </View>
                         )}
@@ -435,11 +496,10 @@ export default function ProjectDetailsScreen() {
                 <View style={styles.emptyState}>
                   <Ionicons name="people-outline" size={48} color="#d1d5db" />
                   <Text style={styles.emptyStateText}>
-                    No hay asignaciones para este proyecto
+                    <Text>No hay asignaciones para este proyecto</Text>
                   </Text>
                 </View>
-              )}
-
+              )}{" "}
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() =>
@@ -450,7 +510,9 @@ export default function ProjectDetailsScreen() {
                 }
               >
                 <Ionicons name="add" size={20} color="#ffffff" />
-                <Text style={styles.actionButtonText}>Nueva Asignación</Text>
+                <Text style={styles.actionButtonText}>
+                  <Text>Nueva Asignación</Text>
+                </Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -462,8 +524,11 @@ export default function ProjectDetailsScreen() {
             style={styles.tabContent}
             showsVerticalScrollIndicator={false}
           >
+            {" "}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Historial de Cambios</Text>
+              <Text style={styles.sectionTitle}>
+                <Text>Historial de Cambios</Text>
+              </Text>
               <View style={styles.historyList}>
                 {/* Mock history entries */}
                 <View style={styles.historyItem}>
@@ -722,6 +787,17 @@ const styles = StyleSheet.create({
     color: "#111827",
     fontWeight: "500",
   },
+  clientLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  clientLinkText: {
+    fontSize: 16,
+    color: "#9C46CE",
+    fontWeight: "500",
+    textDecorationLine: "underline",
+  },
   descriptionText: {
     fontSize: 16,
     color: "#374151",
@@ -856,16 +932,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#111827",
-  },
-  assignmentStatusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  assignmentStatusText: {
-    fontSize: 12,
-    color: "#ffffff",
-    fontWeight: "600",
   },
   assignmentDetails: {
     gap: 8,

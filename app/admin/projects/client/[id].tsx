@@ -12,10 +12,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { mockClients } from "../../../src/mocks/clients";
-import { mockProjects } from "../../../src/mocks/projects";
-import { Client } from "../../../src/types/clients";
-import { Project } from "../../../src/types/projects";
+import { mockClients } from "../../../../src/mocks/clients";
+import { mockProjects } from "../../../../src/mocks/projects";
+import { Client } from "../../../../src/types/clients";
+import { Project } from "../../../../src/types/projects";
 
 type TabType = "general" | "projects" | "history";
 
@@ -234,12 +234,12 @@ const ClientEditModal = React.memo(
 ClientEditModal.displayName = "ClientEditModal";
 
 export default function ClientDetailsScreen() {
-  const { clientId } = useLocalSearchParams();
+  const { id } = useLocalSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>("general");
   const [showEditModal, setShowEditModal] = useState(false);
   const [client, setClient] = useState<Client | undefined>(() => {
-    const id = Array.isArray(clientId) ? clientId[0] : clientId;
-    return mockClients.find((c) => c.id === id);
+    const clientId = Array.isArray(id) ? id[0] : id;
+    return mockClients.find((c) => c.id === clientId);
   });
 
   const clientProjects = useMemo(() => {
@@ -281,9 +281,8 @@ export default function ClientDetailsScreen() {
       prev ? { ...prev, ...clientData, updatedAt: new Date() } : prev
     );
   };
-
   const handleProjectPress = (project: Project) => {
-    router.push(`/admin/projects/${project.id}`);
+    router.push(`/admin/projects/project/${project.id}`);
   };
 
   const tabs = [
