@@ -375,7 +375,7 @@ const CamerasScreen = () => {
                 </View>
               )}
             </>
-          )}{" "}
+          )}
         </View>
       </ScrollView>
 
@@ -671,31 +671,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-  },
-  addButtonContainer: {
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: "transparent",
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#9C46CE",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    shadowColor: "#9C46CE",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  addButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
   },
   scrollContainer: {
     flex: 1,

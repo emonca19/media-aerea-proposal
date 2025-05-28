@@ -20,6 +20,176 @@ import {
 } from "../../../../src/mocks";
 import { Project } from "../../../../src/types/projects";
 
+// Memoized Search Bar Component
+const SearchBar = React.memo(
+  ({
+    searchQuery,
+    onSearchChange,
+    onFilterPress,
+    activeFiltersCount,
+  }: {
+    searchQuery: string;
+    onSearchChange: (text: string) => void;
+    onFilterPress: () => void;
+    activeFiltersCount: number;
+  }) => (
+    <View style={styles.searchContainer}>
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={20} color="#6b7280" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar proyectos..."
+          value={searchQuery}
+          onChangeText={onSearchChange}
+          placeholderTextColor="#9ca3af"
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => onSearchChange("")}>
+            <Ionicons name="close-circle" size={20} color="#6b7280" />
+          </TouchableOpacity>
+        )}
+      </View>
+      <TouchableOpacity style={styles.filterButton} onPress={onFilterPress}>
+        <Ionicons name="filter" size={20} color="#9C46CE" />
+        {activeFiltersCount > 0 && (
+          <View style={styles.filterBadge}>
+            <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  )
+);
+
+SearchBar.displayName = "SearchBar";
+
+// Memoized Project Card Component
+const ProjectCard = React.memo(
+  ({
+    project,
+    onPress,
+    getClientName,
+    getWindParkName,
+    getProjectProgress,
+    getStatusColor,
+    getStatusText,
+  }: {
+    project: Project;
+    onPress: () => void;
+    getClientName: (clientId: string) => string;
+    getWindParkName: (windParkId: string) => string;
+    getProjectProgress: (projectId: string) => any;
+    getStatusColor: (status: string) => string;
+    getStatusText: (status: string) => string;
+  }) => {
+    const progress = getProjectProgress(project.id);
+    const clientName = getClientName(project.clientId);
+    const windParkName = getWindParkName(project.windParkId);
+
+    return (
+      <TouchableOpacity
+        style={styles.projectCard}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        <View style={styles.cardHeader}>
+          <View style={styles.projectInfo}>
+            <Text style={styles.projectName} numberOfLines={1}>
+              {project.name}
+            </Text>
+            <Text style={styles.clientName} numberOfLines={1}>
+              {clientName}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: getStatusColor(project.status) },
+            ]}
+          >
+            <Text style={styles.statusText}>
+              {getStatusText(project.status)}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.projectDetails}>
+          <View style={styles.detailRow}>
+            <MaterialCommunityIcons
+              name="wind-turbine"
+              size={16}
+              color="#6b7280"
+            />
+            <Text style={styles.detailText}>{windParkName}</Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Ionicons name="calendar-outline" size={16} color="#6b7280" />
+            <Text style={styles.detailText}>
+              {new Date(project.startDate).toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })}
+              <Text> - </Text>
+              {new Date(project.endDate).toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })}
+            </Text>
+          </View>
+
+          {progress && (
+            <View style={styles.progressSection}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressLabel}>
+                  <Text>Progreso</Text>
+                </Text>
+                <Text style={styles.progressPercentage}>
+                  <Text>{progress.completionPercentage}%</Text>
+                </Text>
+              </View>
+              <View style={styles.progressBar}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      width: `${progress.completionPercentage}%`,
+                      backgroundColor:
+                        progress.completionPercentage === 100
+                          ? "#22c55e"
+                          : "#9C46CE",
+                    },
+                  ]}
+                />
+              </View>
+              <View style={styles.turbineStats}>
+                <Text style={styles.turbineStat}>
+                  <Text>
+                    {progress.totalTurbines} turbinas •{" "}
+                    {progress.turbinesInspected} inspeccionadas
+                  </Text>
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {project.notes && (
+          <View style={styles.notesSection}>
+            <Text style={styles.notesText} numberOfLines={2}>
+              <Text>{project.notes}</Text>
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  }
+);
+
+ProjectCard.displayName = "ProjectCard";
+
 // Memoized Filter Modal Component to prevent unnecessary re-renders
 const FilterModal = React.memo(
   ({
@@ -48,7 +218,6 @@ const FilterModal = React.memo(
     <Modal
       visible={isVisible}
       animationType="slide"
-      //   transparent={true}
       presentationStyle="pageSheet"
       statusBarTranslucent={true}
       onRequestClose={onClose}
@@ -56,7 +225,9 @@ const FilterModal = React.memo(
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Filtros</Text>
+            <Text style={styles.modalTitle}>
+              <Text>Filtros</Text>
+            </Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#6b7280" />
             </TouchableOpacity>
@@ -67,7 +238,9 @@ const FilterModal = React.memo(
           >
             {/* Status Filter */}
             <View style={styles.filterSection}>
-              <Text style={styles.filterSectionTitle}>Estado del Proyecto</Text>
+              <Text style={styles.filterSectionTitle}>
+                <Text>Estado del Proyecto</Text>
+              </Text>
               <View style={styles.filterOptionsGrid}>
                 {statusFilters.map((status) => (
                   <TouchableOpacity
@@ -86,7 +259,9 @@ const FilterModal = React.memo(
                           styles.filterOptionTextActive,
                       ]}
                     >
-                      {status === "All" ? "Todos" : getStatusText(status)}
+                      <Text>
+                        {status === "All" ? "Todos" : getStatusText(status)}
+                      </Text>
                     </Text>
                     {statusFilter === status && (
                       <Ionicons name="checkmark" size={18} color="#ffffff" />
@@ -98,7 +273,9 @@ const FilterModal = React.memo(
 
             {/* Client Filter */}
             <View style={styles.filterSection}>
-              <Text style={styles.filterSectionTitle}>Cliente</Text>
+              <Text style={styles.filterSectionTitle}>
+                <Text>Cliente</Text>
+              </Text>
               <View style={styles.filterOptionsGrid}>
                 <TouchableOpacity
                   style={[
@@ -114,7 +291,7 @@ const FilterModal = React.memo(
                       clientFilter === "All" && styles.filterOptionTextActive,
                     ]}
                   >
-                    Todos los clientes
+                    <Text>Todos los clientes</Text>
                   </Text>
                   {clientFilter === "All" && (
                     <Ionicons name="checkmark" size={18} color="#ffffff" />
@@ -137,7 +314,7 @@ const FilterModal = React.memo(
                           styles.filterOptionTextActive,
                       ]}
                     >
-                      {client.name}
+                      <Text>{client.name}</Text>
                     </Text>
                     {clientFilter === client.id && (
                       <Ionicons name="checkmark" size={18} color="#ffffff" />
@@ -153,14 +330,18 @@ const FilterModal = React.memo(
               onPress={onClearAllFilters}
               activeOpacity={0.7}
             >
-              <Text style={styles.clearButtonText}>Limpiar filtros</Text>
+              <Text style={styles.clearButtonText}>
+                <Text>Limpiar filtros</Text>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.applyButton}
               onPress={onClose}
               activeOpacity={0.7}
             >
-              <Text style={styles.applyButtonText}>Aplicar</Text>
+              <Text style={styles.applyButtonText}>
+                <Text>Aplicar</Text>
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -275,105 +456,38 @@ export default function ProjectsScreen() {
     router.push(`/admin/projects/project/${project.id}`);
   };
 
-  const renderProjectItem = ({ item }: { item: Project }) => {
-    const progress = getProjectProgress(item.id);
-    const clientName = getClientName(item.clientId);
-    const windParkName = getWindParkName(item.windParkId);
-
-    return (
-      <TouchableOpacity
-        style={styles.projectCard}
-        onPress={() => handleProjectPress(item)}
-        activeOpacity={0.7}
-      >
-        <View style={styles.cardHeader}>
-          <View style={styles.projectInfo}>
-            <Text style={styles.projectName} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <Text style={styles.clientName} numberOfLines={1}>
-              {clientName}
-            </Text>
-          </View>
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: getStatusColor(item.status) },
-            ]}
-          >
-            <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
-          </View>
-        </View>
-
-        <View style={styles.projectDetails}>
-          <View style={styles.detailRow}>
-            <MaterialCommunityIcons
-              name="wind-turbine"
-              size={16}
-              color="#6b7280"
-            />
-            <Text style={styles.detailText}>{windParkName}</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={16} color="#6b7280" />
-            <Text style={styles.detailText}>
-              {new Date(item.startDate).toLocaleDateString("es-ES", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              })}
-              <Text> - </Text>
-              {new Date(item.endDate).toLocaleDateString("es-ES", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              })}
-            </Text>
-          </View>
-
-          {progress && (
-            <View style={styles.progressSection}>
-              <View style={styles.progressHeader}>
-                <Text style={styles.progressLabel}>Progreso</Text>
-                <Text style={styles.progressPercentage}>
-                  {progress.completionPercentage}%
-                </Text>
-              </View>
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      width: `${progress.completionPercentage}%`,
-                      backgroundColor:
-                        progress.completionPercentage === 100
-                          ? "#22c55e"
-                          : "#9C46CE",
-                    },
-                  ]}
-                />
-              </View>
-              <View style={styles.turbineStats}>
-                <Text style={styles.turbineStat}>
-                  {progress.totalTurbines} turbinas •
-                  {progress.turbinesInspected} inspeccionadas
-                </Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        {item.notes && (
-          <View style={styles.notesSection}>
-            <Text style={styles.notesText} numberOfLines={2}>
-              {item.notes}
-            </Text>
-          </View>
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <MaterialCommunityIcons name="folder-outline" size={64} color="#d1d5db" />
+      <Text style={styles.emptyTitle}>
+        <Text>No se encontraron proyectos</Text>
+      </Text>
+      <Text style={styles.emptyDescription}>
+        {searchQuery || activeFiltersCount() > 0 ? (
+          <Text>
+            No se encontraron proyectos que coincidan con los criterios de
+            búsqueda
+          </Text>
+        ) : (
+          <Text>
+            Comienza creando tu primer proyecto para gestionar las inspecciones
+          </Text>
         )}
-      </TouchableOpacity>
-    );
-  };
+      </Text>
+    </View>
+  );
+
+  const renderProjectItem = ({ item }: { item: Project }) => (
+    <ProjectCard
+      project={item}
+      onPress={() => handleProjectPress(item)}
+      getClientName={getClientName}
+      getWindParkName={getWindParkName}
+      getProjectProgress={getProjectProgress}
+      getStatusColor={getStatusColor}
+      getStatusText={getStatusText}
+    />
+  );
 
   return (
     <View style={styles.container}>
@@ -390,80 +504,49 @@ export default function ProjectsScreen() {
           ),
         }}
       />
-      {/* Elegant Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#9ca3af" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar proyectos..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor="#9ca3af"
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setIsFilterModalVisible(true)}
-        >
-          <Ionicons name="filter" size={20} color="#9C46CE" />
-          {activeFiltersCount() > 0 && (
-            <View style={styles.filterBadge}>
-              <Text style={styles.filterBadgeText}>{activeFiltersCount()}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+      <SearchBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onFilterPress={() => setIsFilterModalVisible(true)}
+        activeFiltersCount={activeFiltersCount()}
+      />
       {/* Active Filters Indicator */}
       {activeFiltersCount() > 0 && (
         <View style={styles.activeFiltersContainer}>
           <Text style={styles.activeFiltersText}>
-            {activeFiltersCount()} filtro
-            {activeFiltersCount() > 1 ? "s" : ""}
-            <Text> </Text>
-            activo{activeFiltersCount() > 1 ? "s" : ""}
+            <Text>
+              {activeFiltersCount()} filtro
+              {activeFiltersCount() > 1 ? "s" : ""} activo
+              {activeFiltersCount() > 1 ? "s" : ""}
+            </Text>
           </Text>
           <TouchableOpacity onPress={clearAllFilters}>
-            <Text style={styles.clearFiltersText}>Limpiar</Text>
+            <Text style={styles.clearFiltersText}>
+              <Text>Limpiar</Text>
+            </Text>
           </TouchableOpacity>
         </View>
       )}
       {/* Results Counter */}
       <View style={styles.resultsContainer}>
         <Text style={styles.resultsText}>
-          {filteredProjects.length} proyecto
-          {filteredProjects.length !== 1 ? "s" : ""} encontrado
-          {filteredProjects.length !== 1 ? "s" : ""}
+          <Text>
+            {filteredProjects.length} proyecto
+            {filteredProjects.length !== 1 ? "s" : ""} encontrado
+            {filteredProjects.length !== 1 ? "s" : ""}
+          </Text>
         </Text>
       </View>
-      {/* Projects List */}
       <FlatList
         data={filteredProjects}
         renderItem={renderProjectItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={[
+          styles.listContainer,
+          filteredProjects.length === 0 && styles.emptyListContainer,
+        ]}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <MaterialCommunityIcons
-              name="folder-outline"
-              size={64}
-              color="#d1d5db"
-            />
-            <Text style={styles.emptyTitle}>No se encontraron proyectos</Text>
-            <Text style={styles.emptyDescription}>
-              {searchQuery || activeFiltersCount() > 0
-                ? "Intenta ajustar los filtros de búsqueda"
-                : "Aún no hay proyectos creados"}
-            </Text>
-          </View>
-        }
+        ListEmptyComponent={renderEmptyState}
       />
       <FilterModal
         isVisible={isFilterModalVisible}
@@ -505,7 +588,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
-    gap: 12,
   },
   searchBar: {
     flex: 1,
@@ -535,6 +617,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e5e7eb",
     position: "relative",
+    marginLeft: 12,
   },
   filterBadge: {
     position: "absolute",
@@ -584,16 +667,21 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
-    gap: 16,
+  },
+  emptyListContainer: {
+    flex: 1,
+    justifyContent: "center",
   },
   projectCard: {
     backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 16,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
+    elevation: 3,
   },
   cardHeader: {
     flexDirection: "row",
@@ -628,6 +716,7 @@ const styles = StyleSheet.create({
   },
   projectDetails: {
     gap: 8,
+    marginBottom: 12,
   },
   detailRow: {
     flexDirection: "row",
@@ -707,7 +796,9 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     textAlign: "center",
     lineHeight: 20,
-  }, // Modal Styles
+    paddingHorizontal: 32,
+  },
+  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -721,9 +812,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: Platform.OS === "web" ? 20 : 20,
     borderBottomLeftRadius: Platform.OS === "web" ? 20 : 0,
     borderBottomRightRadius: Platform.OS === "web" ? 20 : 0,
-    maxWidth: Platform.OS === "web" ? 600 : "100%", // Limit width on web
+    maxWidth: Platform.OS === "web" ? 600 : "100%",
     width: Platform.OS === "web" ? "100%" : "100%",
-    maxHeight: Platform.OS === "web" ? "80%" : "100%", // Limit height on web
+    maxHeight: Platform.OS === "web" ? "80%" : "100%",
   },
   modalHeader: {
     flexDirection: "row",

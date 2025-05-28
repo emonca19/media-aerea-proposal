@@ -114,7 +114,11 @@ export default function AssignmentsScreen() {
     }
   };
   const handleStartDateChange = (event: any, selectedDate?: Date) => {
-    setShowStartDatePicker(false);
+    // Only close on mobile (native DateTimePicker)
+    if (Platform.OS !== "web") {
+      setShowStartDatePicker(false);
+    }
+
     if (selectedDate) {
       setDateValidationMessage("");
 
@@ -126,10 +130,19 @@ export default function AssignmentsScreen() {
       }
       setEstimatedStartDate(selectedDate);
       calculateDuration(selectedDate, estimatedEndDate);
+
+      // Close modal on web after selecting a date
+      if (Platform.OS === "web") {
+        setShowStartDatePicker(false);
+      }
     }
   };
   const handleEndDateChange = (event: any, selectedDate?: Date) => {
-    setShowEndDatePicker(false);
+    // Only close on mobile (native DateTimePicker)
+    if (Platform.OS !== "web") {
+      setShowEndDatePicker(false);
+    }
+
     if (selectedDate) {
       setDateValidationMessage("");
 
@@ -145,6 +158,11 @@ export default function AssignmentsScreen() {
 
       setEstimatedEndDate(selectedDate);
       calculateDuration(newStartDate, selectedDate);
+
+      // Close modal on web after selecting a date
+      if (Platform.OS === "web") {
+        setShowEndDatePicker(false);
+      }
     }
   };
   const handleConfirmAssignment = () => {
@@ -488,18 +506,42 @@ export default function AssignmentsScreen() {
                     </Text>
                     <input
                       type="date"
+                      value={
+                        estimatedStartDate?.toISOString().split("T")[0] || ""
+                      }
                       style={{
                         padding: 12,
                         fontSize: 16,
                         border: `1px solid #d1d5db`,
                         borderRadius: 8,
                         marginBottom: 16,
-                        width: "100%",
+                        width: "auto",
+                        minWidth: 200,
+                        maxWidth: "100%",
                         backgroundColor: "#f9fafb",
                       }}
-                      onChange={(e) => {
-                        const date = new Date(e.target.value);
-                        handleStartDateChange(null, date);
+                      onBlur={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        if (
+                          target.value &&
+                          target.value !==
+                            (estimatedStartDate?.toISOString().split("T")[0] ||
+                              "")
+                        ) {
+                          const date = new Date(target.value);
+                          if (!isNaN(date.getTime())) {
+                            handleStartDateChange(null, date);
+                          }
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        if (e.key === "Enter" && target.value) {
+                          const date = new Date(target.value);
+                          if (!isNaN(date.getTime())) {
+                            handleStartDateChange(null, date);
+                          }
+                        }
                       }}
                       min={new Date().toISOString().split("T")[0]}
                       max={
@@ -544,18 +586,42 @@ export default function AssignmentsScreen() {
                     </Text>
                     <input
                       type="date"
+                      value={
+                        estimatedEndDate?.toISOString().split("T")[0] || ""
+                      }
                       style={{
                         padding: 12,
                         fontSize: 16,
                         border: `1px solid #d1d5db`,
                         borderRadius: 8,
                         marginBottom: 16,
-                        width: "100%",
+                        width: "auto",
+                        minWidth: 200,
+                        maxWidth: "100%",
                         backgroundColor: "#f9fafb",
                       }}
-                      onChange={(e) => {
-                        const date = new Date(e.target.value);
-                        handleEndDateChange(null, date);
+                      onBlur={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        if (
+                          target.value &&
+                          target.value !==
+                            (estimatedEndDate?.toISOString().split("T")[0] ||
+                              "")
+                        ) {
+                          const date = new Date(target.value);
+                          if (!isNaN(date.getTime())) {
+                            handleEndDateChange(null, date);
+                          }
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        if (e.key === "Enter" && target.value) {
+                          const date = new Date(target.value);
+                          if (!isNaN(date.getTime())) {
+                            handleEndDateChange(null, date);
+                          }
+                        }
                       }}
                       min={
                         estimatedStartDate?.toISOString().split("T")[0] ||
@@ -1075,7 +1141,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
     maxWidth: Platform.OS === "web" ? 800 : "100%",
-    alignSelf: Platform.OS === "web" ? "center" : "stretch",
+    ...(Platform.OS === "web" && {
+      alignSelf: "center",
+      width: "100%",
+      marginHorizontal: "auto",
+    }),
   },
   modalHeader: {
     flexDirection: "row",
@@ -1157,7 +1227,7 @@ const styles = StyleSheet.create({
     margin: 20,
     minWidth: 300,
     maxWidth: Platform.OS === "web" ? 500 : "90%",
-    width: Platform.OS === "web" ? "100%" : "auto",
+    width: Platform.OS === "web" ? 500 : "auto",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
@@ -1207,17 +1277,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  resourceSelectedCount: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 4,
-  },
-  resourceSelectedNames: {
-    fontSize: 14,
-    color: "#6b7280",
-    lineHeight: 18,
-  },
   resourceSelectedSingle: {
     fontSize: 16,
     fontWeight: "600",
@@ -1226,29 +1285,6 @@ const styles = StyleSheet.create({
   resourceSelectedMultiple: {
     fontSize: 16,
     fontWeight: "600",
-  },
-  resourceBadge: {
-    backgroundColor: "#9C46CE",
-    color: "white",
-    fontSize: 12,
-    fontWeight: "600",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    minWidth: 24,
-    textAlign: "center",
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: "#9ca3af",
-    textAlign: "center",
-    fontStyle: "italic",
   },
   modalFooter: {
     paddingHorizontal: 20,

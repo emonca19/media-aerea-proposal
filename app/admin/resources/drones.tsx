@@ -284,9 +284,11 @@ const DronesScreen = () => {
             <>
               {availableDrones.length > 0 ? (
                 <View style={styles.cardsContainer}>
-                  {availableDrones.map((drone) =>
-                    renderDroneItem({ item: drone })
-                  )}
+                  {availableDrones.map((drone) => (
+                    <View key={drone.id}>
+                      {renderDroneItem({ item: drone })}
+                    </View>
+                  ))}
                 </View>
               ) : (
                 <View style={styles.emptyContainer}>
@@ -327,7 +329,11 @@ const DronesScreen = () => {
             <>
               {inUseDrones.length > 0 ? (
                 <View style={styles.cardsContainer}>
-                  {inUseDrones.map((drone) => renderDroneItem({ item: drone }))}
+                  {inUseDrones.map((drone) => (
+                    <View key={drone.id}>
+                      {renderDroneItem({ item: drone })}
+                    </View>
+                  ))}
                 </View>
               ) : (
                 <View style={styles.emptyContainer}>
@@ -336,7 +342,7 @@ const DronesScreen = () => {
                 </View>
               )}
             </>
-          )}{" "}
+          )}
         </View>
       </ScrollView>
 
