@@ -18,6 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   mockDroneAvailability,
   mockPilotAvailability,
@@ -870,54 +871,60 @@ export default function AssignmentsScreen() {
     }
   };
   return (
-    <View style={styles.container}>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-          title: "Asignar Proyecto",
-        }}
-      />
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {renderProjectSelector()}
-        {renderTurbinesSection()}
-        {renderAvailabilitySection()}
-        {renderDurationAndDates()}
-        <View style={styles.finalSection}>
-          <TouchableOpacity
-            style={[
-              styles.confirmButton,
-              (!selectedProject ||
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <View style={styles.container}>
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            title: "Asignar Proyecto",
+          }}
+        />
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {renderProjectSelector()}
+          {renderTurbinesSection()}
+          {renderAvailabilitySection()}
+          {renderDurationAndDates()}
+          <View style={styles.finalSection}>
+            <TouchableOpacity
+              style={[
+                styles.confirmButton,
+                (!selectedProject ||
+                  selectedPilots.length === 0 ||
+                  !selectedDrone ||
+                  !estimatedStartDate ||
+                  !estimatedEndDate) &&
+                  styles.confirmButtonDisabled,
+              ]}
+              onPress={handleConfirmAssignment}
+              disabled={
+                !selectedProject ||
                 selectedPilots.length === 0 ||
                 !selectedDrone ||
                 !estimatedStartDate ||
-                !estimatedEndDate) &&
-                styles.confirmButtonDisabled,
-            ]}
-            onPress={handleConfirmAssignment}
-            disabled={
-              !selectedProject ||
-              selectedPilots.length === 0 ||
-              !selectedDrone ||
-              !estimatedStartDate ||
-              !estimatedEndDate
-            }
-          >
-            <MaterialIcons
-              name="assignment-turned-in"
-              size={24}
-              color="white"
-            />
-            <Text style={styles.confirmButtonText}>Confirmar Asignación</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-      {renderProjectModal()}
-      {renderPilotsModal()}
-      {renderDronesModal()}
-    </View>
+                !estimatedEndDate
+              }
+            >
+              <MaterialIcons
+                name="assignment-turned-in"
+                size={24}
+                color="white"
+              />
+              <Text style={styles.confirmButtonText}>Confirmar Asignación</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+        {renderProjectModal()}
+        {renderPilotsModal()}
+        {renderDronesModal()}
+      </View>
+    </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
@@ -1256,10 +1263,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 20,
   },
-  availabilityScrollView: {
-    maxHeight: 300,
-    marginVertical: 8,
-  },
   resourceSelector: {
     borderRadius: 8,
     padding: 12,
@@ -1398,18 +1401,5 @@ const styles = StyleSheet.create({
     color: "#92400e",
     marginLeft: 8,
     flex: 1,
-  },
-  dateHelpText: {
-    backgroundColor: "#f0f9ff",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#0ea5e9",
-  },
-  helpText: {
-    fontSize: 13,
-    color: "#0369a1",
-    textAlign: "center",
   },
 });

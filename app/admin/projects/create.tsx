@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { mockClients, mockWindParks } from "../../../src/mocks";
 
 export default function CreateProjectScreen() {
@@ -90,276 +91,281 @@ export default function CreateProjectScreen() {
       ]
     );
   };
-
   return (
-    <View style={styles.container}>
-      <Stack.Screen
-        options={{
-          title: "Crear Proyecto",
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backButton}
-            >
-              <Ionicons name="arrow-back" size={24} color="#9C46CE" />
-            </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={handleSaveProject}
-              style={styles.saveButton}
-            >
-              <Text style={styles.saveButtonText}>Guardar</Text>
-            </TouchableOpacity>
-          ),
-        }}
-      />
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.form}>
-          {/* Project Name */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nombre del Proyecto*</Text>
-            <TextInput
-              style={styles.input}
-              value={projectName}
-              onChangeText={setProjectName}
-              placeholder="Ingresa el nombre del proyecto"
-              placeholderTextColor="#9ca3af"
-            />
-          </View>
-          {/* Description */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Descripción*</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Describe el proyecto"
-              placeholderTextColor="#9ca3af"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </View>
-          {/* Client Selection */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Cliente*</Text>
-            <TouchableOpacity
-              style={styles.selector}
-              onPress={() => setShowClientModal(true)}
-            >
-              <View style={styles.selectorContent}>
-                {clientId ? (
-                  <Text style={styles.selectedText}>
-                    {mockClients.find((c) => c.id === clientId)?.name}
-                  </Text>
-                ) : (
-                  <Text style={styles.placeholderText}>
-                    Selecciona un cliente
-                  </Text>
-                )}
-              </View>
-              <Ionicons name="chevron-down" size={20} color="#6b7280" />
-            </TouchableOpacity>
-          </View>
-          {/* Wind Park Selection */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Parque Eólico*</Text>
-            <TouchableOpacity
-              style={styles.selector}
-              onPress={() => setShowWindParkModal(true)}
-            >
-              <View style={styles.selectorContent}>
-                {windParkId ? (
-                  <Text style={styles.selectedText}>
-                    {mockWindParks.find((wp) => wp.id === windParkId)?.name}
-                  </Text>
-                ) : (
-                  <Text style={styles.placeholderText}>
-                    Selecciona un parque eólico
-                  </Text>
-                )}
-              </View>
-              <Ionicons name="chevron-down" size={20} color="#6b7280" />
-            </TouchableOpacity>
-          </View>
-          {/* Start Date */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Fecha de Inicio*</Text>
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowStartDatePicker(true)}
-            >
-              <Text style={styles.dateButtonText}>
-                {startDate
-                  ? startDate.toLocaleDateString()
-                  : "Seleccionar fecha de inicio"}
-              </Text>
-              <Ionicons name="calendar" size={20} color="#9C46CE" />
-            </TouchableOpacity>
-          </View>
-          {/* End Date */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Fecha de Fin*</Text>
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowEndDatePicker(true)}
-            >
-              <Text style={styles.dateButtonText}>
-                {endDate
-                  ? endDate.toLocaleDateString()
-                  : "Seleccionar fecha de fin"}
-              </Text>
-              <Ionicons name="calendar" size={20} color="#9C46CE" />
-            </TouchableOpacity>
-          </View>
-          {/* Notes */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Notas</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Notas adicionales sobre el proyecto"
-              placeholderTextColor="#9ca3af"
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-          </View>
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              <Text>Los campos marcados con * son obligatorios</Text>
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Client Selection Modal */}
-      <Modal
-        visible={showClientModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowClientModal(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Seleccionar Cliente</Text>
-            <TouchableOpacity
-              onPress={() => setShowClientModal(false)}
-              style={styles.modalCloseButton}
-            >
-              <Ionicons name="close" size={24} color="#6b7280" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView style={styles.modalContent}>
-            {mockClients.map((client) => (
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <View style={styles.container}>
+        <Stack.Screen
+          options={{
+            title: "Crear Proyecto",
+            headerLeft: () => (
               <TouchableOpacity
-                key={client.id}
-                style={[
-                  styles.optionCard,
-                  clientId === client.id && styles.selectedCard,
-                ]}
-                onPress={() => handleClientSelection(client.id)}
+                onPress={() => router.back()}
+                style={styles.backButton}
               >
-                <View style={styles.cardContent}>
-                  <View style={styles.cardInfo}>
-                    <Text style={styles.cardTitle}>{client.name}</Text>
-                    <Text style={styles.cardDescription}>
-                      {client.contactInfo.email}
-                    </Text>
-                  </View>
-                  <View style={styles.selectionIndicator}>
-                    {clientId === client.id && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={24}
-                        color="#10b981"
-                      />
-                    )}
-                  </View>
-                </View>
+                <Ionicons name="arrow-back" size={24} color="#9C46CE" />
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </Modal>
-
-      {/* Wind Park Selection Modal */}
-      <Modal
-        visible={showWindParkModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowWindParkModal(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Seleccionar Parque Eólico</Text>
-            <TouchableOpacity
-              onPress={() => setShowWindParkModal(false)}
-              style={styles.modalCloseButton}
-            >
-              <Ionicons name="close" size={24} color="#6b7280" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView style={styles.modalContent}>
-            {mockWindParks.map((windPark) => (
+            ),
+            headerRight: () => (
               <TouchableOpacity
-                key={windPark.id}
-                style={[
-                  styles.optionCard,
-                  windParkId === windPark.id && styles.selectedCard,
-                ]}
-                onPress={() => handleWindParkSelection(windPark.id)}
+                onPress={handleSaveProject}
+                style={styles.saveButton}
               >
-                <View style={styles.cardContent}>
-                  <View style={styles.cardInfo}>
-                    <Text style={styles.cardTitle}>{windPark.name}</Text>
-                    <Text style={styles.cardDescription}>
-                      {windPark.location.address}
-                    </Text>
-                  </View>
-                  <View style={styles.selectionIndicator}>
-                    {windParkId === windPark.id && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={24}
-                        color="#10b981"
-                      />
-                    )}
-                  </View>
-                </View>
+                <Text style={styles.saveButtonText}>Guardar</Text>
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </Modal>
+            ),
+          }}
+        />
 
-      {/* Date Pickers */}
-      {showStartDatePicker && (
-        <DateTimePicker
-          value={startDate || new Date()}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={handleStartDateChange}
-          minimumDate={new Date()}
-        />
-      )}
-      {showEndDatePicker && (
-        <DateTimePicker
-          value={endDate || startDate || new Date()}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={handleEndDateChange}
-          minimumDate={startDate || new Date()}
-        />
-      )}
-    </View>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.form}>
+            {/* Project Name */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Nombre del Proyecto*</Text>
+              <TextInput
+                style={styles.input}
+                value={projectName}
+                onChangeText={setProjectName}
+                placeholder="Ingresa el nombre del proyecto"
+                placeholderTextColor="#9ca3af"
+              />
+            </View>
+            {/* Description */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Descripción*</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Describe el proyecto"
+                placeholderTextColor="#9ca3af"
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
+            {/* Client Selection */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Cliente*</Text>
+              <TouchableOpacity
+                style={styles.selector}
+                onPress={() => setShowClientModal(true)}
+              >
+                <View style={styles.selectorContent}>
+                  {clientId ? (
+                    <Text style={styles.selectedText}>
+                      {mockClients.find((c) => c.id === clientId)?.name}
+                    </Text>
+                  ) : (
+                    <Text style={styles.placeholderText}>
+                      Selecciona un cliente
+                    </Text>
+                  )}
+                </View>
+                <Ionicons name="chevron-down" size={20} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+            {/* Wind Park Selection */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Parque Eólico*</Text>
+              <TouchableOpacity
+                style={styles.selector}
+                onPress={() => setShowWindParkModal(true)}
+              >
+                <View style={styles.selectorContent}>
+                  {windParkId ? (
+                    <Text style={styles.selectedText}>
+                      {mockWindParks.find((wp) => wp.id === windParkId)?.name}
+                    </Text>
+                  ) : (
+                    <Text style={styles.placeholderText}>
+                      Selecciona un parque eólico
+                    </Text>
+                  )}
+                </View>
+                <Ionicons name="chevron-down" size={20} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+            {/* Start Date */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Fecha de Inicio*</Text>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <Text style={styles.dateButtonText}>
+                  {startDate
+                    ? startDate.toLocaleDateString()
+                    : "Seleccionar fecha de inicio"}
+                </Text>
+                <Ionicons name="calendar" size={20} color="#9C46CE" />
+              </TouchableOpacity>
+            </View>
+            {/* End Date */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Fecha de Fin*</Text>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => setShowEndDatePicker(true)}
+              >
+                <Text style={styles.dateButtonText}>
+                  {endDate
+                    ? endDate.toLocaleDateString()
+                    : "Seleccionar fecha de fin"}
+                </Text>
+                <Ionicons name="calendar" size={20} color="#9C46CE" />
+              </TouchableOpacity>
+            </View>
+            {/* Notes */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Notas</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="Notas adicionales sobre el proyecto"
+                placeholderTextColor="#9ca3af"
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+            </View>
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                <Text>Los campos marcados con * son obligatorios</Text>
+              </Text>
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Client Selection Modal */}
+        <Modal
+          visible={showClientModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setShowClientModal(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Seleccionar Cliente</Text>
+              <TouchableOpacity
+                onPress={() => setShowClientModal(false)}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalContent}>
+              {mockClients.map((client) => (
+                <TouchableOpacity
+                  key={client.id}
+                  style={[
+                    styles.optionCard,
+                    clientId === client.id && styles.selectedCard,
+                  ]}
+                  onPress={() => handleClientSelection(client.id)}
+                >
+                  <View style={styles.cardContent}>
+                    <View style={styles.cardInfo}>
+                      <Text style={styles.cardTitle}>{client.name}</Text>
+                      <Text style={styles.cardDescription}>
+                        {client.contactInfo.email}
+                      </Text>
+                    </View>
+                    <View style={styles.selectionIndicator}>
+                      {clientId === client.id && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={24}
+                          color="#10b981"
+                        />
+                      )}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </Modal>
+
+        {/* Wind Park Selection Modal */}
+        <Modal
+          visible={showWindParkModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setShowWindParkModal(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Seleccionar Parque Eólico</Text>
+              <TouchableOpacity
+                onPress={() => setShowWindParkModal(false)}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalContent}>
+              {mockWindParks.map((windPark) => (
+                <TouchableOpacity
+                  key={windPark.id}
+                  style={[
+                    styles.optionCard,
+                    windParkId === windPark.id && styles.selectedCard,
+                  ]}
+                  onPress={() => handleWindParkSelection(windPark.id)}
+                >
+                  <View style={styles.cardContent}>
+                    <View style={styles.cardInfo}>
+                      <Text style={styles.cardTitle}>{windPark.name}</Text>
+                      <Text style={styles.cardDescription}>
+                        {windPark.location.address}
+                      </Text>
+                    </View>
+                    <View style={styles.selectionIndicator}>
+                      {windParkId === windPark.id && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={24}
+                          color="#10b981"
+                        />
+                      )}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </Modal>
+
+        {/* Date Pickers */}
+        {showStartDatePicker && (
+          <DateTimePicker
+            value={startDate || new Date()}
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={handleStartDateChange}
+            minimumDate={new Date()}
+          />
+        )}
+        {showEndDatePicker && (
+          <DateTimePicker
+            value={endDate || startDate || new Date()}
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={handleEndDateChange}
+            minimumDate={startDate || new Date()}
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#f9fafb",
+  },
   container: {
     flex: 1,
     backgroundColor: "#f9fafb",
@@ -429,11 +435,6 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: 16,
     color: "#9ca3af",
-  },
-  helperText: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginTop: 4,
   },
   footer: {
     marginTop: 24,
