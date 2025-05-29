@@ -341,8 +341,10 @@ export default function NewActivityScreen() { // Props removidas por ahora
         <TouchableOpacity 
           style={styles.removeActivityButton}
           onPress={() => handleRemoveScheduledActivity(item.id)}
+          accessibilityLabel="Eliminar actividad programada"
+          activeOpacity={0.7}
         >
-          <Ionicons name="close-circle" size={22} color="#ef4444" />
+          <MaterialCommunityIcons name="delete-outline" size={20} color="#ef4444" />
         </TouchableOpacity>
       </View>
     );
@@ -761,7 +763,6 @@ const styles = StyleSheet.create({
   },
   scheduledActivityContent: {
     flex: 1,
-    marginRight: 12,
   },
   scheduledActivityHeader: {
     flexDirection: 'row',
@@ -794,10 +795,27 @@ const styles = StyleSheet.create({
     marginTop: 3,
     fontStyle: 'italic',
   },
+  deleteHint: {
+    paddingLeft: 8,
+    alignItems: 'center',
+  },
+  deleteHintText: {
+    fontSize: 10,
+    color: '#9ca3af',
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
   removeActivityButton: {
-    padding: 6, // Padding ligeramente mayor
-    borderRadius: 6,
-    backgroundColor: '#fef2f2', // Fondo sutil
+    backgroundColor: "#fef2f2",
+    borderRadius: 10,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#fecaca",
+    shadowColor: "#ef4444",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   activitySeparator: {
     height: 10, // Separación ligeramente mayor

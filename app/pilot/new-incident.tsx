@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#6b46c1', // Changed to darker purple
+    color: '#ea580c', // Changed to strong orange/yellow to match icons
     marginBottom: 16,
     textAlign: 'center',
   },

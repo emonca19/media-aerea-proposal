@@ -135,6 +135,7 @@ const ReorderableActivityItem: React.FC<ReorderableActivityItemProps> = ({
         <TouchableOpacity
           style={[
             styles.reorderButton,
+            styles.reorderButtonUp,
             index === 0 && styles.reorderButtonDisabled,
           ]}
           onPress={handleMoveUp}
@@ -143,13 +144,14 @@ const ReorderableActivityItem: React.FC<ReorderableActivityItemProps> = ({
         >
           <MaterialCommunityIcons
             name="chevron-up"
-            size={14}
-            color={index === 0 ? "#cbd5e1" : "#7c3aed"}
+            size={16}
+            color={index === 0 ? "#cbd5e1" : "#ffffff"}
           />
         </TouchableOpacity>
         <TouchableOpacity
           style={[
             styles.reorderButton,
+            styles.reorderButtonDown,
             index === totalItems - 1 && styles.reorderButtonDisabled,
           ]}
           onPress={handleMoveDown}
@@ -158,8 +160,8 @@ const ReorderableActivityItem: React.FC<ReorderableActivityItemProps> = ({
         >
           <MaterialCommunityIcons
             name="chevron-down"
-            size={14}
-            color={index === totalItems - 1 ? "#cbd5e1" : "#7c3aed"}
+            size={16}
+            color={index === totalItems - 1 ? "#cbd5e1" : "#ffffff"}
           />
         </TouchableOpacity>
       </View>
@@ -190,7 +192,7 @@ const ReorderableActivityItem: React.FC<ReorderableActivityItemProps> = ({
         accessibilityLabel="Eliminar actividad programada"
         activeOpacity={0.7}
       >
-        <Ionicons name="close-circle" size={22} color="#ef4444" />
+        <MaterialCommunityIcons name="delete-outline" size={20} color="#ef4444" />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -861,40 +863,48 @@ const styles = StyleSheet.create({
   reorderButtons: {
     flexDirection: "column",
     marginRight: 12,
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 3,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    shadowColor: "#8b5cf6",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    gap: 4,
   },
   reorderButton: {
-    backgroundColor: "#f8fafc",
-    borderRadius: 8,
-    padding: 6,
-    marginVertical: 1,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    shadowColor: "#8b5cf6",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    borderRadius: 10,
+    padding: 8,
     alignItems: "center",
     justifyContent: "center",
-    minWidth: 24,
-    minHeight: 24,
+    minWidth: 36,
+    minHeight: 36,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  reorderButtonUp: {
+    backgroundColor: "#8b5cf6",
+    borderWidth: 1,
+    borderColor: "#7c3aed",
+  },
+  reorderButtonDown: {
+    backgroundColor: "#f59e0b",
+    borderWidth: 1,
+    borderColor: "#d97706",
   },
   reorderButtonDisabled: {
-    opacity: 0.4,
-    backgroundColor: "#f1f5f9",
-    borderColor: "#cbd5e1",
+    backgroundColor: "#e5e7eb",
+    borderColor: "#d1d5db",
     shadowOpacity: 0,
     elevation: 0,
+  },
+  removeActivityButton: {
+    backgroundColor: "#fef2f2",
+    borderRadius: 10,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#fecaca",
+    shadowColor: "#ef4444",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   scheduledActivityContent: {
     flex: 1,
@@ -915,14 +925,7 @@ const styles = StyleSheet.create({
     color: "#f59e0b",
     fontSize: 12,
     fontWeight: "500",
-  },  removeActivityButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: "#fef2f2",
-    borderWidth: 1,
-    borderColor: "#fecaca",
-  },
-  actionButton: {
+  },  actionButton: {
     backgroundColor: "#8b5cf6",
     borderRadius: 12,
     paddingVertical: 16,
