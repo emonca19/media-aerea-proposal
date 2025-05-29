@@ -1058,16 +1058,25 @@ export default function AssignmentsScreen() {
         return "#6b7280";
     }
   };
-
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <View style={styles.container}>
         <Stack.Screen
           options={{
-            headerShown: false, // Assuming this is intended for this screen
-            // title: "Asignar Proyecto", // Title is not visible if headerShown is false
+            headerShown: false,
           }}
         />
+        {/* Custom Header */}
+        <View style={styles.customHeader}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color="#9C46CE" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Crear Asignación</Text>
+          <View style={styles.backButton} />
+        </View>
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {renderProjectSelector()}
           {renderTurbinesSection()}
@@ -1076,7 +1085,8 @@ export default function AssignmentsScreen() {
           <View style={styles.finalSection}>
             <TouchableOpacity
               style={[
-                styles.confirmButton,
+                styles.bottomSaveButton,
+                Platform.OS === "web" && styles.bottomSaveButtonWeb,
                 (!selectedProject ||
                   selectedPilots.length === 0 ||
                   !selectedDrone ||
@@ -1086,7 +1096,7 @@ export default function AssignmentsScreen() {
                     dateValidationMessage.includes(
                       "no puede ser posterior"
                     ))) &&
-                  styles.confirmButtonDisabled,
+                  styles.bottomSaveButtonDisabled,
               ]}
               onPress={handleConfirmAssignment}
               disabled={
@@ -1101,12 +1111,23 @@ export default function AssignmentsScreen() {
                 )
               }
             >
-              <MaterialIcons
-                name="assignment-turned-in"
-                size={24}
-                color="white"
-              />
-              <Text style={styles.confirmButtonText}>Confirmar Asignación</Text>
+              <Text
+                style={[
+                  styles.bottomSaveButtonText,
+                  (!selectedProject ||
+                    selectedPilots.length === 0 ||
+                    !selectedDrone ||
+                    !estimatedStartDate ||
+                    !estimatedEndDate ||
+                    (dateValidationMessage &&
+                      dateValidationMessage.includes(
+                        "no puede ser posterior"
+                      ))) &&
+                    styles.bottomSaveButtonTextDisabled,
+                ]}
+              >
+                Confirmar Asignación
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -1127,6 +1148,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
+  },
+  customHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1f2937",
+    flex: 1,
+    textAlign: "center",
+  },
+  backButton: {
+    padding: 8,
   },
   content: {
     flex: 1,
@@ -1332,32 +1373,39 @@ const styles = StyleSheet.create({
     minHeight: 80, // Use minHeight for multiline
     textAlignVertical: "top",
   },
-  confirmButton: {
+  bottomSaveButton: {
     backgroundColor: "#9C46CE",
     borderRadius: 12,
-    paddingVertical: 16, // Adjusted padding
-    paddingHorizontal: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    // marginBottom: 32, // Moved to finalSection if needed
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     shadowColor: "#9C46CE",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 5,
+    alignSelf: "flex-end", // Align button to the right
+    marginHorizontal: 16, // Horizontal margin for the button
+    marginTop: 24, // Top margin for the button
+    marginBottom: 32, // Bottom margin for the button
   },
-  confirmButtonDisabled: {
-    backgroundColor: "#d1d5db", // More distinct disabled color
-    shadowColor: "#000",
+  bottomSaveButtonWeb: {
+    // Style for web platform
+    minWidth: 200,
+    maxWidth: 300,
+  },
+  bottomSaveButtonDisabled: {
+    backgroundColor: "#d1d5db",
     shadowOpacity: 0.1,
-    elevation: 0, // No elevation for disabled
+    elevation: 2,
   },
-  confirmButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
+  bottomSaveButtonText: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  bottomSaveButtonTextDisabled: {
+    color: "#9ca3af",
   },
   modalContainer: {
     flex: 1,

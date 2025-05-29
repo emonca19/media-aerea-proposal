@@ -1,5 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar"; // Import StatusBar from expo-status-bar
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -40,7 +41,6 @@ export default function LoginScreen() {
   }, []);
 
   React.useEffect(() => {
-    // Animación de entrada mejorada
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -63,12 +63,14 @@ export default function LoginScreen() {
       ]),
     ]).start();
   }, [fadeAnim, scaleAnim, logoRotate, currentTheme.animation.duration]);
+
   const handlePressIn = useCallback(() => {
     Animated.spring(buttonScale, {
       toValue: currentTheme.animation.scale.pressed,
       useNativeDriver: true,
     }).start();
   }, [buttonScale, currentTheme.animation.scale]);
+
   const handlePressOut = useCallback(() => {
     Animated.spring(buttonScale, {
       toValue: currentTheme.animation.scale.normal,
@@ -80,11 +82,10 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      Keyboard.dismiss(); // Ocultar el teclado al iniciar el login
+      Keyboard.dismiss();
       setError("");
       setIsLoading(true);
 
-      // Validación mejorada
       if (!email) {
         throw new Error("Por favor ingresa tu correo electrónico");
       }
@@ -98,14 +99,12 @@ export default function LoginScreen() {
         throw new Error("La contraseña debe tener al menos 6 caracteres");
       }
 
-      // Intento de login con animación
-      const { user } = await auth.login(email, password); // Animación de éxito (sin logoRotate para mayor velocidad)
+      const { user } = await auth.login(email, password);
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: currentTheme.animation.duration.fast,
         useNativeDriver: true,
       }).start(() => {
-        // Redirigir según rol
         switch (user.role) {
           case "PILOT":
             router.replace("/pilot/dashboard");
@@ -119,7 +118,6 @@ export default function LoginScreen() {
         }
       });
     } catch (error: any) {
-      // Animación de error
       Animated.sequence([
         Animated.spring(buttonScale, {
           toValue: 0.9,
@@ -136,30 +134,30 @@ export default function LoginScreen() {
     } finally {
       setIsLoading(false);
     }
-  }; // We handle KeyboardAvoidingView behavior directly in the render
+  };
 
   useEffect(() => {
     Animated.sequence([
       Animated.timing(logoRotate, {
-        toValue: 5, // Primera etapa: lenta
+        toValue: 5,
         duration: 4000,
         easing: Easing.linear,
         useNativeDriver: true,
       }),
       Animated.timing(logoRotate, {
-        toValue: 1, // Segunda etapa: rápida
+        toValue: 1,
         duration: 5000,
         easing: Easing.linear,
         useNativeDriver: true,
       }),
       Animated.timing(logoRotate, {
-        toValue: 3, // Tercera etapa: lenta
+        toValue: 3,
         duration: 10000,
         easing: Easing.linear,
         useNativeDriver: true,
       }),
       Animated.timing(logoRotate, {
-        toValue: 10, // Etapa final: desaceleración suave
+        toValue: 10,
         duration: 15000,
         easing: Easing.out(Easing.quad),
         useNativeDriver: true,
@@ -169,147 +167,153 @@ export default function LoginScreen() {
 
   const spin = logoRotate.interpolate({
     inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"], // Gira continuamente
+    outputRange: ["0deg", "360deg"],
   });
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "padding"} // Use "padding" for Android too
-      style={styles.container}
-      enabled={Platform.OS !== "web"} // Disable KAV entirely for web
-    >
-      <TouchableWithoutFeedback
-        onPress={Platform.OS === "web" ? undefined : Keyboard.dismiss}
+    <>
+      {/* StatusBar configuration specific to LoginScreen */}
+      {/* This will make the status bar transparent and the text/icons light */}
+      <StatusBar style="light" backgroundColor="transparent" translucent={true} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "padding"}
+        style={styles.container}
+        enabled={Platform.OS !== "web"}
       >
-        <LinearGradient
-          colors={["#0C0443", "#9744C3"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradient}
+        <TouchableWithoutFeedback
+          onPress={Platform.OS === "web" ? undefined : Keyboard.dismiss}
         >
-          <Animated.View
-            style={[
-              styles.mainContent,
-              {
-                opacity: fadeAnim,
-                transform: [{ scale: scaleAnim }],
-              },
-            ]}
+          <LinearGradient
+            colors={["#0C0443", "#9744C3"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradient} // Ensure this style allows gradient to fill the entire screen
           >
-            <View style={styles.logoContainer}>
-              <Animated.View
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transform: [{ rotate: spin }],
-                }}
-              >
-                <Image
-                  source={require("../assets/images/spin.png")}
-                  style={styles.spinImage}
-                  resizeMode="contain"
-                />
-              </Animated.View>
-
-              <Image
-                source={require("../assets/images/media-logo.png")}
-                style={styles.mediaLogo}
-                resizeMode="contain"
-              />
-            </View>
-
             <Animated.View
               style={[
-                styles.formContainer,
+                styles.mainContent,
                 {
                   opacity: fadeAnim,
-                  transform: [
-                    {
-                      translateY: fadeAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [50, 0],
-                      }),
-                    },
-                  ],
+                  transform: [{ scale: scaleAnim }],
                 },
               ]}
             >
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Correo electrónico</Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    showEmailError &&
-                      !validateEmail(email) && { borderColor: "#ff6b6b" },
-                  ]}
-                  placeholder="nombre@mediaaerea.com"
-                  placeholderTextColor="rgba(255,255,255,0.5)"
-                  value={email}
-                  onChangeText={(text) => {
-                    setEmail(text);
-                    if (showEmailError) {
-                      // Solo validamos si ya se mostró un error previamente
-                      setShowEmailError(true);
-                    }
+              <View style={styles.logoContainer}>
+                <Animated.View
+                  style={{
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transform: [{ rotate: spin }],
                   }}
-                  onBlur={() => setShowEmailError(true)}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  autoComplete="email"
-                  textContentType="emailAddress"
-                />
-                {showEmailError && !validateEmail(email) && email !== "" && (
-                  <Text style={styles.errorText}>
-                    Por favor ingresa un correo electrónico válido
-                  </Text>
-                )}
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Contraseña</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="********"
-                  placeholderTextColor="rgba(255,255,255,0.5)"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  autoComplete="password"
-                />
-              </View>
-
-              <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
-                <TouchableOpacity
-                  onPressIn={handlePressIn}
-                  onPressOut={handlePressOut}
-                  style={[
-                    styles.loginButton,
-                    isLoading && styles.loginButtonDisabled,
-                  ]}
-                  onPress={handleLogin}
-                  disabled={isLoading}
                 >
-                  <Text style={styles.loginButtonText}>
-                    {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
+                  <Image
+                    source={require("../assets/images/spin.png")}
+                    style={styles.spinImage}
+                    resizeMode="contain"
+                  />
+                </Animated.View>
 
-              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                <Image
+                  source={require("../assets/images/media-logo.png")}
+                  style={styles.mediaLogo}
+                  resizeMode="contain"
+                />
+              </View>
+
+              <Animated.View
+                style={[
+                  styles.formContainer,
+                  {
+                    opacity: fadeAnim,
+                    transform: [
+                      {
+                        translateY: fadeAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [50, 0],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Correo electrónico</Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      showEmailError &&
+                        !validateEmail(email) && { borderColor: "#ff6b6b" },
+                    ]}
+                    placeholder="nombre@mediaaerea.com"
+                    placeholderTextColor="rgba(255,255,255,0.5)"
+                    value={email}
+                    onChangeText={(text) => {
+                      setEmail(text);
+                      if (showEmailError) {
+                        setShowEmailError(true);
+                      }
+                    }}
+                    onBlur={() => setShowEmailError(true)}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    autoComplete="email"
+                    textContentType="emailAddress"
+                  />
+                  {showEmailError && !validateEmail(email) && email !== "" && (
+                    <Text style={styles.errorText}>
+                      Por favor ingresa un correo electrónico válido
+                    </Text>
+                  )}
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Contraseña</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="********"
+                    placeholderTextColor="rgba(255,255,255,0.5)"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    autoComplete="password"
+                  />
+                </View>
+
+                <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+                  <TouchableOpacity
+                    onPressIn={handlePressIn}
+                    onPressOut={handlePressOut}
+                    style={[
+                      styles.loginButton,
+                      isLoading && styles.loginButtonDisabled,
+                    ]}
+                    onPress={handleLogin}
+                    disabled={isLoading}
+                  >
+                    <Text style={styles.loginButtonText}>
+                      {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+                    </Text>
+                  </TouchableOpacity>
+                </Animated.View>
+
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              </Animated.View>
             </Animated.View>
-          </Animated.View>
-        </LinearGradient>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+          </LinearGradient>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </>
   );
 }
 
+// ... your styles remain the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#9744C3", // Fallback color for older devices
   },
   gradient: {
-    flex: 1,
+    flex: 1, // Ensures the gradient fills the KeyboardAvoidingView
     justifyContent: "center",
     alignItems: "center",
     padding: theme.dark.dimensions.spacing.xl,
@@ -326,38 +330,20 @@ const styles = StyleSheet.create({
   spinImage: {
     width: 110,
     height: 110,
-    marginBottom: 0, // Espaciado mínimo
-  },
-  mediaLogoContainer: {
-    alignItems: "center",
-    marginBottom: 0, // Reduced spacing
+    marginBottom: 0,
   },
   mediaLogo: {
     width: 250,
     height: 250,
-    marginTop: -90, // Espaciado mínimo
-    marginBottom: -50, // Espaciado mínimo
-  },
-  welcomeText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "white",
-    marginBottom: 0,
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  subtitleText: {
-    fontSize: theme.dark.dimensions.fontSize.md,
-    color: "rgb(162,179,201)",
-    marginBottom: 0,
+    marginTop: -90,
+    marginBottom: -50,
   },
   formContainer: {
     width: "100%",
     padding: theme.dark.dimensions.spacing.xl,
     borderRadius: theme.dark.dimensions.borderRadius.large,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
-    backdropFilter: "blur(10px)",
+    // backdropFilter: "blur(10px)", // Note: backdropFilter is not universally supported in React Native
   },
   inputContainer: {
     marginBottom: theme.dark.dimensions.spacing.lg,
@@ -381,15 +367,6 @@ const styles = StyleSheet.create({
     height: 48,
     marginTop: 7,
   },
-  forgotPassword: {
-    marginTop: -12,
-    alignSelf: "flex-start",
-    marginBottom: theme.dark.dimensions.spacing.xl,
-  },
-  forgotPasswordText: {
-    color: "rgb(162,179,201)",
-    fontSize: theme.dark.dimensions.fontSize.sm,
-  },
   loginButton: {
     marginTop: 16,
     backgroundColor: "rgb(151,68,195)",
@@ -411,23 +388,6 @@ const styles = StyleSheet.create({
     fontSize: theme.dark.dimensions.fontSize.md,
     fontWeight: "bold",
     textAlign: "center",
-  },
-  signupContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: theme.dark.dimensions.spacing.lg,
-  },
-  signupText: {
-    color: "rgb(162,179,201)",
-    marginTop: -25,
-    fontSize: theme.dark.dimensions.fontSize.sm,
-  },
-  signupLink: {
-    color: "rgb(194, 213, 238)",
-    fontSize: theme.dark.dimensions.fontSize.sm,
-    fontWeight: "bold",
-    marginTop: -25,
-    marginLeft: 4,
   },
   errorText: {
     color: "#fff48d",

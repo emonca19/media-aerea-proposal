@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Stack, router } from "expo-router";
 import React, { useState } from "react";
@@ -28,6 +28,10 @@ export default function CreateProjectScreen() {
   const [showWindParkModal, setShowWindParkModal] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  // Form validation helpers
+  const isBasicInfoComplete = projectName.trim() && description.trim();
+  const isParticipantsComplete = clientId && windParkId;
+  const isDatesComplete = startDate && endDate;
 
   const handleClientSelection = (selectedClientId: string) => {
     setClientId(selectedClientId);
@@ -51,7 +55,6 @@ export default function CreateProjectScreen() {
       setEndDate(selectedDate);
     }
   };
-
   const handleSaveProject = () => {
     // Validation
     if (!projectName.trim()) {
@@ -91,68 +94,92 @@ export default function CreateProjectScreen() {
       ]
     );
   };
-  return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <View style={styles.container}>
-        <Stack.Screen
-          options={{
-            title: "Crear Proyecto",
-            headerLeft: () => (
-              <TouchableOpacity
-                onPress={() => router.back()}
-                style={styles.backButton}
-              >
-                <Ionicons name="arrow-back" size={24} color="#9C46CE" />
-              </TouchableOpacity>
-            ),
-            headerRight: () => (
-              <TouchableOpacity
-                onPress={handleSaveProject}
-                style={styles.saveButton}
-              >
-                <Text style={styles.saveButtonText}>Guardar</Text>
-              </TouchableOpacity>
-            ),
-          }}
-        />
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.form}>
-            {/* Project Name */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nombre del Proyecto*</Text>
-              <TextInput
-                style={styles.input}
-                value={projectName}
-                onChangeText={setProjectName}
-                placeholder="Ingresa el nombre del proyecto"
-                placeholderTextColor="#9ca3af"
-              />
-            </View>
-            {/* Description */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Descripción*</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                value={description}
-                onChangeText={setDescription}
-                placeholder="Describe el proyecto"
-                placeholderTextColor="#9ca3af"
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-              />
-            </View>
-            {/* Client Selection */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Cliente*</Text>
+  // Helper functions for rendering sections
+  const renderBasicInfoSection = () => (
+    <View style={styles.section}>
+      <View style={styles.sectionTitleContainer}>
+        <MaterialCommunityIcons
+          name="file-document-edit"
+          size={20}
+          color="#9C46CE"
+        />
+        <Text style={styles.sectionTitle}>Información Básica</Text>
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Nombre del Proyecto*</Text>
+        <TextInput
+          style={styles.input}
+          value={projectName}
+          onChangeText={setProjectName}
+          placeholder="Ingresa el nombre del proyecto"
+          placeholderTextColor="#9ca3af"
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Descripción*</Text>
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Describe el proyecto"
+          placeholderTextColor="#9ca3af"
+          multiline
+          numberOfLines={4}
+          textAlignVertical="top"
+        />
+      </View>
+    </View>
+  );
+
+  const renderParticipantsSection = () => {
+    const hasBasicInfo = isBasicInfoComplete;
+
+    return (
+      <View style={styles.section}>
+        <View style={styles.sectionTitleContainer}>
+          <MaterialCommunityIcons
+            name="account-group"
+            size={20}
+            color="#9C46CE"
+          />
+          <Text
+            style={[
+              styles.sectionTitle,
+              { color: hasBasicInfo ? "#1f2937" : "#9ca3af" },
+            ]}
+          >
+            Participantes
+          </Text>
+        </View>
+
+        {!hasBasicInfo && (
+          <Text style={styles.disabledSectionText}>
+            Completa la información básica primero para seleccionar
+            participantes
+          </Text>
+        )}
+
+        {hasBasicInfo && (
+          <>
+            <View style={styles.subsection}>
+              <View style={styles.subsectionTitleContainer}>
+                <MaterialCommunityIcons
+                  name="domain"
+                  size={18}
+                  color="#10b981"
+                />
+                <Text style={styles.subsectionTitle}>Cliente*</Text>
+              </View>
               <TouchableOpacity
-                style={styles.selector}
+                style={styles.resourceSelector}
                 onPress={() => setShowClientModal(true)}
               >
-                <View style={styles.selectorContent}>
+                <View style={styles.resourceSelectorContent}>
                   {clientId ? (
-                    <Text style={styles.selectedText}>
+                    <Text style={styles.resourceSelectedSingle}>
                       {mockClients.find((c) => c.id === clientId)?.name}
                     </Text>
                   ) : (
@@ -164,16 +191,23 @@ export default function CreateProjectScreen() {
                 <Ionicons name="chevron-down" size={20} color="#6b7280" />
               </TouchableOpacity>
             </View>
-            {/* Wind Park Selection */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Parque Eólico*</Text>
+
+            <View style={styles.subsection}>
+              <View style={styles.subsectionTitleContainer}>
+                <MaterialCommunityIcons
+                  name="wind-turbine"
+                  size={18}
+                  color="#10b981"
+                />
+                <Text style={styles.subsectionTitle}>Parque Eólico*</Text>
+              </View>
               <TouchableOpacity
-                style={styles.selector}
+                style={styles.resourceSelector}
                 onPress={() => setShowWindParkModal(true)}
               >
-                <View style={styles.selectorContent}>
+                <View style={styles.resourceSelectorContent}>
                   {windParkId ? (
-                    <Text style={styles.selectedText}>
+                    <Text style={styles.resourceSelectedSingle}>
                       {mockWindParks.find((wp) => wp.id === windParkId)?.name}
                     </Text>
                   ) : (
@@ -185,39 +219,76 @@ export default function CreateProjectScreen() {
                 <Ionicons name="chevron-down" size={20} color="#6b7280" />
               </TouchableOpacity>
             </View>
-            {/* Start Date */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Fecha de Inicio*</Text>
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => setShowStartDatePicker(true)}
-              >
-                <Text style={styles.dateButtonText}>
-                  {startDate
-                    ? startDate.toLocaleDateString()
-                    : "Seleccionar fecha de inicio"}
-                </Text>
-                <Ionicons name="calendar" size={20} color="#9C46CE" />
-              </TouchableOpacity>
+          </>
+        )}
+      </View>
+    );
+  };
+
+  const renderDatesSection = () => {
+    const hasParticipants = isParticipantsComplete;
+
+    return (
+      <View style={styles.section}>
+        <View style={styles.sectionTitleContainer}>
+          <MaterialCommunityIcons
+            name="calendar-range"
+            size={20}
+            color="#9C46CE"
+          />
+          <Text
+            style={[
+              styles.sectionTitle,
+              { color: hasParticipants ? "#1f2937" : "#9ca3af" },
+            ]}
+          >
+            Cronograma
+          </Text>
+        </View>
+
+        {!hasParticipants && (
+          <Text style={styles.disabledSectionText}>
+            Completa la información de participantes primero para configurar
+            fechas
+          </Text>
+        )}
+
+        {hasParticipants && (
+          <>
+            <View style={styles.dateRow}>
+              <View style={styles.dateInput}>
+                <Text style={styles.inputLabel}>Fecha de Inicio*</Text>
+                <TouchableOpacity
+                  style={styles.dateButton}
+                  onPress={() => setShowStartDatePicker(true)}
+                >
+                  <Text style={styles.dateButtonText}>
+                    {startDate
+                      ? startDate.toLocaleDateString()
+                      : "Seleccionar fecha"}
+                  </Text>
+                  <Ionicons name="calendar" size={20} color="#9C46CE" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.dateInput}>
+                <Text style={styles.inputLabel}>Fecha de Fin*</Text>
+                <TouchableOpacity
+                  style={styles.dateButton}
+                  onPress={() => setShowEndDatePicker(true)}
+                >
+                  <Text style={styles.dateButtonText}>
+                    {endDate
+                      ? endDate.toLocaleDateString()
+                      : "Seleccionar fecha"}
+                  </Text>
+                  <Ionicons name="calendar" size={20} color="#9C46CE" />
+                </TouchableOpacity>
+              </View>
             </View>
-            {/* End Date */}
+
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Fecha de Fin*</Text>
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => setShowEndDatePicker(true)}
-              >
-                <Text style={styles.dateButtonText}>
-                  {endDate
-                    ? endDate.toLocaleDateString()
-                    : "Seleccionar fecha de fin"}
-                </Text>
-                <Ionicons name="calendar" size={20} color="#9C46CE" />
-              </TouchableOpacity>
-            </View>
-            {/* Notes */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Notas</Text>
+              <Text style={styles.inputLabel}>Notas</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={notes}
@@ -229,14 +300,58 @@ export default function CreateProjectScreen() {
                 textAlignVertical="top"
               />
             </View>
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>
-                <Text>Los campos marcados con * son obligatorios</Text>
-              </Text>
-            </View>
-          </View>
-        </ScrollView>
+          </>
+        )}
+      </View>
+    );
+  };
+  // Bottom save button component
+  const renderBottomSaveButton = () => (
+    <TouchableOpacity
+      style={[
+        styles.bottomSaveButton,
+        Platform.OS === "web" && styles.bottomSaveButtonWeb, // Added conditional web style
+        !isDatesComplete && styles.bottomSaveButtonDisabled,
+      ]}
+      onPress={handleSaveProject}
+      disabled={!isDatesComplete}
+    >
+      <Text
+        style={[
+          styles.bottomSaveButtonText,
+          !isDatesComplete && styles.bottomSaveButtonTextDisabled,
+        ]}
+      >
+        Guardar Proyecto
+      </Text>
+    </TouchableOpacity>
+  );
 
+  return (
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <View style={styles.container}>
+        <Stack.Screen
+          options={{
+            headerShown: false,
+          }}
+        />
+        {/* Custom Header */}
+        <View style={styles.customHeader}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color="#9C46CE" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Crear Proyecto</Text>
+          <View style={styles.backButton} />
+        </View>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {renderBasicInfoSection()}
+          {renderParticipantsSection()}
+          {renderDatesSection()}
+          {renderBottomSaveButton()}
+        </ScrollView>
         {/* Client Selection Modal */}
         <Modal
           visible={showClientModal}
@@ -276,7 +391,7 @@ export default function CreateProjectScreen() {
                         <Ionicons
                           name="checkmark-circle"
                           size={24}
-                          color="#10b981"
+                          color="#3b82f6"
                         />
                       )}
                     </View>
@@ -286,7 +401,6 @@ export default function CreateProjectScreen() {
             </ScrollView>
           </View>
         </Modal>
-
         {/* Wind Park Selection Modal */}
         <Modal
           visible={showWindParkModal}
@@ -326,7 +440,7 @@ export default function CreateProjectScreen() {
                         <Ionicons
                           name="checkmark-circle"
                           size={24}
-                          color="#10b981"
+                          color="#3b82f6"
                         />
                       )}
                     </View>
@@ -336,7 +450,6 @@ export default function CreateProjectScreen() {
             </ScrollView>
           </View>
         </Modal>
-
         {/* Date Pickers */}
         {showStartDatePicker && (
           <DateTimePicker
@@ -364,37 +477,118 @@ export default function CreateProjectScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#ffffff",
   },
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#ffffff",
+  },
+  customHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1f2937",
+    flex: 1,
+    textAlign: "center",
   },
   backButton: {
     padding: 8,
   },
-  saveButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: "#9C46CE",
-    borderRadius: 8,
-  },
-  saveButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
   content: {
     flex: 1,
   },
-  form: {
-    padding: 20,
+  bottomSaveButton: {
+    backgroundColor: "#9C46CE",
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    shadowColor: "#9C46CE",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+    alignSelf: "flex-end", // Align button to the right
+    marginHorizontal: 16, // Horizontal margin for the button
+    marginTop: 24, // Top margin for the button
+    marginBottom: 32, // Bottom margin for the button
+  },
+  bottomSaveButtonWeb: {
+    // Style for web platform
+    minWidth: 200,
+    maxWidth: 300,
+  },
+  bottomSaveButtonDisabled: {
+    backgroundColor: "#d1d5db",
+    shadowOpacity: 0.1,
+    elevation: 2,
+  },
+  bottomSaveButtonText: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  bottomSaveButtonTextDisabled: {
+    color: "#9ca3af",
+  },
+  section: {
+    backgroundColor: "#ffffff",
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  sectionTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginLeft: 8,
+  },
+  subsection: {
+    marginBottom: 16,
+  },
+  subsectionTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  subsectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+    marginLeft: 6,
+  },
+  disabledSectionText: {
+    fontSize: 14,
+    color: "#9ca3af",
+    fontStyle: "italic",
+    textAlign: "center",
+    paddingVertical: 16,
   },
   inputGroup: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  label: {
-    fontSize: 16,
+  inputLabel: {
+    fontSize: 14,
     fontWeight: "600",
     color: "#374151",
     marginBottom: 8,
@@ -403,7 +597,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#d1d5db",
-    borderRadius: 12,
+    borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
@@ -412,22 +606,23 @@ const styles = StyleSheet.create({
   textArea: {
     minHeight: 100,
     paddingTop: 12,
+    textAlignVertical: "top",
   },
-  selector: {
+  resourceSelector: {
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#d1d5db",
-    borderRadius: 12,
+    borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  selectorContent: {
+  resourceSelectorContent: {
     flex: 1,
   },
-  selectedText: {
+  resourceSelectedSingle: {
     fontSize: 16,
     color: "#111827",
     fontWeight: "500",
@@ -436,23 +631,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#9ca3af",
   },
-  footer: {
-    marginTop: 24,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
+  dateRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 16,
   },
-  footerText: {
-    fontSize: 14,
-    color: "#6b7280",
-    textAlign: "center",
-  }, // Modal styles
+  dateInput: {
+    flex: 1,
+  },
+  dateButton: {
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    backgroundColor: "#ffffff",
+  },
+  dateButtonText: {
+    fontSize: 16,
+    color: "#374151",
+  },
+  // Modal styles
   modalContainer: {
     flex: 1,
-    backgroundColor: "#ffffff",
-    // Responsive width constraints for web/tablet
-    maxWidth: Platform.OS === "web" ? 600 : "100%",
-    alignSelf: Platform.OS === "web" ? "center" : "stretch",
+    backgroundColor: "#f9fafb",
+    ...(Platform.OS === "web" && {
+      maxWidth: 600,
+      alignSelf: "center",
+      width: "100%",
+      marginVertical: 32,
+      borderRadius: 12,
+    }),
   },
   modalHeader: {
     flexDirection: "row",
@@ -462,6 +673,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
+    backgroundColor: "#ffffff",
   },
   modalTitle: {
     fontSize: 20,
@@ -473,7 +685,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
   optionCard: {
     borderRadius: 12,
@@ -484,8 +696,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   selectedCard: {
-    borderColor: "#10b981",
-    backgroundColor: "#f0fdf4",
+    borderColor: "#3b82f6",
+    backgroundColor: "#eff6ff",
   },
   cardContent: {
     flexDirection: "row",
@@ -506,19 +718,5 @@ const styles = StyleSheet.create({
   },
   selectionIndicator: {
     marginLeft: 12,
-  },
-  dateButton: {
-    borderRadius: 8,
-    padding: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    backgroundColor: "#ffffff",
-  },
-  dateButtonText: {
-    fontSize: 16,
-    color: "#374151",
   },
 });

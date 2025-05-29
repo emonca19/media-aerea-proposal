@@ -1,11 +1,12 @@
+import { showAlert } from "@/src/components/CrossPlatformAlert";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
   FlatList,
   Linking,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -30,35 +31,45 @@ export default function PicturesReviewScreen() {
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
   const [rejectionModalVisible, setRejectionModalVisible] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
-    // Star rating states (1-5 stars for most parameters)
+  // Star rating states (1-5 stars for most parameters)
   const [bladeRectitudeRating, setBladeRectitudeRating] = useState<number>(0);
   const [captureDistanceRating, setCaptureDistanceRating] = useState<number>(0);
   const [exposureRating, setExposureRating] = useState<number>(0);
   const [bladePositionRating, setBladePositionRating] = useState<number>(0);
-  
+
   // Special case for Enfoque: button-based selection
-  const [focusQuality, setFocusQuality] = useState<"aceptable" | "deficiente" | null>(null);
+  const [focusQuality, setFocusQuality] = useState<
+    "aceptable" | "deficiente" | null
+  >(null);
   const [filterStatus, setFilterStatus] = useState<
     "ALL" | "PENDING_REVIEW" | "APPROVED" | "REJECTED"
   >("PENDING_REVIEW");
 
   // Helper functions to convert between star ratings and string values
-  const convertStarsToBladeRectitude = (stars: number): "aceptable" | "posibles_problemas" | "errores_procesamiento" => {
+  const convertStarsToBladeRectitude = (
+    stars: number
+  ): "aceptable" | "posibles_problemas" | "errores_procesamiento" => {
     if (stars >= 4) return "aceptable";
     if (stars >= 2) return "posibles_problemas";
     return "errores_procesamiento";
   };
 
-  const convertStarsToCaptureDistance = (stars: number): "aceptable" | "posibles_conflictos" => {
+  const convertStarsToCaptureDistance = (
+    stars: number
+  ): "aceptable" | "posibles_conflictos" => {
     return stars >= 3 ? "aceptable" : "posibles_conflictos";
   };
 
-  const convertStarsToExposure = (stars: number): "buena" | "muy_oscura" | "muy_brillante" => {
+  const convertStarsToExposure = (
+    stars: number
+  ): "buena" | "muy_oscura" | "muy_brillante" => {
     if (stars >= 4) return "buena";
     return stars <= 2 ? "muy_oscura" : "muy_brillante";
   };
 
-  const convertStarsToBladePosition = (stars: number): "correcta" | "parcialmente_correcta" | "incorrecta" => {
+  const convertStarsToBladePosition = (
+    stars: number
+  ): "correcta" | "parcialmente_correcta" | "incorrecta" => {
     if (stars >= 4) return "correcta";
     if (stars >= 2) return "parcialmente_correcta";
     return "incorrecta";
@@ -66,10 +77,14 @@ export default function PicturesReviewScreen() {
   // Reverse conversion functions for loading existing reviews
   const convertBladeRectitudeToStars = (value: string): number => {
     switch (value) {
-      case "aceptable": return 5;
-      case "posibles_problemas": return 3;
-      case "errores_procesamiento": return 1;
-      default: return 0;
+      case "aceptable":
+        return 5;
+      case "posibles_problemas":
+        return 3;
+      case "errores_procesamiento":
+        return 1;
+      default:
+        return 0;
     }
   };
 
@@ -79,21 +94,30 @@ export default function PicturesReviewScreen() {
 
   const convertExposureToStars = (value: string): number => {
     switch (value) {
-      case "buena": return 5;
-      case "muy_brillante": return 3;
-      case "muy_oscura": return 1;
-      default: return 0;
+      case "buena":
+        return 5;
+      case "muy_brillante":
+        return 3;
+      case "muy_oscura":
+        return 1;
+      default:
+        return 0;
     }
   };
 
   const convertBladePositionToStars = (value: string): number => {
     switch (value) {
-      case "correcta": return 5;
-      case "parcialmente_correcta": return 3;
-      case "incorrecta": return 1;
-      default: return 0;
+      case "correcta":
+        return 5;
+      case "parcialmente_correcta":
+        return 3;
+      case "incorrecta":
+        return 1;
+      default:
+        return 0;
     }
-  };  const setFocusQualityFromValue = (value: string): void => {
+  };
+  const setFocusQualityFromValue = (value: string): void => {
     switch (value) {
       case "bueno": // Legacy "bueno" maps to "aceptable"
       case "regular": // Legacy "regular" maps to "aceptable"
@@ -126,15 +150,20 @@ export default function PicturesReviewScreen() {
 
   const openDriveLink = (url: string) => {
     Linking.openURL(url).catch(() => {
-      Alert.alert("Error", "No se pudo abrir el enlace de Drive");
+      showAlert("Error", "No se pudo abrir el enlace de Drive");
     });
-  };  const handleReviewSubmission = (submission: PhotoSubmission) => {
+  };
+  const handleReviewSubmission = (submission: PhotoSubmission) => {
     setSelectedSubmission(submission);
     const review = submission.photoSubmissionReview;
     if (review) {
       // Convert existing string values to star ratings
-      setBladeRectitudeRating(convertBladeRectitudeToStars(review.bladeRectitude));
-      setCaptureDistanceRating(convertCaptureDistanceToStars(review.captureDistance));
+      setBladeRectitudeRating(
+        convertBladeRectitudeToStars(review.bladeRectitude)
+      );
+      setCaptureDistanceRating(
+        convertCaptureDistanceToStars(review.captureDistance)
+      );
       setExposureRating(convertExposureToStars(review.exposure));
       setBladePositionRating(convertBladePositionToStars(review.bladePosition));
       setFocusQualityFromValue(review.focus);
@@ -142,11 +171,13 @@ export default function PicturesReviewScreen() {
       // Reset to 0 for new review (unselected state)
       setBladeRectitudeRating(0);
       setCaptureDistanceRating(0);
-      setExposureRating(0);      setBladePositionRating(0);
+      setExposureRating(0);
+      setBladePositionRating(0);
       setFocusQuality(null);
     }
     setReviewModalVisible(true);
-  };const handleApproveSubmission = () => {
+  };
+  const handleApproveSubmission = () => {
     if (!selectedSubmission) return;
 
     // Validate that all evaluation categories are selected
@@ -157,7 +188,7 @@ export default function PicturesReviewScreen() {
       focusQuality === null ||
       bladePositionRating === 0
     ) {
-      Alert.alert(
+      showAlert(
         "Evaluación Incompleta",
         "Debe evaluar todas las categorías antes de aprobar la entrega."
       );
@@ -178,9 +209,9 @@ export default function PicturesReviewScreen() {
     updateSubmissionStatus(selectedSubmission.id, review);
     setReviewModalVisible(false);
 
-    Alert.alert(
+    showAlert(
       "Entrega Aprobada",
-      `La entrega de ${selectedSubmission.pilotName} ha sido aprobada. Se notificará al piloto y al cliente.`,
+      `La entrega de ${selectedSubmission.pilotName} ha sido aprobada. Se notificará al piloto.`,
       [{ text: "OK" }]
     );
   };
@@ -188,9 +219,10 @@ export default function PicturesReviewScreen() {
   const handleRejectSubmission = () => {
     setReviewModalVisible(false);
     setRejectionModalVisible(true);
-  };  const confirmRejection = () => {
+  };
+  const confirmRejection = () => {
     if (!selectedSubmission || !rejectionReason.trim()) {
-      Alert.alert("Error", "Debe proporcionar un motivo de rechazo");
+      showAlert("Error", "Debe proporcionar un motivo de rechazo");
       return;
     }
 
@@ -202,7 +234,7 @@ export default function PicturesReviewScreen() {
       focusQuality === null ||
       bladePositionRating === 0
     ) {
-      Alert.alert(
+      showAlert(
         "Evaluación Incompleta",
         "Debe evaluar todas las categorías antes de rechazar la entrega."
       );
@@ -225,7 +257,7 @@ export default function PicturesReviewScreen() {
     setRejectionModalVisible(false);
     setRejectionReason("");
 
-    Alert.alert(
+    showAlert(
       "Entrega Rechazada",
       `La entrega de ${selectedSubmission.pilotName} ha sido rechazada. Se notificará al piloto con el motivo especificado.`,
       [{ text: "OK" }]
@@ -334,7 +366,8 @@ export default function PicturesReviewScreen() {
       if (value === "parcialmente_correcta") return "Parcialmente correcta";
       return "Incorrecta";
     }
-    return value;  };
+    return value;
+  };
   const renderSubmissionItem = ({ item }: { item: PhotoSubmission }) => {
     const status = getSubmissionStatus(item);
     const review = item.photoSubmissionReview;
@@ -588,7 +621,8 @@ export default function PicturesReviewScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderSubmissionItem}
         contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}        ListEmptyComponent={
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="images-outline" size={64} color="#9ca3af" />
             <Text style={styles.emptyText}>No hay entregas para mostrar</Text>
@@ -682,16 +716,19 @@ export default function PicturesReviewScreen() {
                         </Text>
                         <Text style={styles.infoSubtext}>
                           {selectedSubmission.turbinesInspected.length} turbina
-                          {selectedSubmission.turbinesInspected.length !== 1                            ? "s"
+                          {selectedSubmission.turbinesInspected.length !== 1
+                            ? "s"
                             : ""}{" "}
                           en total
                         </Text>
                       </View>
                     </View>
-                  </View>                  
+                  </View>
                   {/* Star Rating Evaluations */}
                   <View style={styles.evaluationSection}>
-                    <Text style={styles.evaluationTitle}>Rectitud de la pala</Text>
+                    <Text style={styles.evaluationTitle}>
+                      Rectitud de la pala
+                    </Text>
                     <StarRating
                       rating={bladeRectitudeRating}
                       onChange={setBladeRectitudeRating}
@@ -699,11 +736,14 @@ export default function PicturesReviewScreen() {
                       color="#f59e0b"
                       emptyColor="#e5e7eb"
                       starStyle={{ marginHorizontal: 6 }}
-                      enableHalfStar={false}                    />
+                      enableHalfStar={false}
+                    />
                   </View>
 
                   <View style={styles.evaluationSection}>
-                    <Text style={styles.evaluationTitle}>Distancia de captura de foto</Text>
+                    <Text style={styles.evaluationTitle}>
+                      Distancia de captura de foto
+                    </Text>
                     <StarRating
                       rating={captureDistanceRating}
                       onChange={setCaptureDistanceRating}
@@ -711,7 +751,8 @@ export default function PicturesReviewScreen() {
                       color="#f59e0b"
                       emptyColor="#e5e7eb"
                       starStyle={{ marginHorizontal: 6 }}
-                      enableHalfStar={false}                    />
+                      enableHalfStar={false}
+                    />
                   </View>
 
                   <View style={styles.evaluationSection}>
@@ -723,11 +764,14 @@ export default function PicturesReviewScreen() {
                       color="#f59e0b"
                       emptyColor="#e5e7eb"
                       starStyle={{ marginHorizontal: 6 }}
-                      enableHalfStar={false}                    />
+                      enableHalfStar={false}
+                    />
                   </View>
 
                   <View style={styles.evaluationSection}>
-                    <Text style={styles.evaluationTitle}>Posición alrededor de la pala</Text>
+                    <Text style={styles.evaluationTitle}>
+                      Posición alrededor de la pala
+                    </Text>
                     <StarRating
                       rating={bladePositionRating}
                       onChange={setBladePositionRating}
@@ -745,29 +789,37 @@ export default function PicturesReviewScreen() {
                       <TouchableOpacity
                         style={[
                           styles.focusButton,
-                          focusQuality === 'deficiente' && styles.focusButtonSelected
+                          focusQuality === "deficiente" &&
+                            styles.focusButtonSelected,
                         ]}
-                        onPress={() => setFocusQuality('deficiente')}
+                        onPress={() => setFocusQuality("deficiente")}
                       >
-                        <Text style={[
-                          styles.focusButtonText,
-                          focusQuality === 'deficiente' && styles.focusButtonTextSelected
-                        ]}>
+                        <Text
+                          style={[
+                            styles.focusButtonText,
+                            focusQuality === "deficiente" &&
+                              styles.focusButtonTextSelected,
+                          ]}
+                        >
                           Deficiente
                         </Text>
                       </TouchableOpacity>
-                      
+
                       <TouchableOpacity
                         style={[
                           styles.focusButton,
-                          focusQuality === 'aceptable' && styles.focusButtonSelected
+                          focusQuality === "aceptable" &&
+                            styles.focusButtonSelected,
                         ]}
-                        onPress={() => setFocusQuality('aceptable')}
+                        onPress={() => setFocusQuality("aceptable")}
                       >
-                        <Text style={[
-                          styles.focusButtonText,
-                          focusQuality === 'aceptable' && styles.focusButtonTextSelected
-                        ]}>
+                        <Text
+                          style={[
+                            styles.focusButtonText,
+                            focusQuality === "aceptable" &&
+                              styles.focusButtonTextSelected,
+                          ]}
+                        >
                           Aceptable
                         </Text>
                       </TouchableOpacity>
@@ -1020,7 +1072,8 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
+    gap: 8,
   },
   driveButton: {
     flexDirection: "row",
@@ -1031,9 +1084,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
-    flex: 1,
-    marginRight: 8,
     justifyContent: "center",
+    ...(Platform.OS === "web" && {
+      maxWidth: 300,
+      minWidth: 200,
+    }),
   },
   driveButtonText: {
     fontSize: 14,
@@ -1048,9 +1103,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
-    flex: 1,
-    marginLeft: 8,
     justifyContent: "center",
+    ...(Platform.OS === "web" && {
+      maxWidth: 300,
+      minWidth: 200,
+    }),
   },
   reviewButtonText: {
     fontSize: 14,
@@ -1076,7 +1133,8 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: "#fff",
-  },  modalHeader: {
+  },
+  modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -1112,7 +1170,8 @@ const styles = StyleSheet.create({
   },
   evaluationSection: {
     marginBottom: 24,
-  },  evaluationTitle: {
+  },
+  evaluationTitle: {
     fontSize: 16,
     fontWeight: "600",
     color: "#1f2937",

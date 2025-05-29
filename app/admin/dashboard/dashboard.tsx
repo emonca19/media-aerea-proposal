@@ -9,10 +9,12 @@ import {
   Platform,
   ScrollView,
   StatusBar,
+  StyleProp,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { theme } from "../../../src/constants/theme";
@@ -194,6 +196,7 @@ interface OverviewCardProps {
     efficiency?: string;
     progressPercentage?: number;
   };
+  style?: StyleProp<ViewStyle>; // Added style prop
 }
 
 const OverviewCard: React.FC<OverviewCardProps> = ({
@@ -205,28 +208,46 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
   onPress,
   isLarge = false,
   details,
+  style, // Destructure style prop
 }) => (
   <TouchableOpacity
-    style={[styles.overviewCard, isLarge && styles.overviewCardLarge]}
+    style={[
+      styles.overviewCard,
+      isLarge && styles.overviewCardLarge,
+      // Add overflow hidden to the card itself
+      { overflow: "hidden" },
+      style, // Apply the style prop here
+    ]}
     onPress={onPress}
-    activeOpacity={0.9}
+    activeOpacity={0.8}
   >
     <LinearGradient
       colors={gradientColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[styles.overviewGradient, isLarge && styles.overviewGradientLarge]}
+      style={[
+        styles.overviewGradient,
+        isLarge && styles.overviewGradientLarge,
+        // Ensure gradient also has a border radius, matching the card
+        // This will be overridden by the specific styles if they also define borderRadius
+        { borderRadius: currentTheme.dimensions.borderRadius.medium },
+      ]}
     >
+      {/* Enhanced glow effect overlay */}
+      <View style={styles.cardGlowOverlay} />
+
       <View style={styles.overviewContent}>
         <View style={styles.overviewHeader}>
           <View style={styles.overviewIconContainer}>
-            <MaterialIcons name={icon} size={isLarge ? 20 : 18} color="white" />
+            <MaterialIcons name={icon} size={isLarge ? 24 : 20} color="white" />
           </View>
-          <MaterialIcons
-            name="chevron-right"
-            size={16}
-            color="rgba(255,255,255,0.7)"
-          />
+          <View style={styles.chevronContainer}>
+            <MaterialIcons
+              name="chevron-right"
+              size={18}
+              color="rgba(255,255,255,0.8)"
+            />
+          </View>
         </View>
         <View style={styles.overviewMainContent}>
           <View style={styles.overviewInfo}>
@@ -255,7 +276,7 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
               <View style={styles.detailItem}>
                 <MaterialIcons
                   name="check-circle"
-                  size={16}
+                  size={14}
                   color="rgba(255,255,255,0.9)"
                 />
                 <Text style={styles.detailText}>
@@ -265,7 +286,7 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
               <View style={styles.detailItem}>
                 <MaterialIcons
                   name="schedule"
-                  size={16}
+                  size={14}
                   color="rgba(255,255,255,0.9)"
                 />
                 <Text style={styles.detailText}>
@@ -275,7 +296,7 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
               <View style={styles.detailItem}>
                 <MaterialIcons
                   name="trending-up"
-                  size={16}
+                  size={14}
                   color="rgba(255,255,255,0.9)"
                 />
                 <Text style={styles.detailText}>
@@ -285,11 +306,11 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
             </View>
           )}
         </View>
-        {/* Progress Bar for Proyectos Activos */}
+        {/* Enhanced Progress Bar for Proyectos Activos */}
         {title === "Proyectos Activos" &&
           details?.progressPercentage !== undefined && (
             <View style={styles.progressContainer}>
-              <Text style={styles.progressLabel}>Progreso</Text>
+              <Text style={styles.progressLabel}>Progreso General</Text>
               <View style={styles.progressBarContainer}>
                 <View style={styles.progressBar}>
                   <View
@@ -298,6 +319,7 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
                       { width: `${details.progressPercentage}%` },
                     ]}
                   />
+                  <View style={styles.progressGlow} />
                 </View>
                 <Text style={styles.progressText}>
                   {details.progressPercentage}%
@@ -685,38 +707,69 @@ export default function AdminDashboard() {
             </Text>
           </View>
         </View>
-        {/* Overview Section */}
-        <View style={styles.overviewSection}>
+        {/* Enhanced Overview Section */}
+        <View
+          style={[
+            styles.overviewSection,
+            Platform.OS === "web" && styles.overviewSectionWeb,
+          ]}
+        >
           <OverviewCard
             title="Proyectos Activos"
             value={activeProjects}
             subtitle={`Ver mas`}
             icon="assignment"
-            gradientColors={["#3b82f6", "#1e40af"]}
+            gradientColors={["#3b82f6", "#2563eb", "#1d4ed8"]}
             isLarge={true}
             onPress={() => router.push("/admin/projects/tabs/projects")}
             details={{
               progressPercentage: averageCompletionPercentage,
             }}
+            style={Platform.OS === "web" ? styles.overviewCardWeb : undefined}
           />
-          <View style={styles.overviewBottomRow}>
-            <OverviewCard
-              title="Fotos por Aprobar"
-              value="2"
-              subtitle="Pendientes"
-              icon="photo-camera"
-              gradientColors={["#1f2937", "#111827"]}
-              onPress={() => router.push("/admin/tasks/tabs/pictures")}
-            />
-            <OverviewCard
-              title="Rendimiento Operativo"
-              value="88%"
-              subtitle="Esta semana"
-              icon="trending-up"
-              gradientColors={["#10b981", "#059669"]}
-              onPress={() => router.push("/admin/profile/kpisdashboard")}
-            />
-          </View>
+          {Platform.OS === "web" ? (
+            <>
+              <OverviewCard
+                title="Fotos por Aprobar"
+                value="2"
+                subtitle="Pendientes"
+                icon="photo-camera"
+                gradientColors={["#8b5cf6", "#7c3aed", "#6d28d9"]}
+                onPress={() => router.push("/admin/tasks/tabs/pictures")}
+                style={styles.overviewCardWeb}
+                // isLarge defaults to false, keeping their original internal styling
+              />
+              <OverviewCard
+                title="Rendimiento Operativo"
+                value="88%"
+                subtitle="Esta semana"
+                icon="trending-up"
+                gradientColors={["#10b981", "#059669", "#047857"]}
+                onPress={() => router.push("/admin/profile/kpisdashboard")}
+                style={styles.overviewCardWeb}
+                // isLarge defaults to false
+              />
+            </>
+          ) : (
+            <View style={styles.overviewBottomRow}>
+              <OverviewCard
+                title="Fotos por Aprobar"
+                value="2"
+                subtitle="Pendientes"
+                icon="photo-camera"
+                gradientColors={["#8b5cf6", "#7c3aed", "#6d28d9"]}
+                onPress={() => router.push("/admin/tasks/tabs/pictures")}
+              />
+              <OverviewCard
+                title="Rendimiento Operativo"
+                value="88%"
+                subtitle="Esta semana"
+                icon="trending-up"
+                gradientColors={["#10b981", "#059669", "#047857"]}
+                onPress={() => router.push("/admin/profile/kpisdashboard")}
+              />
+            </View>
+          )}
         </View>
         {/* Time Filter */}
         {/* <View style={styles.timeFilter}>
@@ -980,7 +1033,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: currentTheme.dimensions.spacing.md,
-    paddingTop: 12, // Consistent top padding
     paddingBottom: currentTheme.dimensions.spacing.md,
     marginHorizontal: currentTheme.dimensions.spacing.md,
     backgroundColor: currentTheme.card,
@@ -1259,17 +1311,31 @@ const styles = StyleSheet.create({
     marginBottom: currentTheme.dimensions.spacing.lg,
     paddingHorizontal: currentTheme.dimensions.spacing.md,
   },
+  overviewSectionWeb: {
+    flexDirection: "row",
+    alignItems: "stretch", // To make cards of equal height if their content differs
+    gap: currentTheme.dimensions.spacing.sm,
+  },
   overviewCard: {
     marginBottom: currentTheme.dimensions.spacing.sm,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 8,
     flex: 1, // Add flex to the card container
+    borderRadius: currentTheme.dimensions.borderRadius.medium, // Ensure card has borderRadius
+  },
+  overviewCardWeb: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0, // Distribute space equally among cards in the row
+    marginBottom: 0, // Override default marginBottom, parent gap handles spacing
   },
   overviewCardLarge: {
     marginBottom: currentTheme.dimensions.spacing.md,
+    // Ensure large card also has borderRadius if not already set by overviewCard
+    borderRadius: currentTheme.dimensions.borderRadius.medium,
   },
   overviewBottomRow: {
     flexDirection: "row",
@@ -1283,6 +1349,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   overviewGradientLarge: {
+    // Ensure large gradient also has borderRadius
+    borderRadius: currentTheme.dimensions.borderRadius.medium,
     padding: currentTheme.dimensions.spacing.md,
     minHeight: 90, // Reduced height for smaller cards
   },
@@ -1390,5 +1458,39 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     minWidth: 30,
     textAlign: "right",
+  }, // Enhanced card styles
+  cardGlowOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: currentTheme.dimensions.borderRadius.medium,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+  },
+  chevronContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  progressGlow: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    borderRadius: 4,
+    shadowColor: "#fff",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
   },
 });

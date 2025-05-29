@@ -519,7 +519,7 @@ export default function ReportsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <Animated.View entering={FadeInUp.delay(100)} style={styles.header}>
+        <Animated.View entering={FadeInUp.delay(50)} style={styles.header}>
           <View style={styles.headerTop}>
             <TouchableOpacity
               style={styles.backButton}
@@ -538,7 +538,7 @@ export default function ReportsScreen() {
         </Animated.View>
         {/* Report Templates */}
         <Animated.View
-          entering={FadeInDown.delay(200)}
+          entering={FadeInDown.delay(50)}
           style={styles.templatesSection}
         >
           <View style={styles.templateGrid}>
@@ -824,16 +824,12 @@ export default function ReportsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scrollView: {
     flex: 1,
     backgroundColor: "#ffffff",
   },
-  scrollView: {
-    flex: 1,
-  },
   header: {
     padding: 20,
-    paddingTop: 60,
     marginTop: 20,
   },
   headerTop: {

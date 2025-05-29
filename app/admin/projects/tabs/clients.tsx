@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
-  Alert,
   FlatList,
   Platform,
   StyleSheet,
@@ -114,10 +113,8 @@ export default function ClientsScreen() {
 
     return filtered;
   }, [clients, searchQuery]);
-
   const handleCreateClient = () => {
-    // Navigate to create new client (can be implemented later)
-    Alert.alert("Crear Cliente", "Funcionalidad en desarrollo");
+    router.push("/admin/projects/client/create");
   };
   const handleClientPress = (client: Client) => {
     // Navigate to client detail screen
@@ -222,7 +219,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#111827",
     ...(Platform.OS === "web" && { outlineWidth: 0 }),
-
   },
   listContainer: {
     padding: 16,
