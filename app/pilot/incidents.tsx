@@ -12,13 +12,13 @@ export default function PilotIncidents() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: 'Registrar Incidencia', headerStyle: { backgroundColor: '#1a237e' }, headerTintColor: '#fff' }} />
+      <Stack.Screen options={{ title: 'Registrar Incidencia', headerStyle: { backgroundColor: '#ea580c' }, headerTintColor: '#fff' }} />
       <Text style={styles.title}>Registrar Incidencia</Text>
       <Text style={styles.label}>Descripción</Text>
       <TextInput
         style={styles.input}
         placeholder="Describe la incidencia..."
-        placeholderTextColor="#8892b0"
+        placeholderTextColor="#fb923c"
         value={description}
         onChangeText={setDescription}
         multiline
@@ -38,33 +38,35 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   title: {
-    color: '#64ffda',
+    color: '#ea580c',
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 16,
   },
   label: {
-    color: '#fff',
+    color: '#c2410c',
     fontSize: 16,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#112240',
-    color: '#fff',
+    backgroundColor: '#fef7ed',
+    color: '#9a3412',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
     minHeight: 80,
+    borderWidth: 1,
+    borderColor: '#fed7aa',
   },
   button: {
-    backgroundColor: '#64ffda',
+    backgroundColor: '#ea580c',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 16,
   },
   buttonText: {
-    color: '#0a192f',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },

@@ -48,7 +48,7 @@ const IncidentFormModal: React.FC<IncidentFormModalProps> = ({
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton} accessibilityLabel="Cerrar modal de incidente" accessibilityRole="button">
-              <Ionicons name="close" size={36} color="#64748b" />
+              <Ionicons name="close" size={36} color="#ea580c" />
             </TouchableOpacity>
           </View>
             <NewIncidentScreen 

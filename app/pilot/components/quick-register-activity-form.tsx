@@ -143,7 +143,7 @@ const ReorderableActivityItem: React.FC<ReorderableActivityItemProps> = ({
         >
           <MaterialCommunityIcons
             name="chevron-up"
-            size={16}
+            size={14}
             color={index === 0 ? "#cbd5e1" : "#7c3aed"}
           />
         </TouchableOpacity>
@@ -158,7 +158,7 @@ const ReorderableActivityItem: React.FC<ReorderableActivityItemProps> = ({
         >
           <MaterialCommunityIcons
             name="chevron-down"
-            size={16}
+            size={14}
             color={index === totalItems - 1 ? "#cbd5e1" : "#7c3aed"}
           />
         </TouchableOpacity>
@@ -602,22 +602,31 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
               </View>
             )}
 
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleSubmit}
-            >
-              <Text style={styles.actionButtonText}>
-                {isForNow
-                  ? selectedType === "TURBINE_WORK" && selectedTurbine
+            {!isForNow && scheduledActivities.length > 0 && (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleSubmit}
+              >
+                <Text style={styles.actionButtonText}>
+                  {`Guardar ${scheduledActivities.length} Actividades`}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {isForNow && (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleSubmit}
+              >
+                <Text style={styles.actionButtonText}>
+                  {selectedType === "TURBINE_WORK" && selectedTurbine
                     ? `Iniciar en ${
                         mockTurbines.find((t) => t.id === selectedTurbine)?.name
                       }`
-                    : "Iniciar Actividad"
-                  : scheduledActivities.length > 0
-                  ? `Guardar ${scheduledActivities.length} Actividades`
-                  : "Programar Actividad"}
-              </Text>
-            </TouchableOpacity>
+                    : "Iniciar Actividad"}
+                </Text>
+              </TouchableOpacity>
+            )}
           </ScrollView>
         </View>
       </View>
@@ -660,7 +669,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 26,
     fontWeight: "700",
-    color: "#aa74f0", // Changed from "#1e3a8a"
+    color: "#6b46c1", // Changed to darker purple
     marginBottom: 10,
     marginTop: 5,
     textAlign: "center",
@@ -783,15 +792,16 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 28,
-    marginTop: 0,
-    marginBottom: 0,
+    marginTop: 12,
+    marginBottom: 8,
     shadowColor: "#f59e0b",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
     borderWidth: 1,
-    borderColor: "#f59e0b",
+    borderColor: "#d97706",
+    transform: [{ scale: 1 }],
   },
   addButtonContent: {
     flexDirection: "row",
@@ -799,12 +809,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   addButtonIconContainer: {
-    marginRight: 8,
+    marginRight: 10,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 12,
+    padding: 4,
   },
   addToListButtonText: {
     color: "#ffffff",
-    fontWeight: "600",
+    fontWeight: "700",
     fontSize: 16,
+    letterSpacing: 0.5,
   },
   scheduledListContainer: {
     marginTop: 2,
@@ -847,20 +861,25 @@ const styles = StyleSheet.create({
   reorderButtons: {
     flexDirection: "column",
     marginRight: 12,
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
-    padding: 4,
+    padding: 3,
     borderWidth: 1,
     borderColor: "#e2e8f0",
+    shadowColor: "#8b5cf6",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   reorderButton: {
-    backgroundColor: "#ffffff",
-    borderRadius: 6,
-    padding: 4,
+    backgroundColor: "#f8fafc",
+    borderRadius: 8,
+    padding: 6,
     marginVertical: 1,
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    shadowColor: "#000",
+    shadowColor: "#8b5cf6",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -873,6 +892,9 @@ const styles = StyleSheet.create({
   reorderButtonDisabled: {
     opacity: 0.4,
     backgroundColor: "#f1f5f9",
+    borderColor: "#cbd5e1",
+    shadowOpacity: 0,
+    elevation: 0,
   },
   scheduledActivityContent: {
     flex: 1,

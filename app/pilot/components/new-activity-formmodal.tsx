@@ -499,18 +499,23 @@ export default function NewActivityScreen() { // Props removidas por ahora
 
 
         {/* BOTÓN DE ACCIÓN */}
-        <TouchableOpacity style={styles.actionButton} onPress={handleSubmit}>
+        {isForNow && (
+          <TouchableOpacity style={styles.actionButton} onPress={handleSubmit}>
             <Text style={styles.actionButtonText}>
-                {isForNow
-                    ? (requiresAssetSelection && selectedAssetId && availableAssets.find(t => t.id === selectedAssetId)
-                        ? `Iniciar en ${availableAssets.find(t => t.id === selectedAssetId)?.name}`
-                        : 'Iniciar Actividad Ahora')
-                    : (scheduledActivities.length > 0 
-                        ? `Guardar ${scheduledActivities.length} Actividades` 
-                        : 'Programar Actividad')
-                }
+              {requiresAssetSelection && selectedAssetId && availableAssets.find(t => t.id === selectedAssetId)
+                ? `Iniciar en ${availableAssets.find(t => t.id === selectedAssetId)?.name}`
+                : 'Iniciar Actividad Ahora'}
             </Text>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        )}
+
+        {!isForNow && scheduledActivities.length > 0 && (
+          <TouchableOpacity style={styles.actionButton} onPress={handleSubmit}>
+            <Text style={styles.actionButtonText}>
+              {`Guardar ${scheduledActivities.length} Actividades`}
+            </Text>
+          </TouchableOpacity>
+        )}
         {/* FIN DE BOTÓN DE ACCIÓN */}
 
       </ScrollView>
@@ -706,22 +711,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#059669', // Verde más profesional
-    paddingVertical: 8, // Más compacto (reducido de 10)
-    paddingHorizontal: 12, // Más compacto (reducido de 16)
-    borderRadius: 8,
-    marginTop: 6, // Más compacto (reducido de 8)
-    shadowColor: '#047857', // Sombra del mismo tono
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 3,
+    backgroundColor: '#f59e0b', // Changed to yellow/orange
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    marginTop: 12,
+    shadowColor: '#f59e0b', // Yellow shadow
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#d97706', // Darker yellow border
+    transform: [{ scale: 1 }],
   },
   addToListButtonText: {
     color: '#ffffff',
-    fontWeight: '700', // Peso más fuerte
-    fontSize: 13, // Tamaño más compacto (reducido de 14)
-    marginLeft: 4, // Más compacto (reducido de 6)
+    fontWeight: '700',
+    fontSize: 16,
+    marginLeft: 8,
+    letterSpacing: 0.5,
   },  // Estilos para la lista de actividades programadas
   scheduledActivitiesContainer: {
     marginBottom: 14,

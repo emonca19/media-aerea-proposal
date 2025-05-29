@@ -3,13 +3,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { incidentTypes } from '../../src/mocks/incident-types';
 import { IncidentType } from '../../src/types/common';
@@ -81,7 +81,7 @@ export default function NewIncidentScreen({ onSubmit, currentActivity = null }: 
         options={{
           title: 'Inicio',
           headerStyle: { backgroundColor: '#ffffff' },
-          headerTintColor: '#ef4444',
+          headerTintColor: '#ea580c',
           headerShadowVisible: false,
         }}
       />
@@ -114,7 +114,7 @@ export default function NewIncidentScreen({ onSubmit, currentActivity = null }: 
               <Ionicons 
                 name={incidentType.icon} 
                 size={24} 
-                color={incidentTypeId === incidentType.id ? '#ffffff' : '#ef4444'} 
+                color={incidentTypeId === incidentType.id ? '#ffffff' : '#ea580c'} 
               />
               <Text style={[
                 styles.typeLabel,
@@ -136,7 +136,7 @@ export default function NewIncidentScreen({ onSubmit, currentActivity = null }: 
             <Ionicons 
               name={currentActivity ? "hourglass-outline" : "alert-circle-outline"} 
               size={24} 
-              color={currentActivity ? "#3b82f6" : "#94a3b8"} 
+              color={currentActivity ? "#ea580c" : "#94a3b8"} 
             />
             <Text style={[
               styles.currentActivityName,
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#ef4444',
+    color: '#6b46c1', // Changed to darker purple
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -236,23 +236,23 @@ const styles = StyleSheet.create({
   },
   typeCard: {
     width: '31%',
-    backgroundColor: '#fef2f2',
+    backgroundColor: '#fef7ed',
     borderRadius: 10,
     padding: 12,
     marginBottom: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#fee2e2',
+    borderColor: '#fed7aa',
   },
   typeCardSelected: {
-    backgroundColor: '#ef4444',
-    borderColor: '#dc2626',
+    backgroundColor: '#ea580c',
+    borderColor: '#c2410c',
   },
   typeLabel: {
     fontSize: 12,
     fontWeight: '500',
     marginTop: 5,
-    color: '#ef4444',
+    color: '#ea580c',
     textAlign: 'center',
   },
   typeLabelSelected: {
@@ -274,8 +274,8 @@ const styles = StyleSheet.create({
     borderColor: '#2563eb',
   },
   urgentOptionButtonSelected: {
-    backgroundColor: '#ef4444',
-    borderColor: '#dc2626',
+    backgroundColor: '#ea580c',
+    borderColor: '#c2410c',
   },
   timeOptionText: {
     marginLeft: 5,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#334155',
   },  submitButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: '#ea580c',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
@@ -354,24 +354,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   currentActivityCard: {
-    backgroundColor: '#f0f9ff',
+    backgroundColor: '#fef7ed',
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#bae6fd',
+    borderColor: '#fed7aa',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   currentActivityName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1e40af',
+    color: '#c2410c',
     flex: 1,
     marginLeft: 10,
   },  currentActivityStatus: {
     fontSize: 12,
-    color: '#3b82f6',
+    color: '#ea580c',
     fontWeight: '500',
   },
   submitButtonDisabled: {

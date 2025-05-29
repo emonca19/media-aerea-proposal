@@ -88,14 +88,14 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
             <View style={styles.scrollContentContainer}>
               <View style={styles.closeButtonContainer}>
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                  <Ionicons name="close-circle" size={36} color="#64748b" />
+                  <Ionicons name="close-circle" size={36} color="#ea580c" />
                 </TouchableOpacity>
               </View>
               
               <Text style={styles.headerTitle}>Sin Actividad en Curso</Text>
               
               <View style={{alignItems: 'center', marginTop: 20}}>
-                <Ionicons name="pause-circle-outline" size={64} color="#94a3b8" />
+                <Ionicons name="pause-circle-outline" size={64} color="#ea580c" />
                 <Text style={{...styles.subtitle, textAlign: 'center', marginTop: 15}}>
                   Debe haber una actividad en curso para reportar un incidente
                 </Text>
@@ -126,7 +126,7 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
           >
             <View style={styles.closeButtonContainer}>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Ionicons name="close-circle" size={36} color="#64748b" />
+                <Ionicons name="close-circle" size={36} color="#ea580c" />
               </TouchableOpacity>
             </View>
             
@@ -151,7 +151,7 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
                 ><Ionicons 
                     name={incidentType.icon} 
                     size={24} 
-                    color={incidentTypeId === incidentType.id ? '#ffffff' : '#f59e0b'} 
+                    color={incidentTypeId === incidentType.id ? '#ffffff' : '#ea580c'} 
                   />
                   <Text style={[
                     styles.typeLabel,
@@ -169,7 +169,7 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
                 style={[styles.timeOptionButton, isUrgent && styles.urgentOptionButtonSelected]}
                 onPress={() => setIsUrgent(true)}
               >
-                <Ionicons name="warning" size={18} color={isUrgent ? '#fff' : '#f59e0b'} />
+                <Ionicons name="warning" size={18} color={isUrgent ? '#fff' : '#ea580c'} />
                 <Text style={[styles.timeOptionText, isUrgent && styles.timeOptionTextSelected]}>Urgente</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -188,7 +188,6 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
               </View>
             </View>
 
-            {/* Descripción del incidente */}
             <Text style={styles.subtitle}>Descripción detallada</Text>
             <View style={styles.descriptionContainer}>
               <TextInput
@@ -203,7 +202,6 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
               />
             </View>
             
-            {/* Botón de registro */}
             <TouchableOpacity 
               style={styles.submitButton} 
               onPress={handleSubmit}
@@ -254,7 +252,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: '#ea580c',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -277,7 +275,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 15,
   },  typeCard: {
-    width: '31%', // 3 elementos por fila con espacio entre ellos
+    width: '31%',
     backgroundColor: '#fef7ed',
     borderRadius: 10,
     padding: 12,
@@ -287,14 +285,14 @@ const styles = StyleSheet.create({
     borderColor: '#fed7aa',
   },
   typeCardSelected: {
-    backgroundColor: '#f59e0b',
-    borderColor: '#d97706',
+    backgroundColor: '#ea580c',
+    borderColor: '#c2410c',
   },
   typeLabel: {
     fontSize: 12,
     fontWeight: '500',
     marginTop: 5,
-    color: '#f59e0b',
+    color: '#ea580c',
     textAlign: 'center',
   },
   typeLabelSelected: {
@@ -315,8 +313,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#3b82f6',
     borderColor: '#2563eb',
   },  urgentOptionButtonSelected: {
-    backgroundColor: '#f59e0b',
-    borderColor: '#d97706',
+    backgroundColor: '#ea580c',
+    borderColor: '#c2410c',
   },
   timeOptionText: {
     marginLeft: 5,
@@ -339,7 +337,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#334155',
   },  submitButton: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: '#ea580c',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
