@@ -34,7 +34,6 @@ export default function ProjectDetailsScreen() {
       <View style={styles.container}>
         <Stack.Screen options={{ title: "Proyecto no encontrado" }} />
         <View style={styles.errorContainer}>
-          
           <MaterialCommunityIcons
             name="alert-circle"
             size={64}
@@ -144,7 +143,6 @@ export default function ProjectDetailsScreen() {
           >
             {/* Project Status */}
             <View style={styles.section}>
-              
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>
                   <Text>Estado del Proyecto</Text>
@@ -167,7 +165,6 @@ export default function ProjectDetailsScreen() {
                 <Text>Información Básica</Text>
               </Text>
               <View style={styles.infoGrid}>
-                
                 <View style={styles.infoItem}>
                   <Text style={styles.infoLabel}>
                     <Text>Cliente</Text>
@@ -243,7 +240,6 @@ export default function ProjectDetailsScreen() {
                   <Text>Progreso del Proyecto</Text>
                 </Text>
                 <View style={styles.progressCard}>
-                  
                   <View style={styles.progressHeader}>
                     <Text style={styles.progressLabel}>
                       <Text>Progreso General</Text>
@@ -297,7 +293,6 @@ export default function ProjectDetailsScreen() {
             style={styles.tabContent}
             showsVerticalScrollIndicator={false}
           >
-            
             {/* Wind Park Information */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
@@ -347,7 +342,6 @@ export default function ProjectDetailsScreen() {
                             },
                           ]}
                         >
-                          
                           <Text style={styles.turbineStatusText}>
                             <Text>
                               {turbine.status === "APPROVED"
@@ -409,7 +403,6 @@ export default function ProjectDetailsScreen() {
             style={styles.tabContent}
             showsVerticalScrollIndicator={false}
           >
-            
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
                 <Text>Asignaciones Activas ({assignments.length})</Text>
@@ -418,14 +411,12 @@ export default function ProjectDetailsScreen() {
                 <View style={styles.assignmentsList}>
                   {assignments.map((assignment) => (
                     <View key={assignment.id} style={styles.assignmentCard}>
-                      
                       <View style={styles.assignmentHeader}>
                         <Text style={styles.assignmentTitle}>
                           <Text>Asignación #{assignment.id.slice(-4)}</Text>
                         </Text>
                       </View>
                       <View style={styles.assignmentDetails}>
-                        
                         <View style={styles.assignmentDetailRow}>
                           <Ionicons name="people" size={16} color="#6b7280" />
                           <Text style={styles.assignmentDetailText}>
@@ -503,10 +494,10 @@ export default function ProjectDetailsScreen() {
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() =>
-                  Alert.alert(
-                    "Gestionar Asignaciones",
-                    "Esta funcionalidad se implementará próximamente."
-                  )
+                  router.push({
+                    pathname: "/admin/tasks/assignment/create",
+                    params: { projectId: project.id },
+                  })
                 }
               >
                 <Ionicons name="add" size={20} color="#ffffff" />
@@ -524,7 +515,6 @@ export default function ProjectDetailsScreen() {
             style={styles.tabContent}
             showsVerticalScrollIndicator={false}
           >
-            
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
                 <Text>Historial de Cambios</Text>

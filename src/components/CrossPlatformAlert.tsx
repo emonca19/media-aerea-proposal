@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Alert,
   Modal,
   Platform,
   StyleSheet,
@@ -14,7 +15,8 @@ export interface AlertButton {
   style?: "default" | "cancel" | "destructive";
 }
 
-interface CrossPlatformAlertProps {
+// This interface is used when creating the CrossPlatformAlert component
+export interface CrossPlatformAlertProps {
   visible: boolean;
   title: string;
   message?: string;
@@ -141,7 +143,6 @@ export const showAlert = (
 ) => {
   // If on native mobile, use the native Alert
   if (Platform.OS === "ios" || Platform.OS === "android") {
-    const { Alert } = require("react-native");
     Alert.alert(title, message, buttons, options);
     return;
   }

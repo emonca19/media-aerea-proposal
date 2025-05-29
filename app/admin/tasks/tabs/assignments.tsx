@@ -179,7 +179,6 @@ export default function AssignmentListScreen() {
         key={assignment.id}
         style={styles.cardContainer}
         onPress={() => {
-          // Navigate to assignment details
           router.push(`/admin/tasks/assignment/${assignment.id}`);
         }}
       >

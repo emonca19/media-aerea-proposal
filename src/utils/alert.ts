@@ -1,4 +1,4 @@
-import { Platform } from "react-native";
+import { Platform, Alert } from "react-native";
 import { AlertButton, showAlert } from "../components/CrossPlatformAlert";
 
 interface AlertOptions {
@@ -19,7 +19,6 @@ export const alert = (
 ) => {
   if (Platform.OS === "ios" || Platform.OS === "android") {
     // Use native Alert for mobile platforms
-    const { Alert } = require("react-native");
     Alert.alert(title, message, buttons, options);
   } else {
     // Use custom alert for web

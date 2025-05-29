@@ -1,10 +1,11 @@
+import { showAlert } from "@/src/components/CrossPlatformAlert";
 import {
   Ionicons,
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -41,7 +42,6 @@ const compareDates = (date1: Date, date2: Date) => {
   return 0;
 };
 
-
 const getPilotProfileImage = (pilotId: string) => {
   const pilotUser = mockPilotUsers.find((user) => user.id === pilotId);
   return pilotUser?.profileImage || null;
@@ -70,12 +70,12 @@ const PilotImage = ({ pilotId }: { pilotId: string }) => {
   );
 };
 
-
 export default function AssignmentsScreen() {
   const params = useLocalSearchParams();
   const preselectedProjectId = Array.isArray(params.projectId)
     ? params.projectId[0]
     : params.projectId;
+  const router = useRouter(); // Initialize router
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedPilots, setSelectedPilots] = useState<string[]>([]);
   const [selectedDrone, setSelectedDrone] = useState<string>("");
@@ -142,9 +142,17 @@ export default function AssignmentsScreen() {
   const calculateDuration = (start: Date | null, end: Date | null) => {
     if (start && end) {
       // Ensure we are comparing dates at the same time of day (e.g., midnight) to avoid off-by-one issues
-      const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-      const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-      
+      const startDate = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate()
+      );
+      const endDate = new Date(
+        end.getFullYear(),
+        end.getMonth(),
+        end.getDate()
+      );
+
       const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
       setEstimatedDuration(diffDays);
@@ -154,23 +162,24 @@ export default function AssignmentsScreen() {
   };
 
   const handleStartDateChange = (event: any, selectedDate?: Date) => {
-    const isWeb = Platform.OS === 'web';
+    const isWeb = Platform.OS === "web";
 
     if (!isWeb) {
-        // For mobile, hide picker unless it's an iOS inline picker or user dismissed
-        if (event?.type === 'dismissed') { // Android cancel
-            setShowStartDatePicker(false);
-            return;
-        }
-        // For iOS spinner/compact or Android default, always hide after an action
-        const displayMode = Platform.OS === 'ios' ? 'spinner' : 'default'; // Assuming these are your defaults
-        // if (displayMode !== 'inline') { // Add your actual display prop value if different
-        //      setShowStartDatePicker(false);
-        // }
+      // For mobile, hide picker unless it's an iOS inline picker or user dismissed
+      if (event?.type === "dismissed") {
+        // Android cancel
+        setShowStartDatePicker(false);
+        return;
+      }
+      // Always close the picker on mobile
+      setShowStartDatePicker(false);
     }
 
     if (selectedDate) {
-      if (estimatedEndDate && compareDates(selectedDate, estimatedEndDate) > 0) {
+      if (
+        estimatedEndDate &&
+        compareDates(selectedDate, estimatedEndDate) > 0
+      ) {
         setDateValidationMessage(
           "La fecha de inicio no puede ser posterior a la fecha de fin"
         );
@@ -178,7 +187,7 @@ export default function AssignmentsScreen() {
         if (!isWeb) setShowStartDatePicker(false);
         return;
       }
-      
+
       setDateValidationMessage("");
       setEstimatedStartDate(selectedDate);
       calculateDuration(selectedDate, estimatedEndDate);
@@ -187,36 +196,38 @@ export default function AssignmentsScreen() {
         setShowStartDatePicker(false); // Close web picker on successful selection
       }
     } else if (!isWeb) {
-        // If selectedDate is null/undefined on mobile (e.g. dismissed), ensure picker is closed
-        setShowStartDatePicker(false);
+      // If selectedDate is null/undefined on mobile (e.g. dismissed), ensure picker is closed
+      setShowStartDatePicker(false);
     }
   };
 
   const handleEndDateChange = (event: any, selectedDate?: Date) => {
-    const isWeb = Platform.OS === 'web';
+    const isWeb = Platform.OS === "web";
 
     if (!isWeb) {
-        if (event?.type === 'dismissed') {
-            setShowEndDatePicker(false);
-            return;
-        }
-        const displayMode = Platform.OS === 'ios' ? 'spinner' : 'default';
-        // if (displayMode !== 'inline') {
-        //     setShowEndDatePicker(false);
-        // }
+      if (event?.type === "dismissed") {
+        setShowEndDatePicker(false);
+        return;
+      }
+      // Always close the picker on mobile
+      setShowEndDatePicker(false);
     }
-    
+
     if (selectedDate) {
       let newStartDate = estimatedStartDate;
       let message = "";
 
-      if (estimatedStartDate && compareDates(selectedDate, estimatedStartDate) < 0) {
+      if (
+        estimatedStartDate &&
+        compareDates(selectedDate, estimatedStartDate) < 0
+      ) {
         // End date is before start date, adjust start date to match new end date
         newStartDate = selectedDate;
         setEstimatedStartDate(selectedDate);
-        message = "La fecha de inicio se ajustó automáticamente para coincidir con la fecha de fin";
+        message =
+          "La fecha de inicio se ajustó automáticamente para coincidir con la fecha de fin";
       }
-      
+
       setDateValidationMessage(message);
       setEstimatedEndDate(selectedDate);
       calculateDuration(newStartDate, selectedDate);
@@ -225,7 +236,7 @@ export default function AssignmentsScreen() {
         setShowEndDatePicker(false);
       }
     } else if (!isWeb) {
-        setShowEndDatePicker(false);
+      setShowEndDatePicker(false);
     }
   };
 
@@ -250,9 +261,12 @@ export default function AssignmentsScreen() {
       Alert.alert("Error", "Debe seleccionar una cámara para este drone");
       return;
     }
-    if (dateValidationMessage && dateValidationMessage.includes("no puede ser posterior")) {
-        Alert.alert("Error de Fechas", dateValidationMessage);
-        return;
+    if (
+      dateValidationMessage &&
+      dateValidationMessage.includes("no puede ser posterior")
+    ) {
+      Alert.alert("Error de Fechas", dateValidationMessage);
+      return;
     }
 
     const newAssignment: ProjectAssignment = {
@@ -277,26 +291,23 @@ export default function AssignmentsScreen() {
 
     console.log("New assignment created:", newAssignment);
 
-    Alert.alert(
-      "Asignación Creada",
-      "La asignación se ha creado exitosamente",
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            setSelectedProject(null);
-            setSelectedPilots([]);
-            setSelectedDrone("");
-            setSelectedCamera("");
-            setEstimatedStartDate(null);
-            setEstimatedEndDate(null);
-            setEstimatedDuration(0);
-            setNotes("");
-            setDateValidationMessage("");
-          },
+    showAlert("Asignación Creada", "La asignación se ha creado exitosamente", [
+      {
+        text: "OK",
+        onPress: () => {
+          setSelectedProject(null);
+          setSelectedPilots([]);
+          setSelectedDrone("");
+          setSelectedCamera("");
+          setEstimatedStartDate(null);
+          setEstimatedEndDate(null);
+          setEstimatedDuration(0);
+          setNotes("");
+          setDateValidationMessage("");
+          router.back(); // Navigate back
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const renderProjectSelector = () => (
@@ -366,7 +377,7 @@ export default function AssignmentsScreen() {
       </View>
     );
   };
-  
+
   const renderAvailabilitySection = () => (
     <View style={styles.section}>
       <View style={styles.sectionTitleContainer}>
@@ -393,7 +404,11 @@ export default function AssignmentsScreen() {
           {/* Pilot Selection */}
           <View style={styles.subsection}>
             <View style={styles.subsectionTitleContainer}>
-              <MaterialCommunityIcons name="account" size={18} color="#10b981" />
+              <MaterialCommunityIcons
+                name="account"
+                size={18}
+                color="#10b981"
+              />
               <Text style={styles.subsectionTitle}>
                 Pilotos Disponibles ({availablePilots.length})
               </Text>
@@ -407,7 +422,11 @@ export default function AssignmentsScreen() {
                   <View>
                     {selectedPilots.length === 1 ? (
                       <Text style={styles.resourceSelectedSingle}>
-                        {availablePilots.find(p => p.pilotId === selectedPilots[0])?.pilotName}
+                        {
+                          availablePilots.find(
+                            (p) => p.pilotId === selectedPilots[0]
+                          )?.pilotName
+                        }
                       </Text>
                     ) : (
                       <Text style={styles.resourceSelectedMultiple}>
@@ -416,7 +435,9 @@ export default function AssignmentsScreen() {
                     )}
                   </View>
                 ) : (
-                  <Text style={styles.placeholderText}>Seleccionar pilotos...</Text>
+                  <Text style={styles.placeholderText}>
+                    Seleccionar pilotos...
+                  </Text>
                 )}
               </View>
               <View style={styles.resourceSelectorIndicator}>
@@ -440,10 +461,15 @@ export default function AssignmentsScreen() {
               <View style={styles.resourceSelectorContent}>
                 {selectedDrone ? (
                   <Text style={styles.resourceSelectedSingle}>
-                    {availableDrones.find(d => d.droneId === selectedDrone)?.droneName}
+                    {
+                      availableDrones.find((d) => d.droneId === selectedDrone)
+                        ?.droneName
+                    }
                   </Text>
                 ) : (
-                  <Text style={styles.placeholderText}>Seleccionar drone...</Text>
+                  <Text style={styles.placeholderText}>
+                    Seleccionar drone...
+                  </Text>
                 )}
               </View>
               <View style={styles.resourceSelectorIndicator}>
@@ -451,17 +477,23 @@ export default function AssignmentsScreen() {
               </View>
             </TouchableOpacity>
           </View>
-          
+
           {/* Camera Section */}
           {selectedDrone && !droneHasBuiltInCamera && (
             <View style={styles.subsection}>
               <View style={styles.subsectionTitleContainer}>
-                <MaterialCommunityIcons name="camera" size={18} color="#10b981" />
+                <MaterialCommunityIcons
+                  name="camera"
+                  size={18}
+                  color="#10b981"
+                />
                 <Text style={styles.subsectionTitle}>
                   Cámaras Disponibles ({availableCameras.length})
                 </Text>
               </View>
-              <Text style={styles.cameraRequirementText}>Este drone requiere una cámara externa</Text>
+              <Text style={styles.cameraRequirementText}>
+                Este drone requiere una cámara externa
+              </Text>
               <TouchableOpacity
                 style={styles.resourceSelector}
                 onPress={() => setShowCamerasModal(true)}
@@ -469,10 +501,16 @@ export default function AssignmentsScreen() {
                 <View style={styles.resourceSelectorContent}>
                   {selectedCamera ? (
                     <Text style={styles.resourceSelectedSingle}>
-                      {availableCameras.find(c => c.cameraId === selectedCamera)?.cameraName}
+                      {
+                        availableCameras.find(
+                          (c) => c.cameraId === selectedCamera
+                        )?.cameraName
+                      }
                     </Text>
                   ) : (
-                    <Text style={styles.placeholderText}>Seleccionar cámara...</Text>
+                    <Text style={styles.placeholderText}>
+                      Seleccionar cámara...
+                    </Text>
                   )}
                 </View>
                 <View style={styles.resourceSelectorIndicator}>
@@ -485,10 +523,18 @@ export default function AssignmentsScreen() {
           {selectedDrone && droneHasBuiltInCamera && (
             <View style={styles.subsection}>
               <View style={styles.subsectionTitleContainer}>
-                <MaterialCommunityIcons name="camera" size={18} color="#9ca3af" />
-                <Text style={[styles.subsectionTitle, { color: "#9ca3af" }]}>Cámara</Text>
+                <MaterialCommunityIcons
+                  name="camera"
+                  size={18}
+                  color="#9ca3af"
+                />
+                <Text style={[styles.subsectionTitle, { color: "#9ca3af" }]}>
+                  Cámara
+                </Text>
               </View>
-              <Text style={styles.cameraInfoText}>Este drone tiene cámara integrada</Text>
+              <Text style={styles.cameraInfoText}>
+                Este drone tiene cámara integrada
+              </Text>
             </View>
           )}
         </>
@@ -502,7 +548,7 @@ export default function AssignmentsScreen() {
     // Helper to parse "YYYY-MM-DD" string to local Date object
     const parseDateString = (dateString: string): Date | null => {
       if (!dateString) return null;
-      const parts = dateString.split('-');
+      const parts = dateString.split("-");
       if (parts.length === 3) {
         const year = parseInt(parts[0], 10);
         const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
@@ -513,7 +559,6 @@ export default function AssignmentsScreen() {
       }
       return null;
     };
-
 
     return (
       <View style={styles.datesSection}>
@@ -594,7 +639,9 @@ export default function AssignmentsScreen() {
                     ]}
                   >
                     {estimatedDuration > 0
-                      ? `${estimatedDuration} día${estimatedDuration > 1 ? 's' : ''}`
+                      ? `${estimatedDuration} día${
+                          estimatedDuration > 1 ? "s" : ""
+                        }`
                       : "Seleccione fechas para calcular"}
                   </Text>
                 </Text>
@@ -638,11 +685,12 @@ export default function AssignmentsScreen() {
                       onChange={(e) => {
                         const selectedDate = parseDateString(e.target.value);
                         if (selectedDate) {
-                            handleStartDateChange(null, selectedDate);
-                        } else if (e.target.value === "") { // Handle cleared input
-                            setEstimatedStartDate(null);
-                            calculateDuration(null, estimatedEndDate);
-                            setDateValidationMessage(""); // Clear validation if input is cleared
+                          handleStartDateChange(null, selectedDate);
+                        } else if (e.target.value === "") {
+                          // Handle cleared input
+                          setEstimatedStartDate(null);
+                          calculateDuration(null, estimatedEndDate);
+                          setDateValidationMessage(""); // Clear validation if input is cleared
                         }
                       }}
                       min={new Date().toISOString().split("T")[0]}
@@ -696,11 +744,12 @@ export default function AssignmentsScreen() {
                       onChange={(e) => {
                         const selectedDate = parseDateString(e.target.value);
                         if (selectedDate) {
-                            handleEndDateChange(null, selectedDate);
-                        } else if (e.target.value === "") { // Handle cleared input
-                            setEstimatedEndDate(null);
-                            calculateDuration(estimatedStartDate, null);
-                            setDateValidationMessage(""); // Clear validation if input is cleared
+                          handleEndDateChange(null, selectedDate);
+                        } else if (e.target.value === "") {
+                          // Handle cleared input
+                          setEstimatedEndDate(null);
+                          calculateDuration(estimatedStartDate, null);
+                          setDateValidationMessage(""); // Clear validation if input is cleared
                         }
                       }}
                       min={
@@ -793,174 +842,224 @@ export default function AssignmentsScreen() {
 
   const renderPilotsModal = () => (
     <Modal
-        visible={showPilotsModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowPilotsModal(false)}
+      visible={showPilotsModal}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={() => setShowPilotsModal(false)}
     >
-        <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Seleccionar Pilotos</Text>
-                <TouchableOpacity onPress={() => setShowPilotsModal(false)} style={styles.modalCloseButton}>
-                    <Ionicons name="close" size={24} color="#6b7280" />
-                </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.modalContent}>
-                {availablePilots.map((pilot) => (
-                    <TouchableOpacity
-                        key={pilot.pilotId}
-                        style={[
-                            styles.availabilityCard,
-                            selectedPilots.includes(pilot.pilotId) && styles.selectedCard,
-                        ]}
-                        onPress={() => handlePilotSelection(pilot.pilotId)}
-                    >
-                        <View style={styles.pilotCardWithImage}>
-                            <PilotImage pilotId={pilot.pilotId} />
-                            <View style={styles.cardHeaderNoMarginBottom}>
-                                <View style={styles.cardInfo}>
-                                    <Text style={styles.cardTitle}>{pilot.pilotName}</Text>
-                                    <View style={styles.statusBadge}>
-                                        <View style={[styles.statusDot, { backgroundColor: "#16a34a" }]} />
-                                        <Text style={styles.statusText}>Disponible</Text>
-                                    </View>
-                                </View>
-                                {selectedPilots.includes(pilot.pilotId) && (
-                                    <View style={styles.selectionIndicator}>
-                                        <Ionicons name="checkmark-circle" size={24} color="#10b981" />
-                                    </View>
-                                )}
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-            <View style={styles.modalFooter}>
-                <TouchableOpacity
-                    style={[
-                        styles.confirmSelectionButton,
-                        selectedPilots.length === 0 && styles.confirmSelectionButtonDisabled,
-                    ]}
-                    onPress={() => setShowPilotsModal(false)}
-                    disabled={selectedPilots.length === 0}
-                >
-                    <Ionicons name="checkmark" size={20} color={selectedPilots.length > 0 ? "#ffffff" : "#9ca3af"} />
-                    <Text style={[
-                        styles.confirmSelectionButtonText,
-                        selectedPilots.length === 0 && styles.confirmSelectionButtonTextDisabled,
-                    ]}>
-                        {selectedPilots.length === 0
-                            ? "Seleccionar pilotos"
-                            : `Confirmar ${selectedPilots.length} piloto${selectedPilots.length > 1 ? "s" : ""}`}
-                    </Text>
-                </TouchableOpacity>
-            </View>
+      <View style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Seleccionar Pilotos</Text>
+          <TouchableOpacity
+            onPress={() => setShowPilotsModal(false)}
+            style={styles.modalCloseButton}
+          >
+            <Ionicons name="close" size={24} color="#6b7280" />
+          </TouchableOpacity>
         </View>
+        <ScrollView style={styles.modalContent}>
+          {availablePilots.map((pilot) => (
+            <TouchableOpacity
+              key={pilot.pilotId}
+              style={[
+                styles.availabilityCard,
+                selectedPilots.includes(pilot.pilotId) && styles.selectedCard,
+              ]}
+              onPress={() => handlePilotSelection(pilot.pilotId)}
+            >
+              <View style={styles.pilotCardWithImage}>
+                <PilotImage pilotId={pilot.pilotId} />
+                <View style={styles.cardHeaderNoMarginBottom}>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cardTitle}>{pilot.pilotName}</Text>
+                    <View style={styles.statusBadge}>
+                      <View
+                        style={[
+                          styles.statusDot,
+                          { backgroundColor: "#16a34a" },
+                        ]}
+                      />
+                      <Text style={styles.statusText}>Disponible</Text>
+                    </View>
+                  </View>
+                  {selectedPilots.includes(pilot.pilotId) && (
+                    <View style={styles.selectionIndicator}>
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={24}
+                        color="#10b981"
+                      />
+                    </View>
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        <View style={styles.modalFooter}>
+          <TouchableOpacity
+            style={[
+              styles.confirmSelectionButton,
+              selectedPilots.length === 0 &&
+                styles.confirmSelectionButtonDisabled,
+            ]}
+            onPress={() => setShowPilotsModal(false)}
+            disabled={selectedPilots.length === 0}
+          >
+            <Ionicons
+              name="checkmark"
+              size={20}
+              color={selectedPilots.length > 0 ? "#ffffff" : "#9ca3af"}
+            />
+            <Text
+              style={[
+                styles.confirmSelectionButtonText,
+                selectedPilots.length === 0 &&
+                  styles.confirmSelectionButtonTextDisabled,
+              ]}
+            >
+              {selectedPilots.length === 0
+                ? "Seleccionar pilotos"
+                : `Confirmar ${selectedPilots.length} piloto${
+                    selectedPilots.length > 1 ? "s" : ""
+                  }`}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </Modal>
   );
 
   const renderDronesModal = () => (
     <Modal
-        visible={showDronesModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowDronesModal(false)}
+      visible={showDronesModal}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={() => setShowDronesModal(false)}
     >
-        <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Seleccionar Drone</Text>
-                <TouchableOpacity onPress={() => setShowDronesModal(false)} style={styles.modalCloseButton}>
-                    <Ionicons name="close" size={24} color="#6b7280" />
-                </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.modalContent}>
-                {availableDrones.map((drone) => (
-                    <TouchableOpacity
-                        key={drone.droneId}
-                        style={[
-                            styles.availabilityCard,
-                            selectedDrone === drone.droneId && styles.selectedCard,
-                        ]}
-                        onPress={() => handleDroneSelection(drone.droneId)}
-                    >
-                        <View style={styles.cardHeader}>
-                            <View style={styles.cardInfo}>
-                                <Text style={styles.cardTitle}>{drone.droneName}</Text>
-                                <Text style={styles.cardSubtitle}>S/N: {drone.serialNumber}</Text>
-                                <View style={styles.statusBadge}>
-                                    <View style={[styles.statusDot, { backgroundColor: "#16a34a" }]} />
-                                    <Text style={styles.statusText}>Operacional</Text>
-                                </View>
-                            </View>
-                            {selectedDrone === drone.droneId && (
-                                <View style={styles.selectionIndicator}>
-                                    <Ionicons name="checkmark-circle" size={24} color="#10b981" />
-                                </View>
-                            )}
-                        </View>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-             {/* No footer needed for single selection, closes on press */}
+      <View style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Seleccionar Drone</Text>
+          <TouchableOpacity
+            onPress={() => setShowDronesModal(false)}
+            style={styles.modalCloseButton}
+          >
+            <Ionicons name="close" size={24} color="#6b7280" />
+          </TouchableOpacity>
         </View>
+        <ScrollView style={styles.modalContent}>
+          {availableDrones.map((drone) => (
+            <TouchableOpacity
+              key={drone.droneId}
+              style={[
+                styles.availabilityCard,
+                selectedDrone === drone.droneId && styles.selectedCard,
+              ]}
+              onPress={() => handleDroneSelection(drone.droneId)}
+            >
+              <View style={styles.cardHeader}>
+                <View style={styles.cardInfo}>
+                  <Text style={styles.cardTitle}>{drone.droneName}</Text>
+                  <Text style={styles.cardSubtitle}>
+                    S/N: {drone.serialNumber}
+                  </Text>
+                  <View style={styles.statusBadge}>
+                    <View
+                      style={[styles.statusDot, { backgroundColor: "#16a34a" }]}
+                    />
+                    <Text style={styles.statusText}>Operacional</Text>
+                  </View>
+                </View>
+                {selectedDrone === drone.droneId && (
+                  <View style={styles.selectionIndicator}>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={24}
+                      color="#10b981"
+                    />
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        {/* No footer needed for single selection, closes on press */}
+      </View>
     </Modal>
   );
 
   const renderCamerasModal = () => (
     <Modal
-        visible={showCamerasModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCamerasModal(false)}
+      visible={showCamerasModal}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={() => setShowCamerasModal(false)}
     >
-        <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Seleccionar Cámara</Text>
-                <TouchableOpacity onPress={() => setShowCamerasModal(false)} style={styles.modalCloseButton}>
-                    <Ionicons name="close" size={24} color="#6b7280" />
-                </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.modalContent}>
-                {availableCameras.map((camera) => (
-                    <TouchableOpacity
-                        key={camera.cameraId}
-                        style={[
-                            styles.availabilityCard,
-                            selectedCamera === camera.cameraId && styles.selectedCard,
-                        ]}
-                        onPress={() => handleCameraSelection(camera.cameraId)}
-                    >
-                        <View style={styles.cardHeader}>
-                            <View style={styles.cardInfo}>
-                                <Text style={styles.cardTitle}>{camera.cameraName}</Text>
-                                <Text style={styles.cardSubtitle}>Modelo: {camera.model}</Text>
-                                <View style={styles.statusBadge}>
-                                    <View style={[styles.statusDot, { backgroundColor: "#16a34a" }]} />
-                                    <Text style={styles.statusText}>Disponible</Text>
-                                </View>
-                            </View>
-                            {selectedCamera === camera.cameraId && (
-                                <View style={styles.selectionIndicator}>
-                                    <Ionicons name="checkmark-circle" size={24} color="#10b981" />
-                                </View>
-                            )}
-                        </View>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-            {/* No footer needed for single selection, closes on press */}
+      <View style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Seleccionar Cámara</Text>
+          <TouchableOpacity
+            onPress={() => setShowCamerasModal(false)}
+            style={styles.modalCloseButton}
+          >
+            <Ionicons name="close" size={24} color="#6b7280" />
+          </TouchableOpacity>
         </View>
+        <ScrollView style={styles.modalContent}>
+          {availableCameras.map((camera) => (
+            <TouchableOpacity
+              key={camera.cameraId}
+              style={[
+                styles.availabilityCard,
+                selectedCamera === camera.cameraId && styles.selectedCard,
+              ]}
+              onPress={() => handleCameraSelection(camera.cameraId)}
+            >
+              <View style={styles.cardHeader}>
+                <View style={styles.cardInfo}>
+                  <Text style={styles.cardTitle}>{camera.cameraName}</Text>
+                  <Text style={styles.cardSubtitle}>
+                    Modelo: {camera.model}
+                  </Text>
+                  <View style={styles.statusBadge}>
+                    <View
+                      style={[styles.statusDot, { backgroundColor: "#16a34a" }]}
+                    />
+                    <Text style={styles.statusText}>Disponible</Text>
+                  </View>
+                </View>
+                {selectedCamera === camera.cameraId && (
+                  <View style={styles.selectionIndicator}>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={24}
+                      color="#10b981"
+                    />
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        {/* No footer needed for single selection, closes on press */}
+      </View>
     </Modal>
   );
 
-
   const getStatusColor = (status: string) => {
-    switch (status?.toUpperCase()) { // Added toUpperCase for safety
-      case "ACTIVE": return "#10b981";
-      case "PAUSED": return "#f59e0b";
-      case "FINISHED": return "#9C46CE";
-      case "COMPLETED": return "#8b5cf6"; // Ensure this status is used in mocks
-      default: return "#6b7280";
+    switch (
+      status?.toUpperCase() // Added toUpperCase for safety
+    ) {
+      case "ACTIVE":
+        return "#10b981";
+      case "PAUSED":
+        return "#f59e0b";
+      case "FINISHED":
+        return "#9C46CE";
+      case "COMPLETED":
+        return "#8b5cf6"; // Ensure this status is used in mocks
+      default:
+        return "#6b7280";
     }
   };
 
@@ -987,19 +1086,24 @@ export default function AssignmentsScreen() {
                   !selectedDrone ||
                   !estimatedStartDate ||
                   !estimatedEndDate ||
-                  (dateValidationMessage && dateValidationMessage.includes("no puede ser posterior"))
-                  ) &&
+                  (dateValidationMessage &&
+                    dateValidationMessage.includes(
+                      "no puede ser posterior"
+                    ))) &&
                   styles.confirmButtonDisabled,
               ]}
               onPress={handleConfirmAssignment}
-            //   disabled={
-            //     !selectedProject ||
-            //     selectedPilots.length === 0 ||
-            //     !selectedDrone ||
-            //     !estimatedStartDate ||
-            //     !estimatedEndDate ||
-            //     (dateValidationMessage && dateValidationMessage.includes("no puede ser posterior"))
-            //   }
+              disabled={
+                !selectedProject ||
+                selectedPilots.length === 0 ||
+                !selectedDrone ||
+                !estimatedStartDate ||
+                !estimatedEndDate ||
+                Boolean(
+                  dateValidationMessage &&
+                    dateValidationMessage.includes("no puede ser posterior")
+                )
+              }
             >
               <MaterialIcons
                 name="assignment-turned-in"
@@ -1043,7 +1147,7 @@ const styles = StyleSheet.create({
   },
   turbinesSection: {
     paddingHorizontal: 6,
-    paddingTop: 4, 
+    paddingTop: 4,
     paddingBottom: 16,
   },
   sectionTitle: {
@@ -1121,7 +1225,8 @@ const styles = StyleSheet.create({
     alignItems: "flex-start", // Changed to flex-start for better alignment with subtitles
     marginBottom: 8, // Keep or remove based on design
   },
-  cardHeaderNoMarginBottom: { // New style for pilot card
+  cardHeaderNoMarginBottom: {
+    // New style for pilot card
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center", // Center items vertically
@@ -1164,7 +1269,7 @@ const styles = StyleSheet.create({
   },
   selectionIndicator: {
     marginLeft: 12,
-    alignSelf: 'center', // Center checkmark if card items are aligned differently
+    alignSelf: "center", // Center checkmark if card items are aligned differently
   },
   dateRow: {
     flexDirection: "row",
@@ -1199,7 +1304,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8, // A bit more spacing
   },
   durationLabel: {
-    fontSize: 14, // Slightly smaller
+    fontSize: 14,
     color: "#6b7280",
     marginLeft: 6,
     fontWeight: "500",
@@ -1262,12 +1367,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9fafb", // Light gray for modal background
     ...(Platform.OS === "web" && {
-        maxWidth: 700, // Max width for web modals
-        alignSelf: "center",
-        width: "100%",
-        marginVertical: 32, // Add some vertical margin on web
-        borderRadius: 12, // Rounded corners for web modal itself
-        boxShadow: "0 10px 25px rgba(0,0,0,0.1)", // Web shadow
+      maxWidth: 700, // Max width for web modals
+      alignSelf: "center",
+      width: "100%",
+      marginVertical: 32, // Add some vertical margin on web
+      borderRadius: 12, // Rounded corners for web modal itself
+      boxShadow: "0 10px 25px rgba(0,0,0,0.1)", // Web shadow
     }),
   },
   modalHeader: {
@@ -1338,13 +1443,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "white",
   },
-  datePickerModal: { // Styles for the modal backdrop on web
+  datePickerModal: {
+    // Styles for the modal backdrop on web
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  datePickerContainer: { // Styles for the modal content area on web
+  datePickerContainer: {
+    // Styles for the modal content area on web
     backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 24,
@@ -1358,7 +1465,8 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  webDatePickerInput: { // Specific style for web <input type="date">
+  webDatePickerInput: {
+    // Specific style for web <input type="date">
     padding: 12,
     fontSize: 16,
     borderRadius: 8,
@@ -1486,7 +1594,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1, },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,

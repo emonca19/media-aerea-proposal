@@ -230,11 +230,6 @@ const styles = StyleSheet.create({
     color: "#1f2937",
     marginBottom: 4,
   },
-  role: {
-    fontSize: 14,
-    color: "#6b7280",
-    marginBottom: 8,
-  },
   permissionsBadge: {
     flexDirection: "row",
     alignItems: "center",
