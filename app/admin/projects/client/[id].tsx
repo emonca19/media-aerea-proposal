@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
+  Linking,
   Modal,
   ScrollView,
   StyleSheet,
@@ -88,6 +89,26 @@ const ProjectCard = React.memo(
               <Text>{project.estimatedDuration} días estimados</Text>
             </Text>
           </View>
+          {project.googleDriveFolderLink && (
+            <TouchableOpacity
+              style={styles.detailRow}
+              onPress={() => {
+                if (project.googleDriveFolderLink) {
+                  Linking.openURL(project.googleDriveFolderLink).catch(() => {
+                    Alert.alert(
+                      "Error",
+                      "No se pudo abrir el enlace de Google Drive"
+                    );
+                  });
+                }
+              }}
+            >
+              <Ionicons name="cloud-outline" size={16} color="#3b82f6" />
+              <Text style={[styles.detailText, { color: "#3b82f6" }]}>
+                Ver fotos en Google Drive
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </TouchableOpacity>
     );

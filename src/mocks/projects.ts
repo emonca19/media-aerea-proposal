@@ -15,6 +15,8 @@ export const mockProjects: Project[] = [
     status: "ACTIVE" as ProjectStatus,
     assignedPilots: ["pilot_001", "pilot_003"],
     assignedDrones: ["drone_001", "drone_003"],
+    googleDriveFolderLink:
+      "https://drive.google.com/",
     notes: "Proyecto prioritario para finalización en Q2",
     createdAt: new Date("2025-05-15T10:00:00Z"),
     updatedAt: new Date("2025-05-20T08:00:00Z"),
@@ -32,6 +34,8 @@ export const mockProjects: Project[] = [
     status: "ACTIVE" as ProjectStatus,
     assignedPilots: ["pilot_002"],
     assignedDrones: ["drone_002"],
+    googleDriveFolderLink:
+      "https://drive.google.com/",
     notes: "Dependiente del clima - monitorear condiciones marinas",
     createdAt: new Date("2025-04-10T09:30:00Z"),
     updatedAt: new Date("2025-05-22T14:15:00Z"),
@@ -48,6 +52,8 @@ export const mockProjects: Project[] = [
     status: "ACTIVE" as ProjectStatus,
     assignedPilots: ["pilot_004"],
     assignedDrones: ["drone_004"],
+    googleDriveFolderLink:
+      "https://drive.google.com/",
     notes: "Inspección de emergencia de alta prioridad",
     createdAt: new Date("2025-05-22T08:00:00Z"),
     updatedAt: new Date("2025-05-22T08:00:00Z"),
@@ -65,6 +71,8 @@ export const mockProjects: Project[] = [
     status: "COMPLETED" as ProjectStatus,
     assignedPilots: ["pilot_002", "pilot_003"],
     assignedDrones: ["drone_002", "drone_003"],
+    googleDriveFolderLink:
+      "https://drive.google.com/",
     notes: "Completado antes de lo programado",
     createdAt: new Date("2025-02-20T11:00:00Z"),
     updatedAt: new Date("2025-04-12T16:30:00Z"),
@@ -81,6 +89,8 @@ export const mockProjects: Project[] = [
     status: "PAUSED" as ProjectStatus,
     assignedPilots: [],
     assignedDrones: [],
+    googleDriveFolderLink:
+      "https://drive.google.com/",
     notes: "Esperando permisos ambientales",
     createdAt: new Date("2025-05-01T13:00:00Z"),
     updatedAt: new Date("2025-05-15T10:30:00Z"),

@@ -2,7 +2,9 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Stack, router } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import {
+  Alert,
   FlatList,
+  Linking,
   Modal,
   Platform,
   ScrollView,
@@ -122,7 +124,6 @@ const ProjectCard = React.memo(
             />
             <Text style={styles.detailText}>{windParkName}</Text>
           </View>
-
           <View style={styles.detailRow}>
             <Ionicons name="calendar-outline" size={16} color="#6b7280" />
             <Text style={styles.detailText}>
@@ -139,7 +140,24 @@ const ProjectCard = React.memo(
               })}
             </Text>
           </View>
-
+          {project.googleDriveFolderLink && (
+            <TouchableOpacity
+              style={styles.detailRow}
+              onPress={() => {
+                Linking.openURL(project.googleDriveFolderLink!).catch(() => {
+                  Alert.alert(
+                    "Error",
+                    "No se pudo abrir el enlace de Google Drive"
+                  );
+                });
+              }}
+            >
+              <Ionicons name="cloud-outline" size={16} color="#3b82f6" />
+              <Text style={[styles.detailText, { color: "#3b82f6" }]}>
+                Ver fotos en Google Drive
+              </Text>
+            </TouchableOpacity>
+          )}
           {progress && (
             <View style={styles.progressSection}>
               <View style={styles.progressHeader}>

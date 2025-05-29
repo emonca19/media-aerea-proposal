@@ -10,6 +10,7 @@ import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
+  Linking,
   Modal,
   Platform,
   ScrollView,
@@ -829,6 +830,28 @@ export default function AssignmentsScreen() {
                     </Text>
                   </View>
                 </View>
+                {project.googleDriveFolderLink && (
+                  <TouchableOpacity
+                    style={styles.projectCardGoogleDriveLink}
+                    onPress={() => {
+                      if (project.googleDriveFolderLink) {
+                        Linking.openURL(project.googleDriveFolderLink).catch(
+                          () => {
+                            Alert.alert(
+                              "Error",
+                              "No se pudo abrir el enlace de Google Drive"
+                            );
+                          }
+                        );
+                      }
+                    }}
+                  >
+                    <Ionicons name="cloud-outline" size={16} color="#3b82f6" />
+                    <Text style={styles.projectCardGoogleDriveLinkText}>
+                      Ver fotos en Google Drive
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </TouchableOpacity>
             ))}
         </ScrollView>
@@ -1486,6 +1509,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: "white",
+  },
+  projectCardGoogleDriveLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+    gap: 6,
+  },
+  projectCardGoogleDriveLinkText: {
+    fontSize: 14,
+    color: "#3b82f6",
+    fontWeight: "500",
   },
   datePickerModal: {
     // Styles for the modal backdrop on web

@@ -1,3 +1,4 @@
+import { showAlert } from "@/src/components/CrossPlatformAlert";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Stack, router } from "expo-router";
@@ -14,11 +15,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { mockClients, mockWindParks } from "../../../../src/mocks";
-import { showAlert } from "@/src/components/CrossPlatformAlert";
 
 export default function CreateProjectScreen() {
   const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
+  const [googleDriveFolderLink, setGoogleDriveFolderLink] = useState("");
   const [clientId, setClientId] = useState("");
   const [windParkId, setWindParkId] = useState("");
   const [startDate, setStartDate] = useState<Date | null>(null);
@@ -121,7 +122,6 @@ export default function CreateProjectScreen() {
         />
         <Text style={styles.sectionTitle}>Información Básica</Text>
       </View>
-
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Nombre del Proyecto*</Text>
         <TextInput
@@ -132,7 +132,6 @@ export default function CreateProjectScreen() {
           placeholderTextColor="#9ca3af"
         />
       </View>
-
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Descripción*</Text>
         <TextInput
@@ -144,6 +143,19 @@ export default function CreateProjectScreen() {
           multiline
           numberOfLines={4}
           textAlignVertical="top"
+        />
+      </View>
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Enlace de Carpeta Google Drive</Text>
+        <TextInput
+          style={styles.input}
+          value={googleDriveFolderLink}
+          onChangeText={setGoogleDriveFolderLink}
+          placeholder="https://drive.google.com/drive/folders/..."
+          placeholderTextColor="#9ca3af"
+          keyboardType="url"
+          autoCapitalize="none"
+          autoCorrect={false}
         />
       </View>
     </View>

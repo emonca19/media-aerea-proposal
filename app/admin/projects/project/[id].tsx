@@ -4,6 +4,7 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -222,6 +223,39 @@ export default function ProjectDetailsScreen() {
                     </Text>
                   </Text>
                 </View>
+                {project.googleDriveFolderLink && (
+                  <View style={styles.infoItem}>
+                    <Text style={styles.infoLabel}>
+                      <Text>Fotos del Proyecto</Text>
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.googleDriveLink}
+                      onPress={() => {
+                        if (project.googleDriveFolderLink) {
+                          Linking.openURL(project.googleDriveFolderLink).catch(
+                            () => {
+                              Alert.alert(
+                                "Error",
+                                "No se pudo abrir el enlace de Google Drive"
+                              );
+                            }
+                          );
+                        }
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name="cloud-outline"
+                        size={18}
+                        color="#3b82f6"
+                      />
+                      <Text style={styles.googleDriveLinkText}>
+                        <Text>Ver fotos en Google Drive</Text>
+                      </Text>
+                      <Ionicons name="open-outline" size={16} color="#3b82f6" />
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             </View>
             {/* Description */}
@@ -991,5 +1025,22 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     marginTop: 12,
     textAlign: "center",
+  },
+  googleDriveLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#eff6ff",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#dbeafe",
+  },
+  googleDriveLinkText: {
+    flex: 1,
+    fontSize: 14,
+    color: "#3b82f6",
+    fontWeight: "500",
   },
 });

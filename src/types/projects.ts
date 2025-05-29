@@ -11,6 +11,7 @@ export interface Project extends BaseEntity {
   status: ProjectStatus;
   assignedPilots: string[]; // User IDs
   assignedDrones: string[]; // Drone IDs
+  googleDriveFolderLink: string; // URL to Google Drive folder containing project pictures
   notes?: string;
 }
 
