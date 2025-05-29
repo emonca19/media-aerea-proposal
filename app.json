@@ -1,10 +1,10 @@
 {
     "expo": {
-        "name": "media-aerea",
+        "name": "MediaAérea",
         "slug": "media-aerea",
         "version": "1.0.0",
         "orientation": "portrait",
-        "icon": "./assets/images/icon.png",
+        "icon": "./assets/images/adaptive-icon.png",
         "scheme": "mediaaerea",
         "userInterfaceStyle": "automatic",
         "newArchEnabled": true,
@@ -23,14 +23,13 @@
             "bundler": "metro",
             "output": "static",
             "favicon": "./assets/images/favicon.png"
-        },
-        "plugins": [
+        },        "plugins": [
             "expo-router",
             [
                 "expo-splash-screen",
                 {
-                    "image": "./assets/images/splash-icon.png",
-                    "imageWidth": 200,
+                    "image": "./assets/images/media-logo.png",
+                    "imageWidth": 250,
                     "resizeMode": "contain",
                     "backgroundColor": "#ffffff"
                 }
