@@ -9,7 +9,7 @@ const COLORS = {
   success: '#10b981', successLight: '#d1fae5',
   danger: '#ef4444', dangerLight: '#fee2e2',
   textPrimary: '#1f2937', textSecondary: '#4b5563', textMuted: '#9ca3af', textWhite: '#ffffff',
-  cardBackground: '#ffffff', background: '#f0f2f5', // Match dashboard background
+  cardBackground: '#ffffff', background: '#ffffff', // Changed to white background
   border: '#e5e7eb', borderLight: '#f3f4f6',
   iconDefault: '#6b7280',  // Nuevos colores para aspas más bonitas
   bladeDefault: ['#f8fafc', '#e2e8f0', '#cbd5e1'] as const, // Gradiente plateado más elegante

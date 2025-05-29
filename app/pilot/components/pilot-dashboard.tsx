@@ -2466,24 +2466,25 @@ const welcomeStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  screenContainer: { flex: 1, backgroundColor: '#f0f2f5' }, // Changed back to original gray background
+  screenContainer: { flex: 1, backgroundColor: '#ffffff' },
   scrollableContent_contentContainer_main: {
     paddingBottom: 0,
     paddingHorizontal: 16,
   },
   highlightedButton: {
-    backgroundColor: "#8b5cf6", // Changed to purple
-    flexDirection: "row",
+    backgroundColor: "#8b5cf6", 
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 15,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 16,
-    shadowColor: "#8b5cf6", // Changed to purple shadow
+    shadowColor: "#000", 
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
   },
   highlightedButtonText: {
     color: "white",
@@ -2496,28 +2497,32 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     alignItems: "center",
   },
-  errorText: { color: "#b91c1c", fontSize: 16, fontWeight: "500" },
-  projectSummaryContainer: {
+  errorText: { color: "#b91c1c", fontSize: 16, fontWeight: "500" },  projectSummaryContainer: {
     backgroundColor: "white",
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
   },  activityCard: {
-    backgroundColor: "#e0f7fa",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
     flexDirection: "row",
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
   },
 });
 

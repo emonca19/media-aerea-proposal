@@ -91,16 +91,15 @@ const ProjectHistoryScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
   },
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  header: {
+    backgroundColor: '#ffffff',
+  },  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingVertical: 16,
     backgroundColor: '#f8fafc',
   },
@@ -115,9 +114,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#8b5cf6',
     flex: 1,
-  },
-  searchContainer: {
-    paddingHorizontal: 16,
+  },  searchContainer: {
+    paddingHorizontal: 24,
     paddingVertical: 12,
     backgroundColor: '#ffffff',
   },
@@ -138,9 +136,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: '#374151',
-  },
-  listContentContainer: {
-    paddingHorizontal: 16,
+  },  listContentContainer: {
+    paddingHorizontal: 24,
     paddingVertical: 12,
   },
   projectHistoryItem: {

@@ -3,19 +3,19 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
-  Easing,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    Easing,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import {
-  BarChart,
-  LineChart,
+    BarChart,
+    LineChart,
 } from 'react-native-chart-kit';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Text as SvgText } from 'react-native-svg';
@@ -445,7 +445,7 @@ export default function StatisticsScreen() {
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' }, // Removed paddingTop: insets.top
+  container: { flex: 1, backgroundColor: '#ffffff' }, // Removed paddingTop: insets.top
   scrollContainer: {
     flex: 1,
     marginTop: 50, // Espacio para el selector fijo

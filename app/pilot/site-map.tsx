@@ -14,8 +14,8 @@ const BASE_MAP_WIDTH = 480;
 const BASE_MAP_HEIGHT = 480;
 const METERS_PER_BASE_PIXEL = 1; 
 
-const styles = StyleSheet.create({  container: { flex: 1, backgroundColor: '#f3f4f6' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f3f4f6' },
+const styles = StyleSheet.create({  container: { flex: 1, backgroundColor: '#f8fafc' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' },
   siteInfoCard: { backgroundColor: '#ffffff', marginHorizontal: 16, marginTop: 12, marginBottom: 12, paddingHorizontal: 20, paddingVertical: 16, borderRadius: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 5 },
   siteInfoContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   siteInfoTextContainer: { flex: 1, marginRight: 12 },

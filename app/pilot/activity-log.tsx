@@ -2,13 +2,13 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text, // Asegúrate de que TextInput esté importado si lo usas en la pestaña comentada
-  TouchableOpacity,
-  View
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text, // Asegúrate de que TextInput esté importado si lo usas en la pestaña comentada
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 // Import incident types
@@ -234,9 +234,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc', 
   },  content: { 
-    paddingHorizontal: 8,
-    paddingTop: 12, 
-    paddingBottom: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16, 
+    paddingBottom: 20,
   },
   activitiesSection: {
   },  enhancedStatsContainer: {

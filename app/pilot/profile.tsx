@@ -274,7 +274,7 @@ export default function PilotProfile() {
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: '#f0f2f5',
+    backgroundColor: '#ffffff',
   },
   container: {
     flex: 1,
@@ -371,13 +371,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "#e2e8f0",
-  },
-  card: {
+  },  card: {
     backgroundColor: '#ffffff',
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 12,
     padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
   },
   cardTitle: {
     fontSize: 18,
@@ -474,8 +480,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1f2937',
     marginLeft: 12,
-  },
-  logoutButton: {
+  },  logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -486,7 +491,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#fecaca',
-    // Removed shadow and elevation for flat design
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   logoutText: {
     fontSize: 16,

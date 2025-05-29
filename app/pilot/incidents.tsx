@@ -34,7 +34,7 @@ export default function PilotIncidents() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a192f',
+    backgroundColor: '#ffffff',
     padding: 16,
   },
   title: {

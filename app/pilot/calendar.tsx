@@ -433,7 +433,7 @@ const CalendarScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#ffffff',
   },
   header: {
     flexDirection: 'row',
@@ -564,11 +564,10 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#9CA3AF',
     fontWeight: '500',
-  },
-  eventsContainer: {
+  },  eventsContainer: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#ffffff',
   },
   eventsHeader: {
     flexDirection: 'row',
