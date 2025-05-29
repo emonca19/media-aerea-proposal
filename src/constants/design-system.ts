@@ -117,8 +117,7 @@ export const COMMON_STYLES = {
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
   },
-  
-  // Standard card style
+    // Standard card style
   card: {
     backgroundColor: COLORS.background.card,
     borderRadius: BORDER_RADIUS.md,
@@ -126,7 +125,7 @@ export const COMMON_STYLES = {
     marginBottom: SPACING.lg,
     borderWidth: 1,
     borderColor: COLORS.border.light,
-    ...SHADOWS.medium,
+    ...SHADOWS.strong,
   },
   
   // Compact card style
@@ -137,7 +136,7 @@ export const COMMON_STYLES = {
     marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border.light,
-    ...SHADOWS.light,
+    ...SHADOWS.medium,
   },
   
   // Header style

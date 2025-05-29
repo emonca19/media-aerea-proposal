@@ -1,10 +1,10 @@
 {
     "expo": {
-        "name": "media-aerea",
-        "slug": "media-aerea",
+        "name": "MediaAérea",
+        "slug": "MediaAérea",
         "version": "1.0.0",
         "orientation": "portrait",
-        "icon": "./assets/images/icon.png",
+        "icon": "./assets/images/adaptive-icon.png",
         "scheme": "mediaaerea",
         "userInterfaceStyle": "automatic",
         "newArchEnabled": true,

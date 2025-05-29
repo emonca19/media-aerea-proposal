@@ -371,21 +371,20 @@ const projectSummaryStyles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-  },
-  card: {
+  },  card: {
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 0,
     // Enhanced shadow for better visual impact
     shadowColor: "#1f2937",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 8,
     borderWidth: 1,
     borderColor: "#f3f4f6",
-  },  iconCircle: {
+  },iconCircle: {
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -407,18 +406,17 @@ const projectSummaryStyles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     alignSelf: "flex-start",
-  },
-  // Compact styles for smaller project card
+  },  // Compact styles for smaller project card
   cardCompact: {
     backgroundColor: "#fff",
     borderRadius: 12,
     padding: 12,
     marginHorizontal: 0,
     shadowColor: "#1f2937",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
     borderWidth: 1,
     borderColor: "#f3f4f6",
   },

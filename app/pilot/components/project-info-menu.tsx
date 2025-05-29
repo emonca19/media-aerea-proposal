@@ -3,14 +3,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  FlatList,
-  Image,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    FlatList,
+    Image,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 // Enhanced interfaces for Drive functionality
@@ -662,18 +662,17 @@ const componentStyles = StyleSheet.create({
   },
   scrollContent: {
     paddingVertical: 16,
-  },
-  projectInfoCard: {
+  },  projectInfoCard: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 20,
     marginHorizontal: 16,
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   headerContainer: {
     flexDirection: 'row',
@@ -1208,10 +1207,141 @@ const modalStyles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
     color: '#6b7280',
-  },
-  turbineGridNameCompleted: {
+  },  turbineGridNameCompleted: {
     color: '#065f46',
     fontWeight: '600',
+  },
+  // Missing turbine modal styles
+  turbineItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  turbineItemCompleted: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+  },
+  turbineItemShimmer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 8,
+  },
+  turbineItemContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  turbineIconSection: {
+    marginRight: 12,
+  },
+  turbineCompletedIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#10b981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  turbinePendingIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  turbineInfo: {
+    flex: 1,
+  },
+  turbineName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 2,
+  },
+  turbineNameCompleted: {
+    color: '#065f46',
+  },
+  turbineDate: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  turbineDateCompleted: {
+    color: '#047857',
+  },
+  turbineStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  turbineStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  turbineStatusText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#6b7280',
+  },
+  turbineCheckbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
+  turbineCheckboxCompleted: {
+    backgroundColor: '#10b981',
+    borderColor: '#10b981',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  submitButton: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  submitButtonGradient: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 });
 

@@ -243,19 +243,14 @@ export const styles = StyleSheet.create({
   form_textArea: {
     minHeight: 100, // Changed from 80 to match activity-log notesInput
     textAlignVertical: 'top',
-  }, // In pilot-dashboard-styles.ts
+  },
+ // In pilot-dashboard-styles.ts
 form_switchContainer: {
   flexDirection: 'row',
   alignItems: 'center',
-  justifyContent: 'space-between',
-  marginBottom: 16, // Reducido para mejor compactación
-  marginTop: 8,
-  paddingVertical: 10, // Padding más generoso
-  paddingHorizontal: 4, // Padding horizontal para mejor espaciado
-  backgroundColor: '#f8fafc', // Fondo sutil para separar visualmente
-  borderRadius: 10, // Esquinas redondeadas
-  borderWidth: 1,
-  borderColor: '#e2e8f0', // Borde sutil
+  justifyContent: 'space-between', // This is key
+  marginBottom: 24, // Or your standard spacing
+  paddingVertical: 8, // Optional, for touch area or visual spacing
 },
   modal_overlay: {
     flex: 1,

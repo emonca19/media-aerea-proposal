@@ -1030,14 +1030,18 @@ const styles = StyleSheet.create({
     color: currentTheme.text,
     marginHorizontal: currentTheme.dimensions.spacing.md,
     marginBottom: currentTheme.dimensions.spacing.md,
-  },
-  kpiCard: {
+  },  kpiCard: {
     backgroundColor: currentTheme.card,
     borderRadius: currentTheme.dimensions.borderRadius.medium,
     padding: currentTheme.dimensions.spacing.md,
     width: isTablet ? "23%" : "48%",
     borderWidth: 1,
     borderColor: currentTheme.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 15,
+    elevation: 12,
   },
   kpiHeader: {
     flexDirection: "row",
@@ -1068,8 +1072,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: currentTheme.dimensions.spacing.md,
     gap: currentTheme.dimensions.spacing.sm,
     justifyContent: isTablet ? "space-between" : "flex-start",
-  },
-  navigationCard: {
+  },  navigationCard: {
     backgroundColor: currentTheme.card,
     borderRadius: currentTheme.dimensions.borderRadius.large,
     padding: 0,
@@ -1079,10 +1082,10 @@ const styles = StyleSheet.create({
     borderColor: currentTheme.border,
     overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.20,
+    shadowRadius: 16,
+    elevation: 12,
     marginBottom: isTablet ? currentTheme.dimensions.spacing.sm : 0,
   },
   navigationCardContent: {
@@ -1121,14 +1124,18 @@ const styles = StyleSheet.create({
     fontSize: currentTheme.dimensions.fontSize.xs,
     color: currentTheme.textSecondary,
     fontWeight: "500",
-  },
-  alertCard: {
+  },  alertCard: {
     backgroundColor: currentTheme.card,
     borderRadius: currentTheme.dimensions.borderRadius.medium,
     padding: currentTheme.dimensions.spacing.md,
     marginBottom: currentTheme.dimensions.spacing.sm,
     borderWidth: 1,
     borderColor: currentTheme.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   alertHeader: {
     flexDirection: "row",
@@ -1161,8 +1168,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: currentTheme.dimensions.spacing.sm,
-  },
-  modernSummaryCard: {
+  },  modernSummaryCard: {
     backgroundColor: currentTheme.card,
     borderRadius: currentTheme.dimensions.borderRadius.large,
     padding: currentTheme.dimensions.spacing.md,
@@ -1170,10 +1176,10 @@ const styles = StyleSheet.create({
     borderColor: currentTheme.border,
     width: isTablet ? "23%" : "48%",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.16,
+    shadowRadius: 15,
+    elevation: 10,
   },
   modernCardContent: {
     flexDirection: "row",
@@ -1219,8 +1225,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     height: 80,
-  },
-  notificationCard: {
+  },  notificationCard: {
     backgroundColor: currentTheme.card,
     borderRadius: currentTheme.dimensions.borderRadius.medium,
     padding: currentTheme.dimensions.spacing.md,
@@ -1229,6 +1234,11 @@ const styles = StyleSheet.create({
     borderColor: currentTheme.border,
     flexDirection: "row",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
   },
   notificationIcon: {
     width: 40,
@@ -1258,14 +1268,13 @@ const styles = StyleSheet.create({
   overviewSection: {
     marginBottom: currentTheme.dimensions.spacing.lg,
     paddingHorizontal: currentTheme.dimensions.spacing.md,
-  },
-  overviewCard: {
+  },  overviewCard: {
     marginBottom: currentTheme.dimensions.spacing.sm,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.30,
+    shadowRadius: 18,
+    elevation: 15,
     flex: 1, // Add flex to the card container
   },
   overviewCardLarge: {
