@@ -123,7 +123,7 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
 export default function PilotLayout() {
   return (
     <ActivityProvider>
-        <StatusBar style="dark" backgroundColor="#ffffff" />
+        <StatusBar style="dark" backgroundColor="#f0f2f5" />
         <View style={{ flex: 1 }}>
           <Tabs
             screenOptions={{

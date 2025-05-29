@@ -84,7 +84,6 @@ export default function PilotProfile() {
 
   return (
     <View style={styles.screenContainer}>
-      <StatusBar backgroundColor="#1E3A8A" barStyle="light-content" />
       
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Dashboard-style Header */}
