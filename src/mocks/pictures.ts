@@ -7,7 +7,7 @@ export const mockPhotoSubmissionReviews: PhotoSubmissionReview[] = [
     bladeRectitude: 'aceptable',
     captureDistance: 'aceptable',
     exposure: 'buena',
-    focus: 'bueno',
+    focus: 'aceptable',
     bladePosition: 'correcta',
     reviewedBy: "admin_001",
     reviewedAt: new Date("2025-05-23T10:30:00Z"),
@@ -23,13 +23,12 @@ export const mockPhotoSubmissionReviews: PhotoSubmissionReview[] = [
     reviewedAt: new Date("2025-05-22T14:15:00Z"),
     rejectionReason:
       "Varias fotos están borrosas y los detalles de las palas no son claramente visibles. Por favor retome fotos de turbinas T-003 y T-007.",
-  },
-  {
+  },  {
     status: "APPROVED" as PhotoSubmissionStatus,
     bladeRectitude: 'aceptable',
     captureDistance: 'aceptable',
     exposure: 'buena',
-    focus: 'bueno',
+    focus: 'aceptable',
     bladePosition: 'correcta',
     reviewedBy: "admin_002",
     reviewedAt: new Date("2025-05-21T16:45:00Z"),

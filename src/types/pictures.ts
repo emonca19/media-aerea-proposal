@@ -16,7 +16,7 @@ export interface PhotoSubmissionReview {
   bladeRectitude: 'aceptable' | 'posibles_problemas' | 'errores_procesamiento';
   captureDistance: 'aceptable' | 'posibles_conflictos';
   exposure: 'buena' | 'muy_oscura' | 'muy_brillante';
-  focus: 'bueno' | 'regular' | 'deficiente';
+  focus: 'aceptable' | 'deficiente';
   bladePosition: 'correcta' | 'parcialmente_correcta' | 'incorrecta';
   reviewedBy: string;
   reviewedAt: Date;
