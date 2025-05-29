@@ -2302,7 +2302,6 @@ const PilotDashboard = () => {
 
   return (
     <View style={styles.screenContainer}>
-      <StatusBar backgroundColor="#1E3A8A" barStyle="light-content" />
       <FlatList
         data={dashboardSections}
         renderItem={renderDashboardSection}
