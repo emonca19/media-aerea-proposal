@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import useWeather from './../hooks/useWeather';
 import { pilot } from './components/pilot-dashboard-data';
 
@@ -377,10 +377,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
     borderWidth: 1,
     borderColor: '#f3f4f6',
   },
@@ -487,14 +487,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingVertical: 16,
     backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 12,    borderWidth: 1,
     borderColor: '#fecaca',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   logoutText: {
     fontSize: 16,

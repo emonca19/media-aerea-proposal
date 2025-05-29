@@ -139,8 +139,7 @@ const styles = StyleSheet.create({
   },  listContentContainer: {
     paddingHorizontal: 24,
     paddingVertical: 12,
-  },
-  projectHistoryItem: {
+  },  projectHistoryItem: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
@@ -148,10 +147,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 10,
     shadowColor: '#8b5cf6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
     borderLeftWidth: 3,
     borderLeftColor: '#a855f7',
   },

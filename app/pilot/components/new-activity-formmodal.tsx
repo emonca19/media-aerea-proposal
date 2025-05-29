@@ -309,15 +309,14 @@ export default function NewActivityScreen() { // Props removidas por ahora
   const renderScheduledActivityItem = ({ item }: { item: ScheduledActivity }) => {
     const activityTypeInfo = quickActivityTypes.find(type => type.id === item.type);
     const associatedAsset = item.assetId ? availableAssets.find(asset => asset.id === item.assetId) : undefined;
-    
-    return (
+      return (
       <View style={styles.scheduledActivityItem}>
         <View style={styles.scheduledActivityContent}>
           <View style={styles.scheduledActivityHeader}>
             <MaterialCommunityIcons 
               name={activityTypeInfo?.icon || 'calendar-clock'} 
               size={18} 
-              color="#3b82f6"
+              color="#4f46e5"
             />
             <Text style={styles.scheduledActivityTitle}>{item.customName}</Text>
           </View>
@@ -374,7 +373,7 @@ export default function NewActivityScreen() { // Props removidas por ahora
                 style={[styles.typeCard, activityTypeId === type.id && styles.typeCardSelected]}
                 onPress={() => setActivityTypeId(type.id)}
             >
-                <MaterialCommunityIcons name={type.icon} size={24} color={activityTypeId === type.id ? '#fff' : '#3b82f6'} />
+                <MaterialCommunityIcons name={type.icon} size={24} color={activityTypeId === type.id ? '#fff' : '#4f46e5'} />
                 <Text style={[styles.typeLabel, activityTypeId === type.id && styles.typeLabelSelected]}>{type.label}</Text>
             </TouchableOpacity>
             ))}
@@ -399,7 +398,7 @@ export default function NewActivityScreen() { // Props removidas por ahora
                             style={[styles.assetCard, selectedAssetId === asset.id && styles.assetCardSelected]}
                             onPress={() => setSelectedAssetId(asset.id)}
                         >
-                            <Ionicons name={assetIcon} size={24} color={selectedAssetId === asset.id ? '#fff' : '#f59e0b'} />
+                            <Ionicons name={assetIcon} size={24} color={selectedAssetId === asset.id ? '#fff' : '#8b5cf6'} />
                             <Text style={[styles.assetName, selectedAssetId === asset.id && styles.assetNameSelected]}>{asset.name}</Text>
                             <Text style={[styles.assetStatus, selectedAssetId === asset.id && styles.assetStatusSelected]}>
                               {asset.status.replace('_', ' ').toUpperCase()}
@@ -408,9 +407,7 @@ export default function NewActivityScreen() { // Props removidas por ahora
                       );
                     })}
                 </ScrollView>
-            </View>
-        )}
-
+            </View>        )}
 
         {activityTypeId === 'ACT_OTRO' && (
             <>
@@ -425,7 +422,6 @@ export default function NewActivityScreen() { // Props removidas por ahora
             </>
         )}
 
-
         <Text style={styles.subtitleCompact}>Notas Adicionales (Opcional)</Text>
         <TextInput
             style={styles.notesInput}
@@ -433,19 +429,17 @@ export default function NewActivityScreen() { // Props removidas por ahora
             value={activityNotes}
             onChangeText={setActivityNotes}
             multiline={true}
-            numberOfLines={3} // Sugerencia de altura inicial
+            numberOfLines={3}
             placeholderTextColor="#94a3b8"
         />
-        {/* FIN DE NOTAS ADICIONALES */}
-
 
         {/* PROGRAMACIÓN DE TIEMPO */}
         <View style={globalFormStyles.form_switchContainer}>
             <Text style={styles.subtitleSwitchLabel}>¿Iniciar ahora?</Text>
             <Switch
-                trackColor={{ false: "#d1d5db", true: "#818cf8" }}
-                thumbColor={isForNow ? "#4f46e5" : "#f1f5f9"}
-                ios_backgroundColor="#e5e7eb"
+                trackColor={{ false: "#9ca3af", true: "#4f46e5" }}
+                thumbColor={isForNow ? "#ffffff" : "#f9fafb"}
+                ios_backgroundColor="#d1d5db"
                 onValueChange={setIsForNow}
                 value={isForNow}
             />
@@ -456,11 +450,11 @@ export default function NewActivityScreen() { // Props removidas por ahora
                 <Text style={styles.subtitleCompact}>Programar para:</Text>
                 <View style={styles.dateDisplayRow}>
                     <TouchableOpacity onPress={() => showMode('date')} style={styles.datePickerButton}>
-                        <Ionicons name="calendar-outline" size={20} color="#3b82f6" />
+                        <Ionicons name="calendar-outline" size={20} color="#8b5cf6" />
                         <Text style={styles.datePickerButtonText}>Fecha: {dateForLater.toLocaleDateString('es-ES')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => showMode('time')} style={styles.datePickerButton}>
-                        <Ionicons name="time-outline" size={20} color="#3b82f6" />
+                        <Ionicons name="time-outline" size={20} color="#8b5cf6" />
                         <Text style={styles.datePickerButtonText}>Hora: {dateForLater.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                     </TouchableOpacity>
                 </View>
@@ -476,7 +470,6 @@ export default function NewActivityScreen() { // Props removidas por ahora
                     />
                 )}
 
-                {/* BOTÓN PARA AÑADIR ACTIVIDAD A LA LISTA */}
                 <TouchableOpacity 
                     style={styles.addToListButton} 
                     onPress={handleAddScheduledActivity}
@@ -486,7 +479,6 @@ export default function NewActivityScreen() { // Props removidas por ahora
                 </TouchableOpacity>
             </View>
         )}
-        {/* FIN DE PROGRAMACIÓN DE TIEMPO */}
 
 
         {/* LISTA DE ACTIVIDADES PROGRAMADAS */}
@@ -530,277 +522,297 @@ export default function NewActivityScreen() { // Props removidas por ahora
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#f1f5f9', // Fondo más cálido y contrastante
   },
   scrollView: {
     flex: 1,
   },
   scrollContentContainer: {
-    padding: 16, // Reducido de 20 a 16
-    paddingBottom: 60, // Reducido de 70 a 60
+    padding: 16,
+    paddingBottom: 60,
   },
   currentTime: {
-    color: '#64748b',
-    fontSize: 13, // Reducido de 14 a 13
-    marginBottom: 12, // Reducido de 16 a 12
+    color: '#475569', // Color más oscuro para mejor visibilidad
+    fontSize: 14, // Tamaño ligeramente mayor
+    marginBottom: 12,
     textAlign: 'center',
+    fontWeight: '500', // Peso de fuente medio para mejor legibilidad
   },
   subtitle: {
-    color: '#374151',
-    fontSize: 15, // Reducido de 16 a 15
-    fontWeight: '600',
-    marginBottom: 6, // Reducido de 10 a 6
-    marginTop: 8, // Reducido de 10 a 8
+    color: '#1e293b', // Color más oscuro y contrastante
+    fontSize: 16, // Tamaño más grande para mejor jerarquía visual
+    fontWeight: '700', // Peso más fuerte
+    marginBottom: 8,
+    marginTop: 12,
   },
   subtitleCompact: {
-    color: '#374151',
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 4, // Más compacto entre título y contenido
-    marginTop: 8,
+    color: '#1e293b', // Color más oscuro
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 6,
+    marginTop: 10,
   },
-  subtitleSwitchLabel: { // Estilo específico para el label del Switch para alinearlo
-    color: '#374151',
-    fontSize: 15, // Reducido de 16 a 15
-    fontWeight: '600',
-    // No necesita marginBottom si globalFormStyles.form_switchContainer ya lo maneja
+  subtitleSwitchLabel: {
+    color: '#1e293b', // Color más oscuro para mejor contraste
+    fontSize: 16,
+    fontWeight: '700',
   },
   typeSelection: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between', // Asegura que las tarjetas se distribuyan
-    marginBottom: 10, // Reducido de 12 a 10
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   typeCard: {
-    width: '48%', // Dos tarjetas por fila
+    width: '48%',
     backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 10, // Reducido de 12 a 10
-    padding: 12, // Reducido de 16 a 12
+    borderWidth: 2, // Borde más grueso para mejor definición
+    borderColor: '#cbd5e1', // Color de borde más visible
+    borderRadius: 12, // Esquinas más redondeadas
+    padding: 14, // Padding ligeramente aumentado
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6, // Reducido de 8 a 6
-    shadowColor: '#b0b8c3',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1, // Sombra sutil
-    shadowRadius: 4,
-    elevation: 2,
-    minHeight: 80, // Reducido de 90 a 80
-    marginBottom: 8, // Reducido de 10 a 8
+    gap: 8,
+    shadowColor: '#1e293b', // Sombra más oscura
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15, // Sombra más visible
+    shadowRadius: 6,
+    elevation: 3,
+    minHeight: 85,
+    marginBottom: 10,
   },
   typeCardSelected: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#2563eb',
-    shadowColor: '#3b82f6',
-    shadowOpacity: 0.25, // Sombra más pronunciada al seleccionar
-    elevation: 4,
+    backgroundColor: '#4f46e5', // Color más vibrante
+    borderColor: '#3730a3', // Borde más oscuro para selección
+    shadowColor: '#4f46e5',
+    shadowOpacity: 0.4,
+    elevation: 6,
+    transform: [{ scale: 1.02 }], // Efecto de "crecimiento" al seleccionar
   },
   typeLabel: {
-    color: '#1e3a8a',
-    fontWeight: '500',
+    color: '#374151', // Color más oscuro para mejor contraste
+    fontWeight: '600', // Peso más fuerte
     textAlign: 'center',
-    fontSize: 12, // Reducido de 13 a 12
+    fontSize: 12,
   },
   typeLabelSelected: {
     color: '#ffffff',
-  },
-  assetSelection: {
-    marginBottom: 10, // Reducido de 12 a 10
+    fontWeight: '700', // Peso más fuerte para selección
+  },  assetSelection: {
+    marginBottom: 12,
   },
   assetScroll: {
-    paddingHorizontal: 2, // Para que se vea la sombra de las tarjetas en los bordes
-    paddingVertical: 6, // Reducido de 8 a 6
-    gap: 10, // Reducido de 12 a 10
+    paddingHorizontal: 4, // Aumentado para mejor visibilidad de sombras
+    paddingVertical: 8,
+    gap: 12,
   },
   assetCard: {
-    width: 110, // Reducido de 120 a 110
+    width: 115, // Ligeramente más ancho
     backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 10, // Reducido de 12 a 10
-    padding: 10, // Reducido de 12 a 10
+    borderWidth: 2, // Borde más grueso
+    borderColor: '#d1d5db', // Color más visible
+    borderRadius: 12,
+    padding: 12,
     alignItems: 'center',
-    justifyContent: 'center', // Centrar contenido verticalmente
-    gap: 6, // Reducido de 8 a 6
-    shadowColor: '#b0b8c3',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-    minHeight: 90, // Reducido de 100 a 90
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#374151', // Sombra más oscura
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15, // Sombra más visible
+    shadowRadius: 4,
+    elevation: 3,
+    minHeight: 95,
   },
   assetCardSelected: {
-    backgroundColor: '#f59e0b', // Color de selección para assets
-    borderColor: '#d97706',
-    shadowColor: '#f59e0b',
-    elevation: 4,
+    backgroundColor: '#4f46e5', // Color más vibrante
+    borderColor: '#3730a3',
+    shadowColor: '#4f46e5',
+    shadowOpacity: 0.4,
+    elevation: 5,
+    transform: [{ scale: 1.02 }], // Efecto de crecimiento
   },
   assetName: {
-    color: '#1e3a8a',
-    fontWeight: '600',
-    fontSize: 13, // Reducido de 14 a 13
+    color: '#374151', // Color más oscuro para mejor contraste
+    fontWeight: '700', // Peso más fuerte
+    fontSize: 13,
     textAlign: 'center',
   },
   assetNameSelected: {
     color: '#ffffff',
   },
   assetStatus: {
-    color: '#64748b',
-    fontSize: 9, // Reducido de 10 a 9
-    fontWeight: '500',
+    color: '#6b7280', // Color más visible
+    fontSize: 10, // Tamaño ligeramente mayor
+    fontWeight: '600', // Peso más fuerte
     textAlign: 'center',
     textTransform: 'uppercase',
     marginTop: 2,
   },
   assetStatusSelected: {
     color: '#ffffff',
-    opacity: 0.85,
+    opacity: 0.9, // Menos transparencia
   },
   notesInput: {
-    backgroundColor: '#f8fafc', // Un fondo ligeramente diferente para los inputs
-    borderWidth: 1,
-    borderColor: '#cbd5e1', // Un borde más suave
-    borderRadius: 8, // Reducido de 10 a 8
-    padding: 14, // Reducido de 16 a 14
-    textAlignVertical: 'top', // Para multiline
-    color: '#1e3a8a',
-    fontSize: 14,
-    marginBottom: 12, // Reducido de 16 a 12
-    minHeight: 70, // Reducido de 80 a 70
-  },
-  datePickerContainer: {
-    marginBottom: 10, // Reducido de 12 a 10
+    backgroundColor: '#ffffff', // Fondo blanco puro
+    borderWidth: 2, // Borde más grueso
+    borderColor: '#9ca3af', // Borde más visible
+    borderRadius: 10,
+    padding: 16,
+    textAlignVertical: 'top',
+    color: '#111827', // Texto más oscuro
+    fontSize: 15, // Tamaño ligeramente mayor
+    marginBottom: 14,
+    minHeight: 75,
+    shadowColor: '#374151',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },  datePickerContainer: {
+    marginBottom: 12,
   },
   dateDisplayRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8, // Reducido de 10 a 8
-    marginBottom: Platform.OS === 'ios' ? 6 : 10, // Reducido
+    gap: 10,
+    marginBottom: Platform.OS === 'ios' ? 8 : 12,
   },
   datePickerButton: {
-    flex: 1, // Para que ocupen el espacio disponible
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#eff6ff', // Fondo azul claro
-    paddingVertical: 10, // Reducido de 12 a 10
-    paddingHorizontal: 8, // Reducido de 10 a 8
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#dbeafe', // Borde azul más claro
+    backgroundColor: '#e0e7ff', // Fondo más contrastante
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#c7d2fe', // Borde más visible
+    shadowColor: '#374151',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   datePickerButtonText: {
-    marginLeft: 6, // Reducido de 8 a 6
-    color: '#1e40af', // Texto azul oscuro
-    fontSize: 13, // Reducido de 14 a 13
-    fontWeight: '500',
+    marginLeft: 8,
+    color: '#3730a3', // Color más oscuro y vibrante
+    fontSize: 14,
+    fontWeight: '600', // Peso más fuerte
   },
-  // Nuevos estilos para el botón de añadir a lista
+  // Botón de añadir a lista más compacto y atractivo
   addToListButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4f46e5', // Violeta/indigo oscuro
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    backgroundColor: '#059669', // Verde más profesional
+    paddingVertical: 8, // Más compacto (reducido de 10)
+    paddingHorizontal: 12, // Más compacto (reducido de 16)
     borderRadius: 8,
-    marginTop: 8,
-    shadowColor: '#4f46e5',
+    marginTop: 6, // Más compacto (reducido de 8)
+    shadowColor: '#047857', // Sombra del mismo tono
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
     elevation: 3,
   },
   addToListButtonText: {
     color: '#ffffff',
-    fontWeight: '600',
-    fontSize: 14,
-    marginLeft: 6,
-  },
-  // Estilos para la lista de actividades programadas
+    fontWeight: '700', // Peso más fuerte
+    fontSize: 13, // Tamaño más compacto (reducido de 14)
+    marginLeft: 4, // Más compacto (reducido de 6)
+  },  // Estilos para la lista de actividades programadas
   scheduledActivitiesContainer: {
-    marginBottom: 12,
-    marginTop: 4,
+    marginBottom: 14,
+    marginTop: 6,
   },
   scheduledActivitiesList: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: 8,
-    padding: 8,
-    marginTop: 4,
+    backgroundColor: '#e2e8f0', // Fondo más contrastante
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
   },
   scheduledActivityItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#ffffff',
-    borderRadius: 8,
-    padding: 10,
-    shadowColor: '#94a3b8',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
+    borderRadius: 10,
+    padding: 12, // Padding aumentado
+    shadowColor: '#374151', // Sombra más oscura
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15, // Sombra más visible
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#f3f4f6', // Borde sutil
   },
   scheduledActivityContent: {
     flex: 1,
-    marginRight: 10,
+    marginRight: 12,
   },
   scheduledActivityHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   scheduledActivityTitle: {
-    color: '#1e3a8a',
-    fontWeight: '600',
-    fontSize: 14,
-    marginLeft: 8,
+    color: '#1e293b', // Color más oscuro y contrastante
+    fontWeight: '700', // Peso más fuerte
+    fontSize: 15, // Tamaño ligeramente mayor
+    marginLeft: 10,
   },
   scheduledActivityTime: {
-    color: '#64748b',
-    fontSize: 12,
-    marginLeft: 26, // Alinear con el título después del icono
+    color: '#475569', // Color más oscuro
+    fontSize: 13, // Tamaño ligeramente mayor
+    fontWeight: '500', // Peso medio
+    marginLeft: 28,
   },
   scheduledActivityAsset: {
-    color: '#f59e0b',
-    fontSize: 12,
-    fontWeight: '500',
-    marginLeft: 26,
-    marginTop: 2,
+    color: '#dc2626', // Color rojo más vibrante
+    fontSize: 13, // Tamaño ligeramente mayor
+    fontWeight: '600', // Peso más fuerte
+    marginLeft: 28,
+    marginTop: 3,
   },
   scheduledActivityNotes: {
-    color: '#64748b',
-    fontSize: 11,
-    marginLeft: 26,
-    marginTop: 2,
+    color: '#6b7280', // Color más oscuro
+    fontSize: 12, // Tamaño ligeramente mayor
+    marginLeft: 28,
+    marginTop: 3,
     fontStyle: 'italic',
   },
   removeActivityButton: {
-    padding: 5,
+    padding: 6, // Padding ligeramente mayor
+    borderRadius: 6,
+    backgroundColor: '#fef2f2', // Fondo sutil
   },
   activitySeparator: {
-    height: 8,
+    height: 10, // Separación ligeramente mayor
   },
   actionButton: {
-    backgroundColor: '#2563eb', // Azul más oscuro para el botón principal
-    borderRadius: 10, // Reducido de 12 a 10
-    paddingVertical: 14, // Reducido de 16 a 14
-    paddingHorizontal: 18, // Reducido de 20 a 18
+    backgroundColor: '#4f46e5', // Color más vibrante
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 4,
-    marginTop: 16, // Reducido de 20 a 16
+    shadowColor: '#3730a3', // Sombra del mismo tono
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+    marginTop: 18,
+    borderWidth: 2,
+    borderColor: '#3730a3', // Borde para mejor definición
   },
   actionButtonText: {
     color: '#ffffff',
-    fontWeight: '600',
-    fontSize: 15, // Reducido de 16 a 15
+    fontWeight: '700', // Peso más fuerte
+    fontSize: 16,
   },
 });
 

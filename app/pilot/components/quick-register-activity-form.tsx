@@ -143,8 +143,8 @@ const ReorderableActivityItem: React.FC<ReorderableActivityItemProps> = ({
         >
           <MaterialCommunityIcons
             name="chevron-up"
-            size={20}
-            color={index === 0 ? "#cbd5e1" : "#64748b"}
+            size={16}
+            color={index === 0 ? "#cbd5e1" : "#7c3aed"}
           />
         </TouchableOpacity>
         <TouchableOpacity
@@ -158,8 +158,8 @@ const ReorderableActivityItem: React.FC<ReorderableActivityItemProps> = ({
         >
           <MaterialCommunityIcons
             name="chevron-down"
-            size={20}
-            color={index === totalItems - 1 ? "#cbd5e1" : "#64748b"}
+            size={16}
+            color={index === totalItems - 1 ? "#cbd5e1" : "#7c3aed"}
           />
         </TouchableOpacity>
       </View>
@@ -169,7 +169,7 @@ const ReorderableActivityItem: React.FC<ReorderableActivityItemProps> = ({
           <MaterialCommunityIcons
             name={(activityTypeInfo?.icon as any) || "calendar-clock"}
             size={18}
-            color="#3b82f6"
+            color="#aa74f0"
           />
           <Text style={styles.scheduledActivityTitle}>
             {activityTypeInfo?.label || "Actividad"}
@@ -417,7 +417,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                   <MaterialCommunityIcons
                     name={icon as any}
                     size={24}
-                    color={selectedType === type ? "#ffffff" : "#3b82f6"}
+                    color={selectedType === type ? "#ffffff" : "#7c3aed"}
                   />
                   <Text
                     style={[
@@ -453,7 +453,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                         name="cog"
                         size={24}
                         color={
-                          selectedTurbine === turbine.id ? "#ffffff" : "#f59e0b"
+                          selectedTurbine === turbine.id ? "#ffffff" : "#7c3aed"
                         }
                       />
                       <Text
@@ -502,7 +502,7 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                 <Ionicons
                   name="flash"
                   size={18}
-                  color={isForNow ? "#fff" : "#2563eb"}
+                  color={isForNow ? "#ffffff" : "#7c3aed"}
                 />
                 <Text
                   style={[
@@ -523,12 +523,12 @@ const QuickRegisterActivityForm: React.FC<QuickRegisterActivityFormProps> = ({
                 <Ionicons
                   name="time-outline"
                   size={18}
-                  color={!isForNow ? "#fff" : "#f59e0b"}
+                  color={!isForNow ? "#ffffff" : "#e17728"}
                 />
                 <Text
                   style={[
-                    styles.timeOptionText,
-                    !isForNow && styles.timeOptionTextSelected,
+                    styles.timeOptionTextLater,
+                    !isForNow && styles.timeOptionTextLaterSelected,
                   ]}
                 >
                   Para más tarde
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 26,
     fontWeight: "700",
-    color: "#1e3a8a",
+    color: "#aa74f0", // Changed from "#1e3a8a"
     marginBottom: 10,
     marginTop: 5,
     textAlign: "center",
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   subtitle: {
-    color: "#374151",
+    color: "#aa74f0", // Changed from "#374151"
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 8,
@@ -699,11 +699,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   typeCardSelected: {
-    backgroundColor: "#3b82f6",
-    borderColor: "#2563eb",
+    backgroundColor: "#8b5cf6",
+    borderColor: "#7c3aed",
+    shadowColor: "#8b5cf6",
+    shadowOpacity: 0.3,
+    elevation: 5,
   },
   typeLabel: {
-    color: "#1e3a8a",
+    color: "#6b46c1",
     fontWeight: "500",
     textAlign: "center",
     fontSize: 13,
@@ -732,11 +735,14 @@ const styles = StyleSheet.create({
     minHeight: 90,
   },
   turbineCardSelected: {
-    backgroundColor: "#f59e0b",
-    borderColor: "#d97706",
+    backgroundColor: "#8b5cf6",
+    borderColor: "#7c3aed",
+    shadowColor: "#8b5cf6",
+    shadowOpacity: 0.3,
+    elevation: 5,
   },
   turbineName: {
-    color: "#1e3a8a",
+    color: "#6b46c1",
     fontWeight: "600",
     fontSize: 14,
     textAlign: "center",
@@ -773,19 +779,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 16,
   },  addToListButton: {
-    backgroundColor: "#10b981",
+    backgroundColor: "#f59e0b",
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 28,
     marginTop: 0,
     marginBottom: 0,
-    shadowColor: "#059669",
+    shadowColor: "#f59e0b",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 6,
     borderWidth: 1,
-    borderColor: "#10b981",
+    borderColor: "#f59e0b",
   },
   addButtonContent: {
     flexDirection: "row",
@@ -809,11 +815,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 12,
     fontStyle: "italic",
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#f3f0ff",
     padding: 8,
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: "#3b82f6",
+    borderLeftColor: "#8b5cf6",
   },
   scheduledList: {
     backgroundColor: "#f8fafc",
@@ -849,9 +855,9 @@ const styles = StyleSheet.create({
   },
   reorderButton: {
     backgroundColor: "#ffffff",
-    borderRadius: 8,
-    padding: 6,
-    marginVertical: 2,
+    borderRadius: 6,
+    padding: 4,
+    marginVertical: 1,
     borderWidth: 1,
     borderColor: "#e2e8f0",
     shadowColor: "#000",
@@ -859,6 +865,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 24,
+    minHeight: 24,
   },
   reorderButtonDisabled: {
     opacity: 0.4,
@@ -874,7 +884,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   scheduledActivityTitle: {
-    color: "#1e3a8a",
+    color: "#aa74f0", // Changed from "#1e3a8a"
     fontWeight: "600",
     fontSize: 14,
     marginLeft: 6,
@@ -891,17 +901,17 @@ const styles = StyleSheet.create({
     borderColor: "#fecaca",
   },
   actionButton: {
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#8b5cf6",
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 18,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#3b82f6",
+    shadowColor: "#8b5cf6",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 4,
     marginTop: 15,
   },
   actionButtonText: {
@@ -912,38 +922,58 @@ const styles = StyleSheet.create({
   timeOptionButton: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#2563eb",
+    borderWidth: 2,
+    borderColor: "#8b5cf6",
     borderRadius: 20,
-    paddingVertical: 6,
+    paddingVertical: 8,
     paddingHorizontal: 16,
     marginHorizontal: 6,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
+    shadowColor: "#8b5cf6",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   timeOptionButtonSelected: {
-    backgroundColor: "#2563eb",
-    borderColor: "#2563eb",
+    backgroundColor: "#8b5cf6",
+    borderColor: "#7c3aed",
+    shadowOpacity: 0.3,
+    elevation: 4,
   },
   timeOptionButtonLater: {
     backgroundColor: "#f59e0b",
-    borderColor: "#f59e0b",
+    borderColor: "#e17728",
+    shadowColor: "#f59e0b",
+    shadowOpacity: 0.3,
+    elevation: 4,
   },
   timeOptionText: {
     marginLeft: 6,
-    color: "#2563eb",
+    color: "#6b46c1",
     fontWeight: "600",
+    fontSize: 14,
   },
   timeOptionTextSelected: {
-    color: "#fff",
+    color: "#ffffff",
+  },
+  timeOptionTextLater: {
+    marginLeft: 6,
+    color: "#e17728",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  timeOptionTextLaterSelected: {
+    color: "#ffffff",
   },  orderIndicator: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#8b5cf6",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
-    shadowColor: "#3b82f6",
+    shadowColor: "#8b5cf6",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
