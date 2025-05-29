@@ -21,6 +21,9 @@ import {
     withTiming,
 } from "react-native-reanimated";
 
+// Import the ActivityProvider
+import { ActivityProvider } from '../contexts/ActivityContext';
+
 // Define the props for the custom tab bar button
 interface CustomTabBarButtonProps {
   children: React.ReactNode;
@@ -114,156 +117,156 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
   );
 };
 
-// ... (imports y AnimatedTabBarButton sin cambios)
-
 export default function PilotLayout() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <StatusBar style="dark" backgroundColor="#ffffff" />
-      <View style={{ flex: 1 }}>
-        <Tabs
-          screenOptions={{
-            headerShown: false,
-            tabBarStyle: {
-              backgroundColor: "#ffffff",
-              borderTopColor: "#ffffff",
-              elevation: 0,
-              shadowOpacity: 0,
-              height: Platform.OS === 'ios' ? 60 : 70,
-              paddingBottom: Platform.OS === 'ios' ? 5 : 5,
-              paddingTop: 8,
-              borderBlockColor: "#ffffff", // Asegúrate que sea borderTopColor si es solo la línea superior
-            },
-            tabBarActiveTintColor: "#3b82f6",
-            tabBarInactiveTintColor: "#8f8f8f",
-            tabBarLabelStyle: {
-              fontSize: 11,
-              fontWeight: "600",
-              marginTop: 4,
-              textAlign: 'center', // Centra el texto dentro de su propio contenedor
-              width: '100%',     // Hace que el contenedor de la etiqueta ocupe el ancho completo disponible
-            },
-            tabBarButton: (tabBarProps) => (
-              <AnimatedTabBarButton {...tabBarProps} />
-            ),
-          }}
-        >
-          {/* Tus Tabs.Screen ... */}
-          <Tabs.Screen
-            name="dashboard"
-            options={{
-              title: "Inicio",
-              sceneStyle: { backgroundColor: "#ffffff" },
-              tabBarIcon: ({ color, size, focused }) => (
-                <View style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 30, // Mantén un ancho fijo para el contenedor del icono si lo deseas
-                  height: 30,
-                  // display: 'flex' // View es flex por defecto, no es necesario
-                }}>
-                  <Ionicons
-                    name={focused ? "home" : "home-outline"}
-                    size={24}
-                    color={color}
-                    // style={{ textAlign: 'center', alignSelf: 'center' }} // alignSelf: 'center' es bueno, textAlign no aplica a Ionicons
-                  />
-                </View>
+    <ActivityProvider>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+        <StatusBar style="dark" backgroundColor="#ffffff" />
+        <View style={{ flex: 1 }}>
+          <Tabs
+            screenOptions={{
+              headerShown: false,
+              tabBarStyle: {
+                backgroundColor: "#ffffff",
+                borderTopColor: "#ffffff",
+                elevation: 0,
+                shadowOpacity: 0,
+                height: Platform.OS === 'ios' ? 60 : 70,
+                paddingBottom: Platform.OS === 'ios' ? 5 : 5,
+                paddingTop: 8,
+                borderBlockColor: "#ffffff", // Asegúrate que sea borderTopColor si es solo la línea superior
+              },
+              tabBarActiveTintColor: "#3b82f6",
+              tabBarInactiveTintColor: "#8f8f8f",
+              tabBarLabelStyle: {
+                fontSize: 11,
+                fontWeight: "600",
+                marginTop: 4,
+                textAlign: 'center', // Centra el texto dentro de su propio contenedor
+                width: '100%',     // Hace que el contenedor de la etiqueta ocupe el ancho completo disponible
+              },
+              tabBarButton: (tabBarProps) => (
+                <AnimatedTabBarButton {...tabBarProps} />
               ),
             }}
-          />
-          <Tabs.Screen
-            name="activity-log"
-            options={{
-              title: 'Historial',
-              sceneStyle: { backgroundColor: "#ffffff" },
-              tabBarIcon: ({ color, size, focused }) => (
-                <View style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 30,
-                  height: 30,
-                }}>
-                  <Ionicons
-                    name={focused ? "time" : "time-outline"}
-                    size={24}
-                    color={color}
-                  />
-                </View>
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name="components/project-info-menu"
-            options={{
-              title: 'Proyecto',
-              sceneStyle: { backgroundColor: "#ffffff" },
-              tabBarIcon: ({ color, size, focused }) => (
-                <View style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 30,
-                  height: 30,
-                }}>
-                  <Ionicons
-                    name={focused ? "folder" : "folder-outline"}
-                    size={24}
-                    color={color}
-                  />
-                </View>
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name="profile"
-            options={{
-              title: "Perfil",
-              sceneStyle: { backgroundColor: "#ffffff" },
-              tabBarIcon: ({ color, size, focused }) => (
-                <View style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 30,
-                  height: 30,
-                }}>
-                  <Ionicons
-                    name={focused ? "person" : "person-outline"}
-                    size={24}
-                    color={color}
-                  />
-                </View>
-              ),
-            }}
-          />
-          {/* ... el resto de tus Tabs.Screen con href: null */}
-            <Tabs.Screen name="statistics" options={{ href: null }} />
-            <Tabs.Screen name="incidents" options={{ href: null }} />
-            <Tabs.Screen name="preflight-checklist" options={{ href: null }} />
-            <Tabs.Screen name="project-history" options={{ href: null }} />
-            <Tabs.Screen name="components/pilot-dashboard" options={{ href: null }} />
-            <Tabs.Screen name="components/header-info-card" options={{ href: null }} />
-            <Tabs.Screen name="components/alerts-display-card" options={{ href: null }} />
-            <Tabs.Screen name="components/my-indicators-button" options={{ href: null }} />
-            <Tabs.Screen name="components/project-details-card" options={{ href: null }} />          
-            <Tabs.Screen name="components/new-activity-formmodal" options={{ href: null }} />
-            <Tabs.Screen name="components/new-incident-formmodal" options={{ href: null }} />
-            <Tabs.Screen name="components/incident-form-modal" options={{ href: null }} />
-            <Tabs.Screen name="components/quick-actions-menu-card" options={{ href: null }} />
-            <Tabs.Screen name="components/quick-register-activity-form" options={{ href: null }} />
-            <Tabs.Screen name="new-incident" options={{ href: null }} />
-            <Tabs.Screen name="calendar" options={{ href: null }} />
-            <Tabs.Screen name="site-map" options={{ href: null }} />
-            <Tabs.Screen name="turbines-status" options={{ href: null }} />
-            <Tabs.Screen name="support-chat" options={{ href: null }} />
-             <Tabs.Screen name="turbines" options={{ href: null }} />
-            <Tabs.Screen name="notifications" options={{ href: null }} />
-            <Tabs.Screen name="project-details" options={{ href: null }} />
-            <Tabs.Screen name="components/activity-timeline" options={{ href: null }} />
-            <Tabs.Screen name="components/activity-control" options={{ href: null }}/>
-            <Tabs.Screen name="components/activity-suggestions-card" options={{ href: null }} />
-            <Tabs.Screen name="blade-inspection-detail" options={{ href: null }} />
-        </Tabs>
-      </View>
-    </SafeAreaView>
+          >
+            {/* Tus Tabs.Screen ... */}
+            <Tabs.Screen
+              name="dashboard"
+              options={{
+                title: "Inicio",
+                sceneStyle: { backgroundColor: "#ffffff" },
+                tabBarIcon: ({ color, size, focused }) => (
+                  <View style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 30, // Mantén un ancho fijo para el contenedor del icono si lo deseas
+                    height: 30,
+                    // display: 'flex' // View es flex por defecto, no es necesario
+                  }}>
+                    <Ionicons
+                      name={focused ? "home" : "home-outline"}
+                      size={24}
+                      color={color}
+                      // style={{ textAlign: 'center', alignSelf: 'center' }} // alignSelf: 'center' es bueno, textAlign no aplica a Ionicons
+                    />
+                  </View>
+                ),
+              }}
+            />
+            <Tabs.Screen
+              name="activity-log"
+              options={{
+                title: 'Historial',
+                sceneStyle: { backgroundColor: "#ffffff" },
+                tabBarIcon: ({ color, size, focused }) => (
+                  <View style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 30,
+                    height: 30,
+                  }}>
+                    <Ionicons
+                      name={focused ? "time" : "time-outline"}
+                      size={24}
+                      color={color}
+                    />
+                  </View>
+                ),
+              }}
+            />
+            <Tabs.Screen
+              name="components/project-info-menu"
+              options={{
+                title: 'Proyecto',
+                sceneStyle: { backgroundColor: "#ffffff" },
+                tabBarIcon: ({ color, size, focused }) => (
+                  <View style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 30,
+                    height: 30,
+                  }}>
+                    <Ionicons
+                      name={focused ? "folder" : "folder-outline"}
+                      size={24}
+                      color={color}
+                    />
+                  </View>
+                ),
+              }}
+            />
+            <Tabs.Screen
+              name="profile"
+              options={{
+                title: "Perfil",
+                sceneStyle: { backgroundColor: "#ffffff" },
+                tabBarIcon: ({ color, size, focused }) => (
+                  <View style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 30,
+                    height: 30,
+                  }}>
+                    <Ionicons
+                      name={focused ? "person" : "person-outline"}
+                      size={24}
+                      color={color}
+                    />
+                  </View>
+                ),
+              }}
+            />
+            {/* ... el resto de tus Tabs.Screen con href: null */}
+              <Tabs.Screen name="statistics" options={{ href: null }} />
+              <Tabs.Screen name="incidents" options={{ href: null }} />
+              <Tabs.Screen name="preflight-checklist" options={{ href: null }} />
+              <Tabs.Screen name="project-history" options={{ href: null }} />
+              <Tabs.Screen name="components/pilot-dashboard" options={{ href: null }} />
+              <Tabs.Screen name="components/header-info-card" options={{ href: null }} />
+              <Tabs.Screen name="components/alerts-display-card" options={{ href: null }} />
+              <Tabs.Screen name="components/my-indicators-button" options={{ href: null }} />
+              <Tabs.Screen name="components/project-details-card" options={{ href: null }} />          
+              <Tabs.Screen name="components/new-activity-formmodal" options={{ href: null }} />
+              <Tabs.Screen name="components/new-incident-formmodal" options={{ href: null }} />
+              <Tabs.Screen name="components/incident-form-modal" options={{ href: null }} />
+              <Tabs.Screen name="components/quick-actions-menu-card" options={{ href: null }} />
+              <Tabs.Screen name="components/quick-register-activity-form" options={{ href: null }} />
+              <Tabs.Screen name="new-incident" options={{ href: null }} />
+              <Tabs.Screen name="calendar" options={{ href: null }} />
+              <Tabs.Screen name="site-map" options={{ href: null }} />
+              <Tabs.Screen name="turbines-status" options={{ href: null }} />
+              <Tabs.Screen name="support-chat" options={{ href: null }} />
+               <Tabs.Screen name="turbines" options={{ href: null }} />
+              <Tabs.Screen name="notifications" options={{ href: null }} />
+              <Tabs.Screen name="project-details" options={{ href: null }} />
+              <Tabs.Screen name="components/activity-timeline" options={{ href: null }} />
+              <Tabs.Screen name="components/activity-control" options={{ href: null }}/>
+              <Tabs.Screen name="components/activity-suggestions-card" options={{ href: null }} />
+              <Tabs.Screen name="blade-inspection-detail" options={{ href: null }} />
+          </Tabs>
+        </View>
+      </SafeAreaView>
+    </ActivityProvider>
   );
 }

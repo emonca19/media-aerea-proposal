@@ -155,18 +155,19 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({  container: {
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
-    paddingTop: 16, // Reduced from 20 to 16
-    marginVertical: 6, // Reduced from 10 to 6 
+    paddingTop: 16, // Reduced from 16 to 12
+    paddingBottom: 4, // Increased from 20 to 24
+    marginTop: 4, // Less space above the card
+    marginBottom: 16, // More space below the card
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
-    elevation: 6,
+    elevation: 4,
     width: '100%',
     maxWidth: 500,
   },

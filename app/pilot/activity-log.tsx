@@ -14,79 +14,12 @@ import {
 // Import incident types
 import { incidentTypes } from '../../src/mocks/incident-types';
 import { mockTurbines } from '../../src/mocks/turbines';
+import { useActivity } from '../contexts/ActivityContext';
 
-// Mock incident data - distribuido de manera más realista
-const mockIncidents = [
-  {
-    id: 'INC001',
-    type: 'WEATHER', // Use the centralized IncidentType enum value
-    description: 'Condiciones meteorológicas adversas detectadas durante la inspección.',
-    activityId: '2', // Asegúrate que este ID exista en mockActivities
-    timestamp: '2023-05-18T09:30:00',
-    severity: 'medium',
-    status: 'resolved'
-  }
-];
 
 const mockDrones = [
   { id: '1', model: 'DJI Matrice 300 RTK', serialNumber: 'SN-M300-78451', batteryStatus: 85 },
   { id: '2', model: 'DJI Phantom 4 Pro', serialNumber: 'SN-P4P-45213', batteryStatus: 60 }
-];
-
-const mockActivities = [
-  {
-    id: '0',
-    type: 'OTHER',
-    startTime: new Date('2023-05-18T07:00:00'),
-    endTime: new Date('2023-05-18T07:05:00'),
-    notes: 'Inicio de jornada',
-    operator: 'Juan Pérez'
-  },
-  {
-    id: '1',
-    type: 'MOBILIZATION',
-    startTime: new Date('2023-05-18T07:05:00'),
-    endTime: new Date('2023-05-18T08:00:00'),
-    notes: 'Movilización al parque eólico',
-    operator: 'Juan Pérez'
-  },
-  {
-    id: '2', // Este ID es usado por mockIncidents
-    type: 'OTHER',
-    startTime: new Date('2023-05-18T08:00:00'),
-    endTime: new Date('2023-05-18T08:10:00'),
-    notes: 'Llegada al sitio',
-    operator: 'Juan Pérez',
-    subActivities: [
-      {
-        id: '2-1',
-        type: 'BREAK',
-        startTime: new Date('2023-05-18T08:10:00'),
-        endTime: new Date('2023-05-18T08:30:00'),
-        notes: 'Esperando permiso de acceso',
-        operator: 'Juan Pérez'
-      }
-    ]
-  },
-  {
-    id: '3',
-    type: 'TURBINE_WORK',
-    turbineId: '1',
-    startTime: new Date('2023-05-18T08:30:00'),
-    endTime: new Date('2023-05-18T10:00:00'),
-    notes: 'Inspección de aspas y sistemas eléctricos.',
-    operator: 'Juan Pérez',
-    subActivities: [
-      {
-        id: '3-1',
-        type: 'BREAK',
-        startTime: new Date('2023-05-18T09:00:00'),
-        endTime: new Date('2023-05-18T09:15:00'),
-        notes: 'Pausa para hidratación',
-        operator: 'Juan Pérez'
-      }
-    ]
-  }
 ];
 
 const activityTypes = [
@@ -101,11 +34,12 @@ const activityTypes = [
 export default function ActivityLogScreen() {
   const { newActivity, message } = useLocalSearchParams(); // Eliminado initialTab
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('all');
-  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Use the activity context instead of mock data
+  const { activities, incidents } = useActivity();
 
   // Filtra las actividades del día actual
-  const todayActivities = mockActivities; // Mostrar todas las actividades, no solo las de hoy
-
+  const todayActivities = activities; // Usar actividades del contexto
   useEffect(() => {
     if (newActivity && message) {
       Alert.alert(
@@ -115,13 +49,6 @@ export default function ActivityLogScreen() {
       );
     }
   }, [newActivity, message]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
 
   const formatTime = (date: Date | null) => {
     if (!date) return '--:--';
@@ -152,14 +79,10 @@ export default function ActivityLogScreen() {
   };
 
   const filteredActivities = getFilteredActivities();
-
   return (
     <View style={styles.container}>
-      
-
       {/* El ScrollView ahora siempre muestra las actividades, sin tabs */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.activitiesSection}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}><View style={styles.activitiesSection}>
           <View style={styles.enhancedStatsContainer}>
             <View style={styles.statsHeader}>
               <View style={styles.statsTitleContainer}>
@@ -196,7 +119,7 @@ export default function ActivityLogScreen() {
                 <View style={[styles.statIconContainer, { backgroundColor: '#fef2f2' }]}>
                   <MaterialCommunityIcons name="alert-circle-outline" size={22} color="#ef4444" />
                 </View>
-                <Text style={[styles.statValue, { color: '#ef4444' }]}>{mockIncidents.length}</Text>
+                <Text style={[styles.statValue, { color: '#ef4444' }]}>{incidents.length}</Text>
                 <Text style={styles.statLabel}>Incidencias</Text>
               </View>
             </View>
@@ -289,7 +212,7 @@ export default function ActivityLogScreen() {
                         )}
                       </View>
                     </View>
-                    {mockIncidents.filter(incident => incident.activityId === activity.id).map((incident) => {
+                    {incidents.filter(incident => incident.activityId === activity.id).map((incident) => {
                       const incidentTypeData = incidentTypes.find(t => t.id === incident.type);
                       return (
                         <View key={incident.id} style={styles.incidentCardWrapper}>
@@ -326,21 +249,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8fafc', // Color de fondo general de la app
-  },
-  content: { // Estilo para el ScrollView de la pestaña 'activities'
-    paddingHorizontal: 12, // Aplicar padding aquí para que el scroll funcione bien
-    paddingTop: 16, // Espacio arriba dentro del scroll
+  },  content: { // Estilo para el ScrollView de la pestaña 'activities'
+    paddingHorizontal: 8, // Reducido de 12 a 8 para más espacio en pantalla
+    paddingTop: 12, // Reducido de 16 a 12
     paddingBottom: 16, // Espacio abajo dentro del scroll
   },
   // --- Estilos de la pestaña 'activities' ---
   activitiesSection: {
     // No necesita marginBottom si el content del ScrollView ya tiene paddingBottom
-  },
-  enhancedStatsContainer: {
+  },  enhancedStatsContainer: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 10, // Reducido de 12 a 10
+    padding: 12, // Reducido de 16 a 12
+    marginBottom: 12, // Reducido de 16 a 12
     borderWidth: 1,
     borderColor: '#e5e7eb',
     shadowColor: '#000',
@@ -348,33 +269,30 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 4,
     elevation: 1,
-  },
-  statsHeader: {
+  },  statsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   statsTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  statsIconWrapper: {
-    marginRight: 10,
-    padding: 3,
+  },  statsIconWrapper: {
+    marginRight: 8,
+    padding: 2,
   },
   statsTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     color: '#1e293b',
-  },
-  dateContainer: {
+  },  dateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f1f5f9',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
@@ -392,41 +310,38 @@ const styles = StyleSheet.create({
   statCard: {
     alignItems: 'center',
     flex: 1,
-  },
-  statIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  },  statIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#f8fafc',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#1e293b',
-    marginBottom: 3,
+    marginBottom: 2,
   },
   statLabel: {
     fontSize: 11,
     color: '#64748b',
     fontWeight: '500',
     textAlign: 'center',
-  },
-  statDivider: {
+  },  statDivider: {
     width: 1,
-    height: 36,
+    height: 32,
     backgroundColor: '#e5e7eb',
-    marginHorizontal: 12,
-  },
-  timeFilterContainer: {
+    marginHorizontal: 10,
+  },timeFilterContainer: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#e5e7eb',
     shadowColor: '#000',
@@ -434,12 +349,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.02,
     shadowRadius: 3,
     elevation: 1,
-  },
-  timeFilterHeader: {
+  },  timeFilterHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   timeFilterTitle: {
     fontSize: 14,
@@ -450,15 +364,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b7280',
     fontWeight: '500',
-  },
-  timeFilterButtons: {
+  },  timeFilterButtons: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
   },
   timeFilterButton: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
@@ -480,12 +393,11 @@ const styles = StyleSheet.create({
   },
   activitiesTimeline: {
     // No necesita marginTop si el timeFilterContainer ya tiene marginBottom
-  },
-  startOfDayContainer: {
+  },  startOfDayContainer: {
     width: '100%',
     alignItems: 'center',
     marginTop: -1,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   dottedLineContainer: {
     flexDirection: 'row',
@@ -499,15 +411,14 @@ const styles = StyleSheet.create({
     borderStyle: 'dotted',
     borderColor: '#cbd5e1',
     height: 1,
-  },
-  startDayBlock: {
+  },  startDayBlock: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f1f5f9',
-    borderRadius: 16,
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-    marginHorizontal: 12,
+    borderRadius: 14,
+    paddingVertical: 3,
+    paddingHorizontal: 12,
+    marginHorizontal: 10,
     borderWidth: 1,
     borderColor: '#e0e7ef',
     shadowColor: '#000',
@@ -519,21 +430,20 @@ const styles = StyleSheet.create({
   startDayText: {
     fontWeight: '600',
     color: '#2563eb',
-    fontSize: 15,
-    marginRight: 8,
+    fontSize: 14,
+    marginRight: 6,
   },
   startDayHour: {
     color: '#64748b',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '400',
-  },
-  activityCardContainer: {
-    marginBottom: 16,
+  },activityCardContainer: {
+    marginBottom: 12,
   },
   activityCardWrapper: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 10,
+    padding: 12,
     borderWidth: 1,
     borderColor: '#e5e7eb',
     shadowColor: '#000',
@@ -541,96 +451,88 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 4,
     elevation: 1,
-  },
-  activityHeaderRow: {
+  },  activityHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   activityTitleSection: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-  },
-  activityIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  },  activityIconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#eff6ff',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 10,
     borderWidth: 1.5,
     borderColor: '#dbeafe',
   },
   activityTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#1e293b',
-  },
-  activityDurationBadge: {
+  },  activityDurationBadge: {
     backgroundColor: '#f1f5f9',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
   activityDurationText: {
     color: '#475569',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
-  },
-  activityDetailsSection: {
-    gap: 8,
+  },  activityDetailsSection: {
+    gap: 6,
   },
   activityDetailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  activityDetailIcon: {
-    marginRight: 10,
-    width: 18,
+  },  activityDetailIcon: {
+    marginRight: 8,
+    width: 16,
     textAlign: 'center',
   },
   activityDetailText: {
     color: '#64748b',
-    fontSize: 13,
+    fontSize: 12,
     flex: 1,
-  },
-  incidentCardWrapper: {
+  },  incidentCardWrapper: {
     backgroundColor: '#fef2f2',
-    borderRadius: 10,
-    padding: 12,
-    marginLeft: 16,
-    marginTop: 16,
+    borderRadius: 8,
+    padding: 10,
+    marginLeft: 12,
+    marginTop: 12,
     borderWidth: 1,
     borderColor: '#fecaca',
     borderLeftWidth: 3,
     borderLeftColor: '#ef4444',
-  },
-  incidentHeader: {
+  },  incidentHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   incidentTitleSection: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-  },
-  incidentTitle: {
+  },  incidentTitle: {
     color: '#ef4444',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 13,
   },
   incidentDescription: {
     color: '#64748b',
-    fontSize: 13,
-    marginBottom: 6,
-    lineHeight: 18,
+    fontSize: 12,
+    marginBottom: 4,
+    lineHeight: 16,
   },
   incidentDetails: {
     marginTop: 2,
@@ -638,24 +540,23 @@ const styles = StyleSheet.create({
   incidentDetailText: {
     color: '#64748b',
     fontSize: 11,
-  },
-  emptyState: {
+  },  emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
+    padding: 24,
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    marginTop: 20, // Para que no quede pegado al filtro si no hay actividades
+    marginTop: 16, // Para que no quede pegado al filtro si no hay actividades
   },
   emptyImage: {
-    width: 120,
-    height: 120,
-    marginBottom: 16,
+    width: 100,
+    height: 100,
+    marginBottom: 12,
   },
   emptyText: {
     color: '#64748b',
-    fontSize: 16,
+    fontSize: 15,
   },
 });

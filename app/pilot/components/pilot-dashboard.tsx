@@ -19,6 +19,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useActivity } from "../../contexts/ActivityContext"; // Import ActivityContext
 import useWeather from "./../../hooks/useWeather"; // Asegúrate que la ruta a hooks sea correcta desde aquí
 
 // Importación nombrada para ActivitiesDisplayList
@@ -675,9 +676,22 @@ const PilotDashboard = () => {
     isPaused: boolean;
     reason?: string;
     start?: string;
-    end?: string;  }>({ isPaused: false });
-  const [bladeInspectionStatus, setBladeInspectionStatus] = useState<Record<string, boolean>>({});
+    end?: string;  }>({ isPaused: false });  const [bladeInspectionStatus, setBladeInspectionStatus] = useState<Record<string, boolean>>({});
   const [bladeInspectionTimingData, setBladeInspectionTimingData] = useState<any[]>([]);
+
+  // Add ActivityContext hook
+  const { addActivity, endActivity } = useActivity();
+
+  // Helper function to map dashboard activity to ActivityContext format
+  const mapToActivityContext = (dashboardActivity: Activity, startTime: Date) => {
+    return {
+      type: dashboardActivity.type || 'OTHER',
+      startTime: startTime,
+      notes: dashboardActivity.notes || dashboardActivity.description || '',
+      operator: pilot.name, // Use pilot name from dashboard data
+      turbineId: dashboardActivity.turbineId,
+    };
+  };
 
   // Inicializamos con datos por defecto, pero intentaremos cargar desde almacenamiento local
   const [currentProject, setCurrentProject] =
@@ -832,7 +846,6 @@ const PilotDashboard = () => {
     },
     [router]
   );
-
   const handleLogout = useCallback(
     () =>
       Alert.alert("Cerrar Sesión", "¿Estás seguro?", [
@@ -841,38 +854,49 @@ const PilotDashboard = () => {
       ]),
     [router]
   );
-  // Nueva función interna solo para forzar el actualStart al volver del checklist
+    // Nueva función interna solo para forzar el actualStart al volver del checklist
   const handleActivityAction = useCallback(
     (activityId: string, newStatusString: string, taskType?: string) => {
       const newStatus = (newStatusString?.toUpperCase().replace(" ", "_") ||
         "PENDIENTE") as Activity["status"];
+      
       setCurrentProject((prev) => {
-        const updatedActivities = (prev.activities || []).map((act) =>
-          act.id === activityId
-            ? {
-                ...act,
-                status: newStatus,
-                actualStart:
-                  newStatus === "EN_PROGRESO" && !act.actualStart
-                    ? new Date().toISOString()
-                    : act.actualStart,
-                actualEnd:
-                  newStatus === "COMPLETADA"
-                    ? new Date().toISOString()
-                    : act.actualEnd,
-                time:
-                  newStatus === "EN_PROGRESO"
-                    ? "Hoy - En curso"
-                    : newStatus === "COMPLETADA"
-                    ? "Hoy - Completada"
-                    : act.time,
-              }
-            : act
-        );
+        const updatedActivities = (prev.activities || []).map((act) => {
+          if (act.id === activityId) {
+            const updatedActivity = {
+              ...act,
+              status: newStatus,
+              actualStart:
+                newStatus === "EN_PROGRESO" && !act.actualStart
+                  ? new Date().toISOString()
+                  : act.actualStart,
+              actualEnd:
+                newStatus === "COMPLETADA"
+                  ? new Date().toISOString()
+                  : act.actualEnd,
+              time:
+                newStatus === "EN_PROGRESO"
+                  ? "Hoy - En curso"
+                  : newStatus === "COMPLETADA"
+                  ? "Hoy - Completada"
+                  : act.time,
+            };
+
+            // Add activity to ActivityContext when it starts (status becomes EN_PROGRESO)
+            if (newStatus === "EN_PROGRESO" && !act.actualStart) {
+              const startTime = new Date();
+              const activityContextData = mapToActivityContext(updatedActivity, startTime);
+              addActivity(activityContextData);
+            }
+
+            return updatedActivity;
+          }
+          return act;
+        });
         return { ...prev, activities: updatedActivities };
       });
     },
-    []
+    [addActivity, mapToActivityContext]
   );
 
   // Handler to finish the currently ongoing activity
@@ -1298,7 +1322,12 @@ const PilotDashboard = () => {
       saveToStorage();
       
       return updatedProject;
-    });    setActivityTerminationType("completed");
+    });    
+    
+    // Also add the completed activity to ActivityContext for the activity log
+    endActivity(activityId, new Date());
+    
+    setActivityTerminationType("completed");
 
     // Prepare next activity suggestions
     const pendingForToday = pendingTodayActivities.filter(
@@ -1679,8 +1708,10 @@ const PilotDashboard = () => {
                 };
                 saveToStorage();
 
-                return updatedProject;
-              });
+                return updatedProject;              });
+
+              // Also add the completed activity to ActivityContext for the activity log
+              endActivity(activityId, new Date());
 
               // Clear states
               setCurrentIncident(null);
@@ -2061,10 +2092,9 @@ const PilotDashboard = () => {
                 activityPauseState={activityPauseState}
               />
             );
-          };
-          return (
+          };          return (
             <View
-              style={{ marginTop: timelineActivities.length === 0 ? 2 : 10 }}
+              style={{ marginTop: timelineActivities.length === 0 ? 10 : 10 }}
             >
               {renderTimelineContent()}
             </View>
