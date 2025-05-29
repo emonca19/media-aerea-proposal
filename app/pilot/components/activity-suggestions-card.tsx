@@ -3,11 +3,11 @@ import React, { useEffect } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ActivitySuggestionsCardProps {
-  activities: any[]; // Usando any en lugar de Activity para evitar problemas con tipos
+  activities: any[]; 
   onActivitySelect: (activityId: string, isTurbineActivity: boolean) => void;
   onClose: () => void;
-  onGoToPreflightChecklist?: (turbineId: string, activityId: string) => void; // Added activityId
-  terminationType?: 'completed' | 'incident'; // New prop to indicate how the activity ended
+  onGoToPreflightChecklist?: (turbineId: string, activityId: string) => void;
+  terminationType?: 'completed' | 'incident'; 
 }
 
 const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
@@ -15,36 +15,31 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
   onActivitySelect,
   onClose,
   onGoToPreflightChecklist,
-  terminationType = 'completed' // Default to completed for backward compatibility
+  terminationType = 'completed' 
 }) => {
-  // Animation values for smoother transition
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.98)).current;
   
-  // Start fade-in animation when component mounts - optimized for performance
   useEffect(() => {
-    // Run animations in parallel for better performance
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 150, // Slightly increased for smoother fade
+        duration: 150, 
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnim, {
         toValue: 1,
-        duration: 200, // Slightly increased for smoother scale
+        duration: 200, 
         useNativeDriver: true,
       })
     ]).start();
   }, [fadeAnim, scaleAnim]);
   
-  // Don't render if there are no activities
   if (!activities || activities.length === 0) {
     console.log("No activities to suggest, not rendering suggestions card");
     return null;
   }
   
-  // Determina si una actividad está relacionada con turbinas
   const isTurbineActivity = (activity: any) => {
     return (
       activity.type === 'TURBINE_WORK' || 
@@ -53,7 +48,6 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
       (activity.name || '').toLowerCase().includes('aerogenerador')
     );
   };
-  // Get the appropriate message based on termination type
   const getHeaderInfo = () => {
     if (terminationType === 'incident') {
       return {
@@ -65,7 +59,7 @@ const ActivitySuggestionsCard: React.FC<ActivitySuggestionsCardProps> = ({
     } else {
       return {
         icon: 'checkmark-circle' as const,
-        color: '#10b981',
+        color: '#aa74f0',
         title: 'Actividad completada',
         subtitle: 'Próximas actividades:'
       };

@@ -72,6 +72,8 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                         backgroundColor: "#fff",
                         borderColor: activity.isPaused
                           ? "#dc2626"
+                          : activity.id === currentOngoingActivityId
+                          ? "#aa74f0"
                           : activity.statusBg,
                       },
                     ]}
@@ -81,12 +83,24 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                       activeOpacity={0.7}
                     >
                       {activity.icon ? (
-                        activity.icon
+                        React.cloneElement(activity.icon as React.ReactElement, {
+                          color: activity.isPaused
+                            ? "#dc2626"
+                            : activity.id === currentOngoingActivityId
+                            ? "#aa74f0"
+                            : (activity.icon as React.ReactElement).props.color || "#3b82f6",
+                        })
                       ) : (
                         <Ionicons
                           name="briefcase-outline"
                           size={28}
-                          color={activity.isPaused ? "#dc2626" : "#3b82f6"}
+                          color={
+                            activity.isPaused
+                              ? "#dc2626"
+                              : activity.id === currentOngoingActivityId
+                              ? "#aa74f0"
+                              : "#3b82f6"
+                          }
                         />
                       )}
                     </TouchableOpacity>
@@ -125,7 +139,7 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                             onActionPress("start_pending", activity.id)
                           }
                         >
-                          <Ionicons name="play" size={14} color="#3b82f6" />
+                          <Ionicons name="play" size={14} color="#aa74f0" />
                           <Text style={styles.actionButtonText}>Iniciar</Text>
                         </TouchableOpacity>
                       )}
@@ -140,6 +154,8 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                     {
                       backgroundColor: activity.isPaused
                         ? "#fee2e2"
+                        : activity.id === currentOngoingActivityId
+                        ? "#f3e8ff"
                         : activity.statusBg,
                     },
                   ]}
@@ -150,6 +166,8 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                       {
                         color: activity.isPaused
                           ? "#dc2626"
+                          : activity.id === currentOngoingActivityId
+                          ? "#aa74f0"
                           : activity.statusColor,
                       },
                     ]}

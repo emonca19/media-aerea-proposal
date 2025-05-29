@@ -1775,7 +1775,7 @@ const PilotDashboard = () => {
             <ProjectSummaryCard
               project={currentProject}
               onPress={() =>
-                router.push("/pilot/activity-log?initialTab=project")
+                router.push("/pilot/components/project-info-menu")
               }
             />
           );

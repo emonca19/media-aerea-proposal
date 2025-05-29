@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Animated, Dimensions } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Tipos mejorados
 type EventType = 'inspection' | 'maintenance' | 'meeting' | 'report' | 'training';
@@ -218,14 +218,13 @@ const CalendarScreen = () => {
         event.date.getMonth() === selectedDate.getMonth() &&
         event.date.getFullYear() === selectedDate.getFullYear())
     : [];
-
   return (
     <View style={styles.container}>
       {/* Encabezado */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton} 
-          onPress={() => router.back()}
+          onPress={() => router.push('/pilot/profile')}
         >
           <Ionicons name="arrow-back" size={24} color="#1E40AF" />
         </TouchableOpacity>

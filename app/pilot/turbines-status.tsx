@@ -371,6 +371,15 @@ const TurbinesStatusScreen = () => {
           headerTintColor: COLORS.textPrimary,
           headerTitleStyle: { fontWeight: '600', fontSize: 18, color: COLORS.textPrimary },
           headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.push('/pilot/project-info-menu')}
+              style={styles.backButton}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
+            </TouchableOpacity>
+          ),
         }}
       />
       
@@ -533,6 +542,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  
+  // Back button
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -8,
   },
   
   // Minimalist Header

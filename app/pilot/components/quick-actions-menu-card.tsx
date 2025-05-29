@@ -1,10 +1,19 @@
-// app/pilot/dashboard/components/QuickActionsMenuCard.tsx
+
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { styles as globalStyles } from './pilot-dashboard-styles';
 import QuickRegisterActivityForm from './quick-register-activity-form';
+
+// Constantes para textos de botones - esto previene cualquier cambio dinámico
+const BUTTON_TEXTS = {
+  ACTIVITY: 'Actividad',
+  INCIDENT: 'Incidente'
+} as const;
+
+// Texto estático forzado para el botón de incidente
+const INCIDENT_BUTTON_TEXT = 'Incidente';
 
 interface QuickActionsMenuCardProps {
   onNavigate: (route: string) => void;
@@ -33,6 +42,12 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({
 }) => {
   const [isQuickActivityFormVisible, setIsQuickActivityFormVisible] = useState(false);
   
+  // Memoizar los textos de los botones para evitar cambios dinámicos
+  const buttonTexts = useMemo(() => ({
+    activity: BUTTON_TEXTS.ACTIVITY,
+    incident: INCIDENT_BUTTON_TEXT
+  }), []);
+  
   const handleQuickActivitySubmit = (activityData: any) => {
     setIsQuickActivityFormVisible(false);
     
@@ -54,7 +69,7 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({
     <View style={[globalStyles.card_container, styles.quickActionsCard]}>
       <View style={styles.actionsContainer}>
         <LinearGradient
-          colors={["#10b981", "#059669"]}
+          colors={["#792ed9", "#aa74f0"]}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={styles.gradientButtonPrimary}
         >
@@ -66,10 +81,11 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({
             <View style={styles.buttonIconContainer}>
               <Ionicons name="add-circle" size={24} color="#ffffff" />
             </View>
-            <Text style={styles.buttonTextPrimary}>Actividad</Text>
+            <Text style={styles.buttonTextPrimary}>{buttonTexts.activity}</Text>
           </TouchableOpacity>
         </LinearGradient>
-          <LinearGradient
+
+        <LinearGradient
           colors={["#f59e0b", "#d97706"]}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={styles.gradientButtonSecondary}
@@ -82,7 +98,7 @@ const QuickActionsMenuCard: React.FC<QuickActionsMenuCardProps> = ({
             <View style={styles.buttonIconContainer}>
               <Ionicons name="warning" size={20} color="#ffffff" />
             </View>
-            <Text style={styles.buttonTextSecondary}>Incidente</Text>
+            <Text style={styles.buttonTextSecondary}>{INCIDENT_BUTTON_TEXT}</Text>
           </TouchableOpacity>
         </LinearGradient>
       </View>
@@ -162,8 +178,7 @@ const styles = StyleSheet.create({  quickActionsCard: {
     fontWeight: '600',
     color: '#ffffff',
     textAlign: 'center',
-    marginTop: 2,
-  },
+    marginTop: 2,  },
 });
 
-export default QuickActionsMenuCard;
+export default memo(QuickActionsMenuCard);

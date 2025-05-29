@@ -79,7 +79,7 @@ export default function NewIncidentScreen({ onSubmit, currentActivity = null }: 
     <View style={styles.screenContainer}>
       <Stack.Screen
         options={{
-          title: 'Reportar Incidente',
+          title: 'Inicio',
           headerStyle: { backgroundColor: '#ffffff' },
           headerTintColor: '#ef4444',
           headerShadowVisible: false,

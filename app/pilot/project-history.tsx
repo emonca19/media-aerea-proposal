@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { FlatList, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { FlatList, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const mockProjectHistory = [
     { id: 'proj1', name: 'Inspección Puente Colgante', client: 'Infraestructura Vial S.A.', completionDate: '10/04/2023', status: 'Completado' },
@@ -11,6 +12,8 @@ const mockProjectHistory = [
   ];
 
 const ProjectHistoryScreen = () => {
+  const router = useRouter();
+  
   const renderProjectHistoryItem = ({ item }: { item: any }) => (
     <View style={styles.projectHistoryItem}>
       <Ionicons name="briefcase-outline" size={28} color="#64748b" style={styles.projectHistoryIcon} />
@@ -30,6 +33,12 @@ const ProjectHistoryScreen = () => {
       <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
       <View style={styles.container}>
         <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => router.push('/pilot/profile')}
+          >
+            <Ionicons name="arrow-back" size={24} color="#1E40AF" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Historial de Proyectos</Text>
         </View>
         {mockProjectHistory.length === 0 ? (
@@ -58,13 +67,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8fafc',
-  },
-  header: {
+  },  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
     backgroundColor: 'white',
+  },
+  backButton: {
+    marginRight: 12,
+    padding: 8,
   },
   headerTitle: {
     fontSize: 24,

@@ -138,7 +138,6 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
               {formatTime(currentTime)}
             </Text>
             
-            {/* Selección de tipo de incidente */}
             <Text style={styles.subtitle}>Tipo de Incidente</Text>
             <View style={styles.typeSelection}>
               {typesToUse.map((incidentType) => (
@@ -149,11 +148,10 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
                     incidentTypeId === incidentType.id && styles.typeCardSelected
                   ]}
                   onPress={() => setIncidentTypeId(incidentType.id)}
-                >
-                  <Ionicons 
+                ><Ionicons 
                     name={incidentType.icon} 
                     size={24} 
-                    color={incidentTypeId === incidentType.id ? '#ffffff' : '#ef4444'} 
+                    color={incidentTypeId === incidentType.id ? '#ffffff' : '#f59e0b'} 
                   />
                   <Text style={[
                     styles.typeLabel,
@@ -171,7 +169,7 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
                 style={[styles.timeOptionButton, isUrgent && styles.urgentOptionButtonSelected]}
                 onPress={() => setIsUrgent(true)}
               >
-                <Ionicons name="warning" size={18} color={isUrgent ? '#fff' : '#ef4444'} />
+                <Ionicons name="warning" size={18} color={isUrgent ? '#fff' : '#f59e0b'} />
                 <Text style={[styles.timeOptionText, isUrgent && styles.timeOptionTextSelected]}>Urgente</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -180,13 +178,12 @@ const NewIncidentFormModal: React.FC<NewIncidentFormModalProps> = ({
               >
                 <Ionicons name="information-circle" size={18} color={!isUrgent ? '#fff' : '#3b82f6'} />
                 <Text style={[styles.timeOptionText, !isUrgent && styles.timeOptionTextSelected]}>Informativo</Text>
-              </TouchableOpacity>            </View>
+              </TouchableOpacity></View>
 
-            {/* Mostrar actividad actual */}
+            
             <View style={styles.currentActivityDisplay}>
-              <Text style={styles.subtitle}>Actividad en Curso</Text>
-              <View style={styles.currentActivityCard}>
-                <Ionicons name="hourglass-outline" size={24} color="#3b82f6" />
+              <Text style={styles.subtitle}>Actividad en Curso</Text><View style={styles.currentActivityCard}>
+                <Ionicons name="hourglass-outline" size={24} color="#aa74f0" />
                 <Text style={styles.currentActivityName}>{currentActivity.name}</Text>
               </View>
             </View>
@@ -279,26 +276,25 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: 15,
-  },
-  typeCard: {
+  },  typeCard: {
     width: '31%', // 3 elementos por fila con espacio entre ellos
-    backgroundColor: '#fef2f2',
+    backgroundColor: '#fef7ed',
     borderRadius: 10,
     padding: 12,
     marginBottom: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#fee2e2',
+    borderColor: '#fed7aa',
   },
   typeCardSelected: {
-    backgroundColor: '#ef4444',
-    borderColor: '#dc2626',
+    backgroundColor: '#f59e0b',
+    borderColor: '#d97706',
   },
   typeLabel: {
     fontSize: 12,
     fontWeight: '500',
     marginTop: 5,
-    color: '#ef4444',
+    color: '#f59e0b',
     textAlign: 'center',
   },
   typeLabelSelected: {
@@ -318,10 +314,9 @@ const styles = StyleSheet.create({
   timeOptionButtonSelected: {
     backgroundColor: '#3b82f6',
     borderColor: '#2563eb',
-  },
-  urgentOptionButtonSelected: {
-    backgroundColor: '#ef4444',
-    borderColor: '#dc2626',
+  },  urgentOptionButtonSelected: {
+    backgroundColor: '#f59e0b',
+    borderColor: '#d97706',
   },
   timeOptionText: {
     marginLeft: 5,
@@ -344,7 +339,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#334155',
   },  submitButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: '#f59e0b',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
@@ -362,21 +357,20 @@ const styles = StyleSheet.create({
   },
   currentActivityDisplay: {
     marginVertical: 15,
-  },
-  currentActivityCard: {
-    backgroundColor: '#eff6ff',
+  },  currentActivityCard: {
+    backgroundColor: '#f3e8ff',
     borderRadius: 10,
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#bfdbfe',
+    borderColor: '#d8b4fe',
   },
   currentActivityName: {
     fontSize: 16,
     fontWeight: '500',
     marginLeft: 10,
-    color: '#1e40af',
+    color: '#7c3aed',
   },
 });
 

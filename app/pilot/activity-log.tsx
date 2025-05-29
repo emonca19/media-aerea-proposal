@@ -32,14 +32,12 @@ const activityTypes = [
 ];
 
 export default function ActivityLogScreen() {
-  const { newActivity, message } = useLocalSearchParams(); // Eliminado initialTab
+  const { newActivity, message } = useLocalSearchParams();
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('all');
   
-  // Use the activity context instead of mock data
   const { activities, incidents } = useActivity();
 
-  // Filtra las actividades del día actual
-  const todayActivities = activities; // Usar actividades del contexto
+  const todayActivities = activities; 
   useEffect(() => {
     if (newActivity && message) {
       Alert.alert(
@@ -77,49 +75,34 @@ export default function ActivityLogScreen() {
       }
     });
   };
-
   const filteredActivities = getFilteredActivities();
   return (
     <View style={styles.container}>
-      {/* El ScrollView ahora siempre muestra las actividades, sin tabs */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}><View style={styles.activitiesSection}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.activitiesSection}>
           <View style={styles.enhancedStatsContainer}>
-            <View style={styles.statsHeader}>
-              <View style={styles.statsTitleContainer}>
-                <View style={styles.statsIconWrapper}>
-                  <MaterialCommunityIcons name="chart-line" size={24} color="#2563eb" />
-                </View>
-                <Text style={styles.statsTitle}>Registro del Día</Text>
-              </View>
-              <View style={styles.dateContainer}>
-                <MaterialCommunityIcons name="calendar-today" size={16} color="#64748b" style={{ marginRight: 6 }} />
-                <Text style={styles.statsDate}>
-                  {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                </Text>
-              </View>
-            </View>
             <View style={styles.statsGrid}>
               <View style={styles.statCard}>
-                <View style={[styles.statIconContainer, { backgroundColor: '#eff6ff' }]}>
-                  <MaterialCommunityIcons name="clock-outline" size={22} color="#3b82f6" />
+                <View style={[styles.statIconContainer, { backgroundColor: '#f4edff' }]}>
+                  <MaterialCommunityIcons name="clock-outline" size={22} color="#aa74f0" />
                 </View>
-                <Text style={styles.statValue}>4:00:45</Text>{/* TODO: Calcular dinámicamente */}
-                <Text style={styles.statLabel}>Tiempo Total</Text>
+                <Text style={[styles.statValue, { color: '#5b1ab5' }]}>3:35:12</Text>
+                <Text style={styles.statLabel}>Tiempo total</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statCard}>
-                <View style={[styles.statIconContainer, { backgroundColor: '#ecfdf5' }]}>
-                  <MaterialCommunityIcons name="chart-timeline-variant" size={22} color="#059669" />
+                <View style={[styles.statIconContainer, { backgroundColor: '#f4edff' }]}>
+                  <MaterialCommunityIcons name="chart-timeline-variant" size={22} color="#aa74f0" />
                 </View>
-                <Text style={[styles.statValue, { color: '#059669' }]}>3:35:12</Text>{/* TODO: Calcular dinámicamente */}
+                <Text style={[styles.statValue, { color: '#5b1ab5' }]}>3:10:21</Text>
                 <Text style={styles.statLabel}>Tiempo Productivo</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statCard}>
                 <View style={[styles.statIconContainer, { backgroundColor: '#fef2f2' }]}>
-                  <MaterialCommunityIcons name="alert-circle-outline" size={22} color="#ef4444" />
+                  <MaterialCommunityIcons name="alert-circle-outline" size={22} color="#e17728" />
                 </View>
-                <Text style={[styles.statValue, { color: '#ef4444' }]}>{incidents.length}</Text>
+                <Text style={[styles.statValue, { color: '#e17728' }]}>{incidents.length}</Text>
                 <Text style={styles.statLabel}>Incidencias</Text>
               </View>
             </View>
@@ -155,8 +138,10 @@ export default function ActivityLogScreen() {
                       <View style={styles.dottedLineContainer}>
                         <View style={styles.dottedLine} />
                         <View style={styles.startDayBlock}>
-                          <MaterialCommunityIcons name="weather-sunset" size={20} color="#2563eb" style={{ marginRight: 8 }} />
-                          <Text style={styles.startDayText}>Inicio de Jornada</Text>
+                          <MaterialCommunityIcons name="weather-sunset" size={20} color="#5b1ab5" style={{ marginRight: 8 }} />
+                         
+
+                          <Text style={[styles.startDayText,, { color: '#5b1ab5' }]}>Inicio de Jornada</Text>
                           <Text style={styles.startDayHour}>{formatTime(activity.startTime)}</Text>
                         </View>
                         <View style={styles.dottedLine} />
@@ -172,7 +157,7 @@ export default function ActivityLogScreen() {
                       <View style={styles.activityHeaderRow}>
                         <View style={styles.activityTitleSection}>
                           <View style={styles.activityIconWrapper}>
-                            <MaterialCommunityIcons name={(activityTypeData?.icon || 'clock') as any} size={24} color="#2563eb" />
+                            <MaterialCommunityIcons name={(activityTypeData?.icon || 'clock') as any} size={24} color="#aa74f0" />
                           </View>
                           <Text style={styles.activityTitle}>{activityTypeData?.label || activity.type}</Text>
                         </View>
@@ -204,7 +189,6 @@ export default function ActivityLogScreen() {
                             <MaterialCommunityIcons name="drone" size={16} color="#64748b" style={styles.activityDetailIcon} />
                             <Text style={styles.activityDetailText}>
                               Dron: {
-                                // Asignar el primer dron como ejemplo, o puedes mejorar la lógica según tus datos
                                 (mockDrones[0]?.model || 'No asignado')
                               }
                             </Text>
@@ -218,7 +202,7 @@ export default function ActivityLogScreen() {
                         <View key={incident.id} style={styles.incidentCardWrapper}>
                           <View style={styles.incidentHeader}>
                             <View style={styles.incidentTitleSection}>
-                              <MaterialCommunityIcons name={incidentTypeData?.icon as any} size={18} color="#ef4444" style={{ marginRight: 8 }} />
+                              <MaterialCommunityIcons name={incidentTypeData?.icon as any} size={18} color="#e17728" style={{ marginRight: 8 }} />
                               <Text style={styles.incidentTitle}>{incidentTypeData?.label || 'Incidente'}</Text>
                             </View>
                           </View>
@@ -248,59 +232,24 @@ export default function ActivityLogScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc', // Color de fondo general de la app
-  },  content: { // Estilo para el ScrollView de la pestaña 'activities'
-    paddingHorizontal: 8, // Reducido de 12 a 8 para más espacio en pantalla
-    paddingTop: 12, // Reducido de 16 a 12
-    paddingBottom: 16, // Espacio abajo dentro del scroll
+    backgroundColor: '#f8fafc', 
+  },  content: { 
+    paddingHorizontal: 8,
+    paddingTop: 12, 
+    paddingBottom: 16,
   },
-  // --- Estilos de la pestaña 'activities' ---
   activitiesSection: {
-    // No necesita marginBottom si el content del ScrollView ya tiene paddingBottom
   },  enhancedStatsContainer: {
     backgroundColor: '#ffffff',
-    borderRadius: 10, // Reducido de 12 a 10
-    padding: 12, // Reducido de 16 a 12
-    marginBottom: 12, // Reducido de 16 a 12
+    borderRadius: 10, 
+    padding: 12, 
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#e5e7eb',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
+    shadowOffset: { width: 0, height: 1 },    shadowOpacity: 0.03,
     shadowRadius: 4,
     elevation: 1,
-  },  statsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  statsTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },  statsIconWrapper: {
-    marginRight: 8,
-    padding: 2,
-  },
-  statsTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#1e293b',
-  },  dateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  statsDate: {
-    fontSize: 11,
-    color: '#64748b',
-    fontWeight: '600',
-    textTransform: 'uppercase',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -377,10 +326,9 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     backgroundColor: '#f9fafb',
     alignItems: 'center',
-  },
-  timeFilterButtonActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+  },  timeFilterButtonActive: {
+    backgroundColor: '#aa74f0',
+    borderColor: '#aa74f0',
   },
   timeFilterButtonText: {
     fontSize: 12,
@@ -392,7 +340,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activitiesTimeline: {
-    // No necesita marginTop si el timeFilterContainer ya tiene marginBottom
   },  startOfDayContainer: {
     width: '100%',
     alignItems: 'center',
@@ -426,10 +373,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 1,
     elevation: 1,
-  },
-  startDayText: {
+  },  startDayText: {
     fontWeight: '600',
-    color: '#2563eb',
+    color: '#aa74f0',
     fontSize: 14,
     marginRight: 6,
   },
@@ -512,8 +458,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#fecaca',
     borderLeftWidth: 3,
-    borderLeftColor: '#ef4444',
-  },  incidentHeader: {
+    borderLeftColor: '#e17728',
+  },incidentHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -524,7 +470,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },  incidentTitle: {
-    color: '#ef4444',
+    color: '#e17728',
     fontWeight: '600',
     fontSize: 13,
   },

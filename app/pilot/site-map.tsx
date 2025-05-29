@@ -1,31 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Animated, Dimensions, GestureResponderEvent, Modal, PanResponder, PanResponderGestureState, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-// --- Interfaces (sin cambios) ---
-interface Touch { pageX: number; pageY: number; }
+
 interface Turbine { id: string; name: string; position: { x: number; y: number }; status: 'operational' | 'maintenance' | 'offline'; power: number; efficiency: number; lastMaintenance: string; nextMaintenance: string; details: { model: string; capacity: number; height: number; bladeLength: number; }; }
 interface Drone { id: string; name: string; position: { x: number; y: number }; status: 'active' | 'inactive' | 'charging'; battery: number; currentMission: string | null; details: { model: string; maxFlightTime: number; camera: string; sensors: string[]; }; }
 interface Facility { id: string; name: string; position: { x: number; y: number }; type: 'control_center' | 'maintenance' | 'storage'; }
-interface Road { id: string; path: { x: number; y: number }[]; }
-interface WindIndicator { id: string; position: { x: number; y: number }; direction: number; speed: number; }
-interface DistancePoint { x: number; y: number; } // Coordenadas relativas al mapBase SIN escalar
 
-const BASE_MAP_WIDTH = 600;
-const BASE_MAP_HEIGHT = 500;
-const METERS_PER_BASE_PIXEL = 2.5; // 1 pixel en el mapa base = 2.5 metros
+interface DistancePoint { x: number; y: number; } 
 
-// --- Estilos (sin cambios, excepto tal vez mapScrollContentContainer) ---
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
+const BASE_MAP_WIDTH = 480;
+const BASE_MAP_HEIGHT = 480;
+const METERS_PER_BASE_PIXEL = 1; 
+
+const styles = StyleSheet.create({  container: { flex: 1, backgroundColor: '#f3f4f6' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f3f4f6' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: Platform.OS === 'android' ? 40 : 50, paddingBottom: 16, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
-  headerIconButton: { padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: '600', color: '#ffffff', textAlign: 'center', marginHorizontal: 4, flexShrink: 1 },
-  headerRight: { flexDirection: 'row', alignItems: 'center' },
-  siteInfoCard: { backgroundColor: '#ffffff', marginHorizontal: 16, marginTop: -24, marginBottom: 12, paddingHorizontal: 20, paddingVertical: 16, borderRadius: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 5 },
+  siteInfoCard: { backgroundColor: '#ffffff', marginHorizontal: 16, marginTop: 12, marginBottom: 12, paddingHorizontal: 20, paddingVertical: 16, borderRadius: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 5 },
   siteInfoContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   siteInfoTextContainer: { flex: 1, marginRight: 12 },
   siteName: { fontSize: 18, fontWeight: 'bold', color: '#1f2937' },
@@ -52,11 +43,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     minHeight: 44,
-  },
-  controlOptionActive: { 
-    backgroundColor: '#3b82f6', 
-    borderColor: '#2563eb',
-    shadowColor: '#3b82f6',
+  },  controlOptionActive: { 
+    backgroundColor: '#aa74f0', 
+    borderColor: '#8b5cf6',
+    shadowColor: '#aa74f0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
@@ -77,31 +67,24 @@ const styles = StyleSheet.create({
     borderRadius: 1,
   },
   filterDot: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
-  mapContainer: { flex: 1, marginHorizontal: 12, marginBottom: 8, borderRadius: 24, backgroundColor: '#e0e7ff', overflow: 'hidden', position: 'relative', borderWidth: 2, borderColor: '#c7d2fe', shadowColor: '#6366f1', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12, elevation: 8 },
-  mapScrollView: { flex: 1, overflow: 'hidden' }, // overflow: hidden es importante aquí
-  mapScrollContentContainer: { // Debe permitir que el contenido escalado se desborde
-    width: BASE_MAP_WIDTH, // El ScrollView contendrá el mapBase de tamaño fijo
-    height: BASE_MAP_HEIGHT,
-    alignItems: 'center', // Centra el mapBase si es más pequeño que el viewport
-    justifyContent: 'center',
-  },
-  mapBase: { // Este View es el que se escala y contiene todos los elementos del mapa
+  mapContainer: { flex: 1, marginHorizontal: 12, marginBottom: 8, borderRadius: 24, backgroundColor: '#f3e8ff', overflow: 'hidden', position: 'relative', borderWidth: 2, borderColor: '#d8b4fe', shadowColor: '#aa74f0', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12, elevation: 8 },
+  
+  mapBase: { 
     width: BASE_MAP_WIDTH,
     height: BASE_MAP_HEIGHT,
     position: 'relative',
-    backgroundColor: '#e0e7ff', // Fallback
-    // transformOrigin: '0 0', // Para web, en RN es el centro por defecto
+    backgroundColor: '#f3e8ff',
   },
   mapBackground: { ...StyleSheet.absoluteFillObject, zIndex: 1 },
-  satelliteBackground: { backgroundColor: '#bfdbfe' },
-  hybridBackground: { backgroundColor: '#dbeafe' },
+  satelliteBackground: { backgroundColor: '#e9d5ff' },
+  hybridBackground: { backgroundColor: '#f3e8ff' },
   terrainLine: { position: 'absolute', left: '-50%', top: '-50%', right: '-50%', bottom: '-50%', width: '200%', height: '200%', borderWidth: 0.5, borderColor: 'rgba(165, 180, 252, 0.15)', opacity: 0.4 },
-  parkBoundary: { position: 'absolute', width: BASE_MAP_WIDTH * 0.9, height: BASE_MAP_HEIGHT * 0.8, left: BASE_MAP_WIDTH * 0.05, top: BASE_MAP_HEIGHT * 0.1, borderWidth:  2.5, borderColor: '#a5b4fc', borderStyle: 'dashed', borderRadius: 30, zIndex: 2, opacity: 0.7 },
-  parkBoundaryLabel: { position: 'absolute', right: '5%', top: '5%', backgroundColor: 'rgba(255, 255, 255, 0.9)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, fontSize: 10, color: '#4338ca', fontWeight: '600', borderWidth: 1, borderColor: '#c7d2fe' },
+  parkBoundary: { position: 'absolute', width: BASE_MAP_WIDTH * 0.9, height: BASE_MAP_HEIGHT * 0.8, left: BASE_MAP_WIDTH * 0.05, top: BASE_MAP_HEIGHT * 0.1, borderWidth:  2.5, borderColor: '#c4b5fd', borderStyle: 'dashed', borderRadius: 30, zIndex: 2, opacity: 0.7 },
+  parkBoundaryLabel: { position: 'absolute', right: '5%', top: '5%', backgroundColor: 'rgba(255, 255, 255, 0.9)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, fontSize: 10, color: '#7c3aed', fontWeight: '600', borderWidth: 1, borderColor: '#d8b4fe' },
   gridOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 3 },
   gridLine: { position: 'absolute', backgroundColor: 'rgba(165, 180, 252, 0.3)', opacity: 0.6 },
   mapSectionLabel: { position: 'absolute', backgroundColor: 'rgba(67, 56, 202, 0.15)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, zIndex: 4, borderWidth: 1, borderColor: 'rgba(99, 102, 241, 0.3)' },
-  mapSectionText: { color: '#3730a3', fontSize: 11, fontWeight: '600' },
+  mapSectionText: { color: '#7c3aed', fontSize: 11, fontWeight: '600' },
   roadContainer: { position: 'absolute', width: '100%', height: '100%', zIndex: 5 },
   roadSegment: { position: 'absolute', backgroundColor: '#94a3b8', borderRadius: 2.5, transformOrigin: '0 0' },
   roadLabel: { position: 'absolute', backgroundColor: 'rgba(255, 255, 255, 0.9)', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 8, marginLeft: -25, marginTop: -12, zIndex: 6, borderWidth: 1, borderColor: '#e5e7eb' },
@@ -111,18 +94,18 @@ const styles = StyleSheet.create({
   markerDot: { position: 'absolute', width: 28, height: 28, borderRadius: 14, zIndex: -1 },
   turbineIdLabel: { position: 'absolute', fontSize: 10, fontWeight: 'bold', top: -14, backgroundColor: 'rgba(255, 255, 255, 0.9)', paddingHorizontal: 5, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb' },
   turbineGroupContainer: { position: 'absolute', width: '100%', height: '100%', zIndex: 9 },
-  windIndicator: { position: 'absolute', width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255, 255, 255, 0.9)', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#93c5fd', zIndex: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  windIndicator: { position: 'absolute', width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255, 255, 255, 0.9)', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#c4b5fd', zIndex: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   windArrow: {},
-  windSpeedBadge: { position: 'absolute', bottom: -16, backgroundColor: '#3b82f6', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#ffffff' },
+  windSpeedBadge: { position: 'absolute', bottom: -16, backgroundColor: '#aa74f0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#ffffff' },
   windSpeedText: { fontSize: 10, color: '#ffffff', fontWeight: '600' },
-  distanceLine: { position: 'absolute', backgroundColor: '#2563eb', zIndex: 15, transformOrigin: '0 0' },
-  distancePoint: { position: 'absolute', width: 10, height: 10, borderRadius: 5, backgroundColor: '#ef4444', borderWidth: 1.5, borderColor: '#ffffff', zIndex: 16 },
+  distanceLine: { position: 'absolute', backgroundColor: '#aa74f0', zIndex: 15, transformOrigin: '0 0' },
+  distancePoint: { position: 'absolute', width: 10, height: 10, borderRadius: 5, backgroundColor: '#e17728', borderWidth: 1.5, borderColor: '#ffffff', zIndex: 16 },
   distanceLabel: { position: 'absolute', backgroundColor: '#ffffff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#93c5fd', zIndex: 17, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2, transform: [{translateX: -20}, {translateY: -15}] },
-  distanceLabelText: { fontSize: 11, color: '#1d4ed8', fontWeight: '600' },
+  distanceLabelText: { fontSize: 11, color: '#aa74f0', fontWeight: '600' },
   floatingLabel: { position: 'absolute', alignItems: 'center', zIndex: 100 },
   floatingLabelText: { backgroundColor: '#1f2937', color: '#ffffff', fontSize: 12, fontWeight: '600', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 3, elevation: 3 },
   userLocationMarker: { position: 'absolute', width: 28, height: 28, alignItems: 'center', justifyContent: 'center', zIndex: 20 },
-  userLocationDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#3b82f6', borderWidth: 1.5, borderColor: '#ffffff' },
+  userLocationDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#aa74f0', borderWidth: 1.5, borderColor: '#ffffff' },
   userLocationRing: { position: 'absolute', width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: 'rgba(59, 130, 246, 0.5)', backgroundColor: 'rgba(59, 130, 246, 0.15)' },
   measuringInstructions: { position: 'absolute', bottom: 20, left: '50%', transform: [{ translateX: -(BASE_MAP_WIDTH * 0.5 * 0.5) }], width: BASE_MAP_WIDTH * 0.5, backgroundColor: 'rgba(31, 41, 55, 0.9)', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, zIndex: 15 },
   measuringInstructionsText: { fontSize: 12, color: '#ffffff', textAlign: 'center', fontWeight: '500' },
@@ -138,7 +121,7 @@ const styles = StyleSheet.create({
   itemDetailLabel: { fontSize: 14, color: '#6b7280', fontWeight: '500' },
   itemDetailValue: { fontSize: 14, color: '#1f2937', fontWeight: '600', maxWidth: '60%', textAlign: 'right' },
   itemDetailPlaceholder: { fontSize: 14, color: '#9ca3af', textAlign: 'center', paddingVertical: 10 },
-  itemDetailButton: { backgroundColor: '#3b82f6', paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 3 },
+  itemDetailButton: { backgroundColor: '#aa74f0', paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 3 },
   itemDetailButtonText: { fontSize: 16, color: '#ffffff', fontWeight: '600', marginRight: 8 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)', alignItems: 'center', justifyContent: 'center', padding: 20 },
   legendModal: { width: '100%', maxWidth: 380, backgroundColor: '#ffffff', borderRadius: 20, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 10 },
@@ -151,23 +134,23 @@ const styles = StyleSheet.create({
   legendItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   legendDot: { width: 14, height: 14, borderRadius: 7, marginRight: 10 },
   legendItemText: { fontSize: 14, color: '#4b5563', flex: 1, marginLeft: 0 },
-  legendItemCount: { fontSize: 13, fontWeight: '600', color: '#1e3a8a', backgroundColor: '#e0e7ff', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, minWidth: 30, textAlign: 'center' },
+  legendItemCount: { fontSize: 13, fontWeight: '600', color: '#7c3aed', backgroundColor: '#ede9fe', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, minWidth: 30, textAlign: 'center' },
   legendWindIndicator: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#eff6ff', marginRight: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#bfdbfe' },
   legendDotSmall: { width: 10, height: 10, borderRadius: 5, marginRight: 10, borderWidth: 1, borderColor: '#ffffff' },
   legendDistanceLine: { width: 20, height: 3, marginRight: 10, borderRadius: 1.5 },
   zoomControls: { position: 'absolute', bottom: 24, right: 20, zIndex: 40, flexDirection: 'column', gap: 12 },
-  zoomButton: { backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: 24, width: 48, height: 48, alignItems: 'center', justifyContent: 'center', shadowColor: '#2563eb', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 5, elevation: 7, borderWidth: 1, borderColor: '#dbeafe' },
-  scaleIndicator: { position: 'absolute', bottom: 28, left: 20, backgroundColor: 'rgba(255, 255, 255, 0.95)', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, zIndex: 40, borderWidth: 1, borderColor: '#dbeafe', shadowColor: '#2563eb', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 5, minWidth: 120 },
+  zoomButton: { backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: 24, width: 48, height: 48, alignItems: 'center', justifyContent: 'center', shadowColor: '#aa74f0', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 5, elevation: 7, borderWidth: 1, borderColor: '#dbeafe' },
+  scaleIndicator: { position: 'absolute', bottom: 28, left: 20, backgroundColor: 'rgba(255, 255, 255, 0.95)', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, zIndex: 40, borderWidth: 1, borderColor: '#dbeafe', shadowColor: '#aa74f0', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 5, minWidth: 120 },
   scaleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
-  scaleText: { color: '#2563eb', fontSize: 14, fontWeight: '600' },
+  scaleText: { color: '#aa74f0', fontSize: 14, fontWeight: '600' },
   parkNameText: { color: '#4b5563', fontSize: 12, marginLeft: 8, fontWeight: '500', maxWidth: 100, flexShrink: 1 },
   miniMapOutline: { height: 4, backgroundColor: '#dbeafe', borderRadius: 2, width: '100%', position: 'relative' },
-  zoomInstructions: { position: 'absolute', bottom: Platform.OS === 'ios' ? 95 : 80, alignSelf: 'center', backgroundColor: 'rgba(37, 99, 235, 0.9)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, zIndex: 30, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 3 },
+  zoomInstructions: { position: 'absolute', bottom: Platform.OS === 'ios' ? 95 : 80, alignSelf: 'center', backgroundColor: 'rgba(170, 116, 240, 0.9)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, zIndex: 30, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 3 },
   zoomInstructionsText: { color: '#ffffff', fontSize: 13, fontWeight: '500' },
 });
 
 
-const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
+const SiteMap: React.FC = () => {  
   const { turbineId, flowType } = useLocalSearchParams<{
     turbineId?: string;
     flowType?: string;
@@ -182,8 +165,8 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
   const [showLegendModal, setShowLegendModal] = useState(false);
   const [currentParkId, setCurrentParkId] = useState<'park1' | 'park2'>('park1');
 
-  const animatedScale = useRef(new Animated.Value(1)).current; // Para animar la escala
-  const animatedPan = useRef(new Animated.ValueXY({x:0, y:0})).current; // Para animar el paneo
+  const animatedScale = useRef(new Animated.Value(1)).current; 
+  const animatedPan = useRef(new Animated.ValueXY({x:0, y:0})).current; 
 
   const floatingLabelAnim = useRef(new Animated.Value(0)).current;
   const screenDimensions = Dimensions.get('window');
@@ -200,11 +183,11 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
 
   const [showWind, setShowWind] = useState(false);
   const [measuringDistance, setMeasuringDistance] = useState(false);
-  const [distancePoints, setDistancePoints] = useState<DistancePoint[]>([]); // Coordenadas en el mapa base
+  const [distancePoints, setDistancePoints] = useState<DistancePoint[]>([]); 
   const [distance, setDistance] = useState<number | null>(null);
 
-  const scale = useRef(1).current; // No animado, para cálculos
-  const pan = useRef({x:0, y:0}).current; // No animado, para cálculos
+  const scale = useRef(1).current;
+  const pan = useRef({x:0, y:0}).current; 
   const pinchStartScale = useRef(1);
   const pinchStartPan = useRef({x:0, y:0});
   const pinchStartDistance = useRef(0);
@@ -320,7 +303,6 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
   }), []);
   const currentParkData = parkDataDefinition[currentParkId];
 
-  // Auto-select turbine if turbineId is provided in URL
   React.useEffect(() => {
     if (turbineId && currentParkData) {
       const targetTurbine = currentParkData.turbines.find(t => t.id === turbineId);
@@ -335,7 +317,7 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
   }
 
   const {
-    name: siteName, // Renombrar para evitar conflicto con la variable siteData del componente
+    name: siteName, 
     location: siteLocation,
     coordinates: siteCoordinates,
     totalTurbines: siteTotalTurbines,
@@ -349,7 +331,6 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
     windIndicators
   } = currentParkData;
 
-  // Crear el objeto siteData que usa el resto del componente
   const siteData = {
     name: siteName,
     location: siteLocation,
@@ -362,22 +343,22 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
 
   const animateScaleAndPan = useCallback((targetScale: number, panTo?: {x: number, y: number}) => {
     const clampedScale = Math.min(Math.max(targetScale, minScale), maxScale);
-    // @ts-ignore
-    scale.current = clampedScale; // Actualizar la ref de escala no animada
+
+    scale.current = clampedScale;
 
     Animated.parallel([
         Animated.spring(animatedScale, {
             toValue: clampedScale,
-            useNativeDriver: true, // Scale puede usar native driver
+            useNativeDriver: true,
             friction: 10,
             tension: 60,
         }),
         panTo ? Animated.spring(animatedPan, {
             toValue: panTo,
-            useNativeDriver: true, // Pan también puede usar native driver
+            useNativeDriver: true, 
             friction: 10,
             tension: 60,
-        }) : Animated.timing(animatedPan, { // Si no hay panTo, solo asegura que no haya cambios
+        }) : Animated.timing(animatedPan, {
             toValue: {x: pan.x, y: pan.y},
             duration: 0,
             useNativeDriver: true,
@@ -390,37 +371,28 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
     const currentAnimatedScale = animatedScale.__getValue();
     const targetScale = Math.min(currentAnimatedScale * 1.25, maxScale);
     
-    // Coordenadas del punto de la pantalla donde se hizo el zoom (o centro de pantalla)
     const sX = screenTargetX ?? screenDimensions.width / 2;
-    const sY = screenTargetY ?? (screenDimensions.height - styles.header.paddingTop - styles.header.paddingBottom - (styles.siteInfoCard.height ?? 100) - (styles.controlsContainer.height ?? 50) ) / 2 + styles.header.paddingTop + (styles.siteInfoCard.height ?? 100) + (styles.controlsContainer.height ?? 50); // Ajustar para el header, etc.
+    const sY = screenTargetY ?? (screenDimensions.height - styles.header.paddingTop - styles.header.paddingBottom - (styles.siteInfoCard.height ?? 100) - (styles.controlsContainer.height ?? 50) ) / 2 + styles.header.paddingTop + (styles.siteInfoCard.height ?? 100) + (styles.controlsContainer.height ?? 50); 
 
 
-    // Punto en el contenido del mapa (coordenadas no escaladas) que está bajo (sX, sY)
-    // (sX - currentPan.x) / currentScale = mapPointX
-    // mapPointX = (sX - currentPan.x) / currentScale
     const currentPanX = animatedPan.x.__getValue();
     const currentPanY = animatedPan.y.__getValue();
 
     const mapPointX = (sX - currentPanX) / currentAnimatedScale;
     const mapPointY = (sY - currentPanY) / currentAnimatedScale;
 
-    // El nuevo desplazamiento para que mapPointX esté bajo sX con la nueva escala
-    // sX = mapPointX * newScale + newPanX  => newPanX = sX - mapPointX * newScale
     const newPanX = sX - mapPointX * targetScale;
     const newPanY = sY - mapPointY * targetScale;
     
-    // Limitar el paneo para que el mapa no se salga completamente de la vista
     const maxPanX = 0;
     const minPanX = screenDimensions.width - BASE_MAP_WIDTH * targetScale;
-    const maxPanY = 0; // Similar para Y, ajustado por altura del header, etc.
-    const minPanY = screenDimensions.height - BASE_MAP_HEIGHT * targetScale - (Platform.OS === 'android' ? 150 : 200) ; // Estimación de espacio no útil
+    const maxPanY = 0; 
+    const minPanY = screenDimensions.height - BASE_MAP_HEIGHT * targetScale - (Platform.OS === 'android' ? 150 : 200) ; 
 
     const clampedPanX = Math.min(maxPanX, Math.max(minPanX, newPanX));
     const clampedPanY = Math.min(maxPanY, Math.max(minPanY, newPanY));
 
-    // @ts-ignore
-    pan.x = clampedPanX; // Actualizar ref no animada
-    // @ts-ignore
+    pan.x = clampedPanX; 
     pan.y = clampedPanY;
 
     animateScaleAndPan(targetScale, { x: clampedPanX, y: clampedPanY });
@@ -450,9 +422,7 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
     const clampedPanX = Math.min(maxPanX, Math.max(minPanX, newPanX));
     const clampedPanY = Math.min(maxPanY, Math.max(minPanY, newPanY));
     
-    // @ts-ignore
     pan.x = clampedPanX;
-    // @ts-ignore
     pan.y = clampedPanY;
 
     animateScaleAndPan(targetScale, { x: clampedPanX, y: clampedPanY });
@@ -461,7 +431,7 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
 
   const { panHandlers } = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: (_, gestureState: PanResponderGestureState) => true, // Capturar todos los toques
+      onStartShouldSetPanResponder: (_, gestureState: PanResponderGestureState) => true,
       onMoveShouldSetPanResponder: (_, gestureState: PanResponderGestureState) => true,
 
       onPanResponderGrant: (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
@@ -479,11 +449,10 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
           let newScale = (currentPinchDistance / pinchStartDistance.current) * pinchStartScale.current;
           newScale = Math.min(Math.max(newScale, minScale), maxScale);
           
-          // @ts-ignore
-          scale.current = newScale; // Update non-animated ref for calculations
-          animatedScale.setValue(newScale); // Direct update for responsiveness
+         
+          scale.current = newScale; 
+          animatedScale.setValue(newScale);
 
-          // Zoom hacia el centro del gesto de pellizco (simplificado)
           const touch1 = evt.nativeEvent.touches[0];
           const touch2 = evt.nativeEvent.touches[1];
           const sX = (touch1.pageX + touch2.pageX) / 2;
@@ -504,18 +473,15 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
           const clampedPanX = Math.min(maxPanX, Math.max(minPanX, newPanX));
           const clampedPanY = Math.min(maxPanY, Math.max(minPanY, newPanY));
           
-          // @ts-ignore
           pan.x = clampedPanX;
-          // @ts-ignore
           pan.y = clampedPanY;
           animatedPan.setValue({ x: clampedPanX, y: clampedPanY });
 
 
-        } else if (gestureState.numberActiveTouches === 1) { // Pan
+        } else if (gestureState.numberActiveTouches === 1) { 
           let newPanX = pinchStartPan.current.x + gestureState.dx;
           let newPanY = pinchStartPan.current.y + gestureState.dy;
           
-          // Limitar el paneo
           const currentAnimatedScale = animatedScale.__getValue();
           const maxPanX = 0;
           const minPanX = screenDimensions.width - BASE_MAP_WIDTH * currentAnimatedScale;
@@ -526,9 +492,7 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
           newPanX = Math.min(maxPanX, Math.max(minPanX, newPanX));
           newPanY = Math.min(maxPanY, Math.max(minPanY, newPanY));
           
-          // @ts-ignore
           pan.x = newPanX;
-          // @ts-ignore
           pan.y = newPanY;
           animatedPan.setValue({ x: newPanX, y: newPanY });
         }
@@ -545,18 +509,14 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
 
   const togglePark = useCallback(() => {
     setCurrentParkId(prev => prev === 'park1' ? 'park2' : 'park1');
-    // Reset zoom and pan
-    // @ts-ignore
     scale.current = 1;
     animatedScale.setValue(1);
-    // @ts-ignore
     pan.x = 0; pan.y = 0;
     animatedPan.setValue({x:0, y:0});
 
     setSelectedItem(null);
     setDistancePoints([]);
     setDistance(null);
-    // scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false }); // No es necesario si se usa transform
   }, [animatedScale, animatedPan, pan]);
 
 
@@ -568,12 +528,10 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
 
   const centerOnUserLocation = useCallback(() => {
     setUserLocation({ x: BASE_MAP_WIDTH / 2, y: BASE_MAP_HEIGHT / 2 });
-    // Animar el paneo para centrar el mapa
     const targetScale = animatedScale.__getValue();
     const targetPanX = screenDimensions.width / 2 - (BASE_MAP_WIDTH / 2) * targetScale;
-    const targetPanY = (screenDimensions.height / 2 - (BASE_MAP_HEIGHT / 2) * targetScale) - 50 ; // Ajuste por UI superior
+    const targetPanY = (screenDimensions.height / 2 - (BASE_MAP_HEIGHT / 2) * targetScale) - 50 ; 
     
-    // @ts-ignore
     pan.x = targetPanX; pan.y = targetPanY;
     animateScaleAndPan(targetScale, { x: targetPanX, y: targetPanY });
 
@@ -582,11 +540,7 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
 
   const handleMapClick = useCallback((event: GestureResponderEvent) => {
     if (!measuringDistance) return;
-    const { locationX, locationY } = event.nativeEvent; // Coordenadas relativas al TouchableOpacity que envuelve el Animated.View
-
-    // Convertir coordenadas del clic (en el espacio visual del Animated.View)
-    // a coordenadas en el mapa base (no escalado, no paneado)
-    // mapBaseX = (visualClickX - currentPan.x) / currentScale
+    const { locationX, locationY } = event.nativeEvent; 
     const currentAnimatedScale = animatedScale.__getValue();
     const currentPanX = animatedPan.x.__getValue();
     const currentPanY = animatedPan.y.__getValue();
@@ -600,7 +554,7 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
         setDistancePoints(newPoints);
 
         if (newPoints.length === 2) {
-            const start = newPoints[0]; // Ya en coordenadas del mapa base
+            const start = newPoints[0]; 
             const end = newPoints[1];
             const basePixelDistance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
             const distanceInMeters = basePixelDistance * METERS_PER_BASE_PIXEL;
@@ -629,12 +583,11 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
     const currentAnimatedScale = animatedScale.__getValue();
     return Math.min(1.2, Math.max(0.7, 1 / Math.pow(currentAnimatedScale, 0.4)));
   }, [animatedScale]);
-
   const statusColors = useMemo(() => ({
     operational: '#10b981',
     maintenance: '#f59e0b',
-    offline: '#ef4444',
-    active: '#3b82f6',
+    offline: '#e17728',
+    active: '#aa74f0',
     inactive: '#6b7280',
     charging: '#8b5cf6',
     control_center: '#6366f1',
@@ -691,32 +644,8 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
     }).start(() => setFloatingLabel(''));
   }, [floatingLabelAnim]);
 
-
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#2c5282', '#3b82f6']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.header}
-      >
-        <TouchableOpacity style={styles.headerIconButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back-outline" size={26} color="#ffffff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">{siteData.name}</Text>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerIconButton} onPress={togglePark} accessibilityLabel="Cambiar Parque">
-             <Ionicons name="swap-horizontal-outline" size={24} color="#ffffff" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIconButton} onPress={centerOnUserLocation} accessibilityLabel="Centrar Ubicación">
-             <Ionicons name="locate-outline" size={24} color="#ffffff" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIconButton} onPress={() => setShowLegendModal(true)} accessibilityLabel="Mostrar Leyenda">
-            <Ionicons name="map-outline" size={24} color="#ffffff" />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-
       <View style={styles.siteInfoCard}>
         <View style={styles.siteInfoContent}>
           <View style={styles.siteInfoTextContainer}>
@@ -801,12 +730,11 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
               <TouchableOpacity activeOpacity={1} onPress={handleMapClick} style={StyleSheet.absoluteFill}
                   onLongPress={(e) => {
                       if (!measuringDistance) {
-                        const { pageX, pageY } = e.nativeEvent; // Usar pageX/Y para coordenadas de pantalla absolutas
+                        const { pageX, pageY } = e.nativeEvent; 
                         zoomIn(pageX, pageY);
                       }
                   }}
               >
-                  {/* Background and static elements */}
                   <View style={[
                       styles.mapBackground,
                       mapView === 'satellite' && styles.satelliteBackground,
@@ -841,7 +769,6 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
                       <Text style={[styles.mapSectionText, { transform: [{ scale: getVisualElementScale() }] }]}>Área Sur</Text>
                   </View>
 
-                  {/* Dynamic elements (roads, facilities, turbines, drones) */}
                   {roads.map(road => (
                       <View key={road.id} style={styles.roadContainer}>
                       {road.path.map((point, index) => {
@@ -894,7 +821,7 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
                       </TouchableOpacity>
                       ))}
                   </View>
-                  {(drones as Drone[]).map((drone) => ( // Type assertion for safety
+                  {(drones as Drone[]).map((drone) => ( 
                       <TouchableOpacity
                       key={drone.id}
                       style={[ styles.mapMarker, { left: drone.position.x, top: drone.position.y }]}
@@ -903,13 +830,12 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
                       onPressOut={hideFloatingLabel}
                       >
                       <View style={[ styles.markerDot, { backgroundColor: getStatusColor(drone.status), opacity: 0.25 }]}/>
-                      <Ionicons name={getMarkerIcon(drone.status)} size={22 * getVisualElementScale()} color={getStatusColor(drone.status)} />
-                      </TouchableOpacity>
+                      <Ionicons name={getMarkerIcon(drone.status)} size={22 * getVisualElementScale()} color={getStatusColor(drone.status)} /></TouchableOpacity>
                   ))}
                   {showWind && windIndicators.map((indicator) => (
                       <View key={indicator.id} style={[ styles.windIndicator, { left: indicator.position.x, top: indicator.position.y }]}>
                       <View style={[ styles.windArrow, { transform: [{ rotate: `${indicator.direction}deg` }] }]}>
-                          <Ionicons name="arrow-up-outline" size={18 * getVisualElementScale()} color="#3b82f6" />
+                          <Ionicons name="arrow-up-outline" size={18 * getVisualElementScale()} color="#aa74f0" />
                       </View>
                       <View style={[styles.windSpeedBadge, { transform: [{ scale: getVisualElementScale() }] }]}>
                           <Text style={styles.windSpeedText}>{indicator.speed}</Text>
@@ -917,7 +843,6 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
                       </View>
                   ))}
                   
-                  {/* Distance measurement points are in base coordinates, transform their visual position */}
                   {distancePoints.map((point, index) => (
                       <View key={`point-${index}`} style={[ styles.distancePoint, { left: point.x, top: point.y, transform: [{ scale: getVisualElementScale() / animatedScale.__getValue() }] } ]} />
                   ))}
@@ -964,8 +889,6 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
               </TouchableOpacity>
           </Animated.View>
       </View>
-
-      {/* UI Controls outside the scroll/zoom area */}
       <View style={styles.scaleIndicator}>
         <View style={styles.scaleRow}>
           <Animated.Text style={[styles.scaleText, {transform: [{scale: animatedScale.interpolate({inputRange: [minScale, maxScale], outputRange: [0.8, 1.2]})}]}]}>
@@ -974,23 +897,19 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
           <Text style={styles.parkNameText} numberOfLines={1}>{siteData.name}</Text>
         </View>
         <View style={styles.miniMapOutline} />
-      </View>
-
-      <View style={styles.zoomControls}>
+      </View><View style={styles.zoomControls}>
         <TouchableOpacity style={styles.zoomButton} onPress={() => zoomIn()} activeOpacity={0.8}>
-          <Ionicons name="add" size={28} color="#2563eb" />
+          <Ionicons name="add" size={28} color="#aa74f0" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.zoomButton} onPress={() => zoomOut()} activeOpacity={0.8}>
-          <Ionicons name="remove" size={28} color="#2563eb" />
+          <Ionicons name="remove" size={28} color="#aa74f0" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.zoomButton} onPress={() => {
-          animateScaleAndPan(1, {x:0, y:0}); // Reset zoom and pan
-        }} activeOpacity={0.8}>
-          <Ionicons name="expand" size={24} color="#2563eb" />
+        <TouchableOpacity style={styles.zoomButton} onPress={() => setShowLegendModal(true)} activeOpacity={0.8}>
+          <Ionicons name="list-outline" size={24} color="#aa74f0" />
         </TouchableOpacity>
       </View>
 
-      <Animated.View style={[ styles.zoomInstructions ]}>
+      <Animated.View style={styles.zoomInstructions}>
         <Text style={styles.zoomInstructionsText}>
           Pellizca para zoom • Presiona largo para acercar
         </Text>
@@ -998,7 +917,6 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
 
       {selectedItem && (
         <View style={styles.itemDetailCard}>
-          {/* ... (contenido del panel de detalles sin cambios) ... */}
           <View style={styles.itemDetailHeader}>
             <View style={styles.itemDetailHeaderLeft}>
               <Ionicons
@@ -1056,10 +974,8 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
             style={styles.itemDetailButton}
             onPress={() => {
               if ('power' in selectedItem && flowType === 'inspection') {
-                // Navigate to preflight checklist for turbine inspection
                 router.push(`/pilot/preflight-checklist?turbineId=${selectedItem.id}&turbineName=${encodeURIComponent(selectedItem.name)}&flowType=inspection`);
               } else {
-                // Default action - show details
                 console.log('Ver detalles completos de:', selectedItem.name);
               }
             }}
@@ -1129,10 +1045,9 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
                   <Text style={styles.legendItemText}>Almacén</Text>
                   <Text style={styles.legendItemCount}>{facilities.filter(f=>f.type === 'storage').length}</Text>
                 </View>
-                <Text style={styles.legendSectionTitle}>Indicadores</Text>
-                <View style={styles.legendItem}>
+                <Text style={styles.legendSectionTitle}>Indicadores</Text><View style={styles.legendItem}>
                   <View style={styles.legendWindIndicator}>
-                    <Ionicons name="arrow-up-outline" size={14} color="#3b82f6" />
+                    <Ionicons name="arrow-up-outline" size={14} color="#aa74f0" />
                   </View>
                   <Text style={styles.legendItemText}>Viento (Dirección)</Text>
                   <Text style={styles.legendItemCount}>km/h</Text>
@@ -1140,11 +1055,11 @@ const SiteMap: React.FC = () => {  // Get URL parameters for inspection flow
 
                 <Text style={[styles.legendSectionTitle, { marginTop: 16 }]}>Medición</Text>
                 <View style={styles.legendItem}>
-                  <View style={[styles.legendDotSmall, {backgroundColor: '#3b82f6'}]} />
+                  <View style={[styles.legendDotSmall, {backgroundColor: '#aa74f0'}]} />
                   <Text style={styles.legendItemText}>Punto de medición</Text>
                 </View>
                 <View style={styles.legendItem}>
-                  <View style={[styles.legendDistanceLine, {backgroundColor: '#3b82f6'}]} />
+                  <View style={[styles.legendDistanceLine, {backgroundColor: '#aa74f0'}]} />
                   <Text style={styles.legendItemText}>Línea de distancia</Text>
                   <Text style={styles.legendItemCount}>metros</Text>
                 </View>
