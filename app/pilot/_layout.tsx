@@ -1,33 +1,34 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import React from "react";
 import {
-    AccessibilityRole,
-    AccessibilityState,
-    Animated,
-    GestureResponderEvent,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    StyleProp,
-    View,
-    ViewStyle
-} from 'react-native';
-import {
-    Easing,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming,
+  AccessibilityRole,
+  AccessibilityState,
+  GestureResponderEvent,
+  Platform,
+  Pressable,
+  StyleProp,
+  View,
+  ViewStyle,
+} from "react-native";
+// Import Animated and other reanimated hooks from 'react-native-reanimated'
+// This replaces 'import { Animated } from "react-native";'
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 
 // Import the ActivityProvider
-import { ActivityProvider } from '../contexts/ActivityContext';
+import { ActivityProvider } from "../contexts/ActivityContext";
 
 // Define the props for the custom tab bar button
+// Updated to match admin's props (added 'to')
 interface CustomTabBarButtonProps {
   children: React.ReactNode;
-  to?: string;
+  to?: string; // Added to match admin
   onPress?: (
     e: GestureResponderEvent | React.MouseEvent<HTMLAnchorElement, MouseEvent>
   ) => void;
@@ -42,16 +43,18 @@ interface CustomTabBarButtonProps {
 }
 
 // Custom Tab Bar Button Component with Animation
+// Modified to be identical to admin's AnimatedTabBarButton
 const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
+      // Ensure the Animated.View takes up space and centers its content
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 8,
+      // Removed paddingVertical: 8 from here (was in pilot, not in admin)
     };
   });
 
@@ -60,6 +63,8 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
       | GestureResponderEvent
       | React.MouseEvent<HTMLAnchorElement, MouseEvent>
   ) => {
+    // Spring-like effect: quick shrink, bounce larger, then settle
+    // This animation logic is identical to admin's
     scale.value = withTiming(
       0.95,
       { duration: 80, easing: Easing.inOut(Easing.ease) },
@@ -82,6 +87,7 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
     }
   };
 
+  // Destructure known props for Pressable
   const {
     children,
     onLongPress,
@@ -89,7 +95,7 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
     accessibilityLabel,
     accessibilityRole,
     accessibilityState,
-    style,
+    style, // This 'style' comes from expo-router (tabBarItemStyle)
   } = props;
 
   return (
@@ -100,16 +106,13 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
       accessibilityLabel={accessibilityLabel}
       accessibilityRole={accessibilityRole}
       accessibilityState={accessibilityState}
-      android_ripple={{ color: "transparent" }}
+      android_ripple={{ color: "transparent" }} // Consistent with admin
       style={({ pressed }) => [
-        {
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          paddingVertical: 4,
-        },
-        style,
-        Platform.OS === "ios" && pressed ? { opacity: 1 } : {},
+        style, // Original style from Expo Router (applied to Pressable)
+        Platform.OS === "ios" && pressed ? { opacity: 1 } : {}, // iOS pressed opacity
+        // Removed the extra style block that was here in pilot:
+        // { flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 4, }
+        // The centering is now handled by Animated.View's style
       ]}
     >
       <Animated.View style={animatedStyle}>{children}</Animated.View>
@@ -120,7 +123,6 @@ const AnimatedTabBarButton: React.FC<CustomTabBarButtonProps> = (props) => {
 export default function PilotLayout() {
   return (
     <ActivityProvider>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
         <StatusBar style="dark" backgroundColor="#ffffff" />
         <View style={{ flex: 1 }}>
           <Tabs
@@ -128,91 +130,62 @@ export default function PilotLayout() {
               headerShown: false,
               tabBarStyle: {
                 backgroundColor: "#ffffff",
-                borderTopColor: "#ffffff",
+                borderTopColor: "#ffffff", // Consistent with admin
                 elevation: 0,
                 shadowOpacity: 0,
-                height: Platform.OS === 'ios' ? 60 : 70,
-                paddingBottom: Platform.OS === 'ios' ? 5 : 5,
-                paddingTop: 8,
-                borderBlockColor: "#ffffff", // Asegúrate que sea borderTopColor si es solo la línea superior
+                height: Platform.OS === "ios" ? 90 : 75, // Matched admin's height
+                borderBlockColor: "#ffffff", // Consistent with admin
+                // Removed paddingBottom and paddingTop from here (admin does not have them)
               },
-              tabBarActiveTintColor: "#3b82f6",
-              tabBarInactiveTintColor: "#8f8f8f",
-              tabBarLabelStyle: {
-                fontSize: 11,
-                fontWeight: "600",
-                marginTop: 4,
-                textAlign: 'center', // Centra el texto dentro de su propio contenedor
-                width: '100%',     // Hace que el contenedor de la etiqueta ocupe el ancho completo disponible
-              },
+              tabBarActiveTintColor: "#9C46CE", // Matched admin's active tint color
+              tabBarInactiveTintColor: "#8f8f8f", // Already consistent
+              // Removed tabBarLabelStyle from here (admin does not define it at this level)
+              // Label styling (like font size) will now rely on defaults or specific screen options if needed.
+              // The AnimatedTabBarButton will handle centering of icon and label.
               tabBarButton: (tabBarProps) => (
                 <AnimatedTabBarButton {...tabBarProps} />
               ),
             }}
           >
-            {/* Tus Tabs.Screen ... */}
             <Tabs.Screen
               name="dashboard"
               options={{
                 title: "Inicio",
                 sceneStyle: { backgroundColor: "#ffffff" },
-                tabBarIcon: ({ color, size, focused }) => (
-                  <View style={{
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 30, // Mantén un ancho fijo para el contenedor del icono si lo deseas
-                    height: 30,
-                    // display: 'flex' // View es flex por defecto, no es necesario
-                  }}>
-                    <Ionicons
-                      name={focused ? "home" : "home-outline"}
-                      size={24}
-                      color={color}
-                      // style={{ textAlign: 'center', alignSelf: 'center' }} // alignSelf: 'center' es bueno, textAlign no aplica a Ionicons
-                    />
-                  </View>
+                tabBarIcon: ({ color, size, focused }) => ( // Use 'size' from props
+                  <Ionicons
+                    name={focused ? "home" : "home-outline"}
+                    size={size} // Use the size provided by Tabs, not hardcoded
+                    color={color}
+                  />
                 ),
               }}
             />
             <Tabs.Screen
               name="activity-log"
               options={{
-                title: 'Historial',
+                title: "Historial",
                 sceneStyle: { backgroundColor: "#ffffff" },
-                tabBarIcon: ({ color, size, focused }) => (
-                  <View style={{
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 30,
-                    height: 30,
-                  }}>
-                    <Ionicons
-                      name={focused ? "time" : "time-outline"}
-                      size={24}
-                      color={color}
-                    />
-                  </View>
+                tabBarIcon: ({ color, size, focused }) => ( // Use 'size' from props
+                  <Ionicons
+                    name={focused ? "time" : "time-outline"}
+                    size={size} // Use the size provided by Tabs
+                    color={color}
+                  />
                 ),
               }}
             />
             <Tabs.Screen
               name="components/project-info-menu"
               options={{
-                title: 'Proyecto',
+                title: "Proyecto",
                 sceneStyle: { backgroundColor: "#ffffff" },
-                tabBarIcon: ({ color, size, focused }) => (
-                  <View style={{
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 30,
-                    height: 30,
-                  }}>
-                    <Ionicons
-                      name={focused ? "folder" : "folder-outline"}
-                      size={24}
-                      color={color}
-                    />
-                  </View>
+                tabBarIcon: ({ color, size, focused }) => ( // Use 'size' from props
+                  <Ionicons
+                    name={focused ? "folder" : "folder-outline"}
+                    size={size} // Use the size provided by Tabs
+                    color={color}
+                  />
                 ),
               }}
             />
@@ -221,52 +194,86 @@ export default function PilotLayout() {
               options={{
                 title: "Perfil",
                 sceneStyle: { backgroundColor: "#ffffff" },
-                tabBarIcon: ({ color, size, focused }) => (
-                  <View style={{
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 30,
-                    height: 30,
-                  }}>
-                    <Ionicons
-                      name={focused ? "person" : "person-outline"}
-                      size={24}
-                      color={color}
-                    />
-                  </View>
+                tabBarIcon: ({ color, size, focused }) => ( // Use 'size' from props
+                  <Ionicons
+                    name={focused ? "person" : "person-outline"}
+                    size={size} // Use the size provided by Tabs
+                    color={color}
+                  />
                 ),
               }}
             />
-            {/* ... el resto de tus Tabs.Screen con href: null */}
-              <Tabs.Screen name="statistics" options={{ href: null }} />
-              <Tabs.Screen name="incidents" options={{ href: null }} />
-              <Tabs.Screen name="preflight-checklist" options={{ href: null }} />
-              <Tabs.Screen name="project-history" options={{ href: null }} />
-              <Tabs.Screen name="components/pilot-dashboard" options={{ href: null }} />
-              <Tabs.Screen name="components/header-info-card" options={{ href: null }} />
-              <Tabs.Screen name="components/alerts-display-card" options={{ href: null }} />
-              <Tabs.Screen name="components/my-indicators-button" options={{ href: null }} />
-              <Tabs.Screen name="components/project-details-card" options={{ href: null }} />          
-              <Tabs.Screen name="components/new-activity-formmodal" options={{ href: null }} />
-              <Tabs.Screen name="components/new-incident-formmodal" options={{ href: null }} />
-              <Tabs.Screen name="components/incident-form-modal" options={{ href: null }} />
-              <Tabs.Screen name="components/quick-actions-menu-card" options={{ href: null }} />
-              <Tabs.Screen name="components/quick-register-activity-form" options={{ href: null }} />
-              <Tabs.Screen name="new-incident" options={{ href: null }} />
-              <Tabs.Screen name="calendar" options={{ href: null }} />
-              <Tabs.Screen name="site-map" options={{ href: null }} />
-              <Tabs.Screen name="turbines-status" options={{ href: null }} />
-              <Tabs.Screen name="support-chat" options={{ href: null }} />
-               <Tabs.Screen name="turbines" options={{ href: null }} />
-              <Tabs.Screen name="notifications" options={{ href: null }} />
-              <Tabs.Screen name="project-details" options={{ href: null }} />
-              <Tabs.Screen name="components/activity-timeline" options={{ href: null }} />
-              <Tabs.Screen name="components/activity-control" options={{ href: null }}/>
-              <Tabs.Screen name="components/activity-suggestions-card" options={{ href: null }} />
-              <Tabs.Screen name="blade-inspection-detail" options={{ href: null }} />
+            {/* Screens to hide from tab bar (href: null) - these remain unchanged */}
+            <Tabs.Screen name="statistics" options={{ href: null }} />
+            <Tabs.Screen name="incidents" options={{ href: null }} />
+            <Tabs.Screen name="preflight-checklist" options={{ href: null }} />
+            <Tabs.Screen name="project-history" options={{ href: null }} />
+            <Tabs.Screen
+              name="components/pilot-dashboard"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="components/header-info-card"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="components/alerts-display-card"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="components/my-indicators-button"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="components/project-details-card"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="components/new-activity-formmodal"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="components/new-incident-formmodal"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="components/incident-form-modal"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="components/quick-actions-menu-card"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="components/quick-register-activity-form"
+              options={{ href: null }}
+            />
+            <Tabs.Screen name="new-incident" options={{ href: null }} />
+            <Tabs.Screen name="calendar" options={{ href: null }} />
+            <Tabs.Screen name="site-map" options={{ href: null }} />
+            <Tabs.Screen name="turbines-status" options={{ href: null }} />
+            <Tabs.Screen name="support-chat" options={{ href: null }} />
+            <Tabs.Screen name="turbines" options={{ href: null }} />
+            <Tabs.Screen name="notifications" options={{ href: null }} />
+            <Tabs.Screen name="project-details" options={{ href: null }} />
+            <Tabs.Screen
+              name="components/activity-timeline"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="components/activity-control"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="components/activity-suggestions-card"
+              options={{ href: null }}
+            />
+            <Tabs.Screen
+              name="blade-inspection-detail"
+              options={{ href: null }}
+            />
           </Tabs>
         </View>
-      </SafeAreaView>
     </ActivityProvider>
   );
 }

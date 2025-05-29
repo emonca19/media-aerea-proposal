@@ -647,7 +647,6 @@ export default function PicturesReviewScreen() {
                 <Ionicons name="close" size={24} color="#6b7280" />
               </TouchableOpacity>
             </View>
-
             <ScrollView style={styles.modalContent}>
               {selectedSubmission && (
                 <>
@@ -718,7 +717,7 @@ export default function PicturesReviewScreen() {
                           {selectedSubmission.turbinesInspected.length} turbina
                           {selectedSubmission.turbinesInspected.length !== 1
                             ? "s"
-                            : ""}{" "}
+                            : ""}
                           en total
                         </Text>
                       </View>
@@ -739,7 +738,6 @@ export default function PicturesReviewScreen() {
                       enableHalfStar={false}
                     />
                   </View>
-
                   <View style={styles.evaluationSection}>
                     <Text style={styles.evaluationTitle}>
                       Distancia de captura de foto
@@ -754,7 +752,6 @@ export default function PicturesReviewScreen() {
                       enableHalfStar={false}
                     />
                   </View>
-
                   <View style={styles.evaluationSection}>
                     <Text style={styles.evaluationTitle}>Exposición</Text>
                     <StarRating
@@ -767,7 +764,6 @@ export default function PicturesReviewScreen() {
                       enableHalfStar={false}
                     />
                   </View>
-
                   <View style={styles.evaluationSection}>
                     <Text style={styles.evaluationTitle}>
                       Posición alrededor de la pala
@@ -782,23 +778,33 @@ export default function PicturesReviewScreen() {
                       enableHalfStar={false}
                     />
                   </View>
-
                   <View style={styles.evaluationSection}>
-                    <Text style={styles.evaluationTitle}>Enfoque</Text>
+                    <View style={styles.evaluationTitleContainer}>
+                      <Text style={styles.evaluationTitle}>Enfoque</Text>
+                    </View>
                     <View style={styles.focusButtonContainer}>
                       <TouchableOpacity
                         style={[
                           styles.focusButton,
                           focusQuality === "deficiente" &&
-                            styles.focusButtonSelected,
+                            styles.focusButtonSelectedDeficient,
                         ]}
                         onPress={() => setFocusQuality("deficiente")}
                       >
+                        <MaterialCommunityIcons
+                          name="close-circle"
+                          size={20}
+                          color={
+                            focusQuality === "deficiente"
+                              ? "#ef4444"
+                              : "#9ca3af"
+                          }
+                        />
                         <Text
                           style={[
                             styles.focusButtonText,
                             focusQuality === "deficiente" &&
-                              styles.focusButtonTextSelected,
+                              styles.focusButtonTextSelectedDeficient,
                           ]}
                         >
                           Deficiente
@@ -813,6 +819,13 @@ export default function PicturesReviewScreen() {
                         ]}
                         onPress={() => setFocusQuality("aceptable")}
                       >
+                        <MaterialCommunityIcons
+                          name="check-circle"
+                          size={20}
+                          color={
+                            focusQuality === "aceptable" ? "#10b981" : "#9ca3af"
+                          }
+                        />
                         <Text
                           style={[
                             styles.focusButtonText,
@@ -825,19 +838,17 @@ export default function PicturesReviewScreen() {
                       </TouchableOpacity>
                     </View>
                   </View>
-
                   {/* Spacer to separate evaluation sections from action buttons */}
                   <View style={styles.modalActionsSpacer} />
                 </>
               )}
-            </ScrollView>
-
+            </ScrollView>{" "}
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={styles.rejectButton}
                 onPress={handleRejectSubmission}
               >
-                <Ionicons name="close-circle" size={20} color="#fff" />
+                <Ionicons name="close-circle" size={18} color="#fff" />
                 <Text style={styles.rejectButtonText}>Rechazar Entrega</Text>
               </TouchableOpacity>
 
@@ -845,7 +856,7 @@ export default function PicturesReviewScreen() {
                 style={styles.approveButton}
                 onPress={handleApproveSubmission}
               >
-                <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                <Ionicons name="checkmark-circle" size={18} color="#fff" />
                 <Text style={styles.approveButtonText}>Aceptar Entrega</Text>
               </TouchableOpacity>
             </View>
@@ -870,7 +881,7 @@ export default function PicturesReviewScreen() {
             </TouchableOpacity>
           </View>
 
-          <ScrollView 
+          <ScrollView
             style={styles.modalContent}
             contentContainerStyle={styles.scrollableContent}
             keyboardShouldPersistTaps="handled"
@@ -890,7 +901,7 @@ export default function PicturesReviewScreen() {
               textAlignVertical="top"
               blurOnSubmit={false}
             />
-            
+
             {/* Action buttons moved inside ScrollView for keyboard accessibility */}
             <View style={styles.modalActionsInScroll}>
               <TouchableOpacity
@@ -1049,6 +1060,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderLeftWidth: 4,
     borderLeftColor: "#ef4444",
+
   },
   rejectionLabel: {
     fontSize: 12,
@@ -1132,7 +1144,15 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff", // Light gray for modal background
+    ...(Platform.OS === "web" && {
+      maxWidth: 700, // Max width for web modals
+      alignSelf: "center",
+      width: "100%",
+      marginVertical: 32, // Add some vertical margin on web
+      borderRadius: 12, // Rounded corners for web modal itself
+      boxShadow: "0 10px 25px rgba(0,0,0,0.1)", // Web shadow
+    }),
   },
   modalHeader: {
     flexDirection: "row",
@@ -1177,32 +1197,72 @@ const styles = StyleSheet.create({
     color: "#1f2937",
     marginBottom: 6,
   },
+  evaluationTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+    gap: 8,
+  },
+  evaluationSubtitle: {
+    fontSize: 13,
+    color: "#6b7280",
+    marginBottom: 16,
+    fontStyle: "italic",
+  },
   focusButtonContainer: {
     flexDirection: "row",
-    gap: 12,
-    marginTop: 8,
+    gap: 16,
+    marginTop: 12,
+    paddingHorizontal: 4,
   },
   focusButton: {
-    flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 2,
     borderColor: "#e5e7eb",
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#ffffff",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    minHeight: 56,
+    justifyContent: "center",
+    width: 160,
   },
   focusButtonSelected: {
-    borderColor: "#f59e0b",
-    backgroundColor: "#fef3c7",
+    borderColor: "#10b981",
+    backgroundColor: "#ecfdf5",
+    shadowColor: "#10b981",
+    shadowOpacity: 0.15,
+    elevation: 4,
+  },
+  focusButtonSelectedDeficient: {
+    borderColor: "#ef4444",
+    backgroundColor: "#fef2f2",
+    shadowColor: "#ef4444",
+    shadowOpacity: 0.15,
+    elevation: 4,
   },
   focusButtonText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "600",
     color: "#6b7280",
+    textAlign: "center",
+    marginTop: 4,
   },
   focusButtonTextSelected: {
-    color: "#f59e0b",
+    color: "#10b981",
+    fontWeight: "700",
+  },
+  focusButtonTextSelectedDeficient: {
+    color: "#ef4444",
+    fontWeight: "700",
   },
   modalActionsSpacer: {
     height: 24,
@@ -1239,34 +1299,25 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     marginTop: 2,
   },
-  driveLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f0f9ff",
-    borderWidth: 1,
-    borderColor: "#3b82f6",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginTop: 4,
-  },
   modalActions: {
     flexDirection: "row",
     padding: 20,
     paddingBottom: 24,
-    gap: 12,
+    gap: 8,
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
     backgroundColor: "#fff",
+    justifyContent: "flex-end",
   },
   rejectButton: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#ef4444",
     paddingVertical: 14,
-    borderRadius: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    minWidth: 150,
   },
   rejectButtonText: {
     fontSize: 16,
@@ -1275,13 +1326,14 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   approveButton: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#10b981",
     paddingVertical: 14,
-    borderRadius: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    minWidth: 150,
   },
   approveButtonText: {
     fontSize: 16,
@@ -1332,7 +1384,8 @@ const styles = StyleSheet.create({
   confirmRejectButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#fff",    marginLeft: 6,
+    color: "#fff",
+    marginLeft: 6,
   },
   rejectionModalContainer: {
     flex: 1,

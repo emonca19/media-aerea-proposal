@@ -3,7 +3,6 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Stack, router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
   Modal,
   Platform,
   ScrollView,
@@ -15,6 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { mockClients, mockWindParks } from "../../../../src/mocks";
+import { showAlert } from "@/src/components/CrossPlatformAlert";
 
 export default function CreateProjectScreen() {
   const [projectName, setProjectName] = useState("");
@@ -41,16 +41,31 @@ export default function CreateProjectScreen() {
     setWindParkId(selectedWindParkId);
     setShowWindParkModal(false);
   };
-
   const handleStartDateChange = (event: any, selectedDate?: Date) => {
-    setShowStartDatePicker(false);
+    const isWeb = Platform.OS === "web";
+
+    if (!isWeb) {
+      setShowStartDatePicker(false);
+      if (event?.type === "dismissed") {
+        return;
+      }
+    }
+
     if (selectedDate) {
       setStartDate(selectedDate);
     }
   };
 
   const handleEndDateChange = (event: any, selectedDate?: Date) => {
-    setShowEndDatePicker(false);
+    const isWeb = Platform.OS === "web";
+
+    if (!isWeb) {
+      setShowEndDatePicker(false);
+      if (event?.type === "dismissed") {
+        return;
+      }
+    }
+
     if (selectedDate) {
       setEndDate(selectedDate);
     }
@@ -58,32 +73,32 @@ export default function CreateProjectScreen() {
   const handleSaveProject = () => {
     // Validation
     if (!projectName.trim()) {
-      Alert.alert("Error", "El nombre del proyecto es requerido");
+      showAlert("Error", "El nombre del proyecto es requerido");
       return;
     }
     if (!description.trim()) {
-      Alert.alert("Error", "La descripción del proyecto es requerida");
+      showAlert("Error", "La descripción del proyecto es requerida");
       return;
     }
     if (!clientId) {
-      Alert.alert("Error", "Debe seleccionar un cliente");
+      showAlert("Error", "Debe seleccionar un cliente");
       return;
     }
     if (!windParkId) {
-      Alert.alert("Error", "Debe seleccionar un parque eólico");
+      showAlert("Error", "Debe seleccionar un parque eólico");
       return;
     }
     if (!startDate) {
-      Alert.alert("Error", "La fecha de inicio es requerida");
+      showAlert("Error", "La fecha de inicio es requerida");
       return;
     }
     if (!endDate) {
-      Alert.alert("Error", "La fecha de fin es requerida");
+      showAlert("Error", "La fecha de fin es requerida");
       return;
     }
 
     // Here you would typically save to your backend/database
-    Alert.alert(
+    showAlert(
       "Proyecto Creado",
       `El proyecto "${projectName}" ha sido creado exitosamente.`,
       [
@@ -224,9 +239,23 @@ export default function CreateProjectScreen() {
       </View>
     );
   };
-
   const renderDatesSection = () => {
     const hasParticipants = isParticipantsComplete;
+
+    // Helper to parse "YYYY-MM-DD" string to local Date object
+    const parseDateString = (dateString: string): Date | null => {
+      if (!dateString) return null;
+      const parts = dateString.split("-");
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+        const day = parseInt(parts[2], 10);
+        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+          return new Date(year, month, day);
+        }
+      }
+      return null;
+    };
 
     return (
       <View style={styles.section}>
@@ -300,6 +329,117 @@ export default function CreateProjectScreen() {
                 textAlignVertical="top"
               />
             </View>
+
+            {/* Start Date Picker */}
+            {showStartDatePicker && (
+              <>
+                {Platform.OS === "web" ? (
+                  <Modal
+                    visible={showStartDatePicker}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={() => setShowStartDatePicker(false)}
+                  >
+                    <View style={styles.datePickerModal}>
+                      <View style={styles.datePickerContainer}>
+                        <Text style={styles.datePickerTitle}>
+                          Seleccionar Fecha de Inicio
+                        </Text>
+                        <input
+                          type="date"
+                          value={startDate?.toISOString().split("T")[0] || ""}
+                          style={styles.webDatePickerInput}
+                          onChange={(e) => {
+                            const selectedDate = parseDateString(
+                              e.target.value
+                            );
+                            if (selectedDate) {
+                              handleStartDateChange(null, selectedDate);
+                            } else if (e.target.value === "") {
+                              setStartDate(null);
+                            }
+                          }}
+                          min={new Date().toISOString().split("T")[0]}
+                          max={
+                            endDate?.toISOString().split("T")[0] || undefined
+                          }
+                        />
+                        <TouchableOpacity
+                          style={styles.datePickerCloseButton}
+                          onPress={() => setShowStartDatePicker(false)}
+                        >
+                          <Text style={styles.datePickerCloseText}>Cerrar</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </Modal>
+                ) : (
+                  <DateTimePicker
+                    value={startDate || new Date()}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={handleStartDateChange}
+                    minimumDate={new Date()}
+                    maximumDate={endDate || undefined}
+                  />
+                )}
+              </>
+            )}
+
+            {/* End Date Picker */}
+            {showEndDatePicker && (
+              <>
+                {Platform.OS === "web" ? (
+                  <Modal
+                    visible={showEndDatePicker}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={() => setShowEndDatePicker(false)}
+                  >
+                    <View style={styles.datePickerModal}>
+                      <View style={styles.datePickerContainer}>
+                        <Text style={styles.datePickerTitle}>
+                          Seleccionar Fecha de Fin
+                        </Text>
+                        <input
+                          type="date"
+                          value={endDate?.toISOString().split("T")[0] || ""}
+                          style={styles.webDatePickerInput}
+                          onChange={(e) => {
+                            const selectedDate = parseDateString(
+                              e.target.value
+                            );
+                            if (selectedDate) {
+                              handleEndDateChange(null, selectedDate);
+                            } else if (e.target.value === "") {
+                              setEndDate(null);
+                            }
+                          }}
+                          min={
+                            startDate?.toISOString().split("T")[0] ||
+                            new Date().toISOString().split("T")[0]
+                          }
+                        />
+                        <TouchableOpacity
+                          style={styles.datePickerCloseButton}
+                          onPress={() => setShowEndDatePicker(false)}
+                        >
+                          <Text style={styles.datePickerCloseText}>Cerrar</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </Modal>
+                ) : (
+                  <DateTimePicker
+                    value={endDate || startDate || new Date()}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={handleEndDateChange}
+                    minimumDate={startDate || new Date()}
+                  />
+                )}
+              </>
+            )}
           </>
         )}
       </View>
@@ -450,25 +590,6 @@ export default function CreateProjectScreen() {
             </ScrollView>
           </View>
         </Modal>
-        {/* Date Pickers */}
-        {showStartDatePicker && (
-          <DateTimePicker
-            value={startDate || new Date()}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={handleStartDateChange}
-            minimumDate={new Date()}
-          />
-        )}
-        {showEndDatePicker && (
-          <DateTimePicker
-            value={endDate || startDate || new Date()}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={handleEndDateChange}
-            minimumDate={startDate || new Date()}
-          />
-        )}
       </View>
     </SafeAreaView>
   );
@@ -718,5 +839,57 @@ const styles = StyleSheet.create({
   },
   selectionIndicator: {
     marginLeft: 12,
+  },
+  // Web date picker styles
+  datePickerModal: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  datePickerContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 24,
+    margin: 20,
+    minWidth: Platform.OS === "web" ? 300 : 280,
+    maxWidth: Platform.OS === "web" ? 400 : "90%",
+    width: Platform.OS === "web" ? "auto" : "90%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  webDatePickerInput: {
+    padding: 12,
+    fontSize: 16,
+    borderRadius: 8,
+    marginBottom: 20,
+    width: "100%",
+    boxSizing: "border-box",
+    backgroundColor: "#f9fafb",
+    color: "#1f2937",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+  },
+  datePickerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  datePickerCloseButton: {
+    backgroundColor: "#9C46CE",
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  datePickerCloseText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
