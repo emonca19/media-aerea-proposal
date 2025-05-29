@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { mockClients, mockWindParks } from "../../../src/mocks";
+import { mockClients, mockWindParks } from "../../../../src/mocks";
 
 export default function CreateProjectScreen() {
   const [projectName, setProjectName] = useState("");

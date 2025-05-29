@@ -165,14 +165,12 @@ export default function AssignmentsScreen() {
     const isWeb = Platform.OS === "web";
 
     if (!isWeb) {
-      // For mobile, hide picker unless it's an iOS inline picker or user dismissed
+      // For mobile, always try to close the picker after an interaction.
+      // If it was a dismissal, nothing more to do.
+      setShowStartDatePicker(false);
       if (event?.type === "dismissed") {
-        // Android cancel
-        setShowStartDatePicker(false);
         return;
       }
-      // Always close the picker on mobile
-      setShowStartDatePicker(false);
     }
 
     if (selectedDate) {
@@ -183,34 +181,33 @@ export default function AssignmentsScreen() {
         setDateValidationMessage(
           "La fecha de inicio no puede ser posterior a la fecha de fin"
         );
-        // On web, do not close picker if validation fails, allow user to correct
-        if (!isWeb) setShowStartDatePicker(false);
+        // On web, picker remains open to allow correction.
+        // On mobile, picker is already closed by the block above.
         return;
       }
 
       setDateValidationMessage("");
       setEstimatedStartDate(selectedDate);
       calculateDuration(selectedDate, estimatedEndDate);
-
-      if (isWeb) {
-        setShowStartDatePicker(false); // Close web picker on successful selection
-      }
-    } else if (!isWeb) {
-      // If selectedDate is null/undefined on mobile (e.g. dismissed), ensure picker is closed
-      setShowStartDatePicker(false);
+      // On web, picker remains open. User will close it via modal's "Cerrar" button.
+      // On mobile, picker is already closed.
     }
+    // If selectedDate is null/undefined:
+    //   - For mobile: picker is already closed.
+    //   - For web: this case is handled by the input's specific onChange logic for empty value.
+    //     If it were to reach here, the modal would remain open.
   };
 
   const handleEndDateChange = (event: any, selectedDate?: Date) => {
     const isWeb = Platform.OS === "web";
 
     if (!isWeb) {
+      // For mobile, always try to close the picker after an interaction.
+      // If it was a dismissal, nothing more to do.
+      setShowEndDatePicker(false);
       if (event?.type === "dismissed") {
-        setShowEndDatePicker(false);
         return;
       }
-      // Always close the picker on mobile
-      setShowEndDatePicker(false);
     }
 
     if (selectedDate) {
@@ -223,7 +220,7 @@ export default function AssignmentsScreen() {
       ) {
         // End date is before start date, adjust start date to match new end date
         newStartDate = selectedDate;
-        setEstimatedStartDate(selectedDate);
+        setEstimatedStartDate(selectedDate); // Update state for start date
         message =
           "La fecha de inicio se ajustó automáticamente para coincidir con la fecha de fin";
       }
@@ -231,13 +228,12 @@ export default function AssignmentsScreen() {
       setDateValidationMessage(message);
       setEstimatedEndDate(selectedDate);
       calculateDuration(newStartDate, selectedDate);
-
-      if (isWeb) {
-        setShowEndDatePicker(false);
-      }
-    } else if (!isWeb) {
-      setShowEndDatePicker(false);
+      // On web, picker remains open. User will close it via modal's "Cerrar" button.
+      // On mobile, picker is already closed.
     }
+    // If selectedDate is null/undefined (similar logic as in handleStartDateChange):
+    //   - For mobile: picker is already closed.
+    //   - For web: modal would remain open.
   };
 
   const handleConfirmAssignment = () => {

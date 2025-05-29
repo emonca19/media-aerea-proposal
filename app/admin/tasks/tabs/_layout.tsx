@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import Constants from "expo-constants";
 import { withLayoutContext } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -77,7 +76,6 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: "#ffffff",
-    paddingTop: Constants.statusBarHeight,
   },
   tabBarLabel: {
     fontSize: 15,

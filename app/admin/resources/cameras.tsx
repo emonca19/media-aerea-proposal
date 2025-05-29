@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
-import React, { useState } from "react";
+import React, { useState } from "react"; // Ensure React is imported for JSX and cloneElement if that route was taken
 import {
   Alert,
   Modal,
@@ -14,7 +14,7 @@ import {
 import { mockCameras } from "../../../src/mocks/cameras";
 import { Camera, CameraStatus } from "../../../src/types";
 
-// Helper function to translate camera status to Spanish
+// Helper function to translate camera status to Spanish (remains the same)
 const getStatusDisplayText = (status: CameraStatus): string => {
   switch (status) {
     case "AVAILABLE":
@@ -34,7 +34,7 @@ const CamerasScreen = () => {
   const [editingCamera, setEditingCamera] = useState<Camera | null>(null);
   const [isNewCamera, setIsNewCamera] = useState(false);
 
-  // Form state for adding/editing a camera
+  // Form state (remains the same)
   const [name, setName] = useState("");
   const [model, setModel] = useState("");
   const [manufacturer, setManufacturer] = useState("");
@@ -44,12 +44,12 @@ const CamerasScreen = () => {
   const [assignedTo, setAssignedTo] = useState("");
   const [notes, setNotes] = useState("");
 
-  // Status update modal state
+  // Status update modal state (remains the same)
   const [statusModalVisible, setStatusModalVisible] = useState(false);
   const [selectedCameraForStatusUpdate, setSelectedCameraForStatusUpdate] =
     useState<Camera | null>(null);
 
-  // Section expand/collapse state
+  // Section expand/collapse state (remains the same)
   const [expandedSections, setExpandedSections] = useState({
     available: true,
     inUse: true,
@@ -64,6 +64,7 @@ const CamerasScreen = () => {
   };
 
   const resetForm = () => {
+    // ... (remains the same)
     setName("");
     setModel("");
     setManufacturer("");
@@ -77,12 +78,14 @@ const CamerasScreen = () => {
   };
 
   const handleAddCamera = () => {
+    // ... (remains the same)
     resetForm();
     setIsNewCamera(true);
     setModalVisible(true);
   };
 
   const handleEditCamera = (camera: Camera) => {
+    // ... (remains the same)
     resetForm();
     setIsNewCamera(false);
     setEditingCamera(camera);
@@ -98,15 +101,15 @@ const CamerasScreen = () => {
   };
 
   const handleSaveCamera = () => {
+    // ... (remains the same)
     if (!name.trim() || !model.trim() || !manufacturer.trim()) {
       Alert.alert("Error", "Nombre, Modelo y Fabricante son requeridos.");
       return;
     }
 
     if (isNewCamera || !editingCamera) {
-      // Adding new camera
       const newCameraData: Camera = {
-        id: String(Date.now() + Math.random()),
+        id: String(Date.now() + Math.random()), // Ensure IDs are unique
         name: name.trim(),
         model: model.trim(),
         manufacturer: manufacturer.trim(),
@@ -122,7 +125,6 @@ const CamerasScreen = () => {
       };
       setCameras((prevCameras) => [...prevCameras, newCameraData]);
     } else {
-      // Editing existing camera
       setCameras((prevCameras) =>
         prevCameras.map((c) =>
           c.id === editingCamera.id
@@ -148,6 +150,7 @@ const CamerasScreen = () => {
     resetForm();
   };
   const handleUpdateStatus = (cameraId: string, newStatus: CameraStatus) => {
+    // ... (remains the same)
     setCameras((prevCameras) =>
       prevCameras.map((c) =>
         c.id === cameraId
@@ -160,10 +163,13 @@ const CamerasScreen = () => {
   };
 
   const handleOpenStatusModal = (camera: Camera) => {
+    // ... (remains the same)
     setSelectedCameraForStatusUpdate(camera);
     setStatusModalVisible(true);
   };
-  const renderCameraItem = ({ item }: { item: Camera }) => (
+
+  // MODIFICATION START: Define CameraCard as a component
+  const CameraCard = ({ item }: { item: Camera }) => (
     <View style={styles.cameraCard}>
       <View style={styles.cameraHeader}>
         <View style={styles.cameraInfo}>
@@ -214,14 +220,14 @@ const CamerasScreen = () => {
 
       <View style={styles.cameraActions}>
         <TouchableOpacity
-          onPress={() => handleEditCamera(item)}
+          onPress={() => handleEditCamera(item)} // Will access handleEditCamera from CamerasScreen scope
           style={[styles.actionBtn, styles.editBtn]}
         >
           <Ionicons name="create-outline" size={16} color="#fff" />
           <Text style={styles.actionBtnText}>Editar</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => handleOpenStatusModal(item)}
+          onPress={() => handleOpenStatusModal(item)} // Will access handleOpenStatusModal from CamerasScreen scope
           style={[styles.actionBtn, styles.statusBtn]}
         >
           <Ionicons name="swap-horizontal-outline" size={16} color="#fff" />
@@ -230,9 +236,15 @@ const CamerasScreen = () => {
       </View>
     </View>
   );
+  // MODIFICATION END: CameraCard component definition
+
+  // Remove or comment out the old renderCameraItem function:
+  // const renderCameraItem = ({ item }: { item: Camera }) => ( ... );
+
   const availableCameras = cameras.filter((c) => c.status === "AVAILABLE");
   const inUseCameras = cameras.filter((c) => c.status === "IN_USE");
   const maintenanceCameras = cameras.filter((c) => c.status === "MAINTENANCE");
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: "Cámaras" }} />
@@ -248,6 +260,7 @@ const CamerasScreen = () => {
             onPress={() => toggleSection("available")}
             activeOpacity={0.7}
           >
+            {/* ... section header content ... */}
             <View style={styles.sectionHeaderLeft}>
               <Ionicons name="checkmark-circle" size={24} color="#10B981" />
               <Text style={styles.sectionTitle}>Disponibles</Text>
@@ -271,9 +284,11 @@ const CamerasScreen = () => {
             <>
               {availableCameras.length > 0 ? (
                 <View style={styles.cardsContainer}>
-                  {availableCameras.map((camera) =>
-                    renderCameraItem({ item: camera })
-                  )}
+                  {/* MODIFICATION START: Use CameraCard with key */}
+                  {availableCameras.map((camera) => (
+                    <CameraCard key={camera.id} item={camera} />
+                  ))}
+                  {/* MODIFICATION END */}
                 </View>
               ) : (
                 <View style={styles.emptyContainer}>
@@ -286,6 +301,7 @@ const CamerasScreen = () => {
             </>
           )}
         </View>
+
         {/* In Use Cameras Section */}
         <View style={styles.sectionContainer}>
           <TouchableOpacity
@@ -293,6 +309,7 @@ const CamerasScreen = () => {
             onPress={() => toggleSection("inUse")}
             activeOpacity={0.7}
           >
+            {/* ... section header content ... */}
             <View style={styles.sectionHeaderLeft}>
               <Ionicons name="play-circle" size={24} color="#F59E0B" />
               <Text style={styles.sectionTitle}>En Uso</Text>
@@ -314,9 +331,11 @@ const CamerasScreen = () => {
             <>
               {inUseCameras.length > 0 ? (
                 <View style={styles.cardsContainer}>
-                  {inUseCameras.map((camera) =>
-                    renderCameraItem({ item: camera })
-                  )}
+                  {/* MODIFICATION START: Use CameraCard with key */}
+                  {inUseCameras.map((camera) => (
+                    <CameraCard key={camera.id} item={camera} />
+                  ))}
+                  {/* MODIFICATION END */}
                 </View>
               ) : (
                 <View style={styles.emptyContainer}>
@@ -327,6 +346,7 @@ const CamerasScreen = () => {
             </>
           )}
         </View>
+
         {/* Maintenance Cameras Section */}
         <View style={styles.sectionContainer}>
           <TouchableOpacity
@@ -334,6 +354,7 @@ const CamerasScreen = () => {
             onPress={() => toggleSection("maintenance")}
             activeOpacity={0.7}
           >
+            {/* ... section header content ... */}
             <View style={styles.sectionHeaderLeft}>
               <Ionicons name="construct" size={24} color="#DC2626" />
               <Text style={styles.sectionTitle}>En Mantenimiento</Text>
@@ -358,9 +379,11 @@ const CamerasScreen = () => {
             <>
               {maintenanceCameras.length > 0 ? (
                 <View style={styles.cardsContainer}>
-                  {maintenanceCameras.map((camera) =>
-                    renderCameraItem({ item: camera })
-                  )}
+                  {/* MODIFICATION START: Use CameraCard with key */}
+                  {maintenanceCameras.map((camera) => (
+                    <CameraCard key={camera.id} item={camera} />
+                  ))}
+                  {/* MODIFICATION END */}
                 </View>
               ) : (
                 <View style={styles.emptyContainer}>
@@ -379,18 +402,19 @@ const CamerasScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Floating Action Button */}
+      {/* Floating Action Button (remains the same) */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => {
-          setIsNewCamera(true);
-          setModalVisible(true);
+          // Correctly calls handleAddCamera which resets and sets isNewCamera
+          handleAddCamera(); 
         }}
         activeOpacity={0.8}
       >
         <Ionicons name="add" size={24} color="white" />
       </TouchableOpacity>
 
+      {/* Add/Edit Modal (remains the same, keys are correctly used for status options) */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -400,6 +424,19 @@ const CamerasScreen = () => {
           resetForm();
         }}
       >
+        {/* ... modal content ... */}
+        {/* Ensure status selector inside the modal still has its keys (it does in your original code) */}
+        {/* Example of status selector (already correct in your code):
+            <View style={styles.statusSelector}>
+              {(["AVAILABLE", "IN_USE", "MAINTENANCE"] as CameraStatus[]).map(
+                (s) => (
+                  <TouchableOpacity key={s} ... >
+                    ...
+                  </TouchableOpacity>
+                )
+              )}
+            </View>
+        */}
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <ScrollView style={{ width: "100%" }}>
@@ -474,7 +511,7 @@ const CamerasScreen = () => {
                 {(["AVAILABLE", "IN_USE", "MAINTENANCE"] as CameraStatus[]).map(
                   (s) => (
                     <TouchableOpacity
-                      key={s}
+                      key={s} // Key is present and correct
                       style={[
                         styles.statusOption,
                         currentStatus === s && styles.statusOptionSelected,
@@ -544,7 +581,7 @@ const CamerasScreen = () => {
         </View>
       </Modal>
 
-      {/* Status Update Modal */}
+      {/* Status Update Modal (remains the same, keys are correctly used for status options) */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -554,13 +591,15 @@ const CamerasScreen = () => {
           setSelectedCameraForStatusUpdate(null);
         }}
       >
+        {/* ... modal content ... */}
+        {/* Ensure status options inside this modal also have their keys (they do in your original code) */}
         <View style={styles.statusModalCenteredView}>
           <View style={styles.statusModalView}>
             {selectedCameraForStatusUpdate && (
               <>
                 <Text style={styles.statusModalTitle}>Actualizar Estado</Text>
                 <Text style={styles.statusModalSubtitle}>
-                  {selectedCameraForStatusUpdate.manufacturer}
+                  {selectedCameraForStatusUpdate.manufacturer}{" "}
                   {selectedCameraForStatusUpdate.model}
                 </Text>
                 <Text style={styles.statusModalCameraName}>
@@ -602,7 +641,7 @@ const CamerasScreen = () => {
                     ["AVAILABLE", "IN_USE", "MAINTENANCE"] as CameraStatus[]
                   ).map((status) => (
                     <TouchableOpacity
-                      key={status}
+                      key={status} // Key is present and correct
                       style={[
                         styles.statusOptionButton,
                         status === "AVAILABLE"
@@ -668,6 +707,7 @@ const CamerasScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  // ... (your existing styles remain unchanged)
   container: {
     flex: 1,
     backgroundColor: "#ffffff",

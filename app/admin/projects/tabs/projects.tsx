@@ -450,7 +450,7 @@ export default function ProjectsScreen() {
     }
   };
   const handleCreateProject = () => {
-    router.push("/admin/projects/create");
+    router.push("/admin/projects/project/create");
   };
   const handleProjectPress = (project: Project) => {
     router.push(`/admin/projects/project/${project.id}`);

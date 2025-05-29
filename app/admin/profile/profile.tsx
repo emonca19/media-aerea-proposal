@@ -185,7 +185,6 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: "#ffffff",
     paddingHorizontal: 16,
-    paddingTop: Constants.statusBarHeight, // Reduced paddingTop
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
