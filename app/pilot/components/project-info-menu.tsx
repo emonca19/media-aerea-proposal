@@ -88,7 +88,7 @@ const mockProject: ProjectData = {
 const projectMembers = [
   {
     id: 1,
-    name: 'Juan Pérez',
+    name: 'Juan Rodríguez',
     role: 'Piloto Líder',
     avatar: require('../../../assets/images/pilot-avatar.jpg'),
   },
@@ -96,13 +96,13 @@ const projectMembers = [
     id: 2,
     name: 'Ana Torres',
     role: 'Técnica de Mantenimiento',
-    avatar: require('../../../assets/images/wind-turbine-icon.png'),
+    avatar: require('../../../assets/images/girl.jpg'),
   },
   {
     id: 3,
     name: 'Luis García',
     role: 'Supervisor de Campo',
-    avatar: require('../../../assets/images/media-logo.png'),
+    avatar: require('../../../assets/images/boy.jpg'),
   },
 ];
 
@@ -413,7 +413,6 @@ const ProjectInfoMenuEnhanced = () => {
                   onPress={() => handleTurbineToggle(item.id)}
                   activeOpacity={0.8}
                 >
-                  {/* Enhanced shimmer effect for completed turbines */}
                   {item.isCompleted && (
                     <View style={modalStyles.turbineItemShimmer} />
                   )}
@@ -475,8 +474,6 @@ const ProjectInfoMenuEnhanced = () => {
                 </TouchableOpacity>
               )}
             />
-
-            {/* Action Buttons */}
             <View style={modalStyles.actionButtons}>
               <TouchableOpacity 
                 style={modalStyles.cancelButton}
@@ -729,10 +726,6 @@ const componentStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
-  highlightedQuickAccessButton: {
-    backgroundColor: '#fffbeb', 
-    borderColor: '#fde68a', 
-  },
   quickAccessIconContainer: {
     width: 40,
     height: 40,
@@ -759,80 +752,6 @@ const componentStyles = StyleSheet.create({
     fontWeight: '500',
     color: '#374151',
     textAlign: 'center',
-  },
-  driveSection: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  driveSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  driveIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#eff6ff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  driveSectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    flex: 1,
-  },
-  driveActionButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#eff6ff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  driveStatus: {
-    padding: 12,
-    backgroundColor: '#f0fdf4',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#bbf7d0',
-  },
-  driveStatusInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  driveStatusText: {
-    fontSize: 14,
-    color: '#065f46',
-    fontWeight: '500',
-    marginLeft: 8,
-  },
-  driveStatusDescription: {
-    fontSize: 13,
-    color: '#047857',
-    lineHeight: 18,
-  },
-  driveNotConfigured: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#fffbeb',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#fde68a',
-  },
-  driveNotConfiguredText: {
-    fontSize: 14,
-    color: '#92400e',
-    marginLeft: 8,
-    flex: 1,
   },
   detailsSection: {
     marginTop: -8,
@@ -1294,33 +1213,6 @@ const modalStyles = StyleSheet.create({
     color: '#065f46',
     fontWeight: '600',
   },
-  fixedButtonContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 8,
-    backgroundColor: '#ffffff',
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  actionButton: {
-    flex: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  actionButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    gap: 6,
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  // ...existing styles for other modals...
 });
 
 export default ProjectInfoMenuEnhanced;

@@ -1446,10 +1446,7 @@ const PilotDashboard = () => {
           setActivityPauseState({ isPaused: false });
           
           setTimeout(() => {
-            Alert.alert(
-              "✅ Actividad Iniciada", 
-              `Se ha iniciado la actividad: ${existingActivity.name}`
-            );
+            
           }, 500);
         } else if (isNewTurbineActivity === "true") {
           console.log("Creating new turbine activity:", activityToStartAfterPreflight);
@@ -1530,20 +1527,15 @@ const PilotDashboard = () => {
             return updatedProject;
           });
           
-          // Clear any pause state
           setActivityPauseState({ isPaused: false });
           
-          // Show confirmation that activity started
           setTimeout(() => {
-            Alert.alert(
-              "✅ Actividad Iniciada", 
-              `Se ha iniciado el trabajo en la turbina ${turbineName}`
-            );
+            
           }, 500);
         }
       }
       
-      // Clear URL parameters to prevent infinite restarts
+      
       const newParams = { ...params };
       delete newParams.activityToStartAfterPreflight;
       delete newParams.preflightCompletedForTurbine;
@@ -1558,7 +1550,7 @@ const PilotDashboard = () => {
         } as any);      }
     }
   }, [params, router, currentPathname, activities, setActivityPauseState]);
-  // Effect para manejar la finalización de la inspección de aspas
+ 
   useEffect(() => {
     const {
       bladeInspectionCompleted,
@@ -1571,7 +1563,6 @@ const PilotDashboard = () => {
     if (bladeInspectionCompleted === 'true' && completedTurbineId && completedActivityId) {
       console.log(`[Dashboard Effect] Blade inspection completed for turbine ${completedTurbineId}`);
       
-      // Extract and parse blade timing data
       if (bladeTimingDataString) {
         try {
           const parsedTimingData = JSON.parse(bladeTimingDataString);
@@ -1582,13 +1573,11 @@ const PilotDashboard = () => {
         }
       }
       
-      // Mark the blade inspection as completed
       setBladeInspectionStatus(prev => ({
         ...prev,
         [completedActivityId]: true
       }));
 
-      // Only mark activity as completed if keepActivityRunning is not set
       if (keepActivityRunning !== 'true') {
         setCurrentProject((prev) => {
           const updatedActivities = (prev.activities || []).map((act) =>

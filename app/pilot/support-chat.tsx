@@ -119,15 +119,14 @@ export default function SupportChat() {
 
   const renderMessage = (message: Message) => (
     <View
-      key={message.id}
-      style={[
+      key={message.id}      style={[
         styles.messageContainer,
         message.isFromUser ? styles.userMessage : styles.otherMessage,
       ]}
     >
       {message.isFromUser ? (
         <LinearGradient
-          colors={["#2f4aa9", "#2f4aa9"]}
+          colors={["#3b82f6", "#1d4ed8"]}
           style={styles.messageBubble}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -157,10 +156,9 @@ export default function SupportChat() {
                   name="checkmark-done"
                   size={12}
                   color="rgba(255,255,255,0.7)"
-                />
-              )}
+                />              )}
               {message.status === "read" && (
-                <Ionicons name="checkmark-done" size={12} color="#10b981" />
+                <Ionicons name="checkmark-done" size={12} color="#059669" />
               )}
             </View>
           </View>
@@ -186,30 +184,28 @@ export default function SupportChat() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 80}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 80}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#7c3aed" />
-      <LinearGradient colors={["#620b97", "#c74afc"]} style={styles.header}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f1f5f9" />
+      <LinearGradient colors={["#f1f5f9", "#e2e8f0"]} style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity
             onPress={() => router.push("/pilot/profile")}
             style={styles.backButton}
           >
-            <Ionicons name="arrow-back" size={24} color="white" />
+            <Ionicons name="arrow-back" size={24} color="#1f2937" />
           </TouchableOpacity>
 
           <View style={styles.contactInfo}>
             <View style={styles.avatarContainer}>
               <LinearGradient
-                colors={["#322da9", "#4743ad"]}
+                colors={["#64748b", "#475569"]}
                 style={styles.avatar}
               >
                 <Text style={styles.avatarText}>CM</Text>
               </LinearGradient>
               <View style={styles.onlineIndicator} />
             </View>
-
             <View style={styles.contactDetails}>
               <Text style={styles.contactName}>Carlos Martínez</Text>
               <Text style={styles.contactRole}>Encargado de Proyecto</Text>
@@ -219,9 +215,8 @@ export default function SupportChat() {
               </View>
             </View>
           </View>
-
           <TouchableOpacity style={styles.menuButton}>
-            <Ionicons name="ellipsis-vertical" size={20} color="white" />
+            <Ionicons name="ellipsis-vertical" size={20} color="#1f2937" />
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -257,9 +252,8 @@ export default function SupportChat() {
           <TextInput
             style={styles.textInput}
             value={inputText}
-            onChangeText={setInputText}
-            placeholder="Escribe tu mensaje..."
-            placeholderTextColor="#9ca3af"
+            onChangeText={setInputText}            placeholder="Escribe tu mensaje..."
+            placeholderTextColor="#64748b"
             multiline
             maxLength={500}
           />
@@ -275,13 +269,12 @@ export default function SupportChat() {
             inputText.trim()
               ? styles.sendButtonActive
               : styles.sendButtonInactive,
-          ]}
-          onPress={sendMessage}
+          ]}          onPress={sendMessage}
           disabled={!inputText.trim()}
         >
           <LinearGradient
             colors={
-              inputText.trim() ? ["#3b82f6", "#1d4ed8"] : ["#e5e7eb", "#d1d5db"]
+              inputText.trim() ? ["#475569", "#334155"] : ["#e5e7eb", "#d1d5db"]
             }
             style={styles.sendButtonGradient}
           >
@@ -317,11 +310,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-  },
-  backButton: {
+  },  backButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(31,41,55,0.1)",
   },
   contactInfo: {
     flex: 1,
@@ -338,11 +330,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-  },
-  avatarText: {
+  },  avatarText: {
     color: "white",
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
   onlineIndicator: {
     position: "absolute",
@@ -358,16 +350,16 @@ const styles = StyleSheet.create({
   contactDetails: {
     marginLeft: 12,
     flex: 1,
-  },
-  contactName: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
+  },  contactName: {
+    color: "#0f172a",
+    fontSize: 17,
+    fontWeight: "700",
   },
   contactRole: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 12,
+    color: "#475569",
+    fontSize: 13,
     marginTop: 2,
+    fontWeight: "500",
   },
   statusContainer: {
     flexDirection: "row",
@@ -380,15 +372,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#10b981",
     borderRadius: 3,
     marginRight: 4,
-  },
-  onlineText: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 11,
+  },  onlineText: {
+    color: "#475569",
+    fontSize: 12,
+    fontWeight: "500",
   },
   menuButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(31,41,55,0.1)",
   },
   messagesContainer: {
     flex: 1,
@@ -405,48 +397,52 @@ const styles = StyleSheet.create({
   },
   otherMessage: {
     alignItems: "flex-start",
-  },
-  messageBubble: {
+  },  messageBubble: {
     maxWidth: "80%",
-    padding: 12,
-    borderRadius: 18,
-  },
-  otherMessageBubble: {
+    padding: 14,
+    borderRadius: 20,
+  },otherMessageBubble: {
     backgroundColor: "white",
-    borderBottomLeftRadius: 4,
+    borderBottomLeftRadius: 6,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  userMessageText: {
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
+  },  userMessageText: {
     color: "white",
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: "500",
+    letterSpacing: 0.2,
   },
   otherMessageText: {
-    color: "#1f2937",
-    fontSize: 15,
-    lineHeight: 20,
+    color: "#0f172a",
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: "500",
+    letterSpacing: 0.2,
   },
   messageFooter: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginTop: 6,
-  },
-  userMessageTime: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 11,
+  },  userMessageTime: {
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 12,
+    fontWeight: "500",
   },
   otherMessageTime: {
-    color: "#9ca3af",
-    fontSize: 11,
+    color: "#64748b",
+    fontSize: 12,
     marginTop: 4,
+    fontWeight: "500",
   },
   messageStatus: {
     marginLeft: 6,
@@ -480,23 +476,25 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
-  },
-  inputWrapper: {
+  },  inputWrapper: {
     flex: 1,
     flexDirection: "row",
     alignItems: "flex-end",
-    backgroundColor: "#f3f4f6",
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    backgroundColor: "#f8fafc",
+    borderRadius: 26,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     marginRight: 8,
-  },
-  textInput: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },  textInput: {
     flex: 1,
-    fontSize: 15,
-    color: "#1f2937",
+    fontSize: 16,
+    color: "#0f172a",
     maxHeight: 100,
     paddingVertical: 4,
+    fontWeight: "500",
+    letterSpacing: 0.2,
   },
   attachButton: {
     padding: 4,

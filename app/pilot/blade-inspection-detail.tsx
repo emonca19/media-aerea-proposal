@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const COLORS = {
-  primary: '#3b82f6', primaryLight: '#dbeafe', primaryDark: '#2563eb',
+  primary: '#9333ea', primaryLight: '#f3e8ff', primaryDark: '#7c3aed',
   success: '#10b981', successLight: '#d1fae5',
   danger: '#ef4444', dangerLight: '#fee2e2',
   textPrimary: '#1f2937', textSecondary: '#4b5563', textMuted: '#9ca3af', textWhite: '#ffffff',
@@ -14,7 +14,7 @@ const COLORS = {
   iconDefault: '#6b7280',  // Nuevos colores para aspas más bonitas
   bladeDefault: ['#f8fafc', '#e2e8f0', '#cbd5e1'] as const, // Gradiente plateado más elegante
   bladeChecked: ['#34d399', '#10b981', '#059669'] as const, // Verde más vibrante
-  bladeSelectedVisual: ['#60a5fa', '#3b82f6', '#1d4ed8'] as const, // Azul más intenso
+  bladeSelectedVisual: ['#c4a8f5', '#9333ea', '#7c3aed'] as const, // Morado más intenso y fuerte
   bladeHighlight: 'rgba(255,255,255,0.4)', // Brillo sutil
   bladeShadowDark: 'rgba(0,0,0,0.15)', // Sombra más suave
   // Restore missing properties

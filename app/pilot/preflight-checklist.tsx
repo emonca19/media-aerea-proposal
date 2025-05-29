@@ -4,17 +4,17 @@ import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Image,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  FlatList,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { mockActivities } from "../../src/mocks/activities";
 import { mockTurbines } from "../../src/mocks/turbines";
@@ -38,7 +38,6 @@ interface ChecklistItem {
 }
 
 const initialPreflightChecklist: ChecklistItem[] = [
-  // ... (initialPreflightChecklist data remains the same)
   { id: '1', category: 'Dron', item: 'Hélices en buen estado', checked: false },
   { id: '2', category: 'Dron', item: 'Baterías cargadas', checked: false },
   { id: '3', category: 'Dron', item: 'Cámara funcionando', checked: false },
@@ -57,11 +56,11 @@ const categoryIcons: Record<Category, MaterialCommunityIconName> = {
   'Condiciones': 'weather-partly-cloudy',
 };
 
-const COLORS = { /* ... (COLORS object remains the same) ... */
+const COLORS = {
   background: '#f8fafc',
   cardBackground: '#ffffff',
-  primary: '#2563eb',
-  primaryLight: '#eff6ff',
+  primary: '#aa74f0',
+  primaryLight: '#f3e8ff',
   textPrimary: '#1e293b',
   textSecondary: '#64748b',
   textMuted: '#94a3b8',
@@ -167,8 +166,19 @@ const PreflightChecklistScreen = () => {
     // Reset general notes
     setGeneralNotes('');
   }, [turbineIdFromRoute]);
-
   const handleToggleItem = (id: string) => {
+    const item = preflightChecklist.find(item => item.id === id);
+    
+    // If item requires photo (Seguridad category) and doesn't have one, don't allow checking
+    if (item && item.category === CATEGORY_REQUIRING_ITEM_PHOTOS && !item.photoUri && !item.checked) {
+      Alert.alert(
+        'Foto requerida',
+        'Debes tomar una foto de este elemento antes de marcarlo como completado.',
+        [{ text: 'Entendido' }]
+      );
+      return;
+    }
+    
     setPreflightChecklist(prev =>
       prev.map(item =>
         item.id === id ? { ...item, checked: !item.checked } : item
