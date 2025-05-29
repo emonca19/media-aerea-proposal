@@ -4,6 +4,7 @@ import { Stack, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Dimensions,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,6 +20,17 @@ import { mockPilotStats } from "../../../src/mocks/pilots";
 import { mockProjectReports } from "../../../src/mocks/reports";
 
 /* const { width } = Dimensions.get("window"); */
+
+// Helper function to calculate responsive chart width
+const getChartWidth = () => {
+  const screenWidth = Dimensions.get("window").width;
+  if (Platform.OS === "web") {
+    // On web, use a more conservative approach but allow wider bars
+    return Math.min(screenWidth - 40, 450);
+  }
+  // On mobile, use almost full width for wider bars
+  return screenWidth - 40;
+};
 
 interface KPIData {
   projects: {
@@ -268,35 +280,53 @@ export default function AdminKPIDashboard() {
             <View style={styles.timeAnalyticsContainer}>
               <BarChart
                 data={{
-                  labels: ["Efectivo", "En Pausa"],
+                  labels: ["", ""], // Empty labels to hide text
                   datasets: [
                     {
                       data: [6, 2], // 6 hours effective, 2 hours pause
+                      colors: [
+                        () => "#3b82f6", // Blue for effective time
+                        () => "#ef4444", // Red for pause time
+                      ],
                     },
                   ],
                 }}
-                width={Dimensions.get("window").width - 70}
-                height={140}
+                width={getChartWidth()}
+                height={200}
                 yAxisLabel=""
-                chartConfig={{
+                yAxisSuffix="h"
+                yAxisInterval={1}                chartConfig={{
                   backgroundGradientFrom: "#ffffff",
                   backgroundGradientTo: "#ffffff",
                   color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
                   strokeWidth: 2,
-                  barPercentage: 0.6,
+                  barPercentage: 1.2,
                   useShadowColorFromDataset: false,
                   decimalPlaces: 0,
-                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                  style: { borderRadius: 16 },
+                  labelColor: () => "#374151",
+                  style: { 
+                    borderRadius: 16,
+                    paddingLeft: 0,
+                    paddingRight: 0,
+                  },
                   propsForBackgroundLines: {
-                    strokeDasharray: "", // Solid lines
+                    strokeDasharray: "",
                     stroke: "#e5e7eb",
                     strokeWidth: 1,
                   },
+                  fillShadowGradient: "#3b82f6",
+                  fillShadowGradientOpacity: 1,
                 }}
-                style={{ borderRadius: 16 }}
-                yAxisSuffix="h"
-                fromZero
+                style={{ 
+                  borderRadius: 16,
+                  marginVertical: 0,
+                  marginBottom: 8,
+                }}
+                fromZero={true}
+                showValuesOnTopOfBars={false}
+                withInnerLines={true}
+                withHorizontalLabels={true}
+                withVerticalLabels={false}
               />
               <View style={styles.timeMetricsRow}>
                 <View style={styles.timeMetricItem}>
@@ -355,9 +385,8 @@ export default function AdminKPIDashboard() {
                     color: "#8b5cf6",
                     legendFontColor: "#374151",
                     legendFontSize: 12,
-                  },
-                ]}
-                width={Dimensions.get("window").width - 70}
+                  },                ]}
+                width={getChartWidth()}
                 height={160}
                 chartConfig={{
                   backgroundGradientFrom: "#ffffff",
@@ -931,10 +960,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     width: "100%",
     gap: 16,
-  },
-  timeAnalyticsContainer: {
+  },  timeAnalyticsContainer: {
     alignItems: "center",
     width: "100%",
+    minHeight: 200,
+    paddingHorizontal: Platform.OS === "web" ? 10 : 5,
   },
   timeMetricsRow: {
     flexDirection: "row",

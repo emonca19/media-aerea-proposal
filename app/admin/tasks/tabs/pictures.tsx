@@ -807,35 +807,40 @@ export default function PicturesReviewScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setRejectionModalVisible(false)}
       >
-        <View style={styles.rejectionModalOverlay}>
-          <View style={styles.rejectionModalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Motivo de Rechazo</Text>
-              <TouchableOpacity
-                onPress={() => setRejectionModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
+        <View style={styles.rejectionModalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Motivo de Rechazo</Text>
+            <TouchableOpacity
+              onPress={() => setRejectionModalVisible(false)}
+              style={styles.closeButton}
+            >
+              <Ionicons name="close" size={24} color="#6b7280" />
+            </TouchableOpacity>
+          </View>
 
-            <View style={styles.modalContent}>
-              <Text style={styles.rejectionInstructions}>
-                Especifique el motivo del rechazo. Esta información será enviada
-                al piloto.
-              </Text>
-              <TextInput
-                style={styles.rejectionInput}
-                placeholder="Ejemplo: Faltan fotos de las palas en turbina T-04, algunas imágenes están desenfocadas..."
-                value={rejectionReason}
-                onChangeText={setRejectionReason}
-                multiline
-                numberOfLines={6}
-                textAlignVertical="top"
-              />
-            </View>
-
-            <View style={styles.modalActions}>
+          <ScrollView 
+            style={styles.modalContent}
+            contentContainerStyle={styles.scrollableContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.rejectionInstructions}>
+              Especifique el motivo del rechazo. Esta información será enviada
+              al piloto.
+            </Text>
+            <TextInput
+              style={styles.rejectionInput}
+              placeholder="Ejemplo: Faltan fotos de las palas en turbina T-04, algunas imágenes están desenfocadas..."
+              value={rejectionReason}
+              onChangeText={setRejectionReason}
+              multiline
+              numberOfLines={6}
+              textAlignVertical="top"
+              blurOnSubmit={false}
+            />
+            
+            {/* Action buttons moved inside ScrollView for keyboard accessibility */}
+            <View style={styles.modalActionsInScroll}>
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={() => {
@@ -856,7 +861,7 @@ export default function PicturesReviewScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -1268,25 +1273,21 @@ const styles = StyleSheet.create({
   confirmRejectButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#fff",
-    marginLeft: 6,
-  },
-  // Rejection modal specific styles (bottom sheet)
-  rejectionModalOverlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    color: "#fff",    marginLeft: 6,
   },
   rejectionModalContainer: {
+    flex: 1,
     backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "85%",
-    minHeight: 400,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 5,
+    paddingTop: 20,
+  },
+  scrollableContent: {
+    flexGrow: 1,
+    paddingBottom: 40,
+  },
+  modalActionsInScroll: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    paddingTop: 30,
+    gap: 12,
   },
 });
