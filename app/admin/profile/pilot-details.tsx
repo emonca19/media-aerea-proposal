@@ -37,14 +37,44 @@ const periodData = {
     totalFlightHours: 22,
     averageEfficiency: 91,
     topPilots: [
-      { id: 1, name: "Carlos Mendoza", active: true, stats: { totalFlightMinutes: 320, dailyCompletionRatePercentage: 97 } },
-      { id: 2, name: "Ana García", active: true, stats: { totalFlightMinutes: 280, dailyCompletionRatePercentage: 94 } },
-      { id: 3, name: "Luis Rodríguez", active: false, stats: { totalFlightMinutes: 150, dailyCompletionRatePercentage: 89 } },
+      {
+        id: 1,
+        name: "Carlos Mendoza",
+        active: true,
+        stats: { totalFlightMinutes: 320, dailyCompletionRatePercentage: 97 },
+      },
+      {
+        id: 2,
+        name: "Ana García",
+        active: true,
+        stats: { totalFlightMinutes: 280, dailyCompletionRatePercentage: 94 },
+      },
+      {
+        id: 3,
+        name: "Luis Rodríguez",
+        active: false,
+        stats: { totalFlightMinutes: 150, dailyCompletionRatePercentage: 89 },
+      },
     ],
     recentActivities: [
-      { pilot: "Carlos Mendoza", activity: "Vuelo completado", time: "2 horas", efficiency: 97 },
-      { pilot: "Ana García", activity: "Inspección turbina", time: "1.5 horas", efficiency: 94 },
-      { pilot: "Luis Rodríguez", activity: "Mantenimiento preventivo", time: "1 hora", efficiency: 89 },
+      {
+        pilot: "Carlos Mendoza",
+        activity: "Vuelo completado",
+        time: "2 horas",
+        efficiency: 97,
+      },
+      {
+        pilot: "Ana García",
+        activity: "Inspección turbina",
+        time: "1.5 horas",
+        efficiency: 94,
+      },
+      {
+        pilot: "Luis Rodríguez",
+        activity: "Mantenimiento preventivo",
+        time: "1 hora",
+        efficiency: 89,
+      },
     ],
   },
   month: {
@@ -53,17 +83,62 @@ const periodData = {
     totalFlightHours: 95,
     averageEfficiency: 89,
     topPilots: [
-      { id: 1, name: "Carlos Mendoza", active: true, stats: { totalFlightMinutes: 1200, dailyCompletionRatePercentage: 95 } },
-      { id: 2, name: "Ana García", active: true, stats: { totalFlightMinutes: 1100, dailyCompletionRatePercentage: 92 } },
-      { id: 3, name: "María López", active: true, stats: { totalFlightMinutes: 900, dailyCompletionRatePercentage: 90 } },
-      { id: 4, name: "Jorge Silva", active: false, stats: { totalFlightMinutes: 700, dailyCompletionRatePercentage: 87 } },
+      {
+        id: 1,
+        name: "Carlos Mendoza",
+        active: true,
+        stats: { totalFlightMinutes: 1200, dailyCompletionRatePercentage: 95 },
+      },
+      {
+        id: 2,
+        name: "Ana García",
+        active: true,
+        stats: { totalFlightMinutes: 1100, dailyCompletionRatePercentage: 92 },
+      },
+      {
+        id: 3,
+        name: "María López",
+        active: true,
+        stats: { totalFlightMinutes: 900, dailyCompletionRatePercentage: 90 },
+      },
+      {
+        id: 4,
+        name: "Jorge Silva",
+        active: false,
+        stats: { totalFlightMinutes: 700, dailyCompletionRatePercentage: 87 },
+      },
     ],
     recentActivities: [
-      { pilot: "Carlos Mendoza", activity: "Vuelo completado", time: "2 horas", efficiency: 95 },
-      { pilot: "Ana García", activity: "Inspección turbina", time: "1.5 horas", efficiency: 92 },
-      { pilot: "Luis Rodríguez", activity: "Mantenimiento preventivo", time: "3 horas", efficiency: 88 },
-      { pilot: "María López", activity: "Vuelo de práctica", time: "1 hora", efficiency: 90 },
-      { pilot: "Jorge Silva", activity: "Misión de rescate", time: "4 horas", efficiency: 87 },
+      {
+        pilot: "Carlos Mendoza",
+        activity: "Vuelo completado",
+        time: "2 horas",
+        efficiency: 95,
+      },
+      {
+        pilot: "Ana García",
+        activity: "Inspección turbina",
+        time: "1.5 horas",
+        efficiency: 92,
+      },
+      {
+        pilot: "Luis Rodríguez",
+        activity: "Mantenimiento preventivo",
+        time: "3 horas",
+        efficiency: 88,
+      },
+      {
+        pilot: "María López",
+        activity: "Vuelo de práctica",
+        time: "1 hora",
+        efficiency: 90,
+      },
+      {
+        pilot: "Jorge Silva",
+        activity: "Misión de rescate",
+        time: "4 horas",
+        efficiency: 87,
+      },
     ],
   },
   year: {
@@ -72,25 +147,77 @@ const periodData = {
     totalFlightHours: 1200,
     averageEfficiency: 87,
     topPilots: [
-      { id: 1, name: "Carlos Mendoza", active: true, stats: { totalFlightMinutes: 8000, dailyCompletionRatePercentage: 92 } },
-      { id: 2, name: "Ana García", active: true, stats: { totalFlightMinutes: 7800, dailyCompletionRatePercentage: 90 } },
-      { id: 3, name: "Luis Rodríguez", active: true, stats: { totalFlightMinutes: 7000, dailyCompletionRatePercentage: 88 } },
-      { id: 4, name: "María López", active: true, stats: { totalFlightMinutes: 6500, dailyCompletionRatePercentage: 87 } },
-      { id: 5, name: "Jorge Silva", active: false, stats: { totalFlightMinutes: 6000, dailyCompletionRatePercentage: 85 } },
+      {
+        id: 1,
+        name: "Carlos Mendoza",
+        active: true,
+        stats: { totalFlightMinutes: 8000, dailyCompletionRatePercentage: 92 },
+      },
+      {
+        id: 2,
+        name: "Ana García",
+        active: true,
+        stats: { totalFlightMinutes: 7800, dailyCompletionRatePercentage: 90 },
+      },
+      {
+        id: 3,
+        name: "Luis Rodríguez",
+        active: true,
+        stats: { totalFlightMinutes: 7000, dailyCompletionRatePercentage: 88 },
+      },
+      {
+        id: 4,
+        name: "María López",
+        active: true,
+        stats: { totalFlightMinutes: 6500, dailyCompletionRatePercentage: 87 },
+      },
+      {
+        id: 5,
+        name: "Jorge Silva",
+        active: false,
+        stats: { totalFlightMinutes: 6000, dailyCompletionRatePercentage: 85 },
+      },
     ],
     recentActivities: [
-      { pilot: "Carlos Mendoza", activity: "Vuelo internacional", time: "5 horas", efficiency: 92 },
-      { pilot: "Ana García", activity: "Inspección anual", time: "3 horas", efficiency: 90 },
-      { pilot: "Luis Rodríguez", activity: "Mantenimiento mayor", time: "6 horas", efficiency: 88 },
-      { pilot: "María López", activity: "Vuelo de práctica", time: "2 horas", efficiency: 87 },
-      { pilot: "Jorge Silva", activity: "Misión de rescate", time: "8 horas", efficiency: 85 },
+      {
+        pilot: "Carlos Mendoza",
+        activity: "Vuelo internacional",
+        time: "5 horas",
+        efficiency: 92,
+      },
+      {
+        pilot: "Ana García",
+        activity: "Inspección anual",
+        time: "3 horas",
+        efficiency: 90,
+      },
+      {
+        pilot: "Luis Rodríguez",
+        activity: "Mantenimiento mayor",
+        time: "6 horas",
+        efficiency: 88,
+      },
+      {
+        pilot: "María López",
+        activity: "Vuelo de práctica",
+        time: "2 horas",
+        efficiency: 87,
+      },
+      {
+        pilot: "Jorge Silva",
+        activity: "Misión de rescate",
+        time: "8 horas",
+        efficiency: 85,
+      },
     ],
   },
 };
 
 const PilotDetailsScreen = () => {
   const router = useRouter();
-  const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month" | "year">("month");
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    "week" | "month" | "year"
+  >("month");
 
   // Use periodData for the selected period
   const pilotStats = periodData[selectedPeriod];
@@ -116,27 +243,70 @@ const PilotDetailsScreen = () => {
 
   // Filter recent activities by period (assuming a mock 'date' field, else include all)
   const filteredActivities = [
-    { pilot: "Carlos Mendoza", activity: "Vuelo completado", time: "2 horas", efficiency: 95, date: "2025-05-26" },
-    { pilot: "Ana García", activity: "Inspección turbina", time: "1.5 horas", efficiency: 92, date: "2025-05-25" },
-    { pilot: "Luis Rodríguez", activity: "Mantenimiento preventivo", time: "3 horas", efficiency: 88, date: "2025-05-20" },
-    { pilot: "María López", activity: "Vuelo de práctica", time: "1 hora", efficiency: 90, date: "2025-04-30" },
-    { pilot: "Jorge Silva", activity: "Misión de rescate", time: "4 horas", efficiency: 97, date: "2024-12-15" },
+    {
+      pilot: "Carlos Mendoza",
+      activity: "Vuelo completado",
+      time: "2 horas",
+      efficiency: 95,
+      date: "2025-05-26",
+    },
+    {
+      pilot: "Ana García",
+      activity: "Inspección turbina",
+      time: "1.5 horas",
+      efficiency: 92,
+      date: "2025-05-25",
+    },
+    {
+      pilot: "Luis Rodríguez",
+      activity: "Mantenimiento preventivo",
+      time: "3 horas",
+      efficiency: 88,
+      date: "2025-05-20",
+    },
+    {
+      pilot: "María López",
+      activity: "Vuelo de práctica",
+      time: "1 hora",
+      efficiency: 90,
+      date: "2025-04-30",
+    },
+    {
+      pilot: "Jorge Silva",
+      activity: "Misión de rescate",
+      time: "4 horas",
+      efficiency: 97,
+      date: "2024-12-15",
+    },
   ].filter((a) => inPeriod(a.date));
 
   const StatCard = ({ title, value, icon, color, trend }: any) => (
-    <Animated.View entering={FadeInDown.delay(100)} style={[styles.statCard, { borderLeftColor: color }]}>
+    <Animated.View
+      entering={FadeInDown.delay(100)}
+      style={[styles.statCard, { borderLeftColor: color }]}
+    >
       <View style={styles.statCardHeader}>
         <View style={[styles.statIcon, { backgroundColor: `${color}20` }]}>
           <Ionicons name={icon} size={24} color={color} />
         </View>
         {trend && (
-          <View style={[styles.trendBadge, { backgroundColor: trend > 0 ? "#10B98120" : "#EF444420" }]}>
-            <Ionicons 
-              name={trend > 0 ? "trending-up" : "trending-down"} 
-              size={16} 
-              color={trend > 0 ? "#10B981" : "#EF4444"} 
+          <View
+            style={[
+              styles.trendBadge,
+              { backgroundColor: trend > 0 ? "#10B98120" : "#EF444420" },
+            ]}
+          >
+            <Ionicons
+              name={trend > 0 ? "trending-up" : "trending-down"}
+              size={16}
+              color={trend > 0 ? "#10B981" : "#EF4444"}
             />
-            <Text style={[styles.trendText, { color: trend > 0 ? "#10B981" : "#EF4444" }]}>
+            <Text
+              style={[
+                styles.trendText,
+                { color: trend > 0 ? "#10B981" : "#EF4444" },
+              ]}
+            >
               {Math.abs(trend)}%
             </Text>
           </View>
@@ -147,57 +317,85 @@ const PilotDetailsScreen = () => {
     </Animated.View>
   );
 
-  const PilotCard = ({ pilot, rank }: { pilot: any, rank: number }) => (
-    <Animated.View entering={FadeInDown.delay(200 + rank * 50)} style={styles.pilotCard}>
+  const PilotCard = ({ pilot, rank }: { pilot: any; rank: number }) => (
+    <Animated.View
+      entering={FadeInDown.delay(200 + rank * 50)}
+      style={styles.pilotCard}
+    >
       <View style={styles.pilotRank}>
         <Text style={styles.rankNumber}>#{rank}</Text>
       </View>
-      <View style={styles.pilotInfo}><Text style={styles.pilotName}>{pilot.name}</Text>
+      <View style={styles.pilotInfo}>
+        <Text style={styles.pilotName}>{pilot.name}</Text>
         <Text style={styles.pilotDetails}>
-          {Math.round((pilot.stats?.totalFlightMinutes || 0) / 60)}h vuelo • {pilot.stats?.dailyCompletionRatePercentage || 0}% eficiencia
+          {Math.round((pilot.stats?.totalFlightMinutes || 0) / 60)}h vuelo •{" "}
+          {pilot.stats?.dailyCompletionRatePercentage || 0}% eficiencia
         </Text>
         <View style={styles.pilotStatus}>
-          <View style={[styles.statusDot, { backgroundColor: pilot.active ? "#10B981" : "#EF4444" }]} />
-          <Text style={styles.statusText}>{pilot.active ? "Activo" : "Inactivo"}</Text>
+          <View
+            style={[
+              styles.statusDot,
+              { backgroundColor: pilot.active ? "#10B981" : "#EF4444" },
+            ]}
+          />
+          <Text style={styles.statusText}>
+            {pilot.active ? "Activo" : "Inactivo"}
+          </Text>
         </View>
       </View>
       <View style={styles.efficiencyScore}>
-        <Text style={styles.efficiencyValue}>{pilot.stats?.dailyCompletionRatePercentage || 0}%</Text>
+        <Text style={styles.efficiencyValue}>
+          {pilot.stats?.dailyCompletionRatePercentage || 0}%
+        </Text>
       </View>
     </Animated.View>
-  );  return (
+  );
+  return (
     <View style={styles.container}>
-      <Stack.Screen 
-        options={{ 
+      <Stack.Screen
+        options={{
           title: "Estadísticas de Pilotos",
-          headerLeft: () => (            <TouchableOpacity 
-              onPress={() => router.push('/admin/profile/kpisdashboard')}
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.push("/admin/profile/kpisdashboard")}
               style={styles.backButton}
             >
               <Ionicons name="chevron-back" size={24} color="#9C46CE" />
               <Text style={styles.backButtonText}>Atrás</Text>
             </TouchableOpacity>
           ),
-        }} 
+        }}
       />
 
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Period Selection */}
-        <Animated.View entering={FadeInDown.delay(50)} style={styles.periodSelector}>
+        <Animated.View
+          entering={FadeInDown.delay(50)}
+          style={styles.periodSelector}
+        >
           {(["week", "month", "year"] as const).map((period) => (
             <TouchableOpacity
               key={period}
               style={[
                 styles.periodButton,
-                selectedPeriod === period && styles.periodButtonActive
+                selectedPeriod === period && styles.periodButtonActive,
               ]}
               onPress={() => setSelectedPeriod(period)}
             >
-              <Text style={[
-                styles.periodButtonText,
-                selectedPeriod === period && styles.periodButtonTextActive
-              ]}>
-                {period === "week" ? "Semana" : period === "month" ? "Mes" : "Año"}
+              <Text
+                style={[
+                  styles.periodButtonText,
+                  selectedPeriod === period && styles.periodButtonTextActive,
+                ]}
+              >
+                {period === "week"
+                  ? "Semana"
+                  : period === "month"
+                  ? "Mes"
+                  : "Año"}
               </Text>
             </TouchableOpacity>
           ))}
@@ -238,8 +436,10 @@ const PilotDetailsScreen = () => {
         {/* Top Performing Pilots */}
         <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
           <Text style={styles.sectionTitle}>Top Pilotos</Text>
-          <Text style={styles.sectionSubtitle}>Clasificados por eficiencia</Text>
-            <View style={styles.pilotsContainer}>
+          <Text style={styles.sectionSubtitle}>
+            Clasificados por eficiencia
+          </Text>
+          <View style={styles.pilotsContainer}>
             {pilotStats.topPilots.map((pilot: any, index: number) => (
               <PilotCard key={pilot.id} pilot={pilot} rank={index + 1} />
             ))}
@@ -249,13 +449,15 @@ const PilotDetailsScreen = () => {
         {/* Recent Activities */}
         <Animated.View entering={FadeInDown.delay(400)} style={styles.section}>
           <Text style={styles.sectionTitle}>Actividades Recientes</Text>
-          <Text style={styles.sectionSubtitle}>Últimas actividades de pilotos</Text>
-          
+          <Text style={styles.sectionSubtitle}>
+            Últimas actividades de pilotos
+          </Text>
+
           <View style={styles.activitiesContainer}>
             {pilotStats.recentActivities.map((activity, index) => (
-              <Animated.View 
-                key={index} 
-                entering={FadeInDown.delay(450 + index * 50)} 
+              <Animated.View
+                key={index}
+                entering={FadeInDown.delay(450 + index * 50)}
                 style={styles.activityCard}
               >
                 <View style={styles.activityIcon}>
@@ -263,16 +465,21 @@ const PilotDetailsScreen = () => {
                 </View>
                 <View style={styles.activityInfo}>
                   <Text style={styles.activityPilot}>{activity.pilot}</Text>
-                  <Text style={styles.activityDescription}>{activity.activity}</Text>
+                  <Text style={styles.activityDescription}>
+                    {activity.activity}
+                  </Text>
                   <Text style={styles.activityTime}>{activity.time}</Text>
                 </View>
                 <View style={styles.activityEfficiency}>
-                  <Text style={styles.activityEfficiencyValue}>{activity.efficiency}%</Text>
+                  <Text style={styles.activityEfficiencyValue}>
+                    {activity.efficiency}%
+                  </Text>
                 </View>
               </Animated.View>
             ))}
           </View>
-        </Animated.View></ScrollView>
+        </Animated.View>
+      </ScrollView>
       {/* Floating Dashboard Button */}
       {/* Removed as per user request */}
     </View>
@@ -298,7 +505,9 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    paddingTop: 5,
   },
   periodSelector: {
     flexDirection: "row",

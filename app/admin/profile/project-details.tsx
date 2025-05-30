@@ -424,7 +424,9 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    paddingTop: 5,
   },
   periodSelector: {
     flexDirection: "row",

@@ -980,7 +980,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: currentTheme.dimensions.spacing.md,
-    paddingTop: 12, // Consistent top padding
     paddingBottom: currentTheme.dimensions.spacing.md,
     marginHorizontal: currentTheme.dimensions.spacing.md,
     backgroundColor: currentTheme.card,
